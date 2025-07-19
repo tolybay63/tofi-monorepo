@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <app
+            title="TofiNsi"
+            mainmodule="tofi.nsi"
+    />
+
+    <x-depends module="tofi.nsi"/>
+
+</root>
