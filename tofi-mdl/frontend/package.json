@@ -1,0 +1,35 @@
+{
+  "name": "frontend",
+  "version": "0.0.1",
+  "description": "TOFI Model & Quasar",
+  "productName": "TOFI Model",
+  "author": "Tolybay Kuanov <tolybay.zh@gmail.com>",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 0",
+    "dev": "quasar dev",
+    "build": "quasar build"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.17.0",
+    "axios": "^1.9.0",
+    "pinia": "^3.0.3",
+    "quasar": "^2.18.1",
+    "vue": "^3.5.16",
+    "vue-i18n": "^11.1.5",
+    "vue-router": "^4.5.1",
+    "vue3-treeselect": "^0.1.10"
+  },
+  "devDependencies": {
+    "@intlify/unplugin-vue-i18n": "^6.0.8",
+    "@quasar/app-vite": "^2.2.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.4"
+  },
+  "engines": {
+    "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dbm>
+        <model name="tofi.api.dta.model">
+            <include name="apx.base"/>
+            <include name="jandcode.core.dbm.genid"/>
+            <x-include path="model/index-model.cfx"/>
+
+            <dbsource name="default" dbdriver="postgresql"/>
+        </model>
+    </dbm>
+
+    <apinator>
+
+        <api name="userdata" invoker="model" model="userdata">
+            <item name="tofi.api.dta.ApiUserData"
+                  class="tofi.api.dta.impl.ApiUserDataImpl"/>
+        </api>
+
+        <api name="polldata" invoker="model" model="polldata">
+            <item name="tofi.api.dta.ApiPollData"
+                  class="tofi.api.dta.impl.ApiPollDataImpl"/>
+        </api>
+
+        <api name="kpidata" invoker="model" model="kpidata">
+            <item name="tofi.api.dta.ApiKPIData"
+                  class="tofi.api.dta.impl.ApiKPIDataImpl"/>
+        </api>
+
+        <api name="indicatordata" invoker="model" model="indicatordata">
+            <item name="tofi.api.dta.ApiIndicatorData"
+                  class="tofi.api.dta.impl.ApiIndicatorDataImpl"/>
+        </api>
+
+        <api name="nsidata" invoker="model" model="nsidata">
+            <item name="tofi.api.dta.ApiNSIData"
+                  class="tofi.api.dta.impl.ApiNSIDataImpl"/>
+        </api>
+
+        <api name="monitoringdata" invoker="model" model="monitoringdata">
+            <item name="tofi.api.dta.ApiMonitoringData"
+                  class="tofi.api.dta.impl.ApiMonitoringDataImpl"/>
+        </api>
+
+
+    </apinator>
+
+
+</root>
