@@ -1,0 +1,50 @@
+import jandcode.core.jc.AppRunBat
+import jandcode.core.web.jc.WebRootProject
+import jandcode.jc.ProjectScript
+import jandcode.jc.std.BuildProject
+import jandcode.jc.std.GitVersion
+import jandcode.jc.std.RootProject
+
+class P extends ProjectScript {
+
+    static beforeLoad = {
+        include("jc/apx-project")
+        load("../tofi-tbox")
+    }
+
+    String frontendDir = "frontend"
+    String frontendDirDist = "${frontendDir}/dist/spa" as String
+
+    void onInclude() {
+        //
+        project.name = "tofi-mdl"
+        project.version = include(GitVersion)
+        //
+        include(AppRunBat).with {
+            mainClass = "tofi.mdl.main.Main"
+        }
+        include(RootProject).with {
+            modules(
+                    "tofi-mdl",
+            )
+        }
+        //
+        include("lib/project.jc")
+        //
+        include(WebRootProject).with {
+            // подключаем каталог с собранным приложением frontend к проекту
+            // в виртуальную папку "app", т.е. все в каталоге frontend/dist/spa
+            // будет доступно в приложении по адресу http://HOST/app
+            addResourceWebroot(frontendDirDist, "")
+        }
+        // добавляем шаг в процесс сборки: собираем приложение fronend
+        include(BuildProject)
+        onEvent(BuildProject.Event_Build, this.&buildHandler)
+    }
+    void buildHandler() {
+        // сборка приложения frontend, в package.json должен быть
+        // скрипт "build": "quasar build"
+        ut.runcmd(cmd: "npm run build", dir: wd(frontendDir))
+    }
+
+}

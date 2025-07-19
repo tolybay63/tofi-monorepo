@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+<!--
+
+    <cfg>
+
+        <dbsource name="default"
+                  dbdriver="postgresql"  
+                  host="192.168.1.39"
+                  database="t_admin"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="meta"
+                  id="fish"
+                  dbdriver="postgresql"
+                  host="192.168.1.39"
+                  database="t_model"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+        <dbsource name="userdata"
+                  dbdriver="postgresql"  
+                  host="192.168.1.39"
+                  database="t_userdata"
+                  username="pg"
+                  password="1q2w3e4R"
+        />
+
+
+    </cfg>
+-->
+    
+</root>
