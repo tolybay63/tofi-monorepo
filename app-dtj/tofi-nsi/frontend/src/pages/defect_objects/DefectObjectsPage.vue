@@ -226,7 +226,7 @@ export default {
           field: "nameDefectsComponent",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:20%",
+          headerStyle: "font-size: 1.2em; width:10%",
         },
         {
           name: "DefectsIndex",
@@ -234,7 +234,7 @@ export default {
           field: "DefectsIndex",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:15%",
+          headerStyle: "font-size: 1.2em; width:10%",
         },
         {
           name: "fvDefectsCategory",
@@ -242,7 +242,7 @@ export default {
           field: "fvDefectsCategory",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:15",
+          headerStyle: "font-size: 1.2em; width:10",
           format: (v) => this.mapFvCategory ? this.mapFvCategory.get(v): null
         },
         {
@@ -251,7 +251,7 @@ export default {
           field: "DefectsNote",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:20%",
+          headerStyle: "font-size: 1.2em; width:40%",
         },
       ]
     },
