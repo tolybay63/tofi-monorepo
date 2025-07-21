@@ -16,7 +16,7 @@
 
         <!-- App Title -->
         <q-toolbar-title class="text-center">
-          DTJ Service - Object
+          DTJ Service - Plan
         </q-toolbar-title>
 
       </q-toolbar>
