@@ -6,11 +6,12 @@ style="height: calc(100vh - 220px); width: 100%"
     <q-splitter
       v-model="splitterModel"
       :model-value="splitterModel"
+      :limits="[60, 100]"
       horizontal
       separator-class="bg-red"
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
-      style="height: calc(100vh - 210px); width: 100%"
+
     >
       <template v-slot:before>
         <q-banner dense inline-actions class="bg-orange-1">
@@ -104,7 +105,7 @@ style="height: calc(100vh - 220px); width: 100%"
           {{ this.nodeInfo() }}
         </div>
 
-        <div class="scroll" style="height: 95%">
+        <div class="scroll" style="height: calc(100vh - 500px); width: 100%">
 
           <div class="q-pa-sm-sm q-table-container q-table--dense wrap bg-orange-1">
 
@@ -272,7 +273,7 @@ export default {
 
   data() {
     return {
-      splitterModel: ref(65),
+      splitterModel: 60,
 
       cols: [],
       rows: [],
