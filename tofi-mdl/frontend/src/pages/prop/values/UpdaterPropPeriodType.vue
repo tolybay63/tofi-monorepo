@@ -85,7 +85,7 @@ import {ref} from "vue";
 import {notifyError, notifyInfo} from "src/utils/jsutils";
 
 import {useUserStore} from "stores/user-store.js";
-import {storeToRefs} from "pinia/dist/pinia";
+import {storeToRefs} from "pinia";
 
 const store = useUserStore()
 const {getMetaModel} = storeToRefs(store)

@@ -19,25 +19,25 @@ export default {
     getColumns() {
       return [
         {
-          name: "name",
-          label: "Name",
-          field: "name",
+          name: "id",
+          label: "Id",
+          field: "id",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em; width:30%",
         },
         {
-          name: "fullName",
-          label: "Full name",
-          field: "fullName",
+          name: "name",
+          label: "Name",
+          field: "name",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 40%",
+          headerStyle: "font-size: 1.2em; width:40%",
         },
         {
-          name: "cmt",
-          label: "Comment",
-          field: "cmt",
+          name: "cls",
+          label: "Class",
+          field: "cls",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em; width: 30%",
@@ -49,7 +49,7 @@ export default {
       this.loading = true;
       api
         .post(baseURL, {
-          method: "data/loadObj",
+          method: "data/loadObjList",
           params: ["Cls_WorkCheckInspect", "nsidata"],
         })
         .then(

@@ -9,25 +9,17 @@ import axios from 'axios'
 // for each client)
 //const api = axios.create({ baseURL: 'https://api.example.com' })
 
-const appAdmURL = "http://192.168.1.20:9172"
-const appModelURL = "http://192.168.1.20:9173"
-const appDataUserURL = "http://192.168.1.20:9174"
-const appDataURL = "http://192.168.1.20:9175"
-const appCubeURL = "http://192.168.1.20:9176"
-const appNSIURL = "http://192.168.1.20:9177"
-
-
-//const appAdmURL = "http://localhost:9172"
-//const appModelURL = "http://localhost:9173"
-//const appDataUserURL = "http://localhost:9174"
-//const appDataURL = "http://localhost:9175"
-//const appNSIURL = "http://localhost:9176"
+const appAdmURL = process.env.VITE_PRUDUCT_ADM_URL
+const appModelURL = process.env.VITE_PRUDUCT_MODEL_URL
+const appDataUserURL = process.env.VITE_PRUDUCT_DATAUSER_URL
+const appDataURL = process.env.VITE_PRUDUCT_DATA_URL
+const appNSIURL = process.env.VITE_PRUDUCT_NSI_URL
+const appCubeURL = process.env.VITE_PRUDUCT_CUBE_URL
 
 
 let url = "http://localhost:8080"
-if (process.env.NODE_ENV === 'production') {
-  url = "http://192.168.1.20:9171"
-//  url = "http://localhost:9171"
+if (import.meta.env.PROD) {
+  url = process.env.VITE_PRODUCT_URL
 }
 
 const baseURL = url + "/api"

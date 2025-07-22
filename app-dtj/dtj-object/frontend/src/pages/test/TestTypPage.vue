@@ -19,25 +19,26 @@ export default {
     getColumns() {
       return [
         {
+          name: "id",
+          label: "Id",
+          field: "id",
+          align: "left",
+          classes: "bg-blue-grey-1",
+          headerStyle: "font-size: 1.2em; width:30%",
+        },
+
+        {
           name: "name",
           label: "Name",
           field: "name",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:30%",
+          headerStyle: "font-size: 1.2em; width:40%",
         },
         {
-          name: "fullName",
-          label: "Full name",
-          field: "fullName",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 40%",
-        },
-        {
-          name: "cmt",
-          label: "Comment",
-          field: "cmt",
+          name: "pv",
+          label: "PropVal",
+          field: "pv",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em; width: 30%",
@@ -49,8 +50,8 @@ export default {
       this.loading = true;
       api
         .post(baseURL, {
-          method: "data/loadTyp",
-          params: [],
+          method: "data/loadFactorValForSelect",
+          params: ["Factor_Defects"],
         })
         .then(
           (response) => {

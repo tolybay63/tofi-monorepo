@@ -9,9 +9,9 @@ import { fileURLToPath } from 'node:url';
 
 let url = "http://localhost:8080"
 if (process.env.NODE_ENV === 'production') {
-  url = "http://192.168.1.20:9171"
-//  url = "http://localhost:9171"
+  url = process.env.VITE_PRODUCT_URL
 }
+
 
 export default configure((ctx) => {
   return {
