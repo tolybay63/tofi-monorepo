@@ -52,6 +52,23 @@
                 </div>
               </div>
             </q-btn>
+
+          <!-- cube -->
+          <q-btn
+            rounded
+            class="bg-blue text-white text-bold q-ma-md"
+            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
+            @click="fnCube()"
+          >
+            <div class="column">
+              <div>
+                <q-avatar icon="view_in_ar" color="orange"></q-avatar>
+                {{ $t("appCubesName") }}
+              </div>
+            </div>
+          </q-btn>
+
+
         </div>
 
         <div class="row q-ma-md justify-center">
@@ -99,7 +116,7 @@ import {
   appAdmURL,
   appModelURL,
   appDataUserURL,
-  appDataURL, appNSIURL
+  appDataURL, appNSIURL, appCubeURL
 } from "boot/axios";
 
 export default defineComponent({
@@ -124,6 +141,10 @@ export default defineComponent({
 
     fnNSI() {
       open(appNSIURL, "_self");
+    },
+
+    fnCube() {
+      open(appCubeURL, "_self");
     },
 
 

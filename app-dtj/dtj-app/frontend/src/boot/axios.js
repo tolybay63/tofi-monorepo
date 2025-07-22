@@ -13,7 +13,8 @@ const appAdmURL = "http://192.168.1.20:9172"
 const appModelURL = "http://192.168.1.20:9173"
 const appDataUserURL = "http://192.168.1.20:9174"
 const appDataURL = "http://192.168.1.20:9175"
-const appNSIURL = "http://192.168.1.20:9176"
+const appCubeURL = "http://192.168.1.20:9176"
+const appNSIURL = "http://192.168.1.20:9177"
 
 
 //const appAdmURL = "http://localhost:9172"
@@ -45,4 +46,4 @@ export default boot(({ app }) => {
   //       so you can easily perform requests against your app's API
 })
 
-export { api, baseURL, appAdmURL, appModelURL, appDataUserURL, appDataURL, appNSIURL }
+export { api, baseURL, appAdmURL, appModelURL, appDataUserURL, appDataURL, appNSIURL, appCubeURL }
