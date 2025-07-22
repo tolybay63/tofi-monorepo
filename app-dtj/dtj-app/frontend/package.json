@@ -1,0 +1,34 @@
+{
+  "name": "frontend",
+  "version": "0.0.1",
+  "description": "TOFI App & Quasar Project",
+  "productName": "DTJ App",
+  "author": "Tolybay Kuanov <tolybay.zh@gmail.com>",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 0",
+    "dev": "quasar dev",
+    "build": "quasar build"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.4",
+    "axios": "1.7.4",
+    "pinia": "^2.0.11",
+    "quasar": "^2.17.7",
+    "vue": "^3.4.18",
+    "vue-i18n": "10.0.5",
+    "vue-router": "^4.0.12"
+  },
+  "devDependencies": {
+    "@intlify/unplugin-vue-i18n": "^2.0.0",
+    "@quasar/app-vite": "^2.1.1",
+    "autoprefixer": "^10.4.2",
+    "postcss": "^8.4.14"
+  },
+  "engines": {
+    "node": "^20 || ^18 || ^16",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <web>
+        <mount-module/>
+
+        <action name="root"
+                class = "dtj.app.main.action.RootAction"
+        />
+
+    </web>
+
+    <dbm>
+
+        <model name="dtj.app.model">
+            <include name="apx.base"/>
+            <x-include path="model/index-model.cfx"/>
+
+            <dbsource name="default"
+                      dbdriver="postgresql"
+            />
+        </model>
+
+        <!-- =================== -->
+
+        <model name="default" instance="dtj.app.model"/>
+
+    </dbm>
+
+</root>
