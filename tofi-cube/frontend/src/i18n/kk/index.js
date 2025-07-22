@@ -1,0 +1,86 @@
+// This is just an example,
+// so you can safely delete all default props below
+// noinspection AllyPlainJsInspection
+//todo Анализировать!!!
+
+export default {
+  lang: "kk",
+  appName: "ТНФӨ платформасы",
+  appCubeName: "Кубтармен жұмыс",
+  company: 'ЖШС "Фактор" жүйелі зерттеулер компаниясы"',
+  menu: "Мәзір",
+  chooseLanguage: "Тіл таңдау",
+  mainPage: "Басты бет",
+  logIn: "Кіру",
+  logOut: "Шығу",
+  browserDenied: "Браузер файлды жүктеп алудан бас тартты...",
+  passwd: "Құпия сөз",
+  login: "Логин",
+  locked: "Бұғатталған",
+  forgotPsw: "Құпия сөзіңізді ұмыттыңыз ба?",
+
+  notLogined: "Жүйеге кіру қажет",
+  notAccess: "Сізде кіру құқығы жоқ",
+
+  networkError: "Желі қатесі",
+  loginExists: "Бұл логині бар пайдаланушы бұрыннан бар",
+  invalidLoginPasswd: "Пайдаланушы аты немесе құпия сөз дұрыс емес",
+  invalidOldPasswd: "Ескі құпия сөз қате",
+  usrName: "Аты",
+  usrFullName: "Толық аты",
+
+  lstApp: "Қолданбалар тізімі",
+  lstCube: "Кубтар тізімі",
+  cubes: "Кубтар",
+  fldDbeg: "Өмір аралығының басталуы",
+  fldDend: "Өмір аралығының аяқталуы",
+  fldDbegShort: "Басталуы",
+  fldDendShort: "Аяқталуы",
+  select: "Таңдау...",
+
+  cancel: "Болдырмау",
+  canceled: "Әрекеттен бас тартылды",
+  close: "Жабу",
+  selectedRow: "Таңдалған жол",
+  infoRow: "Өзгерту немесе жою үшін сәйкес жолды таңдаңыз",
+  infoViewRow: "Көру үшін сәйкес жолды таңдаңыз",
+  expandAll: "Барлығын кеңейту",
+  collapseAll: "Барлығын жию",
+  expand: "Кеңейту",
+  collapse: "Жию",
+  code: "Код",
+  fldName: "Атауы",
+  fldFullName: "Толық атауы",
+  fldCmt: "Пікір",
+  fldCmtShort: "Пікір",
+  accessLevel: "Қол жеткізу деңгейі",
+
+  msgCodeGen: "Бос болса жасалады",
+  hasValue: "Мәндері бар...",
+  NotFoundCod: "Код табылмады",
+
+  yes: "Иә",
+  no: "Жоқ",
+  refresh: "Жаңарту",
+  failed: "Сәтсіз аяқталды",
+  success: "Жетiстiк",
+
+  status: "Күй",
+  action_type: "Әрекет түрі",
+  dtBegStr: "Әрекеттің басталу күні мен уақыты",
+  dtEndStr: "Әрекеттің аяқталу күні мен уақыты",
+  tm: "Орындалу уақыты",
+  countProCubeOwn: "Объектілер прокубының ұяшықтарының саны",
+  countProCubeProp: "Қасиеттер прокубының ұяшықтарының саны",
+  countProCubePeriod: "Периодтар өлшемінің ұяшықтар саны",
+  countCells: "Куб ұяшықтарының саны",
+  countDataCells: "Толтырылған куб ұяшықтарының саны",
+  isComplete: "Аяқталу күйі",
+  errorMessage: "Хабарлама",
+
+  formCube: "Кубты қалыптастыру",
+
+  nothing_here: "Ойбай. Мұнда ештеңе жоқ...",
+  home: "Үйге",
+
+};
