@@ -55,7 +55,7 @@
         <q-select
           v-model="form.fvOt"
           :model-value="form.fvOt"
-          :label="fmReqLabel('Prop_Ot')"
+          :label="fmReqLabel('Typ_ObjectTyp')"
           :options="optFvOt"
           dense options-dense map-options
           option-label="name" option-value="id"

@@ -117,7 +117,7 @@ export default {
   Prop_NumberSource: "№ в источнике",
   Prop_Periodicity: "Перодичность",
   Prop_NumberOt: "№ объекта",
-  Prop_Ot: "Точка/Линия",
+  Typ_ObjectTyp: "Точка/Линия",
 
   Prop_DocumentNumber: "Номер документа",
   Prop_DocumentApprovalDate: "Дата утверждения документа",

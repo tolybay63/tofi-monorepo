@@ -114,7 +114,7 @@ export default {
   Prop_NumberSource: "№ in source",
   Prop_Periodicity: "Periodicity",
   Prop_NumberOt: "Object No",
-  Prop_Ot: "Point/Line",
+  Typ_ObjectTyp: "Point/Line",
 
   Prop_DocumentNumber: "Document number",
   Prop_DocumentApprovalDate: "Document approval date",

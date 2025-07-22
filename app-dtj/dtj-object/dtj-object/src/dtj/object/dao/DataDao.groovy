@@ -19,14 +19,15 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
+
+
+
 
     @DaoMethod
     Store loadTyp() {
@@ -65,6 +66,9 @@ class DataDao extends BaseMdbUtils {
             return apiUserData().get(ApiUserData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("nsidata"))
             return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("objectdata"))
+            return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
+
         else
             throw new XError("Unknown model [${model}]")
     }

@@ -450,7 +450,7 @@ export default {
         },
         {
           name: "fvOt",
-          label: this.$t("Prop_Ot"),
+          label: this.$t("Typ_ObjectTyp"),
           field: "fvOt",
           align: "left",
           classes: "bg-blue-grey-1",

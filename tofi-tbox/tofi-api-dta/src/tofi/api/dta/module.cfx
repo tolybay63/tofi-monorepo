@@ -43,6 +43,10 @@
                   class="tofi.api.dta.impl.ApiMonitoringDataImpl"/>
         </api>
 
+        <api name="objectdata" invoker="model" model="objectdata">
+            <item name="tofi.api.dta.ApiObjectData"
+                  class="tofi.api.dta.impl.ApiObjectDataImpl"/>
+        </api>
 
     </apinator>
 
