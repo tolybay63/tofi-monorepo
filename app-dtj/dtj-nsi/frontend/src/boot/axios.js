@@ -9,13 +9,11 @@ import axios from 'axios'
 // for each client)
 //const api = axios.create({ baseURL: 'https://api.example.com' })
 
-let appURL = "http://192.168.1.20:9171"
-//let appURL = "http://localhost:9171"
+let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
 
-let url = "http://localhost:8080"
-if (process.env.NODE_ENV === 'production') {
-  url = "http://192.168.1.20:9176"
-//  url = "http://localhost:9176"
+let url = 'http://localhost:8080'
+if (import.meta.env.PROD) {
+  url = process.env.VITE_PRODUCT_URL
 }
 
 const authURL = url + "/auth"

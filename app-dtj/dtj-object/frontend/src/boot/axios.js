@@ -8,21 +8,17 @@ import axios from 'axios'
 // "export default () => {}" function below (which runs individually
 // for each client)
 //const api = axios.create({ baseURL: 'https://api.example.com' })
-let appURL = "http://192.168.1.20:9171"
-//let appURL = "http://localhost:9171"
 
-let url = "http://localhost:8080"
-if (process.env.NODE_ENV === 'production') {
-  url = "http://192.168.1.20:9176"
-//  url = "http://localhost:9176"
+let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
+
+let url = 'http://localhost:8080'
+if (import.meta.env.PROD) {
+  url = process.env.VITE_PRODUCT_URL
 }
 
 const authURL = url + "/auth"
 const baseURL = url + "/api"
 const api = axios.create({ baseURL: baseURL })
-
-
-
 
 export default defineBoot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
@@ -36,4 +32,4 @@ export default defineBoot(({ app }) => {
   //       so you can easily perform requests against your app's API
 })
 
-export { authURL, api, baseURL, appURL };
+export { authURL, api, baseURL, urlMainApp };
