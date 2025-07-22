@@ -480,7 +480,7 @@ export default {
     api
       .post(baseURL, {
         method: "data/loadClsForSelect",
-        params: ["Typ_ObjectsServed"],
+        params: ["Typ_ObjectTyp"],
       })
       .then(
         (response) => {
