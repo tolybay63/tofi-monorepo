@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <app
+            title="DTJ App"
+            mainmodule="dtj.app"
+    />
+
+    <x-depends module="dtj.app"/>
+
+</root>
