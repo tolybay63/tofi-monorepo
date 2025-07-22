@@ -152,7 +152,7 @@
 import {defineComponent, ref, computed} from "vue";
 import LoginUser from "components/LoginUser.vue";
 import SetLocale from "components/SetLocale.vue";
-import {api, appURL, authURL, baseURL} from "boot/axios";
+import {api, authURL, baseURL, urlMainApp} from "boot/axios";
 import {hasTarget, notifyError} from "src/utils/jsutils";
 import {useUserStore} from "stores/user-store";
 import {storeToRefs} from "pinia";
@@ -258,7 +258,7 @@ export default defineComponent({
     const nameIcon = computed(() => getUserName.value === "" ? "login" : "logout");
 
     const mainApp = () => {
-      open(appURL, "_self");
+      open(urlMainApp, "_self");
     };
 
     const toggleLeftDrawer = () => {

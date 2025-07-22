@@ -35,4 +35,4 @@ export default boot(({ app }) => {
 const tofi_dbeg = "1800-01-01";
 const tofi_dend = "3333-12-31";
 
-export { authURL, api, baseURL, appURL, tofi_dbeg, tofi_dend };
+export { authURL, api, baseURL, urlMainApp, tofi_dbeg, tofi_dend };
