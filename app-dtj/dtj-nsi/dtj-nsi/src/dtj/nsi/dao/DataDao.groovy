@@ -638,7 +638,7 @@ class DataDao extends BaseMdbUtils {
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_NumberOt --1005
                 left join DataPropVal v1 on d1.id=v1.dataprop
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Ot   --1006
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Shape   --1006
                 left join DataPropVal v2 on d2.id=v2.dataprop
             where ${whe}
         """, map)
@@ -1082,9 +1082,9 @@ class DataDao extends BaseMdbUtils {
             //1 Prop_NumberOt
             if (pms.getString("NumberOt") && pms.getString("NumberOt") != "")
                 fillProperties(true, "Prop_NumberOt", pms)
-            //2 Prop_Ot
+            //2 Prop_Shape
             if (pms.getLong("fvOt") > 0)
-                fillProperties(true, "Prop_Ot", pms)
+                fillProperties(true, "Prop_Shape", pms)
 
         } else {
             own = pms.getLong("id")
@@ -1096,11 +1096,11 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_NumberOt", pms)
             else
                 fillProperties(true, "Prop_NumberOt", pms)
-            //2 Prop_Ot
+            //2 Prop_Shape
             if (params.containsKey("idOt"))
-                updateProperties("Prop_Ot", pms)
+                updateProperties("Prop_Shape", pms)
             else
-                fillProperties(true, "Prop_Ot", pms)
+                fillProperties(true, "Prop_Shape", pms)
         }
 
         return loadTypesObjects(own)
@@ -1749,7 +1749,7 @@ class DataDao extends BaseMdbUtils {
         if ([FD_PropType_consts.factor].contains(propType)) {
             if ( cod.equalsIgnoreCase("Prop_Source") ||
                     cod.equalsIgnoreCase("Prop_Periodicity") ||
-                        cod.equalsIgnoreCase("Prop_Ot") ||
+                        cod.equalsIgnoreCase("Prop_Shape") ||
                             cod.equalsIgnoreCase("Prop_DefectsCategory")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
@@ -1895,7 +1895,7 @@ class DataDao extends BaseMdbUtils {
         if ([FD_PropType_consts.factor].contains(propType)) {
             if ( cod.equalsIgnoreCase("Prop_Source") ||
                     cod.equalsIgnoreCase("Prop_Periodicity") ||
-                        cod.equalsIgnoreCase("Prop_Ot") ||
+                        cod.equalsIgnoreCase("Prop_Shape") ||
                             cod.equalsIgnoreCase("Prop_DefectsCategory")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
