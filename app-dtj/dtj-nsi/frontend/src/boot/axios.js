@@ -1,4 +1,5 @@
 import {boot} from 'quasar/wrappers'
+
 import axios from 'axios'
 
 // Be careful when using SSR for cross-request state pollution
@@ -9,11 +10,13 @@ import axios from 'axios'
 // for each client)
 //const api = axios.create({ baseURL: 'https://api.example.com' })
 
-let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
+//let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
+let urlMainApp = 'http://192.168.1.20:9171'
 
 let url = 'http://localhost:8080'
-if (import.meta.env.PROD) {
-  url = process.env.VITE_PRODUCT_URL
+if (process.env.NODE_ENV === 'production') {
+  url = 'http://192.168.1.20:9177'
+  //url = process.env.VITE_PRODUCT_URL
 }
 
 const authURL = url + "/auth"
