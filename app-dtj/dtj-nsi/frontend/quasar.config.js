@@ -116,7 +116,7 @@ module.exports = configure(ctx => ({
     server: {
       type: "http",
     },
-    port: ctx.mode["ssr"] ? 9100 : 8181,
+    port: 8181,
     open: true, // opens browser window automatically
     proxy: {
       "/api": {
