@@ -60,13 +60,14 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("orgstructuredata")
     }
 
+    /* =================================================================== */
 
-    void is_exist_obj_as_data(long id, String modelMeta) {
+    private void is_exist_obj_as_data(long id, String modelMeta) {
         //...todo
         //...
     }
 
-    void validateForDeleteObj(long id) {
+    private void validateForDeleteObj(long id) {
         //---< check data in other DB
         CfgService cfgSvc = mdb.getApp().bean(CfgService.class)
         String modelMeta = cfgSvc.getConf().getString("dbsource/meta/id")
@@ -78,8 +79,8 @@ class DataDao extends BaseMdbUtils {
 
     /**
      *
-     * @param id Id Obj or RelObj
-     * @param isObj 1 => Obj, 0 => RelObj
+     * @param id Id Obj
+     * Delete object with properties
      */
     @DaoMethod
     void deleteObjWithProperties(long id) {
@@ -97,17 +98,8 @@ class DataDao extends BaseMdbUtils {
                 select dataProp as id from DataPropVal
             );
         """)
-        if (tableName.equalsIgnoreCase("RelObj")) {
-            try {
-                mdb.execQueryNative("""
-                    delete from RelObjMember
-                    where relobj=${id};
-                """)
-            } finally {
-                eu.deleteEntity(id)
-            }
-        } else
-            eu.deleteEntity(id)
+        //
+        eu.deleteEntity(id)
     }
 
     @DaoMethod
