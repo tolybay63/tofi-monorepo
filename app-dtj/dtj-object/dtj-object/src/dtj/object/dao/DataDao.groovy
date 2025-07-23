@@ -5,6 +5,8 @@ import jandcode.commons.error.XError
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreIndex
+import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
@@ -43,7 +45,7 @@ class DataDao extends BaseMdbUtils {
 
     /**
      *
-     * @param codFactor: код фактора
+     * @param codPropOrFactor: код фактора или код пропа
      * @return  Набор значений указанного фактора
      */
     @DaoMethod
@@ -55,16 +57,16 @@ class DataDao extends BaseMdbUtils {
             if (map.isEmpty())
                 throw new XError("NotFoundCod@${codPropOrFactor}")
             sql = """
-                select f.id, f.name, p.id as pv
-                from propval p, factor f
-                where p.factorval=f.id and p.prop=${map.get(codPropOrFactor)}
+                select fv.id, fv.name, p.id as pv, f.id as factor
+                from propval p, factor fv, factor f 
+                where fv.parent=f.id and p.factorval=fv.id and p.prop=${map.get(codPropOrFactor)}
             """
         } else if (codPropOrFactor.startsWith("Factor_")) {
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", codPropOrFactor, "")
             if (map.isEmpty())
                 throw new XError("NotFoundCod@${codPropOrFactor}")
             sql = """
-                select f.id, f.name, p.id as pv, f.parent
+                select f.id, f.name, p.id as pv, f.parent as factor
                 from propval p, factor f 
                 where p.factorval=f.id and f.parent=${map.get(codPropOrFactor)}
             """
@@ -82,7 +84,7 @@ class DataDao extends BaseMdbUtils {
      * @return  Набор записей
      */
     @DaoMethod
-    Store loadObjList(String codClsOrTyp, String model) {
+    Store loadObjList(String codClsOrTyp, String codProp, String model) {
         Map<String, Long> map
         String sql
         if (codClsOrTyp.startsWith("Cls_")) {
@@ -90,7 +92,7 @@ class DataDao extends BaseMdbUtils {
             if (map.isEmpty())
                 throw new XError("NotFoundCod@${codClsOrTyp}")
             sql = """
-                select o.id, o.cls, v.name 
+                select o.id, o.cls, v.name, null as pv 
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get(codClsOrTyp)}
             """
@@ -98,17 +100,34 @@ class DataDao extends BaseMdbUtils {
             map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codClsOrTyp, "")
             if (map.isEmpty())
                 throw new XError("NotFoundCod@${codClsOrTyp}")
+            Store stTmp = loadSqlMeta("""
+                select id from Cls where typ=${map.get(codClsOrTyp)}
+            """, "")
+            Set<Object> idsCls = stTmp.getUniqueValues("id")
+
             sql = """
-                select o.id, o.cls, v.name 
+                select o.id, o.cls, v.name, null as pv 
                 from Obj o, ObjVer v
-                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (
-                  select id from Cls where typ=${map.get(codClsOrTyp)}
-                )
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
             """
         } else
             throw new XError("Неисвезстная сущность")
-
         Store st = loadSqlService(sql, "", model)
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codProp, "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@${codProp}")
+
+        Store stPV = loadSqlMeta("""
+            select id, cls  from propval p where prop=${map.get(codProp)}
+        """, "")
+        StoreIndex indPV = stPV.getIndex("cls")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indPV.get(r.getLong("cls"))
+            if (rec != null)
+                r.set("pv", rec.getLong("id"))
+        }
+
         return st
     }
 
