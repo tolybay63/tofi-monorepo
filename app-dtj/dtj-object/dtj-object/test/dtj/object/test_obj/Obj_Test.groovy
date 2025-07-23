@@ -26,6 +26,60 @@ class Obj_Test extends Apx_Test {
     }
 
     @Test
+    void test_ObjServed() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadObjectServed(0)
+        mdb.outTable(st)
+    }
+
+    @Test
+    void testSaveObjectServedIns() {
+
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "жб мост")
+        map.put("fullName", "жб мост 5км 5пк (Мосты)")
+        map.put("linkCls", 1004)
+        map.put("objObjectType", 1025)
+        map.put("pvObjectType", 1166)
+        map.put("StartKm", 5)
+        map.put("FinishKm", 5)
+        map.put("StartPicket", 5)
+        map.put("FinishPicket", 5)
+        map.put("fvSide", 1070)
+        map.put("pvSide", 1035)
+        map.put("Specs", "жб")
+        map.put("LocationDetails", "река Шар")
+        map.put("PeriodicityReplacement", 3)
+        map.put("Number", "1")
+        map.put("InstallationDate", "2022-01-01")
+        map.put("CreatedAt", "2025-07-07")
+        map.put("UpdatedAt", "2025-07-07")
+        map.put("Description", "Железобетонный мост 1")
+        //
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.saveObjectServed("ins", map)
+
+        mdb.outTable(st)
+    }
+
+    @Test
+    void testSaveObjectServedUpd() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadObjectServed(1008)
+        mdb.outTable(st)
+        StoreRecord rec = st.get(0)
+
+        rec.set("name", "жб мост UPD")
+        rec.set("UpdatedAt", "2025-07-23")
+        Store stRes = dao.saveObjectServed("upd", rec.getValues())
+
+        mdb.outTable(stRes)
+    }
+
+
+
+
+        @Test
     void jsonrpc1() throws Exception {
         Map<String, Object> map = apx.execJsonRpc("api", "data/loadObjList", ["Cls_Collections", "Prop_Collections", "nsidata"])
         mdb.outMap(map.get("result") as Map)

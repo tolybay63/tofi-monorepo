@@ -1734,6 +1734,17 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
+
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_Description")) {
+                if (params.get(keyValue) != null) {
+                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_DocumentApprovalDate") ||
                     cod.equalsIgnoreCase("Prop_DocumentStartDate") ||
@@ -1871,6 +1882,17 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
+
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_Description")) {
+                if (params.get(keyValue) != null) {
+                    sql = "update DataPropval set multiStrVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_DocumentApprovalDate") ||
                     cod.equalsIgnoreCase("Prop_DocumentStartDate") ||
@@ -1885,7 +1907,7 @@ class DataDao extends BaseMdbUtils {
                         );
                     """
                 } else {
-                    sql = "update DataPropval set strVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                    sql = "update DataPropval set dateTimeVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
                 }
             } else
                 throw new XError("for dev: [${cod}] отсутствует в реализации")

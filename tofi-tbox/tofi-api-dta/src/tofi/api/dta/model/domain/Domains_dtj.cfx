@@ -1,14 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-
-    <domain name="Obj.object" parent="base">
+    <domain name="Obj.served" parent="base">
         <field name="id" parent="long"/>
-        <field name="parent" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
         <field name="fullName" parent="string"/>
-        <field name="cmt" parent="memo"/>
-        <field name="ord" parent="long"/>
+
+        <field name="idObjectType" parent="long"/>
+        <field name="pvObjectType" parent="long"/>
+        <field name="objObjectType" parent="long"/>
+
+        <field name="idStartKm" parent="long"/>
+        <field name="StartKm" parent="double"/>
+        <field name="idFinishKm" parent="long"/>
+        <field name="FinishKm" parent="double"/>
+
+        <field name="idStartPicket" parent="long"/>
+        <field name="StartPicket" parent="double"/>
+        <field name="idFinishPicket" parent="long"/>
+        <field name="FinishPicket" parent="double"/>
+
+        <field name="idPeriodicityReplacement" parent="long"/>
+        <field name="PeriodicityReplacement" parent="double"/>
+
+        <field name="idSide" parent="long"/>
+        <field name="pvSide" parent="long"/>
+        <field name="fvSide" parent="long"/>
+
+        <field name="idSpecs" parent="long"/>
+        <field name="Specs" parent="string"/>
+
+        <field name="idLocationDetails" parent="long"/>
+        <field name="LocationDetails" parent="string"/>
+
+        <field name="idNumber" parent="long"/>
+        <field name="Number" parent="string"/>
+
+        <field name="idInstallationDate" parent="long"/>
+        <field name="InstallationDate" parent="string"/>
+
+        <field name="idCreatedAt" parent="long"/>
+        <field name="CreatedAt" parent="string"/>
+
+        <field name="idUpdatedAt" parent="long"/>
+        <field name="UpdatedAt" parent="string"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+
     </domain>
 
 </root>
