@@ -375,7 +375,6 @@ class DataDao extends BaseMdbUtils {
         return loadSqlMeta(sql, "")
     }
 
-
     /**
      *
      * @param codClsOr: Код класса или код типа
