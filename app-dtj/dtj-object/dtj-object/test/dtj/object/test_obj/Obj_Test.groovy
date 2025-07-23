@@ -80,7 +80,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void deleteSaveObjectServed() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteOwnerWithProperties(1002, 1)
+        dao.deleteObjWithProperties(1002)
     }
 
     //********************************************************//

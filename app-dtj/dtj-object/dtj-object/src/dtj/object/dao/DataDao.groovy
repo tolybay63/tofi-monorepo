@@ -61,58 +61,19 @@ class DataDao extends BaseMdbUtils {
     }
 
 
-    void is_exist_owner_as_data(long owner, int isObj, String modelMeta) {
-
-        Map<Long, Long> mapPV
-        if (isObj==1)
-            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
-        else
-            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("relcls", false)
-
-        List<String> lstApp = new ArrayList<>()
-        long clsORrelcls
-        if (isObj == 1) {
-            clsORrelcls = apiUserData().get(ApiUserData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("userdata")
-            }
-            //
-            clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("nsidata")
-            }
-
-        } else {
-            clsORrelcls = apiUserData().get(ApiUserData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("userdata")
-            }
-            //
-            clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("nsidata")
-            }
-            //
-
-        }
+    void is_exist_obj_as_data(long id, String modelMeta) {
+        //...todo
         //...
-        String msg = lstApp.join(", ")
-        if (lstApp.size() > 0)
-            throw new XError("UseInApp@"+msg)
     }
 
-    void validateForDeleteOwner(long owner, int isObj) {
+    void validateForDeleteObj(long id) {
         //---< check data in other DB
         CfgService cfgSvc = mdb.getApp().bean(CfgService.class)
         String modelMeta = cfgSvc.getConf().getString("dbsource/meta/id")
         if (modelMeta.isEmpty())
             throw new XError("Не найден id мета модели")
         //-->
-        is_exist_owner_as_data(owner, isObj, modelMeta)
+        is_exist_obj_as_data(id, modelMeta)
     }
 
     /**
@@ -121,15 +82,15 @@ class DataDao extends BaseMdbUtils {
      * @param isObj 1 => Obj, 0 => RelObj
      */
     @DaoMethod
-    void deleteOwnerWithProperties(long id, int isObj) {
+    void deleteObjWithProperties(long id) {
         //
-        validateForDeleteOwner(id, isObj)
+        validateForDeleteObj(id)
         //
-        String tableName = isObj==1 ? "Obj" : "RelObj"
+        String tableName = "Obj"
         EntityMdbUtils eu = new EntityMdbUtils(mdb, tableName)
         mdb.execQueryNative("""
             delete from DataPropVal
-            where dataProp in (select id from DataProp where isobj=${isObj} and objorrelobj=${id});
+            where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${id});
             delete from DataProp where id in (
                 select id from dataprop
                 except
