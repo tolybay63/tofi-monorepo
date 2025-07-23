@@ -10,10 +10,12 @@ import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
+import jandcode.core.std.CfgService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import org.junit.jupiter.api.Test
+import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
@@ -59,20 +61,131 @@ class DataDao extends BaseMdbUtils {
     }
 
 
+    void is_exist_owner_as_data(long owner, int isObj, String modelMeta) {
+
+        Map<Long, Long> mapPV
+        if (isObj==1)
+            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
+        else
+            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("relcls", false)
+
+        List<String> lstApp = new ArrayList<>()
+        long clsORrelcls
+        if (isObj == 1) {
+            clsORrelcls = apiUserData().get(ApiUserData).getClsOrRelCls(owner, isObj)
+            if (mapPV.containsKey(clsORrelcls)) {
+                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
+                if (b) lstApp.add("userdata")
+            }
+            //
+            clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
+            if (mapPV.containsKey(clsORrelcls)) {
+                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
+                if (b) lstApp.add("nsidata")
+            }
+
+        } else {
+            clsORrelcls = apiUserData().get(ApiUserData).getClsOrRelCls(owner, isObj)
+            if (mapPV.containsKey(clsORrelcls)) {
+                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
+                if (b) lstApp.add("userdata")
+            }
+            //
+            clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
+            if (mapPV.containsKey(clsORrelcls)) {
+                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
+                if (b) lstApp.add("nsidata")
+            }
+            //
+
+        }
+        //...
+        String msg = lstApp.join(", ")
+        if (lstApp.size() > 0)
+            throw new XError("UseInApp@"+msg)
+    }
+
+    void validateForDeleteOwner(long owner, int isObj) {
+        //---< check data in other DB
+        CfgService cfgSvc = mdb.getApp().bean(CfgService.class)
+        String modelMeta = cfgSvc.getConf().getString("dbsource/meta/id")
+        if (modelMeta.isEmpty())
+            throw new XError("Не найден id мета модели")
+        //-->
+        is_exist_owner_as_data(owner, isObj, modelMeta)
+    }
+
+    /**
+     *
+     * @param id Id Obj or RelObj
+     * @param isObj 1 => Obj, 0 => RelObj
+     */
+    @DaoMethod
+    void deleteOwnerWithProperties(long id, int isObj) {
+        //
+        validateForDeleteOwner(id, isObj)
+        //
+        String tableName = isObj==1 ? "Obj" : "RelObj"
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, tableName)
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=${isObj} and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        if (tableName.equalsIgnoreCase("RelObj")) {
+            try {
+                mdb.execQueryNative("""
+                    delete from RelObjMember
+                    where relobj=${id};
+                """)
+            } finally {
+                eu.deleteEntity(id)
+            }
+        } else
+            eu.deleteEntity(id)
+    }
+
     @DaoMethod
     Store saveObjectServed(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
-        long linkCls = pms.getLong("linkCls")
-        long cls = 1042    //todo
         //
-
-        Map<String, Object> par = new HashMap<>(pms)
-        par.put("cls", cls)
-
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-
+        Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
+            // find cls(linkCls)
+            long linkCls = pms.getLong("linkCls")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@Typ_Object")
+            map.put("linkCls", linkCls)
+            Store stTmp = loadSqlMeta("""
+                with fv as (
+                    select cls,
+                    string_agg (cast(factorval as varchar(2000)), ',' order by factorval) as fvlist
+                    from clsfactorval
+                    where cls=${linkCls}
+                    group by cls
+                )
+                select * from (
+                    select c.cls,
+                    string_agg (cast(c.factorval as varchar(1000)), ',' order by factorval) as fvlist
+                    from clsfactorval c, factor f  
+                    where c.factorval =f.id and c.cls in (
+                        select id from Cls where typ=${map.get("Typ_Object")}    --1011
+                    )
+                    group by c.cls
+                ) t where t.fvlist in (select fv.fvlist from fv)
+            """, "")
+
+            long cls = stTmp.get(0).getLong("cls")
+
+            par.put("cls", cls)
+            //
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_ObjectType

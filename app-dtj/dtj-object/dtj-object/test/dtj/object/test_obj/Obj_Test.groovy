@@ -25,8 +25,9 @@ class Obj_Test extends Apx_Test {
         mdb.outTable(st)
     }
 
+    //****************************
     @Test
-    void test_ObjServed() {
+    void test_loadObjServed() {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.loadObjectServed(0)
         mdb.outTable(st)
@@ -34,16 +35,15 @@ class Obj_Test extends Apx_Test {
 
     @Test
     void testSaveObjectServedIns() {
-
         Map<String, Object> map = new HashMap<>()
-        map.put("name", "жб мост")
-        map.put("fullName", "жб мост 5км 5пк (Мосты)")
+        map.put("name", "жб мост 2")
+        map.put("fullName", "жб мост 5км 5пк (Мосты) 2")
         map.put("linkCls", 1004)
         map.put("objObjectType", 1025)
         map.put("pvObjectType", 1166)
-        map.put("StartKm", 5)
-        map.put("FinishKm", 5)
-        map.put("StartPicket", 5)
+        map.put("StartKm", 50)
+        map.put("FinishKm", 50)
+        map.put("StartPicket", 50)
         map.put("FinishPicket", 5)
         map.put("fvSide", 1070)
         map.put("pvSide", 1035)
@@ -65,21 +65,26 @@ class Obj_Test extends Apx_Test {
     @Test
     void testSaveObjectServedUpd() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.loadObjectServed(1008)
+        Store st = dao.loadObjectServed(1002)
         mdb.outTable(st)
         StoreRecord rec = st.get(0)
 
         rec.set("name", "жб мост UPD")
         rec.set("UpdatedAt", "2025-07-23")
+        rec.set("Description", "Железобетонный мост 1 Update")
         Store stRes = dao.saveObjectServed("upd", rec.getValues())
 
         mdb.outTable(stRes)
     }
 
+    @Test
+    void deleteSaveObjectServed() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        dao.deleteOwnerWithProperties(1002, 1)
+    }
 
-
-
-        @Test
+    //********************************************************//
+    @Test
     void jsonrpc1() throws Exception {
         Map<String, Object> map = apx.execJsonRpc("api", "data/loadObjList", ["Cls_Collections", "Prop_Collections", "nsidata"])
         mdb.outMap(map.get("result") as Map)
