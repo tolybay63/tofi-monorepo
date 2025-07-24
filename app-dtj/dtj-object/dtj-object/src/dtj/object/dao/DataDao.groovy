@@ -14,8 +14,6 @@ import jandcode.core.std.CfgService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
-import org.junit.jupiter.api.Test
-import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
@@ -31,9 +29,6 @@ import tofi.api.mdl.model.consts.FD_PeriodType_consts
 import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-
-import static java.util.Map.*
-
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
@@ -87,8 +82,7 @@ class DataDao extends BaseMdbUtils {
         //
         validateForDeleteObj(id)
         //
-        String tableName = "Obj"
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, tableName)
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         mdb.execQueryNative("""
             delete from DataPropVal
             where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${id});
@@ -203,7 +197,7 @@ class DataDao extends BaseMdbUtils {
             if (pms.containsKey("idStartKm"))
                 updateProperties("Prop_StartKm", pms)
             else
-                fillProperties(true, "Prop_", pms)
+                fillProperties(true, "Prop_StartKm", pms)
             //3 Prop_FinishKm
             if (pms.containsKey("idFinishKm"))
                 updateProperties("Prop_FinishKm", pms)
