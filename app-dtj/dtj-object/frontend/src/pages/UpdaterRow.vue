@@ -10,10 +10,10 @@
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
-        <div>{{ $t("newRecord") }}</div>
+        <div>Добавить</div>
       </q-bar>
       <q-bar v-if="mode === 'upd'" class="text-white bg-primary">
-        <div>{{ $t("editRecord") }}</div>
+        <div>Редактировать</div>
       </q-bar>
 
       <q-card-section>
@@ -22,54 +22,126 @@
         <q-input
           :model-value="form.name"
           v-model="form.name"
-          :label="fmReqLabel('fldName')"
+          :label="fmReqLabel('Наименоваие')"
           class="q-ma-md" dense autofocus
-        >
-        </q-input>
+          @blur="fnBlur()"
+        />
+        <!-- fullName -->
+        <q-input
+          :model-value="form.fullName"
+          v-model="form.fullName"
+          :label="fmReqLabel('полное наименование')"
+          class="q-ma-md" dense autofocus
+        />
 
-
-        <!-- objDefectsComponent -->
+        <!-- objObjectType -->
         <q-select
-          v-model="form['objDefectsComponent']"
-          :model-value="form['objDefectsComponent']"
-          :label="fmReqLabel('cmp')"
-          :options="optCmp"
+          v-model="form['objObjectType']"
+          :model-value="form['objObjectType']"
+          :label="fmReqLabel('Объект')"
+          :options="optObj"
           dense class="q-ma-md"
           map-options
           option-label="name"
           option-value="id"
           use-input
-          @update:model-value="fnSelectDefectComponent"
-          @filter="filterDefectComponent"
+          @update:model-value="fnSelectObj"
+          @filter="filterObj"
         />
 
-        <!-- fvDefectsCategory -->
+        <!-- fvSide -->
         <q-select
-          v-model="form['fvDefectsCategory']"
-          :model-value="form['fvDefectsCategory']"
-          :label="fmReqLabel('DefectsCategory')"
-          :options="optCategory"
+          v-model="form['fvSide']"
+          :model-value="form['fvSide']"
+          :label="fmReqLabel('Значение фактора')"
+          :options="optFv"
           dense options-dense map-options
           option-label="name" option-value="id"
           class="q-ma-md"
-          @update:model-value="fnSelectFvCategory"
+          @update:model-value="fnSelectFv"
         />
 
-        <!-- DefectsIndex -->
+        <!-- StartKm -->
         <q-input
-          :model-value="form['DefectsIndex']"
-          v-model="form['DefectsIndex']"
+          :model-value="form['StartKm']"
+          v-model="form['StartKm']"
           class="q-ma-md" dense
-          :label="fmReqLabel('DefectsIndex')"
+          :label="fmLabel('Начало, км')"
         />
 
-        <!-- DefectsNote -->
+        <!-- FinishKm -->
         <q-input
-          :model-value="form['DefectsNote']"
-          v-model="form['DefectsNote']"
+          :model-value="form['FinishKm']"
+          v-model="form['FinishKm']"
           class="q-ma-md" dense
-          :label="fmReqLabel('DefectsNote')"
+          :label="fmLabel('Конец, км')"
         />
+
+        <!-- StartPicket -->
+        <q-input
+          :model-value="form['StartPicket']"
+          v-model="form['StartPicket']"
+          class="q-ma-md" dense
+          :label="fmLabel('Начало, пк')"
+        />
+
+        <!-- FinishPicket -->
+        <q-input
+          :model-value="form['FinishPicket']"
+          v-model="form['FinishPicket']"
+          class="q-ma-md" dense
+          :label="fmLabel('Конец, пк')"
+        />
+
+        <!-- PeriodicityReplacement -->
+        <q-input
+          :model-value="form['PeriodicityReplacement']"
+          v-model="form['PeriodicityReplacement']"
+          class="q-ma-md" dense
+          :label="fmLabel('Периодичность замены, год')"
+        />
+
+        <!-- Number -->
+        <q-input
+          :model-value="form['Number']"
+          v-model="form['Number']"
+          class="q-ma-md" dense
+          :label="fmLabel('Номер')"
+        />
+
+
+        <!-- InstallationDate -->
+        <q-input
+          :model-value="form['InstallationDate']"
+          v-model="form['InstallationDate']"
+          class="q-ma-md" dense type="date"
+          :label="fmLabel('Дата установки')"
+        />
+
+        <!-- CreatedAt -->
+        <q-input
+          :model-value="form['CreatedAt']"
+          v-model="form['CreatedAt']"
+          class="q-ma-md" dense type="date"
+          :label="fmLabel('Дата создания записи')"
+        />
+
+        <!-- UpdatedAt -->
+        <q-input
+          :model-value="form['UpdatedAt']"
+          v-model="form['UpdatedAt']"
+          class="q-ma-md" dense type="date"
+          :label="fmLabel('Дата последнего обновления записи')"
+        />
+
+        <!-- Description -->
+        <q-input
+          :model-value="form.Description"
+          v-model="form.Description"
+          type="textarea" class="q-ma-md"
+          :label="fmLabel('Описание')"
+        />
+
 
       </q-card-section>
       <!---->
@@ -78,14 +150,20 @@
         <q-btn
           color="primary"
           icon="save" dense
-          :label="$t('save')"
+          label="Сохранить"
           @click="onOKClick"
+          :loading="loading"
           :disable="validSave()"
-        />
+        >
+          <template #loading>
+            <q-spinner-hourglass color="white"/>
+          </template>
+
+        </q-btn>
         <q-btn
           color="primary"
           icon="cancel" dense
-          :label="$t('cancel')"
+          label="Отмена"
           @click="onCancelClick"
         />
       </q-card-actions>
@@ -104,9 +182,10 @@ export default {
     return {
       loading: false,
       form: this.data,
-      optCmp: [],
-      optCmpOrg: [],
-      optCategory: [],
+      optFv: [],
+      optFvOrg: [],
+      optObj: [],
+      optObjOrg: [],
 
 
     };
@@ -119,41 +198,51 @@ export default {
   ],
 
   methods: {
+    fnBlur() {
+      if (this.form.fullName === "") {
+        this.form.fullName = this.form.name;
+      }
+    },
+
     fmReqLabel(label) {
-      return this.$t(label) + "*";
+      return label + "*";
     },
 
-    fnSelectDefectComponent(v) {
-      this.form.objDefectsComponent = v.id
-      this.form.pvDefectsComponent = v["pv"]
+    fmLabel(label) {
+      return label;
     },
 
-    filterDefectComponent(val, update) {
+    fnSelectObj(v) {
+      this.form.objObjectType = v.id
+      this.form.cls = v.cls
+      this.form.pvobjObjectType = v["pv"]
+    },
+
+    filterObj(val, update) {
       if (val === null || val === '') {
         update(() => {
-          this.optCmp = this.optCmpOrg
+          this.optObj = this.optObjOrg
         })
         return
       }
       update(() => {
-        if (this.optCmpOrg.length < 2) return
+        if (this.optObjOrg.length < 2) return
         const needle = val.toLowerCase()
         let name = 'name'
-        this.optCmp = this.optCmpOrg.filter((v) => {
+        this.optCmp = this.optObjOrg.filter((v) => {
           return v[name].toLowerCase().indexOf(needle) > -1
         })
       })
     },
 
-    fnSelectFvCategory(v) {
-      this.form.fvDefectsCategory = v.id
-      this.form.pvDefectsCategory = v["pv"]
+    fnSelectFv(v) {
+      this.form.fvSide = v.id
+      this.form.pvSide = v["pv"]
     },
 
 
     validSave() {
-      if (!this.form.name || !this.form.objDefectsComponent || !this.form["fvDefectsCategory"] ||
-        !this.form["DefectsIndex"] || !this.form["DefectsNote"]) return true
+      if (!this.form.name || !this.form.fullName || !this.form.objObjectType || !this.form["fvSide"]) return true
     },
 
     // following method is REQUIRED
@@ -179,9 +268,12 @@ export default {
       // emit "ok" event (with optional payload)
       // before hiding the QDialog
 
+      this.loading = true
+      let err = false
+      this.form.linkCls = this.form.cls
       this.$axios
         .post(baseURL, {
-          method: "data/saveDefects",
+          method: "data/saveObjectServed",
           params: [this.mode, this.form],
         })
         .then(
@@ -189,16 +281,15 @@ export default {
             this.$emit("ok", response.data.result["records"][0])
           },
           (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-
-            let msg = error.message;
+            error = true
             if (error.response)
-              msg = this.$t(error.response.data.error.message);
-            notifyError(msg);
+              notifyError(error.response.data.error.message);
           }
         )
         .finally(() => {
-          this.hide();
+          this.loading = false
+          if (!err)
+            this.hide();
         });
     },
 
@@ -212,40 +303,34 @@ export default {
     this.loading = true
     api
       .post(baseURL, {
-        method: 'data/loadComponentDefect',
-        params: ['Typ_Components', "Prop_DefectsComponent"],
+        method: 'data/loadFactorValForSelect',
+        params: ['Prop_Side'],
       })
       .then(
         (response) => {
-          this.optCmp = response.data.result["records"]
-          this.optCmpOrg = response.data.result["records"]
+          this.optFv = response.data.result["records"]
+          this.optFvOrg = response.data.result["records"]
+          console.info("FV", this.optFv)
         })
       .then(() => {
         api
           .post(baseURL, {
-            method: "data/loadFvCategory",
-            params: ["Factor_Defects"],
+            method: "data/loadObjList",
+            params: ["Typ_ObjectTyp", "Prop_ObjectType", "nsidata"],
           })
           .then(
             (response) => {
-              this.optCategory = response.data.result["records"]
+              this.optObj = response.data.result["records"]
+              this.optObjOrg = response.data.result["records"]
+              console.info("Obj", this.optObj)
             })
           .catch(error => {
-            if (error.response.data.error.message.includes("@")) {
-              let msgs = error.response.data.error.message.split("@")
-              let m1 = this.$t(`${msgs[0]}`)
-              let m2 = (msgs.length > 1) ? " [" + msgs[1] + "]" : ""
-              let msg = m1 + m2
-              notifyError(msg)
-            } else {
-              notifyError(this.$t(error.response.data.error.message))
-            }
+            console.error(error.message)
+            notifyError(error.message)
           })
       })
       .catch(error => {
-        let msg = error.message
-        if (error.response) msg = this.$t(error.response.data.error.message)
-        notifyError(msg)
+        notifyError(error.message)
       })
       .finally(() => {
         this.loading = false

@@ -18,7 +18,7 @@
 
         <!-- App Title -->
         <q-toolbar-title class="text-center">
-          DTJ Service - Object
+          DTJ Service - Object (api testing)
         </q-toolbar-title>
 
       </q-toolbar>
