@@ -4,6 +4,7 @@
       <q-toolbar>
 
         <!-- Menu Toggle -->
+<!--
         <q-btn
           flat
           dense
@@ -13,6 +14,7 @@
           aria-label="Menu"
         >
         </q-btn>
+-->
 
         <!-- App Title -->
         <q-toolbar-title class="text-center">
@@ -35,6 +37,8 @@
     </q-footer>
 
     <!-- Navigation Drawer -->
+<!--
+
     <q-drawer
       :width="250"
       v-model="leftDrawerOpen"
@@ -48,7 +52,7 @@
 
             v-for="link in essentialLinks"
             :key="link['title']"
-            class="q-table--bordered bg-blue-1"
+            class="q-table&#45;&#45;bordered bg-blue-1"
             clickable
             tag="a"
             :to="link['link']"
@@ -67,6 +71,7 @@
       </div>
     </q-drawer>
 
+-->
     <!-- Main Content -->
     <q-page-container>
       <router-view/>
@@ -75,53 +80,15 @@
 </template>
 
 <script>
-import {defineComponent, ref} from "vue";
-
-const NAVIGATION_LINKS = [
-  {
-    title: "Types from Model",
-    info: "",
-    icon: "assignment",
-    link: "/types",
-    target: "",
-  },
-
-  {
-    title: "Objects from NSI",
-    info: "",
-    icon: "assignment",
-    link: "/objects",
-    target: "",
-  },
-];
+import {defineComponent} from "vue";
 
 export default defineComponent({
   name: "MainLayout",
 
   setup() {
-
-    const leftDrawerOpen = ref(true);
-
-
-    const essentialLinks = ref(NAVIGATION_LINKS);
-
-
-    const toggleLeftDrawer = () => {
-      leftDrawerOpen.value = !leftDrawerOpen.value;
-    };
-
-
-
-    return {
-
-      leftDrawerOpen,
-      essentialLinks,
-      toggleLeftDrawer,
-    };
   },
 
   created() {
-
   },
 });
 </script>
