@@ -6,8 +6,6 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import org.junit.jupiter.api.Test
 
-import javax.xml.crypto.Data
-
 class Obj_Test extends Apx_Test {
 
 
