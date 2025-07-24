@@ -135,7 +135,12 @@ class DataDao extends BaseMdbUtils {
                 ) t where t.fvlist in (select fv.fvlist from fv)
             """, "")
 
-            long cls = stTmp.get(0).getLong("cls")
+            long cls = 0
+            if (stTmp.size() > 0)
+                cls = stTmp.get(0).getLong("cls")
+            else {
+                throw new XError("Не найден класс сответствующий классу {0}", linkCls)
+            }
 
             par.put("cls", cls)
             //
