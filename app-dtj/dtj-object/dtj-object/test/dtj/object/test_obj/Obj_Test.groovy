@@ -81,6 +81,14 @@ class Obj_Test extends Apx_Test {
         dao.deleteObjWithProperties(1002)
     }
 
+    @Test
+    void testFindObj() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        //Store st = dao.findStationOfCoord(Map.of("StartKm", 2, "FinishKm", 3, "StartPicket", 1, "FinishPicket", 5))
+        Store st = dao.findStationOfCoord(Map.of("StartKm", 20, "FinishKm", 30, "StartPicket", 1, "FinishPicket", 5))
+        mdb.outTable(st)
+    }
+
     //********************************************************//
     @Test
     void jsonrpc1() throws Exception {

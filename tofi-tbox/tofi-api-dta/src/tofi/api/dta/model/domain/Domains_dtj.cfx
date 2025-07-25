@@ -10,6 +10,10 @@
         <field name="pvObjectType" parent="long"/>
         <field name="objObjectType" parent="long"/>
 
+        <field name="idSection" parent="long"/>
+        <field name="pvSection" parent="long"/>
+        <field name="objSection" parent="long"/>
+
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="double"/>
         <field name="idFinishKm" parent="long"/>
