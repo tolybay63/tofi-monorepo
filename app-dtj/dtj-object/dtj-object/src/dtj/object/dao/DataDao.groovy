@@ -143,6 +143,10 @@ class DataDao extends BaseMdbUtils {
             //1 Prop_ObjectType
             if (pms.getLong("objObjectType") > 0)
                 fillProperties(true, "Prop_ObjectType", pms)
+            //1 a Prop_Section
+            if (pms.getLong("objSection") > 0)
+                fillProperties(true, "Prop_Section", pms)
+
             //2 Prop_StartKm
             if (pms.containsKey("StartKm"))
                 fillProperties(true, "Prop_StartKm", pms)
@@ -193,6 +197,13 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_ObjectType", pms)
             else
                 fillProperties(true, "Prop_ObjectType", pms)
+
+            //1 a Prop_Section
+            if (pms.containsKey("idSection"))
+                updateProperties("Prop_Section", pms)
+            else
+                fillProperties(true, "Prop_Section", pms)
+
             //2 Prop_StartKm
             if (pms.containsKey("idStartKm"))
                 updateProperties("Prop_StartKm", pms)
@@ -297,7 +308,8 @@ class DataDao extends BaseMdbUtils {
                 v11.id as idInstallationDate, v11.dateTimeVal as InstallationDate,
                 v12.id as idCreatedAt, v12.dateTimeVal as CreatedAt,
                 v13.id as idUpdatedAt, v13.dateTimeVal as UpdatedAt,
-                v14.id as idDescription, v14.multiStrVal as Description
+                v14.id as idDescription, v14.multiStrVal as Description,
+                v15.id as idSection, v15.propVal as pvSection, v15.obj as objSection, ov15.name as nameSection
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectType --1072
@@ -329,6 +341,9 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v13 on d13.id=v13.dataprop
                 left join DataProp d14 on d14.objorrelobj=o.id and d14.prop=:Prop_Description   --1075
                 left join DataPropVal v14 on d14.id=v14.dataprop
+                left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_Section   --1075
+                left join DataPropVal v15 on d15.id=v15.dataprop
+                left join ObjVer ov15 on v15.obj=ov15.ownerVer and ov15.lastVer=1
             where ${whe}
         """, map)
 
@@ -564,7 +579,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ObjectType")) {
+            if (cod.equalsIgnoreCase("Prop_ObjectType") ||
+                    cod.equalsIgnoreCase("Prop_Section")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -737,7 +753,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ObjectType")) {
+            if (cod.equalsIgnoreCase("Prop_ObjectType") ||
+                    cod.equalsIgnoreCase("Prop_Section")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -754,9 +771,49 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-
         mdb.execQueryNative(sql)
+    }
 
+    @DaoMethod
+    Store findStationOfCoord(Map<String, Object> params) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Section", "")
+        //Store st = mdb.createStore("Obj.Served")
+
+        Store stCls = loadSqlMeta("""
+            select id from Cls where typ=${map.get("Typ_Section")}
+        """, "")
+        Set<Object> idsCls = stCls.getUniqueValues("id")
+
+        String whe = "o.cls in (${idsCls.join(",")})"
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+
+        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + UtCnv.toInt(params.get('StartPicket')) * 100
+        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100
+
+        String sql = """
+            select o.id, o.cls, v.name, null as pv,
+                v2.numberVal * 1000 + v4.numberVal * 100 as beg,
+                v3.numberVal * 1000 + v5.numberVal *100 as end
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+            where ${whe} and v2.numberVal * 1000 + v4.numberVal <= ${beg} and v3.numberVal * 1000 + v5.numberVal *100 >= ${end}  
+        """
+        Store st = loadSqlServiceWithParams(sql, params, "", "nsidata")
+        if (st.size()==1) {
+            long idPV = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_Section")
+            st.get(0).set("pv", idPV )
+            return st
+        } else
+            throw new XError("Not Found")
     }
 
 
@@ -778,6 +835,23 @@ class DataDao extends BaseMdbUtils {
             return apiPersonnalData().get(ApiPersonnalData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("orgstructuredata"))
             return apiOrgStructureData().get(ApiOrgStructureData).loadSql(sql, domain)
+        else
+            throw new XError("Unknown model [${model}]")
+    }
+
+    private Store loadSqlServiceWithParams(String sql, Map<String, Object> params, String domain, String model) {
+        if (model.equalsIgnoreCase("userdata"))
+            return apiUserData().get(ApiUserData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("nsidata"))
+            return apiNSIData().get(ApiNSIData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("objectdata"))
+            return apiObjectData().get(ApiObjectData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("plandata"))
+            return apiPlanData().get(ApiPlanData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("personnaldata"))
+            return apiPersonnalData().get(ApiPersonnalData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("orgstructuredata"))
+            return apiOrgStructureData().get(ApiOrgStructureData).loadSqlWithParams(sql, params, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
