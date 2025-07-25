@@ -67,8 +67,8 @@ export default defineComponent({
         .then(
           (response) => {
             this.rows = response.data.result.records
-            console.info("rows", this.rows)
-            this.id = this.rows[0].id
+            if (this.rows.length > 0)
+              this.id = this.rows[0].id
           })
         .catch(error => {
           console.error(error.message)
