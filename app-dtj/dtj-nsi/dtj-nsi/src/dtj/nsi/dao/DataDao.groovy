@@ -519,7 +519,6 @@ class DataDao extends BaseMdbUtils {
         idsNew.forEach {idsNewLong.add(UtCnv.toLong(it))}
 
         Set<Long> idsOldVal = new HashSet<>()
-
         //Deleting
         for (StoreRecord r in stOld) {
             if (!idsNewLong.contains(r.getLong("obj"))) {

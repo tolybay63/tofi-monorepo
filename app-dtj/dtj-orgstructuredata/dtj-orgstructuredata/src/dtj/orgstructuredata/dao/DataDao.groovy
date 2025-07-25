@@ -1,17 +1,30 @@
 package dtj.orgstructuredata.dao
 
+import groovy.json.JsonParser
 import groovy.transform.CompileStatic
+import jandcode.commons.UtCnv
+import jandcode.commons.UtJson
+import jandcode.commons.datetime.XDate
+import jandcode.commons.datetime.XDateTime
+import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.commons.variant.VariantMap
+import jandcode.core.auth.AuthService
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
+import jandcode.core.std.CfgService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
+import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.model.consts.FD_AttribValType_consts
+import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_PeriodType_consts
+import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -44,6 +57,46 @@ class DataDao extends BaseMdbUtils {
 
     /* =================================================================== */
 
+    private void is_exist_obj_as_data(long id, String modelMeta) {
+        //...todo
+        //...
+    }
+
+    private void validateForDeleteObj(long id) {
+        //---< check data in other DB
+        CfgService cfgSvc = mdb.getApp().bean(CfgService.class)
+        String modelMeta = cfgSvc.getConf().getString("dbsource/meta/id")
+        if (modelMeta.isEmpty())
+            throw new XError("Не найден id мета модели")
+        //-->
+        is_exist_obj_as_data(id, modelMeta)
+    }
+
+    /**
+     *
+     * @param id Id Obj
+     * Delete object with properties
+     */
+    @DaoMethod
+    void deleteObjWithProperties(long id) {
+        //
+        validateForDeleteObj(id)
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        //
+        eu.deleteEntity(id)
+    }
+
+
     @DaoMethod
     Store loadLocation(long id) {
 
@@ -64,7 +117,7 @@ class DataDao extends BaseMdbUtils {
             select o.id, v.objParent as parent, o.cls, v.name, v.fullName, null as nameCls, prn.name as nameParent,
                 v1.id as idAddress, v1.strVal as Address,
                 v2.id as idPhone, v2.numberVal as Phone,
-                null as ObjectTypeMulti,
+                null as objObjectTypeMulti,
                 v4.id as idStartKm, v4.numberVal as StartKm,
                 v5.id as idFinishKm, v5.numberVal as FinishKm,
                 v6.id as idStageLength, v6.numberVal as StageLength,
@@ -104,7 +157,7 @@ class DataDao extends BaseMdbUtils {
 
         Store stMulti = mdb.loadQuery("""
             select o.id,
-                string_agg (cast(v1.obj as varchar(3000)), ',' order by v1.obj) as arr
+                string_agg (cast(v1.obj as varchar(3000)), ',' order by v1.obj) as lst
             from Obj o 
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectTypeMulti
                 left join DataPropVal v1 on d1.id=v1.dataprop
@@ -117,19 +170,82 @@ class DataDao extends BaseMdbUtils {
 
         for (StoreRecord record in st) {
             StoreRecord rec = indMulti.get(record.getLong("id"))
+            List<Map<String, Object>> lstMulti = new ArrayList<>()
             if (rec != null) {
-                record.set("ObjectTypeMulti", rec.getString("arr"))
+                //record.set("ObjectTypeMulti", rec.getString("lst"))
+                Store stObjList = loadSqlService("""
+                    select o.id, o.cls, v.name, null as pv 
+                    from Obj o, ObjVer v
+                    where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${rec.getString("lst")})                    
+                """, "", "nsidata")
+                for (StoreRecord r in stObjList) {  //todo
+                    lstMulti.add(r.getValues())
+                }
             }
+            if (!lstMulti.isEmpty())
+                record.set("objObjectTypeMulti", lstMulti)
             record.set("fvRegion", mapPV.get(record.getLong("pvRegion")))
-            record.set("fv_IsActive", mapPV.get(record.getLong("pvIsActive")))
+            record.set("fvIsActive", mapPV.get(record.getLong("pvIsActive")))
         }
         //
         return st
     }
 
+    private void saveObjectTypeMulti(long own, List<Map<String, Object>> objLst) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ObjectType", "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@Prop_ObjectType")
+        map.put("own", own)
+        Store stOld = mdb.loadQuery("""
+            select v.id, v.obj
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataprop
+            where d.isObj=1 and d.objOrRelObj=:obj and d.prop=:Prop_DocumentLinkToDepartment --1080            
+        """, map)
+        Set<Long> idsOld = stOld.getUniqueValues("obj") as Set<Long>
+        Set<Long> idsNew = new HashSet<>()
+        for (Map<String, Object> m in objLst) {
+            idsNew.add(UtCnv.toLong(m.get("id")))
+        }
+
+        Set<Long> idsOldVal = new HashSet<>()
+        //Deleting
+        for (StoreRecord r in stOld) {
+            if (!idsNew.contains(r.getLong("obj"))) {
+                idsOldVal.add(r.getLong("id"))
+            }
+        }
+        if (idsOldVal.size() > 0) {
+            mdb.execQuery("""
+                delete from DataPropVal where id in (${idsOldVal.join(",")});
+                delete from DataProp
+                where id in (
+                    select id from DataProp
+                    except
+                    select dataprop as id from DataPropVal
+                )
+            """)
+        }
+        //Adding
+        Map<String, Object> pms = new HashMap<>()
+        pms.put("own", own)
+
+        for (Map<String, Object> m in objLst) {
+            idsNew.add(UtCnv.toLong(UtCnv.toLong(m.get("id"))))
+            if (!idsOld.contains(m.get("id"))) {
+                pms.put("objObjectTypeMulti", UtCnv.toLong(m.get("id")))
+                pms.put("pvObjectTypeMulti", UtCnv.toLong(m.get("pv")))
+                fillProperties(true, "Prop_ObjectTypeMulti", pms)
+            }
+        }
+    }
+
     @DaoMethod
     Store saveLocation(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
+        //
+        List<Map<String, Object>> objMulti = pms.get("objObjectTypeMulti") as List<Map<String, Object>>
+        pms.remove("objObjectTypeMulti")
         //
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
@@ -254,9 +370,16 @@ class DataDao extends BaseMdbUtils {
         } else {
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
         }
-
+        //
+        if (objMulti) {
+            saveObjectTypeMulti(own, objMulti)
+        }
+        //
         return loadLocation(own)
     }
+
+
+
 
 
     /**
@@ -342,15 +465,343 @@ class DataDao extends BaseMdbUtils {
             if (rec != null)
                 r.set("pv", rec.getLong("id"))
         }
-
         return st
     }
 
+    @DaoMethod
+    Store loadClsForSelect(String codTyp) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codTyp, "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@${codTyp}")
+
+        return loadSqlMeta("""
+            select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get(codTyp)}
+        """, "")
+    }
+
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("own"))
+        String keyValue = cod.split("_")[1]
+        def objRef = UtCnv.toLong(params.get("obj"+keyValue))
+        def propVal = UtCnv.toLong(params.get("pv"+keyValue))
+
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long prop = stProp.get(0).getLong("id")
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        //
+        long idDP
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        String whe = isObj ? "and isObj=1 " : "and isObj=0 "
+        if (stProp.get(0).getLong("statusFactor") > 0) {
+            long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+            whe += "and status = ${fv} "
+        } else {
+            whe += "and status is null "
+        }
+        whe += "and provider is null "
+        //todo if (stProp.get(0).getLong("providerTyp") > 0)
+
+        if (stProp.get(0).getLong("providerTyp") > 0) {
+            whe += "and periodType is not null "
+        } else {
+            whe += "and periodType is null"
+        }
+        Store stDP = mdb.loadQuery("""
+            select * from DataProp
+            where objOrRelObj=${own} and prop=${prop} ${whe}
+        """)
+        if (stDP.size() > 0) {
+            idDP = stDP.get(0).getLong("id")
+        } else {
+            recDP.set("isObj", isObj)
+            recDP.set("objOrRelObj", own)
+            recDP.set("prop", prop)
+            if (stProp.get(0).getLong("statusFactor") > 0) {
+                long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+                recDP.set("status", fv)
+            }
+            if (stProp.get(0).getLong("providerTyp") > 0) {
+                //todo
+                // provider
+                //
+            }
+            if (stProp.get(0).getBoolean("dependperiod")) {
+                recDP.set("periodType", FD_PeriodType_consts.year)
+            }
+            idDP = mdb.insertRec("DataProp", recDP, true)
+        }
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        recDPV.set("dataProp", idDP)
+        // Attrib
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_Address") ||
+                    cod.equalsIgnoreCase("Prop_Phone")) {
+                if (params.get(keyValue) != null) {
+                    recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        //
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_Description")) {
+                if (params.get(keyValue) != null) {
+                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
+                    cod.equalsIgnoreCase("Prop_UpdatedAt")) {
+                if (params.get(keyValue) != null) {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if ( cod.equalsIgnoreCase("Prop_Region") ||
+                    cod.equalsIgnoreCase("Prop_IsActive")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Measure
+        if ([FD_PropType_consts.measure].contains(propType)) {
+            if ( cod.equalsIgnoreCase("Prop_ParamsMeasure")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_StartKm") ||
+                    cod.equalsIgnoreCase("Prop_FinishKm") ||
+                    cod.equalsIgnoreCase("Prop_StageLength") ) {
+                if (params.get(keyValue) != null) {
+                    double v = UtCnv.toDouble(params.get(keyValue))
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    recDPV.set("numberval", v)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ObjectTypeMulti")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        //
+        if (recDP.getLong("periodType") > 0) {
+            if (!params.containsKey("dte"))
+                params.put("dte", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            recDPV.set("dbeg", d1.toString(XDateTimeFormatter.ISO_DATE))
+            recDPV.set("dend", d2.toString(XDateTimeFormatter.ISO_DATE))
+        } else {
+            recDPV.set("dbeg", "1800-01-01")
+            recDPV.set("dend", "3333-12-31")
+        }
+
+        long au = getUser()
+        recDPV.set("authUser", au)
+        recDPV.set("inputType", FD_InputType_consts.app)
+        long idDPV = mdb.getNextId("DataPropVal")
+        recDPV.set("id", idDPV)
+        recDPV.set("ord", idDPV)
+        recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+        mdb.insertRec("DataPropVal", recDPV, false)
 
     }
 
     private void updateProperties(String cod, Map<String, Object> params) {
+        VariantMap mapProp = new VariantMap(params)
+        String keyValue = cod.split("_")[1]
+        long idVal = mapProp.getLong("id" + keyValue)
+        long propVal = mapProp.getLong("pv" + keyValue)
+        long objRef = mapProp.getLong("obj" + keyValue)
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        String sql = ""
+        def tmst = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+        def strValue = mapProp.getString(keyValue)
+        // For Attrib
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_Address") ||
+                    cod.equalsIgnoreCase("Prop_Phone") ) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
+                    sql = "update DataPropval set strVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_Description")) {
+                if (params.get(keyValue) != null) {
+                    sql = "update DataPropval set multiStrVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if ( cod.equalsIgnoreCase("Prop_CreatedAt") ||
+                    cod.equalsIgnoreCase("Prop_UpdatedAt")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
+                    sql = "update DataPropval set dateTimeVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if ( cod.equalsIgnoreCase("Prop_Region") ||
+                    cod.equalsIgnoreCase("Prop_IsActive")) {
+                if (propVal > 0)
+                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Measure
+        if ([FD_PropType_consts.measure].contains(propType)) {
+            if ( cod.equalsIgnoreCase("Prop_ParamsMeasure") ) {
+                if (propVal > 0)
+                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_StartKm") ||
+                    cod.equalsIgnoreCase("Prop_FinishKm") ||
+                    cod.equalsIgnoreCase("Prop_FinishPicket") ||
+                    cod.equalsIgnoreCase("Prop_StageLength")) {
+                if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != 0) {
+                    def v = mapProp.getDouble(keyValue)
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    sql = "update DataPropval set numberVal=${v}, timeStamp='${tmst}' where id=${idVal}"
+                } else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ObjectTypeMulti")) {
+                if (objRef > 0)
+                    sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
+                else {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        mdb.execQueryNative(sql)
 
     }
 
@@ -368,6 +819,14 @@ class DataDao extends BaseMdbUtils {
             return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
+    }
+
+    private long getUser() throws Exception {
+        AuthService authSvc = mdb.getApp().bean(AuthService.class)
+        long au = authSvc.getCurrentUser().getAttrs().getLong("id")
+        if (au == 0)
+            au = 1//throw new XError("notLogined")
+        return au
     }
 
 
