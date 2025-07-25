@@ -136,8 +136,8 @@
                   {{ item.name }}
                 </span>
             </td>
-            <td :data-th="cols[1].name">{{ item.StartStation }}</td>
-            <td :data-th="cols[2].name">{{ item.FinishStation }}</td>
+            <td :data-th="cols[1].name">{{ item.StartKm }}</td>
+            <td :data-th="cols[2].name">{{ item.FinishKm }}</td>
             <td :data-th="cols[3].name">{{ item.StageLength }}</td>
           </tr>
           </tbody>
@@ -423,17 +423,17 @@ export default {
           headerStyle: "font-size: 1.2em; width:40%",
         },
         {
-          name: "StartStation",
-          label: this.$t("StartStation_"),
-          field: "StartStation",
+          name: "StartKm",
+          label: this.$t("StartKm_"),
+          field: "StartKm",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em; width:20%",
         },
         {
-          name: "FinishStation",
-          label: this.$t("FinishStation_"),
-          field: "FinishStation",
+          name: "FinishKm",
+          label: this.$t("FinishKm_"),
+          field: "FinishKm",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em; width:20%",

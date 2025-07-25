@@ -136,7 +136,7 @@
             <td :data-th="cols[1].name">{{ item["NumberOt"] }}</td>
             <td :data-th="cols[2].name">{{ item.name }}</td>
             <td :data-th="cols[3].name">{{ mapCls.get(item.cls) }}</td>
-            <td :data-th="cols[4].name">{{ mapFvOt.get(item.fvOt) }}</td>
+            <td :data-th="cols[4].name">{{ mapFvOt.get(item.fvShape) }}</td>
           </tr>
           </tbody>
         </table>
@@ -449,9 +449,9 @@ export default {
           headerStyle: "font-size: 1.2em; width: 20%",
         },
         {
-          name: "fvOt",
+          name: "fvShape",
           label: this.$t("Typ_ObjectTyp"),
-          field: "fvOt",
+          field: "fvShape",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em; width:15%",
@@ -493,7 +493,7 @@ export default {
         api
           .post(baseURL, {
             method: "data/loadFvOt",
-            params: ["Factor_Ot"],
+            params: ["Factor_Shape"],
           })
           .then(
             (response) => {

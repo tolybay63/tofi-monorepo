@@ -156,13 +156,13 @@ export default {
   deleteNode: "Удалить узел",
   delete: "Удалить",
 
-  StartStation: "Начало км",
+  StartKm: "Начало км",
   StartPicket: "Начало пикет",
-  FinishStation: "Конец км",
+  FinishKm: "Конец км",
   FinishPicket: "Конец пикет",
   StageLength: "Протяженность",
-  StartStation_: "Начало",
-  FinishStation_: "Конец",
+  StartKm_: "Начало",
+  FinishKm_: "Конец",
 
   vidWork: "Вид работы",
   typeObject: "Тип объекта",

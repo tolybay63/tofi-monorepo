@@ -358,8 +358,8 @@ class DataDao extends BaseMdbUtils {
         Store st = mdb.createStore("Obj.ProdArea")
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name, v.objParent as parent,
-                v1.id as idStartStation, v1.numberVal as StartStation,
-                v3.id as idFinishStation, v3.numberVal as FinishStation,
+                v1.id as idStartKm, v1.numberVal as StartKm,
+                v3.id as idFinishKm, v3.numberVal as FinishKm,
                 v5.id as idStageLength, v5.numberVal as StageLength
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
@@ -564,9 +564,9 @@ class DataDao extends BaseMdbUtils {
         Store st = mdb.createStore("Obj.Stage")
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
-                v1.id as idStartStation, v1.numberVal as StartStation,
+                v1.id as idStartKm, v1.numberVal as StartKm,
                 v2.id as idStartPicket, v2.numberVal as StartPicket,
-                v3.id as idFinishStation, v3.numberVal as FinishStation,
+                v3.id as idFinishKm, v3.numberVal as FinishKm,
                 v4.id as idFinishPicket, v4.numberVal as FinishPicket,
                 v5.id as idStageLength, v5.numberVal as StageLength
             from Obj o 
@@ -599,9 +599,9 @@ class DataDao extends BaseMdbUtils {
         Store st = mdb.createStore("Obj.Station")
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name,
-                v1.id as idStartStation, v1.numberVal as StartStation,
+                v1.id as idStartKm, v1.numberVal as StartKm,
                 v2.id as idStartPicket, v2.numberVal as StartPicket,
-                v3.id as idFinishStation, v3.numberVal as FinishStation,
+                v3.id as idFinishKm, v3.numberVal as FinishKm,
                 v4.id as idFinishPicket, v4.numberVal as FinishPicket
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
@@ -632,7 +632,7 @@ class DataDao extends BaseMdbUtils {
         mdb.loadQuery(st, """
             select o.id, v.objparent as parent, o.cls, v.name, null as nameCls,
                 v1.id as idNumberOt, v1.strVal as NumberOt,
-                v2.id as idOt, v2.propVal as pvOt, null as fvOt
+                v2.id as idShape, v2.propVal as pvShape, null as fvShape
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_NumberOt --1005
@@ -644,7 +644,7 @@ class DataDao extends BaseMdbUtils {
         Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
 
         for (StoreRecord record in st) {
-            record.set("fvOt", mapPV.get(record.getLong("pvOt")))
+            record.set("fvShape", mapPV.get(record.getLong("pvShape")))
         }
 
         DataTreeNode dtn = UtData.createTreeIdParent(st, "id", "parent")
@@ -855,13 +855,13 @@ class DataDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_StartKm
-            if (pms.getString("StartStation") && pms.getString("StartStation") != "")
+            if (pms.getString("StartKm") && pms.getString("StartKm") != "")
                 fillProperties(true, "Prop_StartKm", pms)
             //2 StartPicket
             if (pms.getString("StartPicket") && pms.getString("StartPicket") != "")
                 fillProperties(true, "Prop_StartPicket", pms)
-            //3 FinishStation
-            if (pms.getString("FinishStation") && pms.getString("FinishStation") != "")
+            //3 FinishKm
+            if (pms.getString("FinishKm") && pms.getString("FinishKm") != "")
                 fillProperties(true, "Prop_FinishKm", pms)
             //4 FinishPicket
             if (pms.getString("FinishPicket") && pms.getString("FinishPicket") != "")
@@ -872,7 +872,7 @@ class DataDao extends BaseMdbUtils {
             //
             pms.put("own", own)
             //1 Prop_StartKm
-            if (params.containsKey("idStartStation"))
+            if (params.containsKey("idStartKm"))
                 updateProperties("Prop_StartKm", pms)
             else
                 fillProperties(true, "Prop_StartKm", pms)
@@ -882,7 +882,7 @@ class DataDao extends BaseMdbUtils {
             else
                 fillProperties(true, "Prop_StartPicket", pms)
             //3 Prop_FinishKm
-            if (params.containsKey("idFinishStation"))
+            if (params.containsKey("idFinishKm"))
                 updateProperties("Prop_FinishKm", pms)
             else
                 fillProperties(true, "Prop_FinishKm", pms)
@@ -908,13 +908,13 @@ class DataDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_StartKm
-            if (pms.getString("StartStation") && pms.getString("StartStation") != "")
+            if (pms.getString("StartKm") && pms.getString("StartKm") != "")
                 fillProperties(true, "Prop_StartKm", pms)
             //2 StartPicket
             if (pms.getString("StartPicket") && pms.getString("StartPicket") != "")
                 fillProperties(true, "Prop_StartPicket", pms)
-            //3 FinishStation
-            if (pms.getString("FinishStation") && pms.getString("FinishStation") != "")
+            //3 FinishKm
+            if (pms.getString("FinishKm") && pms.getString("FinishKm") != "")
                 fillProperties(true, "Prop_FinishKm", pms)
             //4 FinishPicket
             if (pms.getString("FinishPicket") && pms.getString("FinishPicket") != "")
@@ -929,7 +929,7 @@ class DataDao extends BaseMdbUtils {
             //
             pms.put("own", own)
             //1 Prop_StartKm
-            if (params.containsKey("idStartStation"))
+            if (params.containsKey("idStartKm"))
                 updateProperties("Prop_StartKm", pms)
             else
                 fillProperties(true, "Prop_StartKm", pms)
@@ -939,7 +939,7 @@ class DataDao extends BaseMdbUtils {
             else
                 fillProperties(true, "Prop_StartPicket", pms)
             //3 Prop_FinishKm
-            if (params.containsKey("idFinishStation"))
+            if (params.containsKey("idFinishKm"))
                 updateProperties("Prop_FinishKm", pms)
             else
                 fillProperties(true, "Prop_FinishKm", pms)
@@ -1035,10 +1035,10 @@ class DataDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_StartKm
-            if (pms.getString("StartStation") && pms.getString("StartStation") != "")
+            if (pms.getString("StartKm") && pms.getString("StartKm") != "")
                 fillProperties(true, "Prop_StartKm", pms)
-            //3 FinishStation
-            if (pms.getString("FinishStation") && pms.getString("FinishStation") != "")
+            //3 FinishKm
+            if (pms.getString("FinishKm") && pms.getString("FinishKm") != "")
                 fillProperties(true, "Prop_FinishKm", pms)
             //5 StageLength
             if (pms.getString("StageLength") && pms.getString("StageLength") != "")
@@ -1050,12 +1050,12 @@ class DataDao extends BaseMdbUtils {
             //
             pms.put("own", own)
             //1 Prop_StartKm
-            if (params.containsKey("idStartStation"))
+            if (params.containsKey("idStartKm"))
                 updateProperties("Prop_StartKm", pms)
             else
                 fillProperties(true, "Prop_StartKm", pms)
             //3 Prop_FinishKm
-            if (params.containsKey("idFinishStation"))
+            if (params.containsKey("idFinishKm"))
                 updateProperties("Prop_FinishKm", pms)
             else
                 fillProperties(true, "Prop_FinishKm", pms)
@@ -1082,7 +1082,7 @@ class DataDao extends BaseMdbUtils {
             if (pms.getString("NumberOt") && pms.getString("NumberOt") != "")
                 fillProperties(true, "Prop_NumberOt", pms)
             //2 Prop_Shape
-            if (pms.getLong("fvOt") > 0)
+            if (pms.getLong("fvShape") > 0)
                 fillProperties(true, "Prop_Shape", pms)
 
         } else {
@@ -1096,7 +1096,7 @@ class DataDao extends BaseMdbUtils {
             else
                 fillProperties(true, "Prop_NumberOt", pms)
             //2 Prop_Shape
-            if (params.containsKey("idOt"))
+            if (params.containsKey("idShape"))
                 updateProperties("Prop_Shape", pms)
             else
                 fillProperties(true, "Prop_Shape", pms)

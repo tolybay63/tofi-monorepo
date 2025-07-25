@@ -53,8 +53,8 @@
 
         <!-- fvPeriodicity -->
         <q-select
-          v-model="form.fvOt"
-          :model-value="form.fvOt"
+          v-model="form.fvShape"
+          :model-value="form.fvShape"
           :label="fmReqLabel('Typ_ObjectTyp')"
           :options="optFvOt"
           dense options-dense map-options
@@ -128,14 +128,14 @@ export default {
 
     fnSelectFvOt(v) {
       if (v) {
-        this.form.fvOt = v.id
-        this.form.pvOt = v["pv"]
+        this.form.fvShape = v.id
+        this.form.pvShape = v["pv"]
       }
     },
 
     fnClearFvOt() {
-      this.form.fvOt = null
-      this.form.pvOt = null
+      this.form.fvShape = null
+      this.form.pvShape = null
     },
 
     onBlurName() {
@@ -229,7 +229,7 @@ export default {
     api
       .post(baseURL, {
         method: 'data/loadFvOt',
-        params: ['Factor_Ot'],
+        params: ['Factor_Shape'],
       })
       .then(
         (response) => {

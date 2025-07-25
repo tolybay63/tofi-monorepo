@@ -150,13 +150,13 @@ export default {
   deleteNode: "Түйінді жою",
   delete: "Жою",
 
-  StartStation: "км басы",
+  StartKm: "км басы",
   StartPicket: "пикет басы",
-  FinishStation: "км соңы",
+  FinishKm: "км соңы",
   FinishPicket: "пикет соңы",
   StageLength: "ұзындығы",
-  StartStation_: "басы",
-  FinishStation_: "соңы",
+  StartKm_: "басы",
+  FinishKm_: "соңы",
 
   vidWork: "Жұмыс түрі",
   typeObject: "Объект түрі",
