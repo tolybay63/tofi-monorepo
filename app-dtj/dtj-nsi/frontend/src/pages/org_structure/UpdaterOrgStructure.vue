@@ -31,20 +31,20 @@
         >
         </q-input>
 
-        <!-- StartStation -->
+        <!-- StartKm -->
         <q-input
-          :model-value="form['StartStation']"
-          v-model="form['StartStation']"
+          :model-value="form['StartKm']"
+          v-model="form['StartKm']"
           class="q-ma-md" dense type="number"
-          :label="fnLabel('StartStation_')"
+          :label="fnLabel('StartKm_')"
         />
 
-        <!-- FinishStation -->
+        <!-- FinishKm -->
         <q-input
-          :model-value="form['FinishStation']"
-          v-model="form['FinishStation']"
+          :model-value="form['FinishKm']"
+          v-model="form['FinishKm']"
           class="q-ma-md" dense type="number"
-          :label="fnLabel('FinishStation_')"
+          :label="fnLabel('FinishKm_')"
         />
 
         <!-- StageLength -->

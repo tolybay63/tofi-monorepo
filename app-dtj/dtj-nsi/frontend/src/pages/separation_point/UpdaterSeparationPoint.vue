@@ -28,12 +28,12 @@
         </q-input>
 <!--    :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"    -->
 
-        <!-- StartStation -->
+        <!-- StartKm -->
         <q-input
-          :model-value="form['StartStation']"
-          v-model="form['StartStation']"
+          :model-value="form['StartKm']"
+          v-model="form['StartKm']"
           class="q-ma-md" dense type="number"
-          :label="fmReqLabel('StartStation')"
+          :label="fmReqLabel('StartKm')"
         />
 
         <!-- StartPicket -->
@@ -44,12 +44,12 @@
           :label="fmReqLabel('StartPicket')"
         />
 
-        <!-- FinishStation -->
+        <!-- FinishKm -->
         <q-input
-          :model-value="form['FinishStation']"
-          v-model="form['FinishStation']"
+          :model-value="form['FinishKm']"
+          v-model="form['FinishKm']"
           class="q-ma-md" dense type="number"
-          :label="fmReqLabel('FinishStation')"
+          :label="fmReqLabel('FinishKm')"
         />
 
         <!-- FinishPicket -->
@@ -109,8 +109,8 @@ export default {
     },
 
     validSave() {
-      if (!this.form.name || !this.form.StartStation || !this.form.StartPicket ||
-        !this.form.FinishStation || !this.form.FinishPicket) return true
+      if (!this.form.name || !this.form.StartKm || !this.form.StartPicket ||
+        !this.form.FinishKm || !this.form.FinishPicket) return true
     },
 
     // following method is REQUIRED

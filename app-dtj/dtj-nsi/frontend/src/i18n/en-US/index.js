@@ -149,13 +149,13 @@ export default {
   deleteNode: "Delete node",
   delete: "Delete",
 
-  StartStation: "km start",
+  StartKm: "km start",
   StartPicket: "picket start",
-  FinishStation: "km finish",
+  FinishKm: "km finish",
   FinishPicket: "picket finish",
   StageLength: "Length",
-  StartStation_: "Beginning",
-  FinishStation_: "End",
+  StartKm_: "Beginning",
+  FinishKm_: "End",
 
   typeObject: "Type of object",
   vidWork: "Type of work",
