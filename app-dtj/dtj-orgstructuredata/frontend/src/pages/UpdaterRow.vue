@@ -36,9 +36,7 @@
           map-options
           option-label="name"
           option-value="id"
-          use-input
           @update:model-value="fnSelectCls"
-          @filter="filterCls"
         />
 
         <!-- objObjectTypeMulti -->
@@ -168,7 +166,6 @@ export default {
       loading: false,
       form: this.data,
       optCls: [],
-      optClsOrg: [],
 
       optFvRegion: [],
       optFvRegionOrg: [],
@@ -204,24 +201,6 @@ export default {
       this.form.cls = v.id
       this.form.nameCls = v["name"]
     },
-
-    filterCls(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optCls = this.optClsOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optClsOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optCls = this.optClsOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
-    },
-
 
     fnSelectObjMulti(v) {
       console.info("fnSelectObjMulti", v)
@@ -259,7 +238,7 @@ export default {
     },
 
     validSave() {
-      if (!this.form.name || !this.form.fullName || !this.form.objObjectType || !this.form["fvSide"]) return true
+      if (!this.form.name || !this.form.cls) return true
     },
 
     // following method is REQUIRED
@@ -287,10 +266,9 @@ export default {
 
       this.loading = true
       let err = false
-      this.form.linkCls = this.form.cls
       this.$axios
         .post(baseURL, {
-          method: "data/saveObjectServed",
+          method: "data/saveLocation",
           params: [this.mode, this.form],
         })
         .then(
@@ -344,6 +322,18 @@ export default {
         //
         api
           .post(baseURL, {
+            method: 'data/loadClsForSelect',
+            params: ['Typ_Location'],
+          })
+          .then(
+            (response) => {
+              this.optCls = response.data.result["records"]
+              console.info("Cls", this.optCls)
+            })
+        //
+
+        api
+          .post(baseURL, {
             method: "data/loadObjList",
             params: ["Typ_ObjectTyp", "Prop_ObjectType", "nsidata"],
           })
@@ -365,6 +355,14 @@ export default {
         this.loading = false
       })
     //
+    if (this.mode==="upd") {
+      //let objObjectTypeMulti = JSON.parse( (this.data["objObjectTypeMulti"]))
+      let objObjectTypeMulti = JSON.stringify(this.data["objObjectTypeMulti"])
+
+
+      console.info("objObjectTypeMulti", objObjectTypeMulti)
+
+    }
 
 
   },

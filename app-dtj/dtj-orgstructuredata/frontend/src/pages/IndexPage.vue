@@ -135,7 +135,7 @@ export default defineComponent({
         .onOk(() => {
           this.$axios
             .post(baseURL, {
-              method: "data/deleteObjectLocation",
+              method: "data/deleteObjWithProperties",
               params: [row.id],
             })
             .then(() => {
