@@ -17,6 +17,7 @@
       </q-bar>
 
       <q-card-section>
+        <div> {{form['objObjectTypeMulti']}}</div>
 
         <!-- name -->
         <q-input
@@ -24,41 +25,58 @@
           v-model="form.name"
           :label="fmReqLabel('Наименоваие')"
           class="q-ma-md" dense autofocus
-          @blur="fnBlur()"
         />
-        <!-- fullName -->
-        <q-input
-          :model-value="form.fullName"
-          v-model="form.fullName"
-          :label="fmReqLabel('полное наименование')"
-          class="q-ma-md" dense autofocus
-        />
-
-        <!-- objObjectType -->
+        <!-- cls -->
         <q-select
-          v-model="form['objObjectType']"
-          :model-value="form['objObjectType']"
-          :label="fmReqLabel('Объект')"
-          :options="optObj"
+          v-model="form['cls']"
+          :model-value="form['cls']"
+          :label="fmReqLabel('Вид деятельности')"
+          :options="optCls"
           dense class="q-ma-md"
           map-options
           option-label="name"
           option-value="id"
           use-input
-          @update:model-value="fnSelectObj"
-          @filter="filterObj"
+          @update:model-value="fnSelectCls"
+          @filter="filterCls"
         />
 
-        <!-- fvSide -->
+        <!-- objObjectTypeMulti -->
         <q-select
-          v-model="form['fvSide']"
-          :model-value="form['fvSide']"
+          v-model="form['objObjectTypeMulti']"
+          :model-value="form['objObjectTypeMulti']"
+          :label="fmReqLabel('Объект')"
+          :options="optObjMulti"
+          dense class="q-ma-md"
+          map-options
+          option-label="name"
+          option-value="id"
+          multiple
+          @update:model-value="fnSelectObjMulti"
+        />
+
+        <!-- fvRegion -->
+        <q-select
+          v-model="form['fvRegion']"
+          :model-value="form['fvRegion']"
           :label="fmReqLabel('Значение фактора')"
-          :options="optFv"
+          :options="optFvRegion"
           dense options-dense map-options
           option-label="name" option-value="id"
           class="q-ma-md"
-          @update:model-value="fnSelectFv"
+          @update:model-value="fnSelectFvRegion"
+        />
+
+        <!-- fvIsActive -->
+        <q-select
+          v-model="form['fvIsActive']"
+          :model-value="form['fvIsActive']"
+          :label="fmReqLabel('Значение фактора')"
+          :options="optFvIsActive"
+          dense options-dense map-options
+          option-label="name" option-value="id"
+          class="q-ma-md"
+          @update:model-value="fnSelectFvIsActive"
         />
 
         <!-- StartKm -->
@@ -77,45 +95,12 @@
           :label="fmLabel('Конец, км')"
         />
 
-        <!-- StartPicket -->
+        <!-- StageLength -->
         <q-input
-          :model-value="form['StartPicket']"
-          v-model="form['StartPicket']"
+          :model-value="form['StageLength']"
+          v-model="form['StageLength']"
           class="q-ma-md" dense
-          :label="fmLabel('Начало, пк')"
-        />
-
-        <!-- FinishPicket -->
-        <q-input
-          :model-value="form['FinishPicket']"
-          v-model="form['FinishPicket']"
-          class="q-ma-md" dense
-          :label="fmLabel('Конец, пк')"
-        />
-
-        <!-- PeriodicityReplacement -->
-        <q-input
-          :model-value="form['PeriodicityReplacement']"
-          v-model="form['PeriodicityReplacement']"
-          class="q-ma-md" dense
-          :label="fmLabel('Периодичность замены, год')"
-        />
-
-        <!-- Number -->
-        <q-input
-          :model-value="form['Number']"
-          v-model="form['Number']"
-          class="q-ma-md" dense
-          :label="fmLabel('Номер')"
-        />
-
-
-        <!-- InstallationDate -->
-        <q-input
-          :model-value="form['InstallationDate']"
-          v-model="form['InstallationDate']"
-          class="q-ma-md" dense type="date"
-          :label="fmLabel('Дата установки')"
+          :label="fmLabel('Протяженность')"
         />
 
         <!-- CreatedAt -->
@@ -182,10 +167,18 @@ export default {
     return {
       loading: false,
       form: this.data,
-      optFv: [],
-      optFvOrg: [],
-      optObj: [],
-      optObjOrg: [],
+      optCls: [],
+      optClsOrg: [],
+
+      optFvRegion: [],
+      optFvRegionOrg: [],
+
+      optFvIsActive: [],
+      optFvIsActiveOrg: [],
+
+
+      optObjMulti: [],
+      optObjMultiOrg: [],
 
 
     };
@@ -198,11 +191,6 @@ export default {
   ],
 
   methods: {
-    fnBlur() {
-      if (this.form.fullName === "") {
-        this.form.fullName = this.form.name;
-      }
-    },
 
     fmReqLabel(label) {
       return label + "*";
@@ -212,34 +200,63 @@ export default {
       return label;
     },
 
-    fnSelectObj(v) {
-      this.form.objObjectType = v.id
-      this.form.cls = v.cls
-      this.form.pvobjObjectType = v["pv"]
+    fnSelectCls(v) {
+      this.form.cls = v.id
+      this.form.nameCls = v["name"]
     },
 
-    filterObj(val, update) {
+    filterCls(val, update) {
       if (val === null || val === '') {
         update(() => {
-          this.optObj = this.optObjOrg
+          this.optCls = this.optClsOrg
         })
         return
       }
       update(() => {
-        if (this.optObjOrg.length < 2) return
+        if (this.optClsOrg.length < 2) return
         const needle = val.toLowerCase()
         let name = 'name'
-        this.optObj = this.optObjOrg.filter((v) => {
+        this.optCls = this.optClsOrg.filter((v) => {
           return v[name].toLowerCase().indexOf(needle) > -1
         })
       })
     },
 
-    fnSelectFv(v) {
-      this.form.fvSide = v.id
-      this.form.pvSide = v["pv"]
+
+    fnSelectObjMulti(v) {
+      console.info("fnSelectObjMulti", v)
+      console.info("objObjectTypeMulti", this.form['objObjectTypeMulti'])
+      //this.form.objObjectTypeMulti = v.id
+      //this.form.cls = v.cls
+      //this.form.pvobjObjectType = v["pv"]
     },
 
+    filterObjMulti(val, update) {
+      if (val === null || val === '') {
+        update(() => {
+          this.optObjMulti = this.optObjMultiOrg
+        })
+        return
+      }
+      update(() => {
+        if (this.optObjMultiOrg.length < 2) return
+        const needle = val.toLowerCase()
+        let name = 'name'
+        this.optObjMulti = this.optObjMultiOrg.filter((v) => {
+          return v[name].toLowerCase().indexOf(needle) > -1
+        })
+      })
+    },
+
+    fnSelectFvRegion(v) {
+      this.form.fvRegion = v.id
+      this.form.pvRegion = v["pv"]
+    },
+
+    fnSelectFvIsActive(v) {
+      this.form.fvIsActive = v.id
+      this.form.pvIsActive = v["pv"]
+    },
 
     validSave() {
       if (!this.form.name || !this.form.fullName || !this.form.objObjectType || !this.form["fvSide"]) return true
@@ -304,15 +321,27 @@ export default {
     api
       .post(baseURL, {
         method: 'data/loadFactorValForSelect',
-        params: ['Prop_Side'],
+        params: ['Prop_Region'],
       })
       .then(
         (response) => {
-          this.optFv = response.data.result["records"]
-          this.optFvOrg = response.data.result["records"]
-          console.info("FV", this.optFv)
+          this.optFvRegion = response.data.result["records"]
+          this.optFvRegionOrg = response.data.result["records"]
+          console.info("FV", this.optFvRegion)
         })
       .then(() => {
+        api
+          .post(baseURL, {
+            method: 'data/loadFactorValForSelect',
+            params: ['Prop_IsActive'],
+          })
+          .then(
+            (response) => {
+              this.optFvIsActive = response.data.result["records"]
+              this.optFvIsActiveOrg = response.data.result["records"]
+              console.info("FV", this.optFvIsActive)
+            })
+        //
         api
           .post(baseURL, {
             method: "data/loadObjList",
@@ -320,9 +349,9 @@ export default {
           })
           .then(
             (response) => {
-              this.optObj = response.data.result["records"]
-              this.optObjOrg = response.data.result["records"]
-              console.info("Obj", this.optObj)
+              this.optObjMulti = response.data.result["records"]
+              this.optObjMultiOrg = response.data.result["records"]
+              console.info("Obj", this.optObjMulti)
             })
           .catch(error => {
             console.error(error.message)
