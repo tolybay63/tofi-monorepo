@@ -54,6 +54,7 @@
 
     </domain>
 
+<!--
 
     <domain name="Obj.location" parent="base">
         <field name="id" parent="long"/>
@@ -98,4 +99,5 @@
 
     </domain>
 
+-->
 </root>

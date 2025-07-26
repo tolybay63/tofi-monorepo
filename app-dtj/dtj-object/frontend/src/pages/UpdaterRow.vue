@@ -310,7 +310,6 @@ export default {
         (response) => {
           this.optFv = response.data.result["records"]
           this.optFvOrg = response.data.result["records"]
-          console.info("FV", this.optFv)
         })
       .then(() => {
         api
@@ -322,7 +321,6 @@ export default {
             (response) => {
               this.optObj = response.data.result["records"]
               this.optObjOrg = response.data.result["records"]
-              console.info("Obj", this.optObj)
             })
           .catch(error => {
             console.error(error.message)

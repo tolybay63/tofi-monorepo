@@ -17,7 +17,6 @@
       </q-bar>
 
       <q-card-section>
-        <div> {{form['objObjectTypeMulti']}}</div>
 
         <!-- name -->
         <q-input

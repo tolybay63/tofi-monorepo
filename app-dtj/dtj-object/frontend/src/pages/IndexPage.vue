@@ -84,7 +84,6 @@ export default defineComponent({
       if (mode === "upd") {
         if (parseInt(this.id, 10) > 0) {
           this.findIndex(this.id)
-          console.info("findIndex", this.indexRow)
           if (this.indexRow < 0) {
             notifyError("Нет такой записи")
             return
@@ -105,7 +104,7 @@ export default defineComponent({
           },
         })
         .onOk((r) => {
-          console.log("Ok! updated", r);
+          //console.log("Ok! updated", r);
           this.row = []
           this.row.push(r)
           this.loadObjectServed()
