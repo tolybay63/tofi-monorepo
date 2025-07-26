@@ -129,7 +129,7 @@ class DataDao extends BaseMdbUtils {
                 ) t where t.fvlist in (select fv.fvlist from fv)
             """, "")
 
-            long cls = 0
+            long cls
             if (stTmp.size() > 0)
                 cls = stTmp.get(0).getLong("cls")
             else {
