@@ -9,7 +9,7 @@ class Obj_Test extends Apx_Test {
 
     @Test
     void jsonrpc1() throws Exception {
-        Map<String, Object> map = apx.execJsonRpc("api", "data/loadObj", ["Cls_WorkCheckInspect", "nsidata"])
+        Map<String, Object> map = apx.execJsonRpc("api", "data/loadPersonnal", [0])
         mdb.outMap(map.get("result") as Map)
 
     }
