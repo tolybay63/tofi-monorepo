@@ -348,12 +348,12 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadOrgStructure(long obj) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ProductionAreas", "")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Location", "")
         if (map.isEmpty())
-            throw new XError("NotFoundCod@Cls_ProductionAreas")
+            throw new XError("NotFoundCod@Cls_Location")
         String whe = "o.id=${obj}"
         if (obj==0)
-            whe = "o.cls=${map.get("Cls_ProductionAreas")}"
+            whe = "o.cls=${map.get("Cls_Location")}"
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         Store st = mdb.createStore("Obj.ProdArea")
         mdb.loadQuery(st, """
@@ -497,10 +497,10 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void saveDepartment(Map<String, Object> params) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ProductionAreas", "")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Location", "")
         if (map.isEmpty())
-            throw new XError("NotFoundCod@Cls_ProductionAreas")
-        long cls = map.get("Cls_ProductionAreas")
+            throw new XError("NotFoundCod@Cls_Location")
+        long cls = map.get("Cls_Location")
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_DocumentLinkToDepartment", "")
         if (map.isEmpty())
             throw new XError("NotFoundCod@Prop_DocumentLinkToDepartment")
@@ -1027,9 +1027,9 @@ class DataDao extends BaseMdbUtils {
         VariantMap pms = new VariantMap(params)
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_ProductionAreas", "")
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Location", "")
         Map<String, Object> par = new HashMap<>(pms)
-        par.put("cls", map.get("Cls_ProductionAreas"))
+        par.put("cls", map.get("Cls_Location"))
         par.put("fullName", pms.get("name"))
         if (mode.equalsIgnoreCase("ins")) {
             own = eu.insertEntity(par)
