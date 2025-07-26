@@ -5,7 +5,7 @@
 
         <!-- App Title -->
         <q-toolbar-title class="text-center">
-          DTJ Service - OrgStructure
+          DTJ Service - OrgStructure (api testing)
         </q-toolbar-title>
 
       </q-toolbar>
