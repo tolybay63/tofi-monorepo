@@ -32,4 +32,4 @@ export default defineBoot(({ app }) => {
   //       so you can easily perform requests against your app's API
 })
 
-export { /*authURL,*/ api, baseURL, urlMainApp };
+export { api, baseURL, urlMainApp };
