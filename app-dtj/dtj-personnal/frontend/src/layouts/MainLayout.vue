@@ -5,7 +5,7 @@
 
         <!-- App Title -->
         <q-toolbar-title class="text-center">
-          DTJ Service - Personnal
+          DTJ Service - Personnel (api testing)
         </q-toolbar-title>
 
       </q-toolbar>
