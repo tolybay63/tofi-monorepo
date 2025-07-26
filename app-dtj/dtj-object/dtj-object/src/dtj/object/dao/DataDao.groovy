@@ -777,7 +777,6 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store findStationOfCoord(Map<String, Object> params) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Section", "")
-        //Store st = mdb.createStore("Obj.Served")
 
         Store stCls = loadSqlMeta("""
             select id from Cls where typ=${map.get("Typ_Section")}

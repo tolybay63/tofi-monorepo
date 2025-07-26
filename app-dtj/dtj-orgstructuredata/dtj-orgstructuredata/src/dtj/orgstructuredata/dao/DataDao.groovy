@@ -380,10 +380,6 @@ class DataDao extends BaseMdbUtils {
         return loadLocation(own)
     }
 
-
-
-
-
     /**
      *
      * @param codPropOrFactor: код фактора или код пропа
