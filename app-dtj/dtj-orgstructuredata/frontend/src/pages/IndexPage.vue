@@ -105,7 +105,7 @@ export default defineComponent({
           },
         })
         .onOk((r) => {
-          console.log("Ok! updated", r);
+          //console.log("Ok! updated", r);
           this.row = []
           this.row.push(r)
           this.loadLocation()
