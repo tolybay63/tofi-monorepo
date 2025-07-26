@@ -23,7 +23,7 @@
         />
         <type name="dtj.orgstructure.action.DownFile"
               render="downfile"/>
-        <render name="downfile" class="tdtj.orgstructure.action.DownFileRender"/>
+        <render name="downfile" class="dtj.orgstructure.action.DownFileRender"/>
 
 
     </web>
@@ -48,7 +48,8 @@
         <model name="userdata" instance="tofi.api.dta.model"/>
         <model name="objectdata" instance="tofi.api.dta.model"/>
         <model name="orgstructerdata" instance="tofi.api.dta.model"/>
-
+        <model name="personnaldata" instance="tofi.api.dta.model"/>
+        <model name="plandata" instance="tofi.api.dta.model"/>
     </dbm>
 
 
