@@ -50,7 +50,6 @@
           option-label="name"
           option-value="id"
           multiple
-          @update:model-value="fnSelectObjMulti"
         />
 
         <!-- fvRegion -->
@@ -173,7 +172,6 @@ export default {
       optFvIsActive: [],
       optFvIsActiveOrg: [],
 
-
       optObjMulti: [],
       optObjMultiOrg: [],
 
@@ -202,39 +200,14 @@ export default {
       this.form.nameCls = v["name"]
     },
 
-    fnSelectObjMulti(v) {
-      console.info("fnSelectObjMulti", v)
-      console.info("objObjectTypeMulti", this.form['objObjectTypeMulti'])
-      //this.form.objObjectTypeMulti = v.id
-      //this.form.cls = v.cls
-      //this.form.pvobjObjectType = v["pv"]
-    },
-
-    filterObjMulti(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optObjMulti = this.optObjMultiOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optObjMultiOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optObjMulti = this.optObjMultiOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
-    },
-
     fnSelectFvRegion(v) {
       this.form.fvRegion = v.id
-      this.form.pvRegion = v["pv"]
+      this.form.pvRegion = parseInt(v["pv"], 10)
     },
 
     fnSelectFvIsActive(v) {
       this.form.fvIsActive = v.id
-      this.form.pvIsActive = v["pv"]
+      this.form.pvIsActive = parseInt(v["pv"], 10)
     },
 
     validSave() {
@@ -305,7 +278,6 @@ export default {
         (response) => {
           this.optFvRegion = response.data.result["records"]
           this.optFvRegionOrg = response.data.result["records"]
-          console.info("FV", this.optFvRegion)
         })
       .then(() => {
         api
@@ -317,7 +289,6 @@ export default {
             (response) => {
               this.optFvIsActive = response.data.result["records"]
               this.optFvIsActiveOrg = response.data.result["records"]
-              console.info("FV", this.optFvIsActive)
             })
         //
         api
@@ -328,7 +299,6 @@ export default {
           .then(
             (response) => {
               this.optCls = response.data.result["records"]
-              console.info("Cls", this.optCls)
             })
         //
 
@@ -341,8 +311,20 @@ export default {
             (response) => {
               this.optObjMulti = response.data.result["records"]
               this.optObjMultiOrg = response.data.result["records"]
-              console.info("Obj", this.optObjMulti)
             })
+          .then(()=> {
+
+            if (this.mode==="upd") {
+              let ObjectTypeMulti = this.data["ObjectTypeMulti"].split(",")
+              this.form["objObjectTypeMulti"] = []
+
+              ObjectTypeMulti.forEach((obj) => {
+                let o = parseInt(obj, 10)
+                let ind = this.optObjMulti.findIndex((row)=> row.id===o)
+                this.form["objObjectTypeMulti"].push(this.optObjMulti[ind])
+              })
+            }
+          })
           .catch(error => {
             console.error(error.message)
             notifyError(error.message)
@@ -355,14 +337,6 @@ export default {
         this.loading = false
       })
     //
-    if (this.mode==="upd") {
-      //let objObjectTypeMulti = JSON.parse( (this.data["objObjectTypeMulti"]))
-      let objObjectTypeMulti = JSON.stringify(this.data["objObjectTypeMulti"])
-
-
-      console.info("objObjectTypeMulti", objObjectTypeMulti)
-
-    }
 
 
   },

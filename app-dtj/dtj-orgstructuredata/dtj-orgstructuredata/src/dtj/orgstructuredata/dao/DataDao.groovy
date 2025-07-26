@@ -104,9 +104,12 @@ class DataDao extends BaseMdbUtils {
         Store st = mdb.createStore("Obj.Location")
 
         Store stCls = loadSqlMeta("""
-            select id from Cls where typ=${map.get("Typ_Location")}
+            select c.id , v.name
+            from Cls c, ClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Location")}
         """, "")
         Set<Object> idsCls = stCls.getUniqueValues("id")
+        StoreIndex indCls = stCls.getIndex("id")
 
         String whe = "o.id=${id}"
         if (id==0)
@@ -117,7 +120,7 @@ class DataDao extends BaseMdbUtils {
             select o.id, v.objParent as parent, o.cls, v.name, v.fullName, null as nameCls, prn.name as nameParent,
                 v1.id as idAddress, v1.strVal as Address,
                 v2.id as idPhone, v2.numberVal as Phone,
-                null as objObjectTypeMulti,
+                null as ObjectTypeMulti,
                 v4.id as idStartKm, v4.numberVal as StartKm,
                 v5.id as idFinishKm, v5.numberVal as FinishKm,
                 v6.id as idStageLength, v6.numberVal as StageLength,
@@ -134,8 +137,6 @@ class DataDao extends BaseMdbUtils {
                 left join ObjVer ov1 on v1.obj=ov1.ownerver and ov1.lastver=1
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Phone
                 left join DataPropVal v2 on d2.id=v2.dataprop
-                --left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_ObjectTypeMulti
-                --left join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_StartKm
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_FinishKm
@@ -165,25 +166,26 @@ class DataDao extends BaseMdbUtils {
             group by o.id
         """, map)
         StoreIndex indMulti = stMulti.getIndex("id")
-
         Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
 
         for (StoreRecord record in st) {
             StoreRecord rec = indMulti.get(record.getLong("id"))
-            List<Map<String, Object>> lstMulti = new ArrayList<>()
+            List<Long> lstMulti = new ArrayList<>()
             if (rec != null) {
-                //record.set("ObjectTypeMulti", rec.getString("lst"))
                 Store stObjList = loadSqlService("""
                     select o.id, o.cls, v.name, null as pv 
                     from Obj o, ObjVer v
                     where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${rec.getString("lst")})                    
                 """, "", "nsidata")
-                for (StoreRecord r in stObjList) {  //todo
-                    lstMulti.add(r.getValues())
+                for (StoreRecord r in stObjList) {
+                    lstMulti.add(r.getLong("id"))
                 }
             }
             if (!lstMulti.isEmpty())
-                record.set("objObjectTypeMulti", lstMulti)
+                record.set("ObjectTypeMulti", lstMulti.join(","))
+            StoreRecord rec2 = indCls.get(record.getLong("cls"))
+            if (rec2 != null)
+                record.set("nameCls", rec2.getString("name"))
             record.set("fvRegion", mapPV.get(record.getLong("pvRegion")))
             record.set("fvIsActive", mapPV.get(record.getLong("pvIsActive")))
         }
