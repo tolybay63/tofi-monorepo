@@ -67,7 +67,7 @@ export default defineComponent({
         .then(
           (response) => {
             this.rows = response.data.result.records
-            console.info("rows", this.rows)
+            //console.info("rows", this.rows)
             if (this.rows.length > 0)
               this.id = this.rows[0].id
           })
@@ -85,7 +85,6 @@ export default defineComponent({
       if (mode === "upd") {
         if (parseInt(this.id, 10) > 0) {
           this.findIndex(this.id)
-          console.info("findIndex", this.indexRow)
           if (this.indexRow < 0) {
             notifyError("Нет такой записи")
             return

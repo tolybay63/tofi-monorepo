@@ -69,7 +69,7 @@
         <field name="idPhone" parent="long"/>
         <field name="Phone" parent="string"/>
 
-        <field name="objObjectTypeMulti" parent="string"/>
+        <field name="ObjectTypeMulti" parent="string"/>
 
 
         <field name="idStartKm" parent="long"/>
