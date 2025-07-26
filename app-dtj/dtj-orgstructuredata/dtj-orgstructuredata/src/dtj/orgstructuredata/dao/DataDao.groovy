@@ -383,6 +383,39 @@ class DataDao extends BaseMdbUtils {
         return loadLocation(own)
     }
 
+    @DaoMethod
+    Store loadObjForSelect(String codClsOrTyp) {
+        Map<String, Long> map
+        String sql
+        if (codClsOrTyp.startsWith("Cls_")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codClsOrTyp, "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${codClsOrTyp}")
+            sql = """
+                select o.id, o.cls, v.name, v.objParent as parent, null as pv 
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get(codClsOrTyp)}
+            """
+        } else if (codClsOrTyp.startsWith("Typ_")) {
+            map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codClsOrTyp, "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@${codClsOrTyp}")
+            Store stTmp = loadSqlMeta("""
+                select id from Cls where typ=${map.get(codClsOrTyp)}
+            """, "")
+            Set<Object> idsCls = stTmp.getUniqueValues("id")
+            sql = """
+                select o.id, o.cls, v.objParent as parent, v.name, null as pv 
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            """
+        } else
+            throw new XError("Неисвезстная сущность")
+
+
+        return mdb.loadQuery(sql)
+    }
+
     /**
      *
      * @param codPropOrFactor: код фактора или код пропа
@@ -431,7 +464,7 @@ class DataDao extends BaseMdbUtils {
             if (map.isEmpty())
                 throw new XError("NotFoundCod@${codClsOrTyp}")
             sql = """
-                select o.id, o.cls, v.name, null as pv 
+                select o.id, o.cls, v.name, v.objParent as parent, null as pv 
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get(codClsOrTyp)}
             """
@@ -445,7 +478,7 @@ class DataDao extends BaseMdbUtils {
             Set<Object> idsCls = stTmp.getUniqueValues("id")
 
             sql = """
-                select o.id, o.cls, v.name, null as pv 
+                select o.id, o.cls, v.objParent as parent, v.name, null as pv 
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
             """
