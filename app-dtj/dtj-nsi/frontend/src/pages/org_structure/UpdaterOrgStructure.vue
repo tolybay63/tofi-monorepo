@@ -175,7 +175,6 @@ export default {
     },
   },
   created() {
-    this.loading = true
 
     if (this.form.parent) {
       this.loading = true

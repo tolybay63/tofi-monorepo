@@ -173,7 +173,7 @@ import UpdaterOrgStructure from "pages/org_structure/UpdaterOrgStructure.vue";
 const expand = (item) => {
   item.expend = ref(true);
   const {children} = item;
-  if (children.length > 0) item.leaf = ref(false);
+  if (typeof children instanceof Array && children.length > 0) item.leaf = ref(false);
   else item.leaf = ref(true);
 };
 

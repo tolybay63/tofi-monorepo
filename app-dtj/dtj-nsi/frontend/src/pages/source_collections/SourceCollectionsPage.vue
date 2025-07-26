@@ -710,7 +710,7 @@ export default {
     api
       .post(baseURL, {
         method: 'data/loadDepartments',
-        params: ['Cls_ProductionAreas', 'Prop_DocumentLinkToDepartment'],
+        params: ['Cls_Location', 'Prop_DocumentLinkToDepartment'],
       })
       .then(
         (response) => {
