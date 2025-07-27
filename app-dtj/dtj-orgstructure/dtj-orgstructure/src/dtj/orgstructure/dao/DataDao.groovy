@@ -1,9 +1,7 @@
 package dtj.orgstructure.dao
 
-import groovy.json.JsonParser
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
-import jandcode.commons.UtJson
 import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
