@@ -41,9 +41,14 @@ class Obj_Test extends Apx_Test {
 
     @Test
     void savePersonnalUpd() {
-        Store st = loadPersonnal()
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadPersonnal(0)
         Map<String, Object> map = st.get(0).getValues()
         map.put("UserSecondName", "New Value")
+        map.put("UserMiddleName", "UserMiddleName update")
+        map.put("TabNumber", "987654321 upd")
+
+
         savePersonnal("upd", map)
     }
 
