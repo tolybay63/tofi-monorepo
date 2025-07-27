@@ -256,7 +256,7 @@ class DataDao extends BaseMdbUtils {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
-            //
+            par.put("fullName", par.get("name"))
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_Address

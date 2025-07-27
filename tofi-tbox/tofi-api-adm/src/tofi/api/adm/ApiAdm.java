@@ -15,6 +15,8 @@ public interface ApiAdm {
      */
     Store loadAuthUser(long id);
 
-    public void regUser(Map<String, Object> rec);
+    long regUser(Map<String, Object> rec);
+
+    void deleteAuthUser(long id);
 
 }
