@@ -17,111 +17,173 @@
       </q-bar>
 
       <q-card-section>
-
-        <!-- name -->
+        <!-- login -->
         <q-input
-          :model-value="form.name"
-          v-model="form.name"
-          :label="fmReqLabel('Наименоваие')"
-          class="q-ma-md" dense autofocus
-        />
-        <!-- cls -->
-        <q-select
-          v-model="form['cls']"
-          :model-value="form['cls']"
-          :label="fmReqLabel('Вид деятельности')"
-          :options="optCls"
-          dense class="q-ma-md"
-          map-options
-          option-label="name"
-          option-value="id"
-          @update:model-value="fnSelectCls"
+          autofocus dense
+          v-model="form['login']"
+          :model-value="form['login']"
+          type="text"
+          :label="fnReqLabel('Логин')"
         />
 
-        <!-- objObjectTypeMulti -->
-        <q-select
-          v-model="form['objObjectTypeMulti']"
-          :model-value="form['objObjectTypeMulti']"
-          :label="fmReqLabel('Объект')"
-          :options="optObjMulti"
-          dense class="q-ma-md"
-          map-options
-          option-label="name"
-          option-value="id"
-          multiple
-        />
+          <!-- passwd -->
+          <q-input
+            v-show="mode === 'ins'"
+            dense
+            v-model="form['passwd']"
+            :model-value="form['passwd']"
+            :label="fnLabel('Пароль')"
+          >
+            <template v-slot:append>
+              <q-icon
+                dense
+                :name="isPwd ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                @click="isPwd = !isPwd"
+              />
+            </template>
+          </q-input>
+          <!-- psw2 -->
+          <q-input
+            v-show="mode === 'ins'"
+            dense
+            v-model="form['psw2']"
+            :model-value="form['psw2']"
+            :label="fnReqLabel('Подтверждение')"
+            :type="isPwd ? 'password' : 'text'"
+            :rules="[(val) => pswTest(val) || fnLabel('Ошибка')]"
+          >
+          </q-input>
 
-        <!-- fvRegion -->
-        <q-select
-          v-model="form['fvRegion']"
-          :model-value="form['fvRegion']"
-          :label="fmReqLabel('Значение фактора')"
-          :options="optFvRegion"
-          dense options-dense map-options
-          option-label="name" option-value="id"
-          class="q-ma-md"
-          @update:model-value="fnSelectFvRegion"
-        />
+          <q-toggle
+            class="q-mt-lg"
+            dense
+            :model-value="form.locked"
+            v-model="form.locked"
+            :label="$t('locked')"
+          />
+           Prop_UserSecondName Prop_UserFirstName Prop_UserMiddleName
 
-        <!-- fvIsActive -->
-        <q-select
-          v-model="form['fvIsActive']"
-          :model-value="form['fvIsActive']"
-          :label="fmReqLabel('Значение фактора')"
-          :options="optFvIsActive"
-          dense options-dense map-options
-          option-label="name" option-value="id"
-          class="q-ma-md"
-          @update:model-value="fnSelectFvIsActive"
-        />
 
-        <!-- StartKm -->
-        <q-input
-          :model-value="form['StartKm']"
-          v-model="form['StartKm']"
-          class="q-ma-md" dense
-          :label="fmLabel('Начало, км')"
-        />
+          <!-- Prop_TabNumber -->
+          <q-input
+            :model-value="form['TabNumber']"
+            v-model="form['TabNumber']"
+            label="Табельный номер"
+            class="q-ma-md" dense
+          />
 
-        <!-- FinishKm -->
-        <q-input
-          :model-value="form['FinishKm']"
-          v-model="form['FinishKm']"
-          class="q-ma-md" dense
-          :label="fmLabel('Конец, км')"
-        />
+          <!-- Prop_UserSecondName -->
+          <q-input
+            :model-value="form['UserSecondName']"
+            v-model="form['UserSecondName']"
+            label="Фамилия"
+            class="q-ma-md" dense
+          />
 
-        <!-- StageLength -->
-        <q-input
-          :model-value="form['StageLength']"
-          v-model="form['StageLength']"
-          class="q-ma-md" dense
-          :label="fmLabel('Протяженность')"
-        />
+          <!-- Prop_UserFirstName -->
+          <q-input
+            :model-value="form['UserFirstName']"
+            v-model="form['UserFirstName']"
+            label="Имя"
+            class="q-ma-md" dense
+          />
+          <!-- Prop_UserFirstName -->
+          <q-input
+            :model-value="form['UserMiddleName']"
+            v-model="form['UserMiddleName']"
+            label="Отчество"
+            class="q-ma-md" dense
+          />
 
-        <!-- CreatedAt -->
-        <q-input
-          :model-value="form['CreatedAt']"
-          v-model="form['CreatedAt']"
-          class="q-ma-md" dense type="date"
-          :label="fmLabel('Дата создания записи')"
-        />
 
-        <!-- UpdatedAt -->
-        <q-input
-          :model-value="form['UpdatedAt']"
-          v-model="form['UpdatedAt']"
-          class="q-ma-md" dense type="date"
-          :label="fmLabel('Дата последнего обновления записи')"
-        />
 
-        <!-- Description -->
-        <q-input
-          :model-value="form.Description"
-          v-model="form.Description"
-          type="textarea" class="q-ma-md"
-          :label="fmLabel('Описание')"
-        />
+
+
+          <!-- objLocation -->
+          <q-select
+            v-model="form['objLocation']"
+            :model-value="form['objLocation']"
+            :label="fnReqLabel('Объект')"
+            :options="optObj"
+            dense class="q-ma-md"
+            map-options
+            option-label="name"
+            option-value="id"
+            @update:model-value="fnSelectObj()"
+          />
+
+          <!-- fvSex -->
+          <q-select
+            v-model="form['fvSex']"
+            :model-value="form['fvSex']"
+            :label="fnReqLabel('Значение фактора')"
+            :options="optFvSex"
+            dense options-dense map-options
+            option-label="name" option-value="id"
+            class="q-ma-md"
+            @update:model-value="fnSelectFvSex"
+          />
+
+          <!-- fvPosition -->
+          <q-select
+            v-model="form['fvPosition']"
+            :model-value="form['fvPosition']"
+            :label="fnReqLabel('Значение фактора')"
+            :options="optFvPosition"
+            dense options-dense map-options
+            option-label="name" option-value="id"
+            class="q-ma-md"
+            @update:model-value="fnSelectFvPosition"
+          />
+
+          <!-- StartKm -->
+          <q-input
+            :model-value="form['StartKm']"
+            v-model="form['StartKm']"
+            class="q-ma-md" dense
+            :label="fnLabel('Начало, км')"
+          />
+
+          <!-- FinishKm -->
+          <q-input
+            :model-value="form['FinishKm']"
+            v-model="form['FinishKm']"
+            class="q-ma-md" dense
+            :label="fnLabel('Конец, км')"
+          />
+
+          <!-- StageLength -->
+          <q-input
+            :model-value="form['StageLength']"
+            v-model="form['StageLength']"
+            class="q-ma-md" dense
+            :label="fnLabel('Протяженность')"
+          />
+
+          <!-- CreatedAt -->
+          <q-input
+            :model-value="form['CreatedAt']"
+            v-model="form['CreatedAt']"
+            class="q-ma-md" dense type="date"
+            :label="fnLabel('Дата создания записи')"
+          />
+
+          <!-- UpdatedAt -->
+          <q-input
+            :model-value="form['UpdatedAt']"
+            v-model="form['UpdatedAt']"
+            class="q-ma-md" dense type="date"
+            :label="fnLabel('Дата последнего обновления записи')"
+          />
+
+          <!-- Description -->
+          <q-input
+            :model-value="form.Description"
+            v-model="form.Description"
+            type="textarea" class="q-ma-md"
+            :label="fnLabel('Описание')"
+          />
 
 
       </q-card-section>
@@ -149,6 +211,7 @@
         />
       </q-card-actions>
     </q-card>
+
   </q-dialog>
 </template>
 
@@ -163,16 +226,11 @@ export default {
     return {
       loading: false,
       form: this.data,
-      optCls: [],
-
-      optFvRegion: [],
-      optFvRegionOrg: [],
-
-      optFvIsActive: [],
-      optFvIsActiveOrg: [],
-
-      optObjMulti: [],
-      optObjMultiOrg: [],
+      optFvSex: [],
+      optFvPosition: [],
+      optObj: [],
+      optObjOrg: [],
+      isPwd: true,
 
 
     };
@@ -186,27 +244,38 @@ export default {
 
   methods: {
 
-    fmReqLabel(label) {
+    emailTest: function (v) {
+      return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
+        v
+      );
+    },
+
+
+    pswTest(val) {
+      return val === this.form["passwd"];
+    },
+
+    fnReqLabel(label) {
       return label + "*";
     },
 
-    fmLabel(label) {
+    fnLabel(label) {
       return label;
     },
 
-    fnSelectCls(v) {
-      this.form.cls = v.id
-      this.form.nameCls = v["name"]
+    fnSelectObj(v) {
+      this.form.objLocation = v.id
+      this.form.pvLocation = parseInt(v["pv"], 10)
     },
 
-    fnSelectFvRegion(v) {
-      this.form.fvRegion = v.id
-      this.form.pvRegion = parseInt(v["pv"], 10)
+    fnSelectFvSex(v) {
+      this.form.fvSex = v.id
+      this.form.pvSex = parseInt(v["pv"], 10)
     },
 
-    fnSelectFvIsActive(v) {
-      this.form.fvIsActive = v.id
-      this.form.pvIsActive = parseInt(v["pv"], 10)
+    fnSelectFvPosition(v) {
+      this.form.fvPosition = v.id
+      this.form.pvPosition = parseInt(v["pv"], 10)
     },
 
     validSave() {
@@ -271,59 +340,33 @@ export default {
     api
       .post(baseURL, {
         method: 'data/loadFactorValForSelect',
-        params: ['Prop_Region'],
+        params: ['Prop_UserSex'],
       })
       .then(
         (response) => {
-          this.optFvRegion = response.data.result["records"]
-          this.optFvRegionOrg = response.data.result["records"]
+          this.optFvSex = response.data.result["records"]
         })
       .then(() => {
         api
           .post(baseURL, {
             method: 'data/loadFactorValForSelect',
-            params: ['Prop_IsActive'],
+            params: ['Prop_Position'],
           })
           .then(
             (response) => {
-              this.optFvIsActive = response.data.result["records"]
-              this.optFvIsActiveOrg = response.data.result["records"]
+              this.optFvPosition = response.data.result["records"]
             })
         //
-        api
-          .post(baseURL, {
-            method: 'data/loadClsForSelect',
-            params: ['Typ_Location'],
-          })
-          .then(
-            (response) => {
-              this.optCls = response.data.result["records"]
-            })
-        //
-
         api
           .post(baseURL, {
             method: "data/loadObjList",
-            params: ["Typ_ObjectTyp", "Prop_ObjectType", "nsidata"],
+            params: ["Typ_Location", "Prop_Location", "orgstructuredata"],
           })
           .then(
             (response) => {
-              this.optObjMulti = response.data.result["records"]
-              this.optObjMultiOrg = response.data.result["records"]
+              this.optObj = response.data.result["records"]
+              this.optObjOrg = response.data.result["records"]
             })
-          .then(()=> {
-
-            if (this.mode==="upd") {
-              let ObjectTypeMulti = this.data["ObjectTypeMulti"].split(",")
-              this.form["objObjectTypeMulti"] = []
-
-              ObjectTypeMulti.forEach((obj) => {
-                let o = parseInt(obj, 10)
-                let ind = this.optObjMulti.findIndex((row)=> row.id===o)
-                this.form["objObjectTypeMulti"].push(this.optObjMulti[ind])
-              })
-            }
-          })
           .catch(error => {
             console.error(error.message)
             notifyError(error.message)

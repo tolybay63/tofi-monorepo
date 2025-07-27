@@ -2,8 +2,10 @@ package tofi.api.adm.impl
 
 import jandcode.commons.UtCnv
 import jandcode.commons.UtString
+import jandcode.commons.error.XError
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreRecord
 import tofi.api.adm.ApiAdm
 
 class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
@@ -68,5 +70,26 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         """, Map.of("id", id))
 
         return st
+    }
+
+    @Override
+    void regUser(Map<String, Object> rec) {
+        String psw = UtString.md5Str(UtCnv.toString(rec.get("passwd")));
+        String login = UtString.toString(rec.get("login")).trim();
+        Store st = mdb.loadQuery("""
+                    select id from AuthUser where login like :l
+                """, Map.of("l", login));
+        if (st.size() > 0) {
+            throw new XError("loginExists");
+        }
+
+        rec.put("passwd", psw);
+
+        //
+        st = mdb.createStore("AuthUser");
+        StoreRecord r = st.add(rec);
+        r.set("authUserGr", 2);
+        r.set("locked", 0);
+        mdb.insertRec("AuthUser", r, true);
     }
 }

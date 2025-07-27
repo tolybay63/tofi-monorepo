@@ -21,7 +21,9 @@ import tofi.apinator.ApinatorService
 @CompileStatic
 class DataDao extends BaseMdbUtils {
 
-
+    ApinatorApi apiAdm() {
+        return app.bean(ApinatorService).getApi("adm")
+    }
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
@@ -115,7 +117,39 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
+    private void vaidatePersonal(Map<String, Object> params) {
+        /*
+login   passwd  Prop_TabNumber  Prop_UserSecondName Prop_UserFirstName   Prop_UserDateBirth
+Prop_UserSex    Prop_Position  Prop_Location
+         */
+        if (params.containsKey("login"))
+            throw new XError("login not specified")
+        if (params.containsKey("passwd"))
+            throw new XError("passwd not specified")
+        if (params.containsKey("TabNumber"))
+            throw new XError("TabNumber not specified")
+        if (params.containsKey("UserSecondName"))
+            throw new XError("UserSecondName not specified")
+        if (params.containsKey("UserFirstName"))
+            throw new XError("UserFirstName not specified")
+        if (params.containsKey("UserDateBirth"))
+            throw new XError("UserDateBirth not specified")
+        if (params.containsKey("fvUserSex"))
+            throw new XError("UserSex not specified")
+        if (params.containsKey("fvPosition"))
+            throw new XError("Position not specified")
+        if (params.containsKey("objLocation"))
+            throw new XError("Location not specified")
+    }
 
+    @DaoMethod
+    Store savePersonnal(String mode, Map<String, Object> params) {
+
+
+
+
+        loadPersonnal(0)
+    }
 
 
 

@@ -1,5 +1,8 @@
 <template>
+
   <q-page class="q-pa-md">
+
+<!--
     <q-inner-loading :showing="loading"/>
     <q-btn dense no-caps color="primary" label="Загрузка объектов" @click="loadPersonnal"/>
     <div> {{ this.rows }}</div>
@@ -21,8 +24,10 @@
       <q-input :model-value="id" v-model="id" label="id записи" type="number" :disable="rows.length===0"></q-input>
       <q-btn dense no-caps class="q-ml-md" label="Удалить" color="primary" @click="deleteObjectLocation()" :disable="rows.length===0"/>
     </div>
+-->
 
   </q-page>
+
 </template>
 
 <script>

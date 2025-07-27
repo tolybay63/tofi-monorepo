@@ -15,4 +15,6 @@ public interface ApiAdm {
      */
     Store loadAuthUser(long id);
 
+    public void regUser(Map<String, Object> rec);
+
 }
