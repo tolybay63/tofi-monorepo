@@ -306,7 +306,7 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_Address", pms)
             else {
                 if (!pms.getString("Address").isEmpty())
-                    fillProperties(true, "Prop_ObjectType", pms)
+                    fillProperties(true, "Prop_Address", pms)
             }
             //2 Prop_Phone
             if (pms.containsKey("idPhone"))
