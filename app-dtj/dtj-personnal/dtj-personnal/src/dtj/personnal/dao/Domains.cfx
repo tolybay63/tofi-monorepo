@@ -9,8 +9,6 @@
 
         <field name="login" parent="string"/>
         <field name="passwd" parent="string"/>
-        <field name="passwdConfirm" parent="string"/>
-        <field name="locked" parent="boolean"/>
 
         <field name="idTabNumber" parent="long"/>
         <field name="TabNumber" parent="string"/>
@@ -35,6 +33,12 @@
         <field name="CreatedAt" parent="string"/>
         <field name="idUpdatedAt" parent="long"/>
         <field name="UpdatedAt" parent="string"/>
+
+        <field name="fvUserSex" parent="long"/>
+        <field name="pvUserSex" parent="long"/>
+
+        <field name="fvPosition" parent="long"/>
+        <field name="pvPosition" parent="long"/>
 
         <field name="idLocation" parent="long"/>
         <field name="pvLocation" parent="long"/>

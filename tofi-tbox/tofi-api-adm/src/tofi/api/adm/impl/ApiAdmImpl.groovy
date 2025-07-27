@@ -73,7 +73,7 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
     }
 
     @Override
-    void regUser(Map<String, Object> rec) {
+    long regUser(Map<String, Object> rec) {
         String psw = UtString.md5Str(UtCnv.toString(rec.get("passwd")));
         String login = UtString.toString(rec.get("login")).trim();
         Store st = mdb.loadQuery("""
@@ -90,6 +90,13 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         StoreRecord r = st.add(rec);
         r.set("authUserGr", 2);
         r.set("locked", 0);
-        mdb.insertRec("AuthUser", r, true);
+        return mdb.insertRec("AuthUser", r, true);
+    }
+
+    @Override
+    void deleteAuthUser(long id) {
+        mdb.execQuery("""
+            delete from AuthUser where id=:id
+        """, Map.of("id", id))
     }
 }
