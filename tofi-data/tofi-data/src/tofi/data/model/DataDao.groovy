@@ -100,40 +100,40 @@ class DataDao extends BaseMdbUtils {
         if (isObj == 1) {
             clsORrelcls = apiUserData().get(ApiUserData).getClsOrRelCls(owner, isObj)
             if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
+                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_dataOld(owner, "obj", mapPV.get(clsORrelcls))
                 if (b) lstApp.add("userdata")
             }
             //
             clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
             if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
+                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_dataOld(owner, "obj", mapPV.get(clsORrelcls))
                 if (b) lstApp.add("nsidata")
             }
             //
             if (modelMeta == "fish") {
                 clsORrelcls = apiMonitoringData().get(ApiMonitoringData).getClsOrRelCls(owner, isObj)
                 if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
+                    boolean b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_dataOld(owner, "obj", mapPV.get(clsORrelcls))
                     if (b) lstApp.add("monitoringdata")
                 }
             }
         } else {
             clsORrelcls = apiUserData().get(ApiUserData).getClsOrRelCls(owner, isObj)
             if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
+                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_dataOld(owner, "relobj", mapPV.get(clsORrelcls))
                 if (b) lstApp.add("userdata")
             }
             //
             clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
             if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
+                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_dataOld(owner, "relobj", mapPV.get(clsORrelcls))
                 if (b) lstApp.add("nsidata")
             }
             //
             if (modelMeta == "fish") {
                 clsORrelcls = apiMonitoringData().get(ApiMonitoringData).getClsOrRelCls(owner, isObj)
                 if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
+                    boolean b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_dataOld(owner, "relobj", mapPV.get(clsORrelcls))
                     if (b) lstApp.add("monitoringdata")
                 }
             }
