@@ -75,4 +75,40 @@ class ApiPersonnalDataImpl extends BaseMdbUtils implements ApiPersonnalData {
         throw new XError("Not known Entity")
     }
 
+    @Override
+    boolean is_exist_entity_as_dataOld(long entId, String entName, long propVal) {
+        if (entName.equalsIgnoreCase("obj")) {
+            return mdb.loadQuery("""
+                select v.id from DataProp d, DataPropVal v
+                where d.id=v.dataProp and d.isObj=1 and v.propVal=${propVal} and v.obj=${entId}
+                limit 1
+            """).size() > 0
+        } else if (entName.equalsIgnoreCase("relobj")) {
+            return mdb.loadQuery("""
+                select v.id from DataProp d, DataPropVal v
+                where d.id=v.dataProp and d.isObj=0 and v.propVal=${propVal} and v.relobj=${entId}
+                limit 1
+            """).size() > 0
+        } else if (entName.equalsIgnoreCase("factorVal")) {
+            return mdb.loadQuery("""
+                select v.id from DataProp d, DataPropVal v
+                where d.id=v.dataProp and v.propVal=${propVal} and v.obj is null and v.relobj is null
+                limit 1
+            """).size() > 0
+        }
+        throw new XError("Not known Entity")
+    }
+
+    @Override
+    boolean checkExistOwners(long clsORrelcls, boolean isObj) {
+        if (isObj)
+            return mdb.loadQueryNative("""
+                select id from Obj where cls=${clsORrelcls} limit 1
+            """).size() > 0
+        else
+            return mdb.loadQueryNative("""
+                select id from RelObj where relcls=${clsORrelcls} limit 1
+            """).size() > 0
+    }
+
 }

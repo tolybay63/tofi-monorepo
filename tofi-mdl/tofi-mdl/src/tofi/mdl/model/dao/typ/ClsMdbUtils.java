@@ -7,9 +7,7 @@ import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
-import tofi.api.dta.ApiMonitoringData;
-import tofi.api.dta.ApiNSIData;
-import tofi.api.dta.ApiUserData;
+import tofi.api.dta.*;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.FD_PropType_consts;
@@ -25,14 +23,25 @@ public class ClsMdbUtils extends EntityMdbUtils {
     ApinatorApi apiUserData() {
         return  mdb.getApp().bean(ApinatorService.class).getApi("userdata");
     }
-
     ApinatorApi apiNSIData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
     }
-
     ApinatorApi apiMonitoringData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
+    ApinatorApi apiObjectData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("objectdata");
+    }
+    ApinatorApi apiOrgStructureData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("orgstructuredata");
+    }
+    ApinatorApi apiPersonnalData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("personnaldata");
+    }
+    ApinatorApi apiPlanData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("plandata");
+    }
+
 
     Mdb mdb;
     String tableName;
@@ -243,12 +252,18 @@ public class ClsMdbUtils extends EntityMdbUtils {
         }
 
         if (modelMeta.equalsIgnoreCase("dtj")) {
-            //1
             boolean b = apiUserData().get(ApiUserData.class).checkExistOwners(cls, true);
             if (b) lstApp.add("userdata");
-            //2
             b = apiNSIData().get(ApiNSIData.class).checkExistOwners(cls, true);
             if (b) lstApp.add("nsidata");
+            b = apiOrgStructureData().get(ApiOrgStructureData.class).checkExistOwners(cls, true);
+            if (b) lstApp.add("orgstructuredata");
+            b = apiObjectData().get(ApiObjectData.class).checkExistOwners(cls, true);
+            if (b) lstApp.add("objectdata");
+            b = apiPersonnalData().get(ApiPersonnalData.class).checkExistOwners(cls, true);
+            if (b) lstApp.add("personnaldata");
+            b = apiPlanData().get(ApiPlanData.class).checkExistOwners(cls, true);
+            if (b) lstApp.add("plandata");
         }
 
         if (!lstApp.isEmpty()) {

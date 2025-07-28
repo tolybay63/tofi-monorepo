@@ -14,12 +14,6 @@ public class FactorRelMdbUtils {
 
     FactorRelMdbUtils(Mdb mdb) throws Exception {
         this.mdb = mdb;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
     }
 
     /**
