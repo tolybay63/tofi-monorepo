@@ -10,6 +10,7 @@ import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
+import jandcode.core.std.CfgService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
@@ -138,47 +139,6 @@ class DataDao extends BaseMdbUtils {
         }
         //
         return st
-    }
-
-    private static void validatePersonal(String mode, Map<String, Object> params) {
-        if (mode=="ins") {
-            if (!params.containsKey("login"))
-                throw new XError("login not specified")
-            if (!params.containsKey("passwd"))
-                throw new XError("passwd not specified")
-        }
-        if (!params.containsKey("TabNumber"))
-            throw new XError("TabNumber not specified")
-        if (!params.containsKey("UserSecondName"))
-            throw new XError("UserSecondName not specified")
-        if (!params.containsKey("UserFirstName"))
-            throw new XError("UserFirstName not specified")
-        if (!params.containsKey("UserDateBirth"))
-            throw new XError("UserDateBirth not specified")
-        if (!params.containsKey("fvUserSex"))
-            throw new XError("UserSex not specified")
-        if (!params.containsKey("fvPosition"))
-            throw new XError("Position not specified")
-        if (!params.containsKey("objLocation"))
-            throw new XError("Location not specified")
-    }
-
-    private long regUser(Map<String, Object> params) {
-        Map<String, Object> rec = new HashMap<>()
-        rec.put("login", params.get("login"))
-        rec.put("passwd", params.get("passwd"))
-        rec.put("accessLevel", 1)
-        rec.put("email", params.get("UserEmail"))
-        if (params.containsKey("UserPhone"))
-            rec.put("phone", params.get("UserPhone"))
-        rec.put("name", params.get("UserFirstName"))
-        String fn = params.get("UserSecondName").toString() + " " + params.get("UserFirstName").toString()
-        rec.put("fullName", fn)
-        return apiAdm().get(ApiAdm).regUser(rec)
-    }
-
-    private void deleteAuthUser(long id) {
-        apiAdm().get(ApiAdm).deleteAuthUser(id)
     }
 
     @DaoMethod
@@ -371,6 +331,95 @@ class DataDao extends BaseMdbUtils {
         loadPersonnal(own)
     }
 
+    @DaoMethod
+    void deleteObjWithProperties(long id) {
+        validateForDeleteObj(id)
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
+        if (map.isEmpty())
+            throw new XError("Not found [Prop_UserId]")
+        Store st = mdb.loadQuery("""
+            select v.strVal as userId
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.isObj=1 and d.objOrRelObj=${id} and d.prop=${map.get("Prop_UserId")}
+        """)
+        if (st.size() == 0)
+            throw new XError("Не найден Объект или его значение свойства Prop_UserId")
+        long userId = st.get(0).getLong("userId")
+        deleteAuthUser(userId)
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        //
+        eu.deleteEntity(id)
+    }
+
+    private void is_exist_obj_as_data(long id, String modelMeta) {
+        //...todo
+        //...
+    }
+
+    private void validateForDeleteObj(long id) {
+        //---< check data in other DB
+        CfgService cfgSvc = mdb.getApp().bean(CfgService.class)
+        String modelMeta = cfgSvc.getConf().getString("dbsource/meta/id")
+        if (modelMeta.isEmpty())
+            throw new XError("Не найден id мета модели")
+        //-->
+        is_exist_obj_as_data(id, modelMeta)
+    }
+
+
+    private static void validatePersonal(String mode, Map<String, Object> params) {
+        if (mode=="ins") {
+            if (!params.containsKey("login"))
+                throw new XError("login not specified")
+            if (!params.containsKey("passwd"))
+                throw new XError("passwd not specified")
+        }
+        if (!params.containsKey("TabNumber"))
+            throw new XError("TabNumber not specified")
+        if (!params.containsKey("UserSecondName"))
+            throw new XError("UserSecondName not specified")
+        if (!params.containsKey("UserFirstName"))
+            throw new XError("UserFirstName not specified")
+        if (!params.containsKey("UserDateBirth"))
+            throw new XError("UserDateBirth not specified")
+        if (!params.containsKey("fvUserSex"))
+            throw new XError("UserSex not specified")
+        if (!params.containsKey("fvPosition"))
+            throw new XError("Position not specified")
+        if (!params.containsKey("objLocation"))
+            throw new XError("Location not specified")
+    }
+
+    private long regUser(Map<String, Object> params) {
+        Map<String, Object> rec = new HashMap<>()
+        rec.put("login", params.get("login"))
+        rec.put("passwd", params.get("passwd"))
+        rec.put("accessLevel", 1)
+        rec.put("email", params.get("UserEmail"))
+        if (params.containsKey("UserPhone"))
+            rec.put("phone", params.get("UserPhone"))
+        rec.put("name", params.get("UserFirstName"))
+        String fn = params.get("UserSecondName").toString() + " " + params.get("UserFirstName").toString()
+        rec.put("fullName", fn)
+        return apiAdm().get(ApiAdm).regUser(rec)
+    }
+
+    private void deleteAuthUser(long id) {
+        apiAdm().get(ApiAdm).deleteAuthUser(id)
+    }
+
+    //-------------------------
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         String keyValue = cod.split("_")[1]
