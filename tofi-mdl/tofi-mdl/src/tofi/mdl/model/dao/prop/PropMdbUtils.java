@@ -42,26 +42,35 @@ public class PropMdbUtils extends EntityMdbUtils {
     ApinatorApi apiUserData() {
         return  mdb.getApp().bean(ApinatorService.class).getApi("userdata");
     }
-
     ApinatorApi apiKPIData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("kpidata");
     }
-
     ApinatorApi apiPollData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("polldata");
     }
-
     ApinatorApi apiIndicatorData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("indicatordata");
     }
-
     ApinatorApi apiNSIData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
     }
-
     ApinatorApi apiMonitoringData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
+    ApinatorApi apiObjectData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("objectdata");
+    }
+    ApinatorApi apiOrgStructureData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("orgstructuredata");
+    }
+    ApinatorApi apiPersonnalData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("personnaldata");
+    }
+    ApinatorApi apiPlanData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("plandata");
+    }
+
+
 
 
     public Store loadPropTree(long propGr) throws Exception {
@@ -254,6 +263,33 @@ public class PropMdbUtils extends EntityMdbUtils {
             if (st.size() > 0)
                 throw new XError("NotChangeStructComplexProp@nsidata");
 
+            st = apiObjectData().get(ApiObjectData.class).loadSql("""
+                            select v.id from dataprop d, Datapropval v
+                            where d.id=v.dataprop and d.prop=
+                        """ + prop, "");
+            if (st.size() > 0)
+                throw new XError("NotChangeStructComplexProp@objectdata");
+
+            st = apiOrgStructureData().get(ApiOrgStructureData.class).loadSql("""
+                            select v.id from dataprop d, Datapropval v
+                            where d.id=v.dataprop and d.prop=
+                        """ + prop, "");
+            if (st.size() > 0)
+                throw new XError("NotChangeStructComplexProp@orgstructuredata");
+
+            st = apiPersonnalData().get(ApiPersonnalData.class).loadSql("""
+                            select v.id from dataprop d, Datapropval v
+                            where d.id=v.dataprop and d.prop=
+                        """ + prop, "");
+            if (st.size() > 0)
+                throw new XError("NotChangeStructComplexProp@personnaldata");
+
+            st = apiPlanData().get(ApiPlanData.class).loadSql("""
+                            select v.id from dataprop d, Datapropval v
+                            where d.id=v.dataprop and d.prop=
+                        """ + prop, "");
+            if (st.size() > 0)
+                throw new XError("NotChangeStructComplexProp@plandata");
         }
 
     }
@@ -871,6 +907,19 @@ public class PropMdbUtils extends EntityMdbUtils {
             st = apiNSIData().get(ApiNSIData.class).loadSql(sql, domain);
             if (st.size() > 0)
                 res.put("nsidata", st.getUniqueValues("periodType"));
+            st = apiObjectData().get(ApiObjectData.class).loadSql(sql, domain);
+            if (st.size() > 0)
+                res.put("objectdata", st.getUniqueValues("periodType"));
+            st = apiOrgStructureData().get(ApiOrgStructureData.class).loadSql(sql, domain);
+            if (st.size() > 0)
+                res.put("orgstructuredata", st.getUniqueValues("periodType"));
+            st = apiPersonnalData().get(ApiPersonnalData.class).loadSql(sql, domain);
+            if (st.size() > 0)
+                res.put("personnaldata", st.getUniqueValues("periodType"));
+            st = apiPlanData().get(ApiPlanData.class).loadSql(sql, domain);
+            if (st.size() > 0)
+                res.put("plandata", st.getUniqueValues("periodType"));
+
         }
         //
         return res;

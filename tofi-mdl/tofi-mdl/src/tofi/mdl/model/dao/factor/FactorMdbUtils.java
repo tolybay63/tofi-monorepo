@@ -11,9 +11,7 @@ import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
-import tofi.api.dta.ApiMonitoringData;
-import tofi.api.dta.ApiNSIData;
-import tofi.api.dta.ApiUserData;
+import tofi.api.dta.*;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.FD_PropType_consts;
@@ -30,13 +28,23 @@ public class FactorMdbUtils extends EntityMdbUtils {
     ApinatorApi apiUserData() {
         return  mdb.getApp().bean(ApinatorService.class).getApi("userdata");
     }
-
     ApinatorApi apiNSIData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
     }
-
     ApinatorApi apiMonitoringData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("monitoringdata");
+    }
+    ApinatorApi apiObjectData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("objectdata");
+    }
+    ApinatorApi apiOrgStructureData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("orgstructuredata");
+    }
+    ApinatorApi apiPersonnalData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("personnaldata");
+    }
+    ApinatorApi apiPlanData() {
+        return mdb.getApp().bean(ApinatorService.class).getApi("plandata");
     }
 
 
@@ -130,19 +138,27 @@ public class FactorMdbUtils extends EntityMdbUtils {
     void is_exist_entity_as_data(long propVal, String metaModel) {
         List<String> lstApp = new ArrayList<>();
         if (metaModel.equalsIgnoreCase("fish")) {
-            boolean b = apiUserData().get(ApiUserData.class).is_exist_entity_as_data(0, "factorVal", propVal);
+            boolean b = apiUserData().get(ApiUserData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("userdata");
-            b = apiNSIData().get(ApiNSIData.class).is_exist_entity_as_data(0, "factorVal", propVal);
+            b = apiNSIData().get(ApiNSIData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("nsidata");
-            b = apiMonitoringData().get(ApiMonitoringData.class).is_exist_entity_as_data(0, "factorVal", propVal);
+            b = apiMonitoringData().get(ApiMonitoringData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("monitoringdata");
         }
         //...else if (metaModel.equalsIgnoreCase("kpi"))
         if (metaModel.equalsIgnoreCase("dtj")) {
-            boolean b = apiUserData().get(ApiUserData.class).is_exist_entity_as_data(0, "factorVal", propVal);
+            boolean b = apiUserData().get(ApiUserData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("userdata");
-            b = apiNSIData().get(ApiNSIData.class).is_exist_entity_as_data(0, "factorVal", propVal);
+            b = apiNSIData().get(ApiNSIData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("nsidata");
+            b = apiObjectData().get(ApiObjectData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
+            if (b) lstApp.add("objectdata");
+            b = apiOrgStructureData().get(ApiOrgStructureData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
+            if (b) lstApp.add("orgstructuredata");
+            b = apiPersonnalData().get(ApiPersonnalData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
+            if (b) lstApp.add("personnaldata");
+            b = apiPlanData().get(ApiPlanData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
+            if (b) lstApp.add("plandata");
         }
 
         String msg = UtString.join(lstApp, ", ");

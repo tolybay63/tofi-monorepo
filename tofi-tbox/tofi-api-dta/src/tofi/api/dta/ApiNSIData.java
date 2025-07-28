@@ -89,6 +89,8 @@ public interface ApiNSIData {
      */
     boolean is_exist_entity_as_data(long entId, String entName, String propVal);
 
+    boolean is_exist_entity_as_dataOld(long entId, String entName, long propVal);
+
     /**
      *
      * @param clsORrelcls id Cls or id RelCls
