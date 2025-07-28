@@ -32,7 +32,7 @@ class Obj_Test extends Apx_Test {
         map.put("fvPosition", 1130)
         map.put("pvPosition", 1246)
         map.put("objLocation", 1001)
-        map.put("pvLocation", 1040)
+        map.put("pvLocation", 1144)
 
         //
         savePersonnal("ins", map)
@@ -60,7 +60,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void delectPersonnal() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1009)
+        dao.deleteObjWithProperties(1010)
     }
 
 

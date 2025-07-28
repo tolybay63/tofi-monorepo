@@ -234,6 +234,22 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
+    Map<Long, String> mapPropValArrFromCls(String clsORrelcls) {
+        Map<Long, String> res = [:]
+        Store st = mdb.loadQuery("""
+            select ${clsORrelcls}, string_agg (cast(id as varchar(3000)), ',' order by id) as lst
+            from PropVal 
+            where ${clsORrelcls} is not null
+            group by ${clsORrelcls}
+        """)
+        for (StoreRecord r in st) {
+            res.put(r.getLong(clsORrelcls), r.getString("lst"))
+        }
+
+        return res
+    }
+
+    @Override
     Map<Long, String> mapFvNameFromId() {
         Map<Long, String> res = [:]
         Store st = mdb.loadQuery("""

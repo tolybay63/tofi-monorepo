@@ -314,7 +314,7 @@ export default {
           .then(()=> {
 
             if (this.mode==="upd") {
-              let ObjectTypeMulti = this.data["ObjectTypeMulti"].split(",")
+              let ObjectTypeMulti = this.data["objObjectTypeMulti"].split(",")
               this.form["objObjectTypeMulti"] = []
 
               ObjectTypeMulti.forEach((obj) => {

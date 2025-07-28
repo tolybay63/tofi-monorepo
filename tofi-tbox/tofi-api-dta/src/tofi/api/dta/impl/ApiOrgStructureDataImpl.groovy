@@ -53,17 +53,17 @@ class ApiOrgStructureDataImpl extends BaseMdbUtils implements ApiOrgStructureDat
     }
 
     @Override
-    boolean is_exist_entity_as_data(long entId, String entName, long propVal) {
+    boolean is_exist_entity_as_data(long entId, String entName, String propVal) {
         if (entName.equalsIgnoreCase("obj")) {
             return mdb.loadQuery("""
                 select v.id from DataProp d, DataPropVal v
-                where d.id=v.dataProp and d.isObj=1 and v.propVal=${propVal} and v.obj=${entId}
+                where d.id=v.dataProp and d.isObj=1 and v.propVal in (0${propVal}) and v.obj=${entId}
                 limit 1
             """).size() > 0
         } else if (entName.equalsIgnoreCase("relobj")) {
             return mdb.loadQuery("""
                 select v.id from DataProp d, DataPropVal v
-                where d.id=v.dataProp and d.isObj=0 and v.propVal=${propVal} and v.relobj=${entId}
+                where d.id=v.dataProp and d.isObj=0 and v.propVal in (0${propVal}) and v.relobj=${entId}
                 limit 1
             """).size() > 0
         } else if (entName.equalsIgnoreCase("factorVal")) {
