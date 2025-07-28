@@ -20,6 +20,10 @@ import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
+import tofi.api.dta.ApiObjectData
+import tofi.api.dta.ApiOrgStructureData
+import tofi.api.dta.ApiPersonnalData
+import tofi.api.dta.ApiPlanData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.UtPeriod
@@ -48,27 +52,35 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
-
     ApinatorApi apiMonitoringData() {
         return app.bean(ApinatorService).getApi("monitoringdata")
     }
-
     ApinatorApi apiMetaFish() {
         return app.bean(ApinatorService).getApi("meta")
     }
+    ApinatorApi apiObjectData() {
+        return app.bean(ApinatorService).getApi("objectdata")
+    }
+    ApinatorApi apiPlanData() {
+        return app.bean(ApinatorService).getApi("plandata")
+    }
+    ApinatorApi apiPersonnalData() {
+        return app.bean(ApinatorService).getApi("personnaldata")
+    }
+    ApinatorApi apiOrgStructureData() {
+        return app.bean(ApinatorService).getApi("orgstructuredata")
+    }
+
 
     //-------------------------
 
     void is_exist_owner_as_data(long owner, int isObj, String modelMeta) {
-
         Map<Long, Long> mapPV
         if (isObj==1)
             mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
@@ -97,6 +109,31 @@ class DataDao extends BaseMdbUtils {
                     if (b) lstApp.add("monitoringdata")
                 }
             }
+            if (modelMeta=="dtj") {
+                clsORrelcls = apiPersonnalData().get(ApiPersonnalData).getClsOrRelCls(owner, isObj)
+                if (mapPV.containsKey(clsORrelcls)) {
+                    boolean b = apiPersonnalData().get(ApiPersonnalData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
+                    if (b) lstApp.add("personnaldata")
+                }
+                //
+                clsORrelcls = apiPlanData().get(ApiPlanData).getClsOrRelCls(owner, isObj)
+                if (mapPV.containsKey(clsORrelcls)) {
+                    boolean b = apiPlanData().get(ApiPlanData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
+                    if (b) lstApp.add("plandata")
+                }
+                //
+                clsORrelcls = apiOrgStructureData().get(ApiOrgStructureData).getClsOrRelCls(owner, isObj)
+                if (mapPV.containsKey(clsORrelcls)) {
+                    boolean b = apiOrgStructureData().get(ApiOrgStructureData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
+                    if (b) lstApp.add("orgstructuredata")
+                }
+                //
+                clsORrelcls = apiObjectData().get(ApiObjectData).getClsOrRelCls(owner, isObj)
+                if (mapPV.containsKey(clsORrelcls)) {
+                    boolean b = apiObjectData().get(ApiObjectData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
+                    if (b) lstApp.add("objectdata")
+                }
+            }
         } else {
             clsORrelcls = apiUserData().get(ApiUserData).getClsOrRelCls(owner, isObj)
             if (mapPV.containsKey(clsORrelcls)) {
@@ -115,6 +152,31 @@ class DataDao extends BaseMdbUtils {
                 if (mapPV.containsKey(clsORrelcls)) {
                     boolean b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
                     if (b) lstApp.add("monitoringdata")
+                }
+            }
+            if (modelMeta=="dtj") {
+                clsORrelcls = apiPersonnalData().get(ApiPersonnalData).getClsOrRelCls(owner, isObj)
+                if (mapPV.containsKey(clsORrelcls)) {
+                    boolean b = apiPersonnalData().get(ApiPersonnalData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
+                    if (b) lstApp.add("personnaldata")
+                }
+                //
+                clsORrelcls = apiPlanData().get(ApiPlanData).getClsOrRelCls(owner, isObj)
+                if (mapPV.containsKey(clsORrelcls)) {
+                    boolean b = apiPlanData().get(ApiPlanData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
+                    if (b) lstApp.add("plandata")
+                }
+                //
+                clsORrelcls = apiOrgStructureData().get(ApiOrgStructureData).getClsOrRelCls(owner, isObj)
+                if (mapPV.containsKey(clsORrelcls)) {
+                    boolean b = apiOrgStructureData().get(ApiOrgStructureData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
+                    if (b) lstApp.add("orgstructuredata")
+                }
+                //
+                clsORrelcls = apiObjectData().get(ApiObjectData).getClsOrRelCls(owner, isObj)
+                if (mapPV.containsKey(clsORrelcls)) {
+                    boolean b = apiObjectData().get(ApiObjectData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
+                    if (b) lstApp.add("objectdata")
                 }
             }
         }
