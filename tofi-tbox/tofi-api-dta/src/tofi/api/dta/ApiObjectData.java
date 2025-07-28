@@ -20,5 +20,22 @@ public interface ApiObjectData {
      */
     Store loadSqlWithParams(String sql, Map<String, Object> params, String domain);
 
+    /**
+     *
+     * @param owner id Obj or RelObj
+     * @param isObj boolean
+     * @return id Cls or id RelCls
+     */
+    long getClsOrRelCls(long owner, int isObj);
+
+    /**
+     *
+     * @param entId id Entity (factorval, obj, relobj, measure
+     * @param entName name of Entity
+     * @param propVal id of PropVal
+     * @return boolean
+     */
+    boolean is_exist_entity_as_data(long entId, String entName, long propVal);
+
 
 }
