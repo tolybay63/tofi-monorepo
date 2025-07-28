@@ -58,11 +58,11 @@ class DataDao extends BaseMdbUtils {
     /* =================================================================== */
 
     private void is_exist_obj_as_data(long owner, int isObj, String modelMeta) {
-        Map<Long, Long> mapPV
+        Map<Long, String> mapPV
         if (isObj==1)
-            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
+            mapPV = apiMeta().get(ApiMeta).mapPropValArrFromCls("cls")
         else
-            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("relcls", false)
+            mapPV = apiMeta().get(ApiMeta).mapPropValArrFromCls("relcls")
 
         List<String> lstApp = new ArrayList<>()
         long clsORrelcls
@@ -382,7 +382,7 @@ class DataDao extends BaseMdbUtils {
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name, v.fullName,
-                v1.id as idObjectType, v1.propVal as pvObjectType, v1.obj as objObjectType, ov1.name as nameObjectType,
+                v1.id as idObjectType, v1.propVal as pvObjectType, v1.obj as objObjectType, null as nameObjectType,
                 v2.id as idStartKm, v2.numberVal as StartKm,
                 v3.id as idFinishKm, v3.numberVal as FinishKm,
                 v4.id as idStartPicket, v4.numberVal as StartPicket,
@@ -396,12 +396,11 @@ class DataDao extends BaseMdbUtils {
                 v12.id as idCreatedAt, v12.dateTimeVal as CreatedAt,
                 v13.id as idUpdatedAt, v13.dateTimeVal as UpdatedAt,
                 v14.id as idDescription, v14.multiStrVal as Description,
-                v15.id as idSection, v15.propVal as pvSection, v15.obj as objSection, ov15.name as nameSection
+                v15.id as idSection, v15.propVal as pvSection, v15.obj as objSection, null as nameSection
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectType --1072
                 left join DataPropVal v1 on d1.id=v1.dataprop
-                left join ObjVer ov1 on v1.obj=ov1.ownerver and ov1.lastver=1
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_StartKm   --1074
                 left join DataPropVal v2 on d2.id=v2.dataprop
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FinishKm   --1074
@@ -430,14 +429,38 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v14 on d14.id=v14.dataprop
                 left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_Section   --1075
                 left join DataPropVal v15 on d15.id=v15.dataprop
-                left join ObjVer ov15 on v15.obj=ov15.ownerVer and ov15.lastVer=1
             where ${whe}
         """, map)
 
         Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
 
+        Store stObj = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer    
+        """, "", "nsidata")
+        StoreIndex indObj = stObj.getIndex("id")
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_Side", "")
+        Store stFV = loadSqlMeta("""
+            select id, name
+            from Factor where parent = ${map.get("Factor_Side")} 
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+
         for (StoreRecord record in st) {
+            StoreRecord rObj = indObj.get(record.get("objObjectType"))
+            if (rObj != null) {
+                record.set("nameObjectType", rObj.getString("name"))
+            }
+            rObj = indObj.get(record.get("objSection"))
+            if (rObj != null) {
+                record.set("nameSection", rObj.getString("name"))
+            }
             record.set("fvSide", mapPV.get(record.getLong("pvSide")))
+            StoreRecord rFV = indFV.get(record.getLong("fvSide"))
+            if (rFV != null)
+                record.set("nameSide", rFV.getString("name"))
         }
         //
         return st
@@ -891,9 +914,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v4 on d4.id=v4.dataprop
                 left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_FinishPicket")}
                 left join DataPropVal v5 on d5.id=v5.dataprop
-            where ${whe} and v2.numberVal * 1000 + v4.numberVal <= ${beg} and v3.numberVal * 1000 + v5.numberVal *100 >= ${end}  
+            where ${whe} and v2.numberVal * 1000 + v4.numberVal*100 <= ${beg} and v3.numberVal * 1000 + v5.numberVal *100 >= ${end}
         """
         Store st = loadSqlServiceWithParams(sql, params, "", "nsidata")
+        //mdb.outTable(st)
         if (st.size()==1) {
             long idPV = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_Section")
             st.get(0).set("pv", idPV )

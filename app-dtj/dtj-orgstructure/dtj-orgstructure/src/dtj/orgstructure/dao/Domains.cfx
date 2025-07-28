@@ -15,7 +15,8 @@
         <field name="idPhone" parent="long"/>
         <field name="Phone" parent="string"/>
 
-        <field name="ObjectTypeMulti" parent="string"/>
+        <field name="objObjectTypeMulti" parent="string"/>
+        <field name="nameObjectTypeMulti" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="double"/>
@@ -27,10 +28,12 @@
         <field name="idRegion" parent="long"/>
         <field name="pvRegion" parent="long"/>
         <field name="fvRegion" parent="long"/>
+        <field name="nameRegion" parent="string"/>
 
         <field name="idIsActive" parent="long"/>
         <field name="pvIsActive" parent="long"/>
         <field name="fvIsActive" parent="long"/>
+        <field name="nameIsActive" parent="string"/>
 
         <field name="idCreatedAt" parent="long"/>
         <field name="CreatedAt" parent="string"/>

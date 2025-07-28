@@ -71,7 +71,7 @@ public interface ApiMonitoringData {
      * @param propVal id of PropVal
      * @return boolean
      */
-    boolean is_exist_entity_as_data(long entId, String entName, long propVal);
+    boolean is_exist_entity_as_data(long entId, String entName, String propVal);
     /**
      *
      * @param clsORrelcls id Cls or id RelCls

@@ -4,6 +4,7 @@ import jandcode.commons.datetime.XDate;
 import jandcode.core.store.Store;
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,6 +75,8 @@ public interface ApiMeta {
      * @return if keyIsPropVal is true [idPropVal: idEntity], else [idEntity: idPropVal]
      */
     Map<Long, Long> mapEntityIdFromPV(String entity, boolean keyIsPropVal);
+
+    Map<Long, String> mapPropValArrFromCls(String clsORrelcls);
 
     /**
      *

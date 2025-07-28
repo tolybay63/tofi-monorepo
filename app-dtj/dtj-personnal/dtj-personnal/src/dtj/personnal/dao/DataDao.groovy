@@ -363,11 +363,11 @@ class DataDao extends BaseMdbUtils {
     }
 
     private void is_exist_obj_as_data(long owner, int isObj, String modelMeta) {
-        Map<Long, Long> mapPV
+        Map<Long, String> mapPV
         if (isObj==1)
-            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
+            mapPV = apiMeta().get(ApiMeta).mapPropValArrFromCls("cls")
         else
-            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("relcls", false)
+            mapPV = apiMeta().get(ApiMeta).mapPropValArrFromCls("relcls")
 
         List<String> lstApp = new ArrayList<>()
         long clsORrelcls

@@ -61,11 +61,11 @@ class DataDao extends BaseMdbUtils {
     /* =================================================================== */
 
     private void is_exist_owner_as_data(long owner, int isObj, String modelMeta) {
-        Map<Long, Long> mapPV
+        Map<Long, String> mapPV
         if (isObj==1)
-            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
+            mapPV = apiMeta().get(ApiMeta).mapPropValArrFromCls("cls")
         else
-            mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("relcls", false)
+            mapPV = apiMeta().get(ApiMeta).mapPropValArrFromCls("relcls")
 
         List<String> lstApp = new ArrayList<>()
         long clsORrelcls
@@ -162,6 +162,16 @@ class DataDao extends BaseMdbUtils {
         is_exist_owner_as_data(owner, isObj, modelMeta)
     }
 
+    private void validateForDeleteOwnerNew(long owner, int isObj, String model) {
+        Store st = loadSqlService("""
+            select v.obj
+            from DataProp d, DataPropVal v
+            where d.isObj=${isObj} and d.id=v.dataProp and v.obj=${owner}            
+        """, "", model)
+        if (st.size() > 0)
+            throw new XError("Owner exsists in DB {0}", model)
+    }
+
     /**
      *
      * @param id Id Obj
@@ -169,8 +179,8 @@ class DataDao extends BaseMdbUtils {
      */
     @DaoMethod
     void deleteObjWithProperties(long id) {
-        //
-        validateForDeleteOwner(id, 1)
+        //todo validateForDeleteOwner(id, 1)
+        validateForDeleteOwnerNew(id, 1, "personnaldata")
         //
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         mdb.execQueryNative("""
@@ -209,12 +219,12 @@ class DataDao extends BaseMdbUtils {
             select o.id, v.objParent as parent, o.cls, v.name, v.fullName, null as nameCls, prn.name as nameParent,
                 v1.id as idAddress, v1.strVal as Address,
                 v2.id as idPhone, v2.numberVal as Phone,
-                null as ObjectTypeMulti,
+                null as objObjectTypeMulti,
                 v4.id as idStartKm, v4.numberVal as StartKm,
                 v5.id as idFinishKm, v5.numberVal as FinishKm,
                 v6.id as idStageLength, v6.numberVal as StageLength,
-                v7.id as idRegion, v7.propVal as pvRegion, null as fvRegion,
-                v8.id as idIsActive, v8.propVal as pvIsActive, null as fvIsActive,
+                v7.id as idRegion, v7.propVal as pvRegion, null as fvRegion, null as nameRegion,
+                v8.id as idIsActive, v8.propVal as pvIsActive, null as fvIsActive, null as nameIsActive,
                 v9.id as idCreatedAt, v9.dateTimeVal as CreatedAt,
                 v10.id as idUpdatedAt, v10.dateTimeVal as UpdatedAt,
                 v11.id as idDescription, v11.multiStrVal as Description
@@ -245,12 +255,22 @@ class DataDao extends BaseMdbUtils {
             where ${whe}
         """, map)
 
+        Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "", "Factor_")
+        Store stFV = loadSqlMeta("""
+            select id, name
+            from Factor where parent in (${mapFV.get("Factor_Region")}, ${mapFV.get("Factor_IsActive")}) 
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+
+        //
         Store stMulti = mdb.loadQuery("""
             select o.id,
-                string_agg (cast(v1.obj as varchar(3000)), ',' order by v1.obj) as lst
+                string_agg (cast(v1.obj as varchar(2000)), ',' order by v1.obj) as lst,
+                string_agg (cast(ov1.name as varchar(4000)), ',' order by v1.obj) as lstName
             from Obj o 
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_ObjectTypeMulti
                 left join DataPropVal v1 on d1.id=v1.dataprop
+                left join ObjVer ov1 on ov1.ownerVer=v1.obj and ov1.lastVer=1
             where ${whe}
             group by o.id
         """, map)
@@ -260,6 +280,7 @@ class DataDao extends BaseMdbUtils {
         for (StoreRecord record in st) {
             StoreRecord rec = indMulti.get(record.getLong("id"))
             List<Long> lstMulti = new ArrayList<>()
+            List<String> lstMultiName = new ArrayList<>()
             if (rec != null) {
                 Store stObjList = loadSqlService("""
                     select o.id, o.cls, v.name, null as pv 
@@ -268,15 +289,25 @@ class DataDao extends BaseMdbUtils {
                 """, "", "nsidata")
                 for (StoreRecord r in stObjList) {
                     lstMulti.add(r.getLong("id"))
+                    lstMultiName.add(r.getString("name"))
                 }
             }
-            if (!lstMulti.isEmpty())
-                record.set("ObjectTypeMulti", lstMulti.join(","))
+            if (!lstMulti.isEmpty()) {
+                record.set("objObjectTypeMulti", lstMulti.join(","))
+                record.set("nameObjectTypeMulti", lstMultiName.join("; "))
+            }
             StoreRecord rec2 = indCls.get(record.getLong("cls"))
             if (rec2 != null)
                 record.set("nameCls", rec2.getString("name"))
             record.set("fvRegion", mapPV.get(record.getLong("pvRegion")))
             record.set("fvIsActive", mapPV.get(record.getLong("pvIsActive")))
+            StoreRecord rFV = indFV.get(record.get("fvRegion"))
+            if (rFV != null)
+                record.set("nameRegion", rFV.getString("name"))
+            rFV = indFV.get(record.get("fvIsActive"))
+            if (rFV != null)
+                record.set("nameIsActive", rFV.getString("name"))
+
         }
         //
         return st
