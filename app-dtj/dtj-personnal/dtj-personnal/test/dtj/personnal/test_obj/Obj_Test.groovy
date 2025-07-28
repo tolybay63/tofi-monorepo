@@ -18,12 +18,12 @@ class Obj_Test extends Apx_Test {
     @Test
     void savePersonnalIns() {
         Map<String, Object> map = new HashMap<>()
-        map.put("login", "user_dtj2")
+        map.put("login", "user_dtj")
         map.put("passwd", "111")
-        map.put("UserEmail", "user_dtj2@gmail.com")
+        map.put("UserEmail", "user_dtj@gmail.com")
         map.put("UserPhone", "7773334455")
-        map.put("UserFirstName", "Иван2")
-        map.put("UserSecondName", "Иванов2")
+        map.put("UserFirstName", "Иван")
+        map.put("UserSecondName", "Иванов")
         map.put("TabNumber", "123456789")
         map.put("CreatedAt", "2025-07-27")
         map.put("UserDateBirth", "2020-07-27")
@@ -31,7 +31,7 @@ class Obj_Test extends Apx_Test {
         map.put("pvUserSex", 1085)
         map.put("fvPosition", 1130)
         map.put("pvPosition", 1246)
-        map.put("objLocation", 1000)
+        map.put("objLocation", 1001)
         map.put("pvLocation", 1040)
 
         //
@@ -60,7 +60,7 @@ class Obj_Test extends Apx_Test {
     @Test
     void delectPersonnal() {
         DataDao dao = mdb.createDao(DataDao.class)
-        dao.deleteObjWithProperties(1008)
+        dao.deleteObjWithProperties(1009)
     }
 
 

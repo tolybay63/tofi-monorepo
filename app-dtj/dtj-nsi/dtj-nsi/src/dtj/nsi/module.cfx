@@ -48,6 +48,10 @@
         <model name="adm" instance="tofi.api.adm.model"/>
         <model name="nsidata" instance="tofi.api.dta.model"/>
         <model name="userdata" instance="tofi.api.dta.model"/>
+        <model name="objectdata" instance="tofi.api.dta.model"/>
+        <model name="personnaldata" instance="tofi.api.dta.model"/>
+        <model name="orgstructuredata" instance="tofi.api.dta.model"/>
+        <model name="plandata" instance="tofi.api.dta.model"/>
 
     </dbm>
 
