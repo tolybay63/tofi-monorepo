@@ -48,6 +48,21 @@
                   class="tofi.api.dta.impl.ApiObjectDataImpl"/>
         </api>
 
+        <api name="personnaldata" invoker="model" model="personnaldata">
+            <item name="tofi.api.dta.ApiPersonnalData"
+                  class="tofi.api.dta.impl.ApiPersonnalDataImpl"/>
+        </api>
+
+        <api name="plandata" invoker="model" model="plandata">
+            <item name="tofi.api.dta.ApiPlanData"
+                  class="tofi.api.dta.impl.ApiPlanDataImpl"/>
+        </api>
+
+        <api name="orgstructuredata" invoker="model" model="orgstructuredata">
+            <item name="tofi.api.dta.ApiOrgStructureData"
+                  class="tofi.api.dta.impl.ApiOrgStructureDataImpl"/>
+        </api>
+
     </apinator>
 
 
