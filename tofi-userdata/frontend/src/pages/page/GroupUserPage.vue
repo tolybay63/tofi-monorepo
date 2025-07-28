@@ -167,7 +167,7 @@ import {ref} from "vue";
 import {collapsAll, expandAll, getParentNode, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
 import {api, baseURL} from "boot/axios";
 import {useUserStore} from "stores/user-store";
-import {storeToRefs} from "pinia/dist/pinia";
+import {storeToRefs} from "pinia";
 import UpdaterGroupUserPage from "pages/page/UpdaterGroupUserPage.vue";
 import UsersToFromGroup from "pages/page/UsersToFromGroup.vue";
 
