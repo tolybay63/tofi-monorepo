@@ -32,7 +32,7 @@ class DataDao extends BaseMdbUtils {
 
 
     @DaoMethod
-    Store getPersonnalId(long userId) {
+    Store getPersonnalInfo(long userId) {
 
         Store st = loadSqlService("""
             select o.id
