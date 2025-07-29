@@ -94,9 +94,9 @@ class DataDao extends BaseMdbUtils {
                 v10.id as idDateDateDismissal, v10.dateTimeVal as DateDismissal,
                 v11.id as idCreatedAt, v11.dateTimeVal as CreatedAt,
                 v12.id as idUpdatedAt, v12.dateTimeVal as UpdatedAt,
-                v13.id as idUserSex, v13.propVal as pvUserSex, null as fvUserSex,
-                v14.id as idPosition, v14.propVal as pvPosition, null as fvPosition,
-                v15.id as idLocation, v15.obj as objLocation, v15.propVal as pvLocation, ov15.name as nameLocation
+                v13.id as idUserSex, v13.propVal as pvUserSex, null as fvUserSex, null as nameUserSex,
+                v14.id as idPosition, v14.propVal as pvPosition, null as fvPosition, null as namePosition,
+                v15.id as idLocation, v15.obj as objLocation, v15.propVal as pvLocation, null as nameLocation
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TabNumber
@@ -127,15 +127,63 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v14 on d14.id=v14.dataprop     
                 left join DataProp d15 on d15.objorrelobj=o.id and d15.prop=:Prop_Location
                 left join DataPropVal v15 on d15.id=v15.dataprop
-                left join ObjVer ov15 on v15.obj=ov15.ownerVer and ov15.lastVer=1
             where ${whe}
         """, map)
+        // UserId
+        Map<String, Long> mapUId = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
+        Store stUser = mdb.loadQuery("""
+            select o.id, v.strVal as userId, null as login
+            from Obj o
+            left join DataProp d on d.isObj=1 and d.objorrelobj=o.id and d.prop=${mapUId.get("Prop_UserId")}
+            left join DataPropVal v on d.id=v.dataprop
+            where ${whe}
+        """)
+        Store stAU = apiAdm().get(ApiAdm).loadSql("""
+            select id, login from AuthUser
+        """, "")
+        StoreIndex indAU = stAU.getIndex("id")
+        for (StoreRecord r in stUser) {
+            //long au = r.getLong("userId")
+            StoreRecord rec = indAU.get(r.getLong("userId"))
+            if (rec != null)
+                r.set("login", rec.getString("login"))
+        }
 
+        StoreIndex indUser = stUser.getIndex("id")
+        //
         Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
 
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_Sex", "")
+        String wheFV = "${map.get("Factor_Sex")}"
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "Factor_Position", "")
+        wheFV = wheFV + ",${map.get("Factor_Position")}"
+
+        Store stFV = loadSqlMeta("""
+            select id, name from Factor where parent in (${wheFV}) 
+        """, "")
+        StoreIndex indFV = stFV.getIndex("id")
+
+        Store stObj = loadSqlService("""
+            select o.id, v.name from Obj o, ObjVer v where o.id=v.ownerVer    
+        """, "", "orgstructuredata")
+        StoreIndex indObj = stObj.getIndex("id")
+        //
         for (StoreRecord record in st) {
             record.set("fvUserSex", mapPV.get(record.getLong("pvUserSex")))
             record.set("fvPosition", mapPV.get(record.getLong("pvPosition")))
+            StoreRecord rFV = indFV.get(record.getLong("fvUserSex"))
+            if (rFV != null)
+                record.set("nameUserSex", rFV.getString("name"))
+            rFV = indFV.get(record.getLong("fvPosition"))
+            if (rFV != null)
+                record.set("namePosition", rFV.getString("name"))
+
+            StoreRecord rObj = indObj.get(record.getLong("objLocation"))
+            if (rObj != null)
+                record.set("nameLocation", rObj.getString("name"))
+            StoreRecord rUsr = indUser.get(record.getLong("id"))
+            if (rUsr != null)
+                record.set("login", rUsr.getString("login"))
         }
         //
         return st
