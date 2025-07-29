@@ -17,7 +17,8 @@ class P extends ProjectScript {
                         "tofi-apinator",
                 )
                 depends.dev(
-                        "tofi-api-mdl"
+                        "tofi-api-mdl",
+                        "tofi-api-adm"
                 )
             }
         }
