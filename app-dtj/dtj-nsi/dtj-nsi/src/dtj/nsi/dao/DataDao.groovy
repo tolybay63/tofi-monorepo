@@ -509,8 +509,8 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Map<String, Object> loadDepartmentsWithFile(long obj) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Document%")
+    Store loadDepartmentsWithFile(long obj) {
+/*        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Document%")
         Store st = mdb.loadQuery("""
             select v.obj
             from DataProp d
@@ -520,13 +520,13 @@ class DataDao extends BaseMdbUtils {
         Set<Object> ids = st.getUniqueValues("obj")
 
         Map<String, Object> mapRez = new HashMap<>()
-        mapRez.put("departments", ids.join(","))
+        mapRez.put("departments", ids.join(","))*/
         //Files
         Store stDBFS = loadAttachedFiles(obj, "Prop_DocumentFiles")
         //
-        mapRez.put("files", stDBFS)
-
-        return mapRez
+        //mapRez.put("files", stDBFS)
+        //return mapRez
+        return stDBFS
     }
 
     @DaoMethod
