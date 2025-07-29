@@ -7,6 +7,14 @@ import java.util.Map;
 public interface ApiOrgStructureData {
 
     /**
+     *
+     * @param codTyp cod of Typ
+     * @param codProp cod of Prop
+     * @return store Obj for select
+     */
+    Store loadObjTreeForSelect(String codTyp, String codProp);
+
+    /**
      * @param sql text of Sql
      * @return Store
      */

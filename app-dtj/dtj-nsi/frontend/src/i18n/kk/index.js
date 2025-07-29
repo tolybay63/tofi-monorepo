@@ -114,7 +114,7 @@ export default {
   Prop_Source: "Дереккөз",
   Prop_NumberSource: "Дереккөздегі №",
   Prop_Periodicity: "Мерзімділік",
-  Prop_NumberOt: "Объект №",
+  class: "Класс",
   Typ_ObjectTyp: "Нүкте/сызық",
 
   Prop_DocumentNumber: "Құжат нөмірі",

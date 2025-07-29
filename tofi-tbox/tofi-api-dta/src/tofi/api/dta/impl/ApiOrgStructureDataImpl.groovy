@@ -3,8 +3,10 @@ package tofi.api.dta.impl
 import jandcode.commons.error.XError
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
+import tofi.api.mdl.ApiMeta
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -12,6 +14,38 @@ class ApiOrgStructureDataImpl extends BaseMdbUtils implements ApiOrgStructureDat
 
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
+    }
+    ApinatorApi apiOrgStructure() {
+        return app.bean(ApinatorService).getApi("orgstructuredata")
+    }
+
+
+    @Override
+    Store loadObjTreeForSelect(String codTyp, String codProp) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codTyp, "")
+        if (map.isEmpty())
+            throw new XError("NotFoundCod@${codTyp}")
+
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select id from Cls where typ=${map.get(codTyp)}
+        """, "")
+        Set<Object> idsCls = stCls.getUniqueValues("id")
+
+
+        Store st = apiOrgStructure().get(ApiOrgStructureData).loadSql("""
+            select o.id, v.name, v.objParent as parent, o.cls, 0 as pv 
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+            where o.cls in (${idsCls.join(",")})
+            order by v.name
+        """, "")
+
+
+        for (StoreRecord r in st) {
+            long pv = apiMeta().get(ApiMeta).idPV("cls", r.getLong("cls"), codProp)
+            r.set("pv", pv)
+        }
+        return st
     }
 
 

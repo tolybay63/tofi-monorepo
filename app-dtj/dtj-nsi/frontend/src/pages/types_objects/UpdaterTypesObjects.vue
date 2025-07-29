@@ -26,7 +26,7 @@
 
         <q-select
           v-model="form.cls" :model-value="form.cls" autofocus
-          :label="fmReqLabel('typeObject')" :options="optCls"
+          :label="fmReqLabel('class')" :options="optCls"
           option-label="name" option-value="id" class="q-ma-md"
           dense options-dense map-options :readonly="mode==='upd' || form.parent>0"
           @update:model-value="fnSelectCls"
@@ -38,18 +38,10 @@
             dense :model-value="form.name"
             v-model="form.name"
             @blur="onBlurName"
-            :label="$t('fldName')" autofocus
+            :label="fmReqLabel('fldName')" autofocus
             :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
         </q-input>
-
-        <!-- NumberSource -->
-        <q-input
-          :model-value="form['NumberOt']"
-          v-model="form['NumberOt']"
-          class="q-ma-md" dense
-          :label="fmReqLabel('Prop_NumberOt')"
-        />
 
         <!-- fvPeriodicity -->
         <q-select
