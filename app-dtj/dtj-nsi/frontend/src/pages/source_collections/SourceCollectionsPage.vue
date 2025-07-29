@@ -105,11 +105,64 @@
 
       <template v-slot:after>
 
+        <q-banner dense class="text-bold text-white bg-blue-grey-13" inline-actions>
+          <div class="row">
+            {{ $t('other_props') }}
+          </div>
+          <template v-slot:action>
+
+            <q-btn
+              icon="edit" dense no-caps
+              :label="$t('editRecord')"
+              color="secondary"
+              class="q-mr-sm"
+              @click="updated = !updated"
+              :disable="updated"
+            >
+            </q-btn>
+
+            <q-btn
+              icon="save" dense no-caps
+              :label="$t('save')"
+              color="red"
+              @click="saveOtherProps()"
+              :disable="!updated"
+              :loading="loading"
+            >
+              <template #loading>
+                <q-spinner-hourglass color="white"/>
+              </template>
+            </q-btn>
+
+
+          </template>
+
+        </q-banner>
 
         <q-card class="bg-amber-1 text-brown">
           <q-card-section v-if="selected.length > 0">
 
-            <div class="q-mt-sm full-width">
+            <!-- DocumentLinkToDepartment -->
+            <q-item-label class="text-grey-7" style="font-size: 0.8em">{{ fnLabel('Prop_DocumentLinkToDepartment') }}
+            </q-item-label>
+            <treeselect
+              :multiple="true"
+              :flat="true"
+              :options="optDepartment"
+              :clear-on-select="true"
+              v-model="refDepartment"
+              :default-expand-level="2"
+              :normalizer="normalizer"
+              :placeholder="$t('select')"
+              :noChildrenText="$t('noChilds')"
+              :noResultsText="$t('noResult')"
+              :noOptionsText="$t('noResult')"
+              class="q-mb-xl full-width"
+              :disabled="!updated"
+            />
+
+
+            <div class="q-mt-xl full-width">
               <q-banner class=" text-white bg-blue-grey-13" style="font-size: 1.2em; font-weight: bold;" inline-actions>
                 {{ $t("attached_files") }}
 
@@ -135,6 +188,7 @@
                 :columns="cols2"
                 :rows="rows2"
                 :wrap-cells="true"
+                :table-colspan="4"
                 table-header-class="text-bold text-white bg-blue-grey-13"
                 separator="horizontal"
                 :hide-header="true"
@@ -211,15 +265,20 @@
 
 <script>
 
+import treeselect from "vue3-treeselect";
+import "vue3-treeselect/dist/vue3-treeselect.css";
 import {hasTarget, notifyError, notifyInfo, notifySuccess, pack} from "src/utils/jsutils";
 import {api, baseURL} from "boot/axios";
 import {extend} from "quasar";
 import UpdaterSourceCollections from "pages/source_collections/UpdaterSourceCollections.vue";
+import {ref} from "vue";
 import ViewPdf from "components/ViewPdf.vue";
 import UpdaterFile from "pages/source_collections/UpdaterFile.vue";
 
 export default {
   name: "SourceCollectionsPage",
+  components: {treeselect},
+
 
   data: function () {
     return {
@@ -230,16 +289,48 @@ export default {
       filter: "",
       selected: [],
 
+      optDepartment: [],
+      refDepartment: [],
       updated: false,
       own: 0,
 
       cols2: [],
       rows2: [],
+
+
+
     }
   },
 
   methods: {
     hasTarget,
+
+    saveOtherProps() {
+      console.info(this.refDepartment)
+      this.loading = true
+      let err = false
+      api
+        .post(baseURL, {
+          method: "data/saveDepartment",
+          params: [{
+            isObj: 1, metamodel: "dtj", model: "nsidata",
+            obj: this.own, ids: this.refDepartment
+          }]
+        })
+        .then(
+          () => {
+          })
+        .catch(error => {
+          err = true
+          notifyError(this.$t(error.response.data.error.message))
+        })
+        .finally(() => {
+          this.loading = false
+          if (!err)
+            this.updated = !this.updated
+        })
+
+    },
 
     updateSelected() {
       if (this.selected.length > 0) {
@@ -260,7 +351,16 @@ export default {
           })
           .then(
             (response) => {
-              this.rows2 = response.data.result["records"]
+              this.refDepartment = []
+              if (response.data.result["departments"] !== "") {
+                response.data.result["departments"].split(",").forEach(item => {
+                  this.refDepartment.push(parseInt(item, 10))
+                })
+              }
+              //
+              this.rows2 = response.data.result["files"]["records"]
+              //console.info("this.refDepartment", this.refDepartment)
+
             })
           .catch(error => {
             notifyError(error.message)
@@ -271,6 +371,7 @@ export default {
             if (!err) {
               //setTimeout(()=> {
               this.splitterModel = 70
+              console.info("this.refDepartment", this.refDepartment)
               //}, 10)
             }
           })
@@ -278,6 +379,17 @@ export default {
         this.updated = false
         this.splitterModel = 100
       }
+    },
+
+    fnLabel(label) {
+      return this.$t(label);
+    },
+
+    normalizer(node) {
+      return {
+        id: node.id,
+        label: node.name,
+      };
     },
 
     loadData() {
@@ -425,6 +537,9 @@ export default {
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em; width:10%",
         },
+
+
+
       ]
     },
 
@@ -590,7 +705,30 @@ export default {
 
   created() {
     this.cols = this.getColumns()
-    this.loadData()
+
+    this.loading = true
+    api
+      .post(baseURL, {
+        method: 'data/loadDepartments',
+        params: ['Typ_Location', 'Prop_LocationMulti'],
+      })
+      .then(
+        (response) => {
+          this.optDepartment = pack(response.data.result["records"], "id")
+          console.log("optDepartment", this.optDepartment)
+        },
+        (error) => {
+          let msg = error.message
+          if (error.response) msg = this.$t(error.response.data.error.message)
+          notifyError(msg)
+        }
+      )
+      .finally(() => {
+        this.loadData()
+        this.loading = false
+      })
+
+
   }
 
 

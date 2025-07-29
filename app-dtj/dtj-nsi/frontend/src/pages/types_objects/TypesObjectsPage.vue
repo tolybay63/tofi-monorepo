@@ -4,8 +4,22 @@
 
     <q-banner dense inline-actions  class="bg-orange-1">
 
+
+      <div>
+        <q-td colspan="100%" v-if="selected.length > 0">
+          <span class="text-blue"> {{ $t("selectedRow") }}: </span>
+          <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+        </q-td>
+        <q-td
+          v-else-if="this.rows.length > 0" colspan="100%" class="text-bold">
+          {{ $t("infoRow") }}
+        </q-td>
+      </div>
+
+
       <template v-slot:action>
 
+<!--
         <q-btn
           dense class="q-ml-sm" icon="expand_more" color="secondary" @click="fnExpand()"
         >
@@ -20,6 +34,7 @@
             {{ $t("collapseAll") }}
           </q-tooltip>
         </q-btn>
+-->
 
         <q-btn
           v-if="hasTarget('mdl:mn_dp:dmprop:sel:ins')"
@@ -35,6 +50,7 @@
           </q-tooltip>
         </q-btn>
 
+<!--
         <q-btn
           v-if="hasTarget('mdl:mn_dp:dmprop:sel:ins')"
           dense
@@ -48,6 +64,7 @@
             {{ $t("addSubNode") }}
           </q-tooltip>
         </q-btn>
+-->
 
         <q-btn
           v-if="hasTarget('mdl:mn_dp:dmprop:sel:upd')"
@@ -101,7 +118,6 @@
             <th :style="fnColStyle(1)">{{ fnColLabel(1) }}</th>
             <th :style="fnColStyle(2)">{{ fnColLabel(2) }}</th>
             <th :style="fnColStyle(3)">{{ fnColLabel(3) }}</th>
-            <th :style="fnColStyle(4)">{{ fnColLabel(4) }}</th>
           </tr>
           </thead>
 
@@ -133,25 +149,12 @@
                   {{ item.number }}
                 </span>
             </td>
-            <td :data-th="cols[1].name">{{ item["NumberOt"] }}</td>
-            <td :data-th="cols[2].name">{{ item.name }}</td>
-            <td :data-th="cols[3].name">{{ mapCls.get(item.cls) }}</td>
-            <td :data-th="cols[4].name">{{ mapFvOt.get(item.fvShape) }}</td>
+            <td :data-th="cols[1].name">{{ item.name }}</td>
+            <td :data-th="cols[2].name">{{ mapCls.get(item.cls) }}</td>
+            <td :data-th="cols[3].name">{{ mapFvOt.get(item.fvShape) }}</td>
           </tr>
           </tbody>
         </table>
-
-        <div>
-          <q-td colspan="100%" v-if="selected.length > 0">
-            <span class="text-blue"> {{ $t("selectedRow") }}: </span>
-            <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
-          </q-td>
-          <q-td
-            v-else-if="this.rows.length > 0" colspan="100%" class="text-bold">
-            {{ $t("infoRow") }}
-          </q-td>
-        </div>
-
 
       </div>
 
@@ -418,19 +421,11 @@ export default {
       return [
         {
           name: "number",
-          label: "№=",
+          label: "№",
           field: "number",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:15%",
-        },
-        {
-          name: "NumberOt",
-          label: this.$t("Prop_NumberOt"),
-          field: "NumberOt",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:10%",
+          headerStyle: "font-size: 1.2em; width:20%",
         },
         {
           name: "name",
@@ -438,15 +433,15 @@ export default {
           field: "name",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:25%",
+          headerStyle: "font-size: 1.2em; width:30%",
         },
         {
           name: "cls",
-          label: this.$t("typeObject"),
+          label: this.$t("class"),
           field: "cls",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 20%",
+          headerStyle: "font-size: 1.2em; width: 35%",
         },
         {
           name: "fvShape",

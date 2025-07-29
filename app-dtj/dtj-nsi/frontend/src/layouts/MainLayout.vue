@@ -174,13 +174,6 @@ const NAVIGATION_LINKS = [
     link: "/source_collections",
     target: "nsi:om",
   },
-/*  {
-    title: "charts_periodicity",
-    info: "",
-    icon: "pending_actions",
-    link: "/charts_periodicity",
-    target: "nsi:nd",
-  },*/
   {
     title: "types_objects_comps",
     info: "",
@@ -209,13 +202,6 @@ const NAVIGATION_LINKS = [
     link: "/charts_objects",
     target: "nsi:ose",
   },
-/*  {
-    title: "serviced_objects",
-    info: "",
-    icon: "dashboard",
-    link: "/serviced_objects",
-    target: "nsi:kato",
-  },*/
   {
     title: "separation_point",
     info: "",
@@ -228,13 +214,6 @@ const NAVIGATION_LINKS = [
     info: "",
     icon: "multiple_stop",
     link: "/hauls",
-    target: "nsi:ose",
-  },
-  {
-    title: "org_structure",
-    info: "",
-    icon: "home_work",
-    link: "/org_structure",
     target: "nsi:ose",
   },
 ];

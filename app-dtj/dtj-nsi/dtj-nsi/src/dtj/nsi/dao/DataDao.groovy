@@ -215,7 +215,7 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     void deleteOwnerWithProperties(long id, int isObj) {
         //
-        validateForDeleteOwner(id, isObj)
+        //validateForDeleteOwner(id, isObj)
         //
         String tableName = isObj==1 ? "Obj" : "RelObj"
         EntityMdbUtils eu = new EntityMdbUtils(mdb, tableName)
@@ -408,34 +408,6 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-    @DaoMethod
-    Store loadOrgStructure(long obj) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Location", "")
-        if (map.isEmpty())
-            throw new XError("NotFoundCod@Cls_Location")
-        String whe = "o.id=${obj}"
-        if (obj==0)
-            whe = "o.cls=${map.get("Cls_Location")}"
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-        Store st = mdb.createStore("Obj.ProdArea")
-        mdb.loadQuery(st, """
-            select o.id, o.cls, v.name, v.objParent as parent,
-                v1.id as idStartKm, v1.numberVal as StartKm,
-                v3.id as idFinishKm, v3.numberVal as FinishKm,
-                v5.id as idStageLength, v5.numberVal as StageLength
-            from Obj o 
-                left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_StartKm --1007
-                left join DataPropVal v1 on d1.id=v1.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_FinishKm --1008
-                left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_StageLength   --1011
-                left join DataPropVal v5 on d5.id=v5.dataprop
-            where ${whe}
-        """, map)
-
-        return st
-    }
 
     @DaoMethod
     Store loadParameters(long obj) {
@@ -509,24 +481,24 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadDepartmentsWithFile(long obj) {
-/*        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Document%")
+    Map<String, Object> loadDepartmentsWithFile(long obj) {
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_LocationMulti", "")
         Store st = mdb.loadQuery("""
             select v.obj
             from DataProp d
             left join DataPropVal v on d.id=v.dataprop
-            where d.isObj=1 and d.objOrRelObj=${obj} and d.prop=${map.get("Prop_DocumentLinkToDepartment")} --1080
-        """)
+            where d.isObj=1 and d.objOrRelObj=${obj} and d.prop=${map.get("Prop_LocationMulti")}
+        """, "")
         Set<Object> ids = st.getUniqueValues("obj")
 
         Map<String, Object> mapRez = new HashMap<>()
-        mapRez.put("departments", ids.join(","))*/
+        mapRez.put("departments", ids.join(","))
         //Files
         Store stDBFS = loadAttachedFiles(obj, "Prop_DocumentFiles")
         //
-        //mapRez.put("files", stDBFS)
-        //return mapRez
-        return stDBFS
+        mapRez.put("files", stDBFS)
+        return mapRez
     }
 
     @DaoMethod
@@ -563,9 +535,9 @@ class DataDao extends BaseMdbUtils {
         if (map.isEmpty())
             throw new XError("NotFoundCod@Cls_Location")
         long cls = map.get("Cls_Location")
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_DocumentLinkToDepartment", "")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_LocationMulti", "")
         if (map.isEmpty())
-            throw new XError("NotFoundCod@Prop_DocumentLinkToDepartment")
+            throw new XError("NotFoundCod@Prop_LocationMulti")
         map.put("obj", UtCnv.toLong(params.get("obj")))
 
 
@@ -573,7 +545,7 @@ class DataDao extends BaseMdbUtils {
             select v.id, v.obj
             from DataProp d
                 left join DataPropVal v on d.id=v.dataprop
-            where d.isObj=1 and d.objOrRelObj=:obj and d.prop=:Prop_DocumentLinkToDepartment --1080            
+            where d.isObj=1 and d.objOrRelObj=:obj and d.prop=:Prop_LocationMulti --1080            
         """, map)
         Set<Long> idsOld = stOld.getUniqueValues("obj") as Set<Long>
         Set<Long> idsNew = UtCnv.toList(params.get("ids")) as Set<Long>
@@ -607,9 +579,9 @@ class DataDao extends BaseMdbUtils {
         //
         for (long obj in idsNewLong) {
             if (!idsOld.contains(obj)) {
-                pms.put("objDocumentLinkToDepartment", obj)
-                pms.put("pvDocumentLinkToDepartment", mapPV.get(cls))
-                fillProperties(true, "Prop_DocumentLinkToDepartment", pms)
+                pms.put("objLocationMulti", obj)
+                pms.put("pvLocationMulti", mapPV.get(cls))
+                fillProperties(true, "Prop_LocationMulti", pms)
             }
         }
     }
@@ -693,12 +665,9 @@ class DataDao extends BaseMdbUtils {
         Store st = mdb.createStore("Obj.TypesObjects")
         mdb.loadQuery(st, """
             select o.id, v.objparent as parent, o.cls, v.name, null as nameCls,
-                v1.id as idNumberOt, v1.strVal as NumberOt,
                 v2.id as idShape, v2.propVal as pvShape, null as fvShape
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_NumberOt --1005
-                left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_Shape   --1006
                 left join DataPropVal v2 on d2.id=v2.dataprop
             where ${whe}
@@ -1084,51 +1053,6 @@ class DataDao extends BaseMdbUtils {
         return loadSourceCollections(own)
     }
 
-    @DaoMethod
-    Store saveOrgStructure(String mode, Map<String, Object> params) {
-        VariantMap pms = new VariantMap(params)
-        long own
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Location", "")
-        Map<String, Object> par = new HashMap<>(pms)
-        par.put("cls", map.get("Cls_Location"))
-        par.put("fullName", pms.get("name"))
-        if (mode.equalsIgnoreCase("ins")) {
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-            //1 Prop_StartKm
-            if (pms.getString("StartKm") && pms.getString("StartKm") != "")
-                fillProperties(true, "Prop_StartKm", pms)
-            //3 FinishKm
-            if (pms.getString("FinishKm") && pms.getString("FinishKm") != "")
-                fillProperties(true, "Prop_FinishKm", pms)
-            //5 StageLength
-            if (pms.getString("StageLength") && pms.getString("StageLength") != "")
-                fillProperties(true, "Prop_StageLength", pms)
-
-        } else {
-            own = pms.getLong("id")
-            eu.updateEntity(par)
-            //
-            pms.put("own", own)
-            //1 Prop_StartKm
-            if (params.containsKey("idStartKm"))
-                updateProperties("Prop_StartKm", pms)
-            else
-                fillProperties(true, "Prop_StartKm", pms)
-            //3 Prop_FinishKm
-            if (params.containsKey("idFinishKm"))
-                updateProperties("Prop_FinishKm", pms)
-            else
-                fillProperties(true, "Prop_FinishKm", pms)
-            //5 Prop_StageLength
-            if (params.containsKey("idStageLength"))
-                updateProperties("Prop_StageLength", pms)
-            else
-                fillProperties(true, "Prop_StageLength", pms)
-        }
-        return loadOrgStructure(own)
-    }
 
     @DaoMethod
     Store saveTypesObjects(String mode, Map<String, Object> params) {
@@ -1616,8 +1540,9 @@ class DataDao extends BaseMdbUtils {
 
 
     @DaoMethod
-    Store loadDepartments(String codCls, String codProp) {
-        return loadObjTreeForSelect(codCls, codProp)
+    Store loadDepartments(String codTyp, String codProp) {
+        //return loadObjTreeForSelect(codCls, codProp)
+        return apiOrgStructureData().get(ApiOrgStructureData).loadObjTreeForSelect(codTyp, codProp)
     }
 
     @DaoMethod
@@ -1865,7 +1790,8 @@ class DataDao extends BaseMdbUtils {
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
-                        cod.equalsIgnoreCase("Prop_Collections")) {
+                        cod.equalsIgnoreCase("Prop_Collections") ||
+                    cod.equalsIgnoreCase("Prop_LocationMulti")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -2050,7 +1976,8 @@ class DataDao extends BaseMdbUtils {
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_DefectsComponent") ||
-                    cod.equalsIgnoreCase("Prop_Collections")) {
+                    cod.equalsIgnoreCase("Prop_Collections") ||
+                    cod.equalsIgnoreCase("Prop_LocationMulti")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {

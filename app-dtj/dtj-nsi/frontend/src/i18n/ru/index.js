@@ -116,7 +116,7 @@ export default {
   Prop_Source: "Источник",
   Prop_NumberSource: "№ в источнике",
   Prop_Periodicity: "Перодичность",
-  Prop_NumberOt: "№ объекта",
+  class: "Класс",
   Typ_ObjectTyp: "Точка/Линия",
 
   Prop_DocumentNumber: "Номер документа",
