@@ -6,6 +6,7 @@ import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import tofi.api.dta.ApiNSIData
+import tofi.api.dta.ApiPersonnalData
 import tofi.api.dta.ApiUserData
 import tofi.api.mdl.ApiMeta
 import tofi.apinator.ApinatorApi
@@ -19,38 +20,37 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
-
     ApinatorApi apiUserData() {
         return app.bean(ApinatorService).getApi("userdata")
     }
-
     ApinatorApi apiNSIData() {
         return app.bean(ApinatorService).getApi("nsidata")
     }
+    ApinatorApi apiPersonnalData() {
+        return app.bean(ApinatorService).getApi("personnaldata")
+    }
+
 
     @DaoMethod
-    Store loadTyp() {
-        String sql = """
-            select * from Typ t, TypVer v
-            where t.id=v.ownerVer and v.lastVer=1
-        """
-        return loadSqlMeta(sql, "Typ.object")
+    long getPersonnalId(long userId) {
+
+        Store st = loadSqlService("""
+            select o.id
+            from Obj o
+            left join DataProp d on d.isObj=1 and d.prop=:Prop_UserId
+            left join DataPropVal v on d.id=v.dataProp and v.strVal='${userId}'
+        """, "", "personnaldata")
+
+        if (st.size()==0)
+            throw new XError("Not found")
+        return st.get(0).getLong("id")
+
     }
 
 
-        @DaoMethod
-    Store loadObj(String codCls, String model) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
 
-        String sql = """
-            select * from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get(codCls)}
-        """
 
-        Store st = loadSqlService(sql, "Obj.object", model)
 
-        return st
-    }
 
 
     //-------------------------
@@ -65,6 +65,8 @@ class DataDao extends BaseMdbUtils {
             return apiUserData().get(ApiUserData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("nsidata"))
             return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("personnaldata"))
+            return apiPersonnalData().get(ApiPersonnalData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
