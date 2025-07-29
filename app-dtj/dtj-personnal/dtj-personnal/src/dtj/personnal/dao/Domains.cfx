@@ -36,9 +36,11 @@
 
         <field name="fvUserSex" parent="long"/>
         <field name="pvUserSex" parent="long"/>
+        <field name="nameUserSex" parent="string"/>
 
         <field name="fvPosition" parent="long"/>
         <field name="pvPosition" parent="long"/>
+        <field name="namePosition" parent="string"/>
 
         <field name="idLocation" parent="long"/>
         <field name="pvLocation" parent="long"/>

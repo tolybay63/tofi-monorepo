@@ -99,4 +99,15 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
             delete from AuthUser where id=:id
         """, Map.of("id", id))
     }
+
+    @Override
+    Store loadSql(String sql, String domain) {
+        if (domain=="")
+            return mdb.loadQuery(sql)
+        else {
+            Store st = mdb.createStore(domain)
+            return mdb.loadQuery(st, sql)
+        }
+    }
+
 }
