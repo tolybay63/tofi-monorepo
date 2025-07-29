@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test
 class Obj_Test extends Apx_Test {
 
     @Test
-    void testPersonnalId() {
+    void testPersonnalInfo() {
         DataDao dao = mdb.createDao(DataDao.class)
-        Store st = dao.getPersonnalId(1013)
+        Store st = dao.getPersonnalInfo(1013)
         mdb.outTable(st)
 
     }
