@@ -181,6 +181,7 @@ class DataDao extends BaseMdbUtils {
     void deleteObjWithProperties(long id) {
         //todo validateForDeleteOwner(id, 1)
         validateForDeleteOwnerNew(id, 1, "personnaldata")
+        validateForDeleteOwnerNew(id, 1, "nsidata")
         //
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         mdb.execQueryNative("""
