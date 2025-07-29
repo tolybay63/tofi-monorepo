@@ -45,4 +45,6 @@ public interface ApiPersonnalData {
      * @param isObj 1=>Obj, 0=>RelObj
      */
     boolean checkExistOwners(long clsORrelcls, boolean isObj);
+
+    Store loadPersonnal(long id);
 }

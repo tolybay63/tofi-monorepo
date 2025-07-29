@@ -32,7 +32,7 @@ class DataDao extends BaseMdbUtils {
 
 
     @DaoMethod
-    long getPersonnalId(long userId) {
+    Store getPersonnalId(long userId) {
 
         Store st = loadSqlService("""
             select o.id
@@ -43,7 +43,8 @@ class DataDao extends BaseMdbUtils {
 
         if (st.size()==0)
             throw new XError("Not found")
-        return st.get(0).getLong("id")
+        long own = st.get(0).getLong("id")
+        return apiPersonnalData().get(ApiPersonnalData).loadPersonnal(own)
 
     }
 
