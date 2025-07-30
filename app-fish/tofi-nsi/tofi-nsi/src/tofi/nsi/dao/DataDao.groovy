@@ -83,18 +83,18 @@ class DataDao extends BaseMdbUtils {
     void is_exist_owner_as_data(long owner, int isObj, long propVal) {
         List<String> lstApp = new ArrayList<>()
         if (isObj == 1) {
-            boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "obj", propVal)
+            boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_dataOld(owner, "obj", propVal)
             if (b) lstApp.add("userdata")
-            b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "obj", propVal)
+            b = apiNSIData().get(ApiNSIData).is_exist_entity_as_dataOld(owner, "obj", propVal)
             if (b) lstApp.add("nsidata")
-            b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_data(owner, "obj", propVal)
+            b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_dataOld(owner, "obj", propVal)
             if (b) lstApp.add("monitoringdata")
         } else {
-            boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "relobj", propVal)
+            boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_dataOld(owner, "relobj", propVal)
             if (b) lstApp.add("userdata")
-            b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "relobj", propVal)
+            b = apiNSIData().get(ApiNSIData).is_exist_entity_as_dataOld(owner, "relobj", propVal)
             if (b) lstApp.add("nsidata")
-            b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_data(owner, "relobj", propVal)
+            b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_dataOld(owner, "relobj", propVal)
             if (b) lstApp.add("monitoringdata")
         }
         //...
