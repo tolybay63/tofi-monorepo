@@ -36,7 +36,7 @@ public class LoadpdfAction extends BaseAction {
         IVariantMap params = getReq().getParams();
 
         DbFileStorageService dfsrv = apiMeta().get(ApiMeta.class).getDbFileStorageService();
-        dfsrv.setModelName(params.getString("file_dir"));
+        dfsrv.setModelName(params.getString("model"));
         DbFileStorageItem fi = dfsrv.getFile(params.getLong("id"));
         File fs;
         String fn;

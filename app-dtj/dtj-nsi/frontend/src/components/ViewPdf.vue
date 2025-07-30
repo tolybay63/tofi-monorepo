@@ -49,7 +49,6 @@ export default {
       let formData = new FormData();
       formData.append("id", this.id);
       formData.append("model", "nsidata");
-      formData.append("file_dir", "dtj_nsidata");
       formData.append("filename", this.fileName);
       this.$axios
         .post('/loadpdf',

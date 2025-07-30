@@ -135,7 +135,6 @@ export default {
       this.form.objorrelobj = this.obj
       this.form.model = "nsidata"
       this.form.metamodel = "dtj"
-      this.form.file_dir = "dtj_nsidata"
       let err = false
 
 
