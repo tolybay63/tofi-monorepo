@@ -553,7 +553,6 @@ export default {
 
     fnDeleteFile(row) {
       row.model = "nsidata"
-      row.file_dir = "dtj_nsidata"
       this.$q
         .dialog({
           title: this.$t("confirmation"),
@@ -622,7 +621,6 @@ export default {
       formData.append("id", rec['fileVal']);
       formData.append("filename", rec.fileName);
       formData.append("model", "nsidata");
-      formData.append("file_dir", "dtj_nsidata");
 
       //console.info("formData", formData)
 
