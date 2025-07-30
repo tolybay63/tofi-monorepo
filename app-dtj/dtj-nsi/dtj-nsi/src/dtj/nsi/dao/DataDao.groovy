@@ -704,7 +704,8 @@ class DataDao extends BaseMdbUtils {
                 v1.id as idTechCard, v1.strVal as TechCard,
                 v2.id as idNumberSource, v2.strVal as NumberSource,
                 v3.id as idCollections, v3.propVal as pvCollections, v3.obj as objCollections, ov3.name as nameCollections,
-                v4.id as idPeriodicity, v4.propVal as pvPeriodicity, null as fvPeriodicity
+                v4.id as idPeriodType, v4.propVal as pvPeriodType, null as fvPeriodType,
+                v5.id as idPeriodicity, v5.numberVal as Periodicity
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TechCard --1002
@@ -714,8 +715,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Collections --1081
                 left join DataPropVal v3 on d3.id=v3.dataprop
                 left join ObjVer ov3 on ov3.ownerVer=v3.obj and ov3.lastVer=1
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_Periodicity   --1003
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_PeriodType
                 left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_Periodicity
+                left join DataPropVal v5 on d5.id=v5.dataprop
             where ${whe}
             order by o.id
         """, map)
@@ -723,7 +726,7 @@ class DataDao extends BaseMdbUtils {
         Map<Long, Long> mapPV = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", true)
 
         for (StoreRecord record in st) {
-            record.set("fvPeriodicity", mapPV.get(record.getLong("pvPeriodicity")))
+            record.set("fvPeriodType", mapPV.get(record.getLong("pvPeriodType")))
         }
 
         //mdb.outTable(st)
@@ -1107,7 +1110,9 @@ class DataDao extends BaseMdbUtils {
             fillProperties(true, "Prop_NumberSource", pms)
             //3 Prop_Source
             fillProperties(true, "Prop_Collections", pms)
-            //4 Prop_Periodicity
+            //4 Prop_PeriodType
+            fillProperties(true, "Prop_PeriodType", pms)
+            //5 Prop_Periodicity
             fillProperties(true, "Prop_Periodicity", pms)
         } else {
             own = pms.getLong("obj")
@@ -1130,11 +1135,17 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_Collections", pms)
             else
                 fillProperties(true, "Prop_Collections", pms)
-            //4 Prop_Periodicity
+            //4 Prop_PeriodType
+            if (params.containsKey("idPeriodType"))
+                updateProperties("Prop_PeriodType", pms)
+            else
+                fillProperties(true, "Prop_PeriodType", pms)
+            //5 Prop_PeriodType
             if (params.containsKey("idPeriodicity"))
                 updateProperties("Prop_Periodicity", pms)
             else
                 fillProperties(true, "Prop_Periodicity", pms)
+
         }
         return loadProcessCharts(own)
     }
@@ -1571,7 +1582,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadFvPeriodicity(String codFactor) {
+    Store loadFvPeriodType(String codFactor) {
         return loadFvForSelect(codFactor)
     }
 
@@ -1745,7 +1756,7 @@ class DataDao extends BaseMdbUtils {
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if ( cod.equalsIgnoreCase("Prop_Source") ||
-                    cod.equalsIgnoreCase("Prop_Periodicity") ||
+                    cod.equalsIgnoreCase("Prop_PeriodType") ||
                         cod.equalsIgnoreCase("Prop_Shape") ||
                             cod.equalsIgnoreCase("Prop_DefectsCategory")) {
                 if (propVal > 0) {
@@ -1776,7 +1787,8 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_StageLength") ||
                         cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
                         cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
-                        cod.equalsIgnoreCase("Prop_ParamsLimitNorm")) {
+                        cod.equalsIgnoreCase("Prop_ParamsLimitNorm") ||
+                            cod.equalsIgnoreCase("Prop_Periodicity")) {
                 if (params.get(keyValue) != null) {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -1903,7 +1915,7 @@ class DataDao extends BaseMdbUtils {
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
             if ( cod.equalsIgnoreCase("Prop_Source") ||
-                    cod.equalsIgnoreCase("Prop_Periodicity") ||
+                    cod.equalsIgnoreCase("Prop_PeriodType") ||
                         cod.equalsIgnoreCase("Prop_Shape") ||
                             cod.equalsIgnoreCase("Prop_DefectsCategory")) {
                 if (propVal > 0)
@@ -1953,7 +1965,8 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_StageLength") ||
                         cod.equalsIgnoreCase("Prop_ParamsLimitMax") ||
                         cod.equalsIgnoreCase("Prop_ParamsLimitMin") ||
-                        cod.equalsIgnoreCase("Prop_ParamsLimitNorm")) {
+                        cod.equalsIgnoreCase("Prop_ParamsLimitNorm") ||
+                            cod.equalsIgnoreCase("Prop_Periodicity")) {
                 if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != 0) {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef

@@ -60,19 +60,29 @@
           :label="fmReqLabel('Prop_NumberSource')"
             />
 
-        <!-- fvPeriodicity -->
+        <!-- fvPeriodType -->
         <q-select
-          v-model="form.fvPeriodicity"
-          :model-value="form.fvPeriodicity"
-          :label="fmReqLabel('Prop_Periodicity')"
-          :options="optFvPeriodicity"
+          v-model="form.fvPeriodType"
+          :model-value="form.fvPeriodType"
+          :label="fmReqLabel('Prop_PeriodType')"
+          :options="optFvPeriodType"
           dense options-dense
           map-options
           option-label="name"
           option-value="id"
           class="q-ma-md"
-          @update:model-value="fnSelectFvPeriodicity"
+          @update:model-value="fnSelectFvPeriodType"
         />
+
+        <!-- Periodicity -->
+        <q-input
+          :model-value="form['Periodicity']"
+          v-model="form['Periodicity']"
+          class="q-ma-md" dense type="number"
+          :label="fmReqLabel('Prop_Periodicity')"
+        />
+
+
 
       </q-card-section>
       <!---->
@@ -110,7 +120,7 @@ export default {
       optCls: [],
       optCollections: [],
       optCollectionsOrg: [],
-      optFvPeriodicity: [],
+      optFvPeriodType: [],
       mapCollections: new Map()
     };
   },
@@ -145,10 +155,10 @@ export default {
       })
     },
 
-    fnSelectFvPeriodicity(v) {
+    fnSelectFvPeriodType(v) {
       if (v) {
-        this.form.fvPeriodicity = v.id
-        this.form.pvPeriodicity = v["pv"]
+        this.form.fvPeriodType = v.id
+        this.form.pvPeriodType = v["pv"]
       }
     },
 
@@ -174,7 +184,7 @@ export default {
 
     validSave() {
       if (!this.form.name || !this.form.cls || !this.form.objCollections || !this.form["NumberSource"] ||
-        !this.form.fvPeriodicity) return true
+        !this.form.fvPeriodType) return true
     },
 
     // following method is REQUIRED
@@ -279,12 +289,12 @@ export default {
     this.loading = true
     api
       .post(baseURL, {
-        method: 'data/loadFvPeriodicity',
-        params: ['Factor_Periodicity'],
+        method: 'data/loadFvPeriodType',
+        params: ['Factor_PeriodType'],
       })
       .then(
         (response) => {
-          this.optFvPeriodicity = response.data.result.records
+          this.optFvPeriodType = response.data.result.records
         },
         (error) => {
           let msg = error.message

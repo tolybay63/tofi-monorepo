@@ -112,6 +112,7 @@ export default {
   Prop_TechCard: "№ TC",
   Prop_Source: "Source",
   Prop_NumberSource: "№ in source",
+  Prop_PeriodType: "Type of Period",
   Prop_Periodicity: "Periodicity",
   class: "Class",
   Typ_ObjectTyp: "Point/Line",

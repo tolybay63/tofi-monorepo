@@ -113,6 +113,7 @@ export default {
   Prop_TechCard: "ТК №",
   Prop_Source: "Дереккөз",
   Prop_NumberSource: "Дереккөздегі №",
+  Prop_PeriodType: "Кезең түрі",
   Prop_Periodicity: "Мерзімділік",
   class: "Класс",
   Typ_ObjectTyp: "Нүкте/сызық",

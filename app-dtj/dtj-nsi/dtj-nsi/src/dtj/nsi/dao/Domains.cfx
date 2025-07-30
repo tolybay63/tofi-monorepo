@@ -15,12 +15,16 @@
         <field name="idNumberSource" parent="long"/>
         <field name="NumberSource" parent="string"/>
 
-        <field name="idPeriodicity" parent="long"/>
-        <field name="pvPeriodicity" parent="long"/>
-        <field name="fvPeriodicity" parent="long"/>
+        <field name="idPeriodType" parent="long"/>
+        <field name="pvPeriodType" parent="long"/>
+        <field name="fvPeriodType" parent="long"/>
 
         <field name="idTechCard" parent="long"/>
         <field name="TechCard" parent="string"/>
+
+        <field name="idPeriodicity" parent="long"/>
+        <field name="Periodicity" parent="double"/>
+
     </domain>
 
     <domain name="Obj.TypesObjects" parent="base">
