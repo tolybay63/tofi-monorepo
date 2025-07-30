@@ -184,7 +184,7 @@ export default {
 
     validSave() {
       if (!this.form.name || !this.form.cls || !this.form.objCollections || !this.form["NumberSource"] ||
-        !this.form.fvPeriodType) return true
+        !this.form.fvPeriodType || !this.form["Periodicity"]) return true
     },
 
     // following method is REQUIRED
@@ -210,7 +210,7 @@ export default {
       // emit "ok" event (with optional payload)
       // before hiding the QDialog
 
-      this.form.TechCard = this.form["NumberSource"] + " - " + this.mapCollections.get(this.form.objCollections);
+      this.form.fullName = this.form["name"] + " [тк №" + this.form["NumberSource"] +" / "+ this.mapCollections.get(this.form.objCollections)+"]";
       this.$axios
         .post(baseURL, {
           method: "data/saveProcessCharts",

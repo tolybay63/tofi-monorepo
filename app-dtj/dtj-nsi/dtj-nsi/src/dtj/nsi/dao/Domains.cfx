@@ -5,6 +5,7 @@
         <field name="obj" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
         <field name="nameCls" parent="string"/>
 
         <field name="idCollections" parent="long"/>
@@ -18,9 +19,6 @@
         <field name="idPeriodType" parent="long"/>
         <field name="pvPeriodType" parent="long"/>
         <field name="fvPeriodType" parent="long"/>
-
-        <field name="idTechCard" parent="long"/>
-        <field name="TechCard" parent="string"/>
 
         <field name="idPeriodicity" parent="long"/>
         <field name="Periodicity" parent="double"/>
