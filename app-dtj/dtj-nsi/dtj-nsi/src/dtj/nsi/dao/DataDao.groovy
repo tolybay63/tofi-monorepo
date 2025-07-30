@@ -700,16 +700,13 @@ class DataDao extends BaseMdbUtils {
         if (obj>0) whe = "o.id=${obj}"
         Store st = mdb.createStore("Obj.ProcessCharts")
         mdb.loadQuery(st, """
-            select o.id as obj, o.cls, v.name, null as nameCls,
-                v1.id as idTechCard, v1.strVal as TechCard,
+            select o.id as obj, o.cls, v.name, v.fullName, null as nameCls,
                 v2.id as idNumberSource, v2.strVal as NumberSource,
                 v3.id as idCollections, v3.propVal as pvCollections, v3.obj as objCollections, ov3.name as nameCollections,
                 v4.id as idPeriodType, v4.propVal as pvPeriodType, null as fvPeriodType,
                 v5.id as idPeriodicity, v5.numberVal as Periodicity
             from Obj o 
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_TechCard --1002
-                left join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_NumberSource   --1001
                 left join DataPropVal v2 on d2.id=v2.dataprop
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Collections --1081
@@ -1100,12 +1097,12 @@ class DataDao extends BaseMdbUtils {
         long own
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
-        par.put("fullName", pms.get("name"))
+        //par.put("fullName", pms.get("fullName"))
         if (mode.equalsIgnoreCase("ins")) {
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_TechCard
-            fillProperties(true, "Prop_TechCard", pms)
+            //fillProperties(true, "Prop_TechCard", pms)
             //2 Prop_NumberSource
             fillProperties(true, "Prop_NumberSource", pms)
             //3 Prop_Source
@@ -1121,10 +1118,12 @@ class DataDao extends BaseMdbUtils {
             //
             pms.put("own", own)
             //1 Prop_TechCard
+/*
             if (params.containsKey("idTechCard"))
                 updateProperties("Prop_TechCard", pms)
             else
                 fillProperties(true, "Prop_TechCard", pms)
+*/
             //2 Prop_NumberSource
             if (params.containsKey("idNumberSource"))
                 updateProperties("Prop_NumberSource", pms)
@@ -1716,8 +1715,7 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         // Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if ( cod.equalsIgnoreCase("Prop_TechCard") ||
-                    cod.equalsIgnoreCase("Prop_NumberSource") ||
+            if ( cod.equalsIgnoreCase("Prop_NumberSource") ||
                     cod.equalsIgnoreCase("Prop_NumberOt") ||
                     cod.equalsIgnoreCase("Prop_DefectsIndex") ||
                     cod.equalsIgnoreCase("Prop_DefectsNote") ||
@@ -1857,9 +1855,8 @@ class DataDao extends BaseMdbUtils {
         def strValue = mapProp.getString(keyValue)
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_TechCard") ||
-                    cod.equalsIgnoreCase("Prop_NumberSource") ||
-                        cod.equalsIgnoreCase("Prop_NumberOt") ||
+            if (cod.equalsIgnoreCase("Prop_NumberSource") ||
+                  cod.equalsIgnoreCase("Prop_NumberOt") ||
                     cod.equalsIgnoreCase("Prop_DefectsIndex") ||
                     cod.equalsIgnoreCase("Prop_DefectsNote") ||
                         cod.equalsIgnoreCase("Prop_DocumentNumber") ||

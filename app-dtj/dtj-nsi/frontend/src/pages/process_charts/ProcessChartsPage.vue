@@ -216,21 +216,22 @@ export default {
     getColumns() {
       return [
         {
-          name: "TechCard",
-          label: this.$t("Prop_TechCard"),
-          field: "TechCard",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:15%",
-        },
-        {
           name: "name",
           label: this.$t("fldName"),
           field: "name",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:25%",
+          headerStyle: "font-size: 1.2em; width:20%",
         },
+        {
+          name: "fullName",
+          label: this.$t("fldFullName"),
+          field: "fullName",
+          align: "left",
+          classes: "bg-blue-grey-1",
+          headerStyle: "font-size: 1.2em; width:20%",
+        },
+
         {
           name: "cls",
           label: this.$t("vidWork"),
