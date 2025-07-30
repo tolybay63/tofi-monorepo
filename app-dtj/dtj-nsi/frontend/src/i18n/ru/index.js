@@ -115,7 +115,8 @@ export default {
   Prop_TechCard: "№ тк",
   Prop_Source: "Источник",
   Prop_NumberSource: "№ в источнике",
-  Prop_Periodicity: "Перодичность",
+  Prop_PeriodType: "Тип периода",
+  Prop_Periodicity: "Периодичность",
   class: "Класс",
   Typ_ObjectTyp: "Точка/Линия",
 

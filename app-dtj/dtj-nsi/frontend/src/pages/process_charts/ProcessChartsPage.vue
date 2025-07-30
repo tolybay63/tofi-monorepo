@@ -110,7 +110,7 @@ export default {
       selected: [],
       mapCls: null,
       mapFvSource: null,
-      mapFvPeriodcity: null,
+      mapFvPeriodType: new Map(),
 
     }
   },
@@ -237,7 +237,7 @@ export default {
           field: "cls",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 20%",
+          headerStyle: "font-size: 1.2em; width: 15%",
           format: (v) => this.mapCls ? this.mapCls.get(v): null
         },
         {
@@ -257,13 +257,21 @@ export default {
           headerStyle: "font-size: 1.2em; width:10%",
         },
         {
-          name: "fvPeriodicity",
-          label: this.$t("Prop_Periodicity"),
-          field: "fvPeriodicity",
+          name: "fvPeriodType",
+          label: this.$t("Prop_PeriodType"),
+          field: "fvPeriodType",
           align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:15%",
-          format: (v) => this.mapFvPeriodcity ? this.mapFvPeriodcity.get(v): null
+          headerStyle: "font-size: 1.2em; width:10%",
+          format: (v) => this.mapFvPeriodType ? this.mapFvPeriodType.get(v): null
+        },
+        {
+          name: "Periodicity",
+          label: this.$t("Prop_Periodicity"),
+          field: "Periodicity",
+          align: "left",
+          classes: "bg-blue-grey-1",
+          headerStyle: "font-size: 1.2em; width:10%",
         },
       ]
     },
@@ -304,14 +312,13 @@ export default {
       .then(()=> {
         api
           .post(baseURL, {
-            method: "data/loadFvPeriodicity",
-            params: ["Factor_Periodicity"],
+            method: "data/loadFvPeriodType",
+            params: ["Factor_PeriodType"],
           })
           .then(
             (response) => {
-              this.mapFvPeriodcity = new Map()
               response.data.result["records"].forEach(r => {
-                this.mapFvPeriodcity.set(r.id, r.name);
+                this.mapFvPeriodType.set(r.id, r.name);
               })
             })
       })
