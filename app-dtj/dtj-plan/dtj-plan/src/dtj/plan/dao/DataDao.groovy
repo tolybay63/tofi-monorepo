@@ -248,7 +248,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store saveLocation(String mode, Map<String, Object> params) {
+    Store savePlan(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         //
         long own
@@ -264,10 +264,85 @@ class DataDao extends BaseMdbUtils {
         }
     }
 
+    /**
+     *
+     * @param id Id Obj
+     * Delete object with properties
+     */
+    @DaoMethod
+    void deleteObjWithProperties(long id) {
+        validateForDeleteOwner(id)
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        //
+        eu.deleteEntity(id)
+    }
 
+    private void validateForDeleteOwner(long owner) {
+        //---< check data in other DB
+        Store stObj = mdb.loadQuery("""
+            select o.cls, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id=${owner}
+        """)
+        if (stObj.size() > 0) {
+            //
+            List<String> lstService = new ArrayList<>()
+            long cls = stObj.get(0).getLong("cls")
+            String name = stObj.get(0).getString("name")
+            Store stPV = loadSqlMeta("""
+                select id from PropVal where cls=${cls}
+            """, "")
+            Set<Object> idsPV = stPV.getUniqueValues("id")
+            if (stPV.size() > 0) {
+                Store stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "nsidata")
+                if (stData.size() > 0)
+                    lstService.add("nsidata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "objectdata")
+                if (stData.size() > 0)
+                    lstService.add("objectdata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "orgstructuredata")
+                if (stData.size() > 0)
+                    lstService.add("orgstructuredata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "personnaldata")
+                if (stData.size() > 0)
+                    lstService.add("personnaldata")
+                //
+                stData = loadSqlService("""
+                    select id from DataPropVal
+                    where propval in (${idsPV.join(",")}) and obj=${owner}
+                """, "", "plandata")
+                if (stData.size() > 0)
+                    lstService.add("plandata")
+                if (lstService.size()>0) {
+                    throw new XError("${name} используется в ["+ lstService.join(", ") + "]")
+                }
 
-
-
+            }
+        }
+    }
 
     //-------------------------
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {

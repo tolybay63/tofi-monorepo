@@ -13,12 +13,10 @@ import jandcode.core.auth.AuthService
 import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
-import jandcode.core.std.CfgService
 import jandcode.core.std.DataDirService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
-import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
@@ -80,120 +78,117 @@ class DataDao extends BaseMdbUtils {
 
     //-------------------------
 
-    void is_exist_owner_as_data(long owner, int isObj, String modelMeta) {
-        Map<Long, String> mapPV
-        if (isObj==1)
-            mapPV = apiMeta().get(ApiMeta).mapPropValArrFromCls("cls")
-        else
-            mapPV = apiMeta().get(ApiMeta).mapPropValArrFromCls("relcls")
-
-        List<String> lstApp = new ArrayList<>()
-        long clsORrelcls
-        if (isObj == 1) {
-            clsORrelcls = apiUserData().get(ApiUserData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("userdata")
-            }
-            //
-            clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("nsidata")
-            }
-            //
-            if (modelMeta=="fish") {
-                clsORrelcls = apiMonitoringData().get(ApiMonitoringData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("monitoringdata")
-                }
-            }
-            if (modelMeta=="dtj") {
-                clsORrelcls = apiPersonnalData().get(ApiPersonnalData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiPersonnalData().get(ApiPersonnalData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("personnaldata")
-                }
-                //
-                clsORrelcls = apiPlanData().get(ApiPlanData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiPlanData().get(ApiPlanData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("plandata")
-                }
-                //
-                clsORrelcls = apiOrgStructureData().get(ApiOrgStructureData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiOrgStructureData().get(ApiOrgStructureData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("orgstructuredata")
-                }
-                //
-                clsORrelcls = apiObjectData().get(ApiObjectData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiObjectData().get(ApiObjectData).is_exist_entity_as_data(owner, "obj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("objectdata")
-                }
-            }
-        } else {
-            clsORrelcls = apiUserData().get(ApiUserData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("userdata")
-            }
-            //
-            clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("nsidata")
-            }
-            //
-            if (modelMeta=="fish") {
-                clsORrelcls = apiMonitoringData().get(ApiMonitoringData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiMonitoringData().get(ApiMonitoringData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("monitoringdata")
-                }
-            }
-            if (modelMeta=="dtj") {
-                clsORrelcls = apiPersonnalData().get(ApiPersonnalData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiPersonnalData().get(ApiPersonnalData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("personnaldata")
-                }
-                //
-                clsORrelcls = apiPlanData().get(ApiPlanData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiPlanData().get(ApiPlanData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("plandata")
-                }
-                //
-                clsORrelcls = apiOrgStructureData().get(ApiOrgStructureData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiOrgStructureData().get(ApiOrgStructureData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("orgstructuredata")
-                }
-                //
-                clsORrelcls = apiObjectData().get(ApiObjectData).getClsOrRelCls(owner, isObj)
-                if (mapPV.containsKey(clsORrelcls)) {
-                    boolean b = apiObjectData().get(ApiObjectData).is_exist_entity_as_data(owner, "relobj", mapPV.get(clsORrelcls))
-                    if (b) lstApp.add("objectdata")
-                }
-            }
-        }
-        //...
-        String msg = lstApp.join(", ")
-        if (lstApp.size() > 0)
-            throw new XError("UseInApp@"+msg)
-    }
-
-    void validateForDeleteOwner(long owner, int isObj) {
+     void validateForDeleteOwner(long owner, int isObj) {
         //---< check data in other DB
-        CfgService cfgSvc = mdb.getApp().bean(CfgService.class)
-        String modelMeta = cfgSvc.getConf().getString("dbsource/meta/id")
-        if (modelMeta.isEmpty())
-            throw new XError("Не найден id мета модели")
-        //-->
-        is_exist_owner_as_data(owner, isObj, modelMeta)
+         if (isObj==1) {
+             Store stObj = mdb.loadQuery("""
+                select o.cls, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id=${owner}
+             """)
+             if (stObj.size() > 0) {
+                 //
+                 List<String> lstService = new ArrayList<>()
+                 long cls = stObj.get(0).getLong("cls")
+                 String name = stObj.get(0).getString("name")
+                 Store stPV = loadSqlMeta("""
+                    select id from PropVal where cls=${cls}
+                """, "")
+                 Set<Object> idsPV = stPV.getUniqueValues("id")
+                 if (stPV.size() > 0) {
+                     Store stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and obj=${owner}
+                    """, "", "nsidata")
+                     if (stData.size() > 0)
+                         lstService.add("nsidata")
+                     //
+                     stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and obj=${owner}
+                    """, "", "objectdata")
+                     if (stData.size() > 0)
+                         lstService.add("objectdata")
+                     //
+                     stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and obj=${owner}
+                    """, "", "orgstructuredata")
+                     if (stData.size() > 0)
+                         lstService.add("orgstructuredata")
+                     //
+                     stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and obj=${owner}
+                    """, "", "personnaldata")
+                     if (stData.size() > 0)
+                         lstService.add("personnaldata")
+                     //
+                     stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and obj=${owner}
+                    """, "", "plandata")
+                     if (stData.size() > 0)
+                         lstService.add("plandata")
+                     if (lstService.size() > 0) {
+                         throw new XError("${name} используется в [" + lstService.join(", ") + "]")
+                     }
+                 }
+             }
+         } else if (isObj==0) {
+             Store stRelObj = mdb.loadQuery("""
+                select o.relcls, v.name from RelObj o, RelObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id=${owner}
+             """)
+             if (stRelObj.size() > 0) {
+                 //
+                 List<String> lstService = new ArrayList<>()
+                 long relcls = stRelObj.get(0).getLong("relcls")
+                 String name = stRelObj.get(0).getString("name")
+                 Store stPV = loadSqlMeta("""
+                    select id from PropVal where cls=${relcls}
+                """, "")
+                 Set<Object> idsPV = stPV.getUniqueValues("id")
+                 if (stPV.size() > 0) {
+                     Store stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and relobj=${owner}
+                    """, "", "nsidata")
+                     if (stData.size() > 0)
+                         lstService.add("nsidata")
+                     //
+                     stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and relobj=${owner}
+                    """, "", "objectdata")
+                     if (stData.size() > 0)
+                         lstService.add("objectdata")
+                     //
+                     stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and relobj=${owner}
+                    """, "", "orgstructuredata")
+                     if (stData.size() > 0)
+                         lstService.add("orgstructuredata")
+                     //
+                     stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and relobj=${owner}
+                    """, "", "personnaldata")
+                     if (stData.size() > 0)
+                         lstService.add("personnaldata")
+                     //
+                     stData = loadSqlService("""
+                        select id from DataPropVal
+                        where propval in (${idsPV.join(",")}) and relobj=${owner}
+                    """, "", "plandata")
+                     if (stData.size() > 0)
+                         lstService.add("plandata")
+                     if (lstService.size() > 0) {
+                         throw new XError("${name} используется в [" + lstService.join(", ") + "]")
+                     }
+                 }
+             }
+         } else {
+             throw new XError("isObj is wrong")
+         }
     }
 
     /*
@@ -215,7 +210,7 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     void deleteOwnerWithProperties(long id, int isObj) {
         //
-        //validateForDeleteOwner(id, isObj)
+        validateForDeleteOwner(id, isObj)
         //
         String tableName = isObj==1 ? "Obj" : "RelObj"
         EntityMdbUtils eu = new EntityMdbUtils(mdb, tableName)
@@ -240,7 +235,6 @@ class DataDao extends BaseMdbUtils {
         } else
             eu.deleteEntity(id)
     }
-
 
     StoreRecord loadObjRec(long obj) {
         StoreRecord st = mdb.createStoreRecord("Obj.full")
@@ -2048,14 +2042,29 @@ class DataDao extends BaseMdbUtils {
     }
 
     //-------------------------
-
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
     }
 
+    private Store loadSqlService(String sql, String domain, String model) {
+        if (model.equalsIgnoreCase("userdata"))
+            return apiUserData().get(ApiUserData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("nsidata"))
+            return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("objectdata"))
+            return apiObjectData().get(ApiObjectData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("plandata"))
+            return apiPlanData().get(ApiPlanData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("personnaldata"))
+            return apiPersonnalData().get(ApiPersonnalData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("orgstructuredata"))
+            return apiOrgStructureData().get(ApiOrgStructureData).loadSql(sql, domain)
+        else
+            throw new XError("Unknown model [${model}]")
+    }
 
     @DaoMethod
-    public Map<String, Object> getCurUserInfo() {
+    Map<String, Object> getCurUserInfo() {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
         AuthUser au = authSvc.getCurrentUser()
         if (au == null) {
