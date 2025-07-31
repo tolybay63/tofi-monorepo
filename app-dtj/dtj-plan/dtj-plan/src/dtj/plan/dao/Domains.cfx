@@ -9,12 +9,14 @@
         <field name="idWork" parent="long"/>
         <field name="pvWork" parent="long"/>
         <field name="objWork" parent="long"/>
-        <field name="nameWork" parent="string"/>
+        <field name="nameClsWork" parent="string"/>
+        <field name="fullNameWork" parent="string"/>
 
         <field name="idObject" parent="long"/>
         <field name="pvObject" parent="long"/>
         <field name="objObject" parent="long"/>
-        <field name="nameObject" parent="string"/>
+        <field name="nameClsObject" parent="string"/>
+        <field name="fullNameObject" parent="string"/>
 
         <field name="idStartKm" parent="long"/>
         <field name="StartKm" parent="double"/>
