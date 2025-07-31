@@ -136,6 +136,8 @@ class DataDao extends BaseMdbUtils {
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
 
+
+
         mdb.loadQuery(st, """
             select o.id, o.cls, v.name, null as nameCls,
                 v1.id as idLocationClsSection, v1.propVal as pvLocationClsSection, 
@@ -255,13 +257,166 @@ class DataDao extends BaseMdbUtils {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
         if (mode.equalsIgnoreCase("ins")) {
-            par.put("fullName", par.get("name"))
+            // find cls(linkCls)
+            long linkCls = pms.getLong("linkCls")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkType", "")
+            if (map.isEmpty())
+                throw new XError("NotFoundCod@Typ_WorkType")
+            map.put("linkCls", linkCls)
+            Store stTmp = loadSqlMeta("""
+                with fv as (
+                    select cls,
+                    string_agg (cast(factorval as varchar(2000)), ',' order by factorval) as fvlist
+                    from clsfactorval
+                    where cls=${linkCls}
+                    group by cls
+                )
+                select * from (
+                    select c.cls,
+                    string_agg (cast(c.factorval as varchar(1000)), ',' order by factorval) as fvlist
+                    from clsfactorval c, factor f  
+                    where c.factorval =f.id and c.cls in (
+                        select id from Cls where typ=${map.get("Typ_WorkType")}
+                    )
+                    group by c.cls
+                ) t where t.fvlist in (select fv.fvlist from fv)
+            """, "")
+
+            long cls
+            if (stTmp.size() > 0)
+                cls = stTmp.get(0).getLong("cls")
+            else {
+                throw new XError("Не найден класс сответствующий классу {0}", linkCls)
+            }
+
+            par.put("cls", cls)
             own = eu.insertEntity(par)
             pms.put("own", own)
-            //1 Prop_Address
-            if (pms.containsKey("Address"))
-                fillProperties(true, "Prop_Address", pms)
+            //1 Prop_LocationClsSection
+            if (pms.containsKey("objLocationClsSection"))
+                fillProperties(true, "Prop_LocationClsSection", pms)
+            //2 Prop_Work
+            if (pms.containsKey("objWork"))
+                fillProperties(true, "Prop_Work", pms)
+            //3 Prop_Object
+            if (pms.containsKey("objObject"))
+                fillProperties(true, "Prop_Object", pms)
+            //4 Prop_User
+            if (pms.containsKey("objUser"))
+                fillProperties(true, "Prop_User", pms)
+            //5 Prop_StartKm
+            if (pms.containsKey("StartKm"))
+                fillProperties(true, "Prop_StartKm", pms)
+            //6 Prop_FinishKm
+            if (pms.containsKey("FinishKm"))
+                fillProperties(true, "Prop_FinishKm", pms)
+            //7 Prop_StartPicket
+            if (pms.containsKey("StartPicket"))
+                fillProperties(true, "Prop_StartPicket", pms)
+            //8 Prop_FinishPicket
+            if (pms.containsKey("FinishPicket"))
+                fillProperties(true, "Prop_FinishPicket", pms)
+            //9 Prop_PlanDateEnd
+            if (pms.containsKey("PlanDateEnd"))
+                fillProperties(true, "Prop_PlanDateEnd", pms)
+            //10 Prop_CreatedAt
+            if (pms.containsKey("CreatedAt"))
+                fillProperties(true, "Prop_CreatedAt", pms)
+            //11 Prop_UpdatedAt
+            if (pms.containsKey("UpdatedAt"))
+                fillProperties(true, "Prop_UpdatedAt", pms)
+        } else if (mode.equalsIgnoreCase("upd")) {
+            own = pms.getLong("id")
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+
+            //1 Prop_ObjectType
+            if (pms.containsKey("idLocationClsSection"))
+                updateProperties("Prop_LocationClsSection", pms)
+            else {
+                if (pms.containsKey("objLocationClsSection"))
+                    fillProperties(true, "Prop_ObjectType", pms)
+            }
+            //2 Prop_Work
+            if (pms.containsKey("idWork"))
+                updateProperties("Prop_Work", pms)
+            else {
+                if (pms.containsKey("objWork"))
+                    fillProperties(true, "Prop_Work", pms)
+            }
+            //3 Prop_Object
+            if (pms.containsKey("idObject"))
+                updateProperties("Prop_Object", pms)
+            else {
+                if (pms.containsKey("objObject"))
+                    fillProperties(true, "Prop_Object", pms)
+            }
+            //4 Prop_User
+            if (pms.containsKey("idUser"))
+                updateProperties("Prop_User", pms)
+            else {
+                if (pms.containsKey("objUser"))
+                    fillProperties(true, "Prop_User", pms)
+            }
+            //5 Prop_StartKm
+            if (pms.containsKey("idStartKm"))
+                updateProperties("Prop_StartKm", pms)
+            else {
+                if (pms.containsKey("StartKm"))
+                    fillProperties(true, "Prop_StartKm", pms)
+            }
+            //6 Prop_FinishKm
+            if (pms.containsKey("idFinishKm"))
+                updateProperties("Prop_FinishKm", pms)
+            else {
+                if (pms.containsKey("FinishKm"))
+                    fillProperties(true, "Prop_FinishKm", pms)
+            }
+            //7 Prop_StartPicket
+            if (pms.containsKey("idStartPicket"))
+                updateProperties("Prop_StartPicket", pms)
+            else {
+                if (pms.containsKey("StartPicket"))
+                    fillProperties(true, "Prop_StartPicket", pms)
+            }
+            //8 Prop_FinishPicket
+            if (pms.containsKey("idFinishPicket"))
+                updateProperties("Prop_FinishPicket", pms)
+            else {
+                if (pms.containsKey("FinishPicket"))
+                    fillProperties(true, "Prop_FinishPicket", pms)
+            }
+            //9 Prop_PlanDateEnd
+            if (pms.containsKey("idPlanDateEnd"))
+                updateProperties("Prop_PlanDateEnd", pms)
+            else {
+                if (pms.containsKey("PlanDateEnd"))
+                    fillProperties(true, "Prop_PlanDateEnd", pms)
+            }
+            //10 Prop_CreatedAt
+            if (pms.containsKey("idCreatedAt"))
+                updateProperties("Prop_CreatedAt", pms)
+            else {
+                if (pms.containsKey("CreatedAt"))
+                    fillProperties(true, "Prop_CreatedAt", pms)
+            }
+            //11 Prop_UpdatedAt
+            if (pms.containsKey("idUpdatedAt"))
+                updateProperties("Prop_UpdatedAt", pms)
+            else {
+                if (pms.containsKey("UpdatedAt"))
+                    fillProperties(true, "Prop_UpdatedAt", pms)
+            }
+        } else {
+            throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
         }
+
+
+
+
+
+        return loadPlan(Map.of("id", own))
     }
 
     /**
@@ -416,7 +571,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_UserEmail") ||
                     cod.equalsIgnoreCase("Prop_UserPhone") ||
                     cod.equalsIgnoreCase("Prop_UserId")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else {
@@ -426,7 +581,7 @@ class DataDao extends BaseMdbUtils {
         //
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_Description")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else {
@@ -440,7 +595,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_DateEmployment") ||
                     cod.equalsIgnoreCase("Prop_DateDismissal") ||
                     cod.equalsIgnoreCase("Prop_UserDateBirth")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else
@@ -473,7 +628,7 @@ class DataDao extends BaseMdbUtils {
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_StartKm")) { // template
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
                     if (digit) v = v.round(digit)
@@ -681,7 +836,6 @@ class DataDao extends BaseMdbUtils {
 
         mdb.execQueryNative(sql)
     }
-
 
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
