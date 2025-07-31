@@ -13,8 +13,19 @@ class Obj_Test extends Apx_Test {
         DataDao dao = mdb.createDao(DataDao.class)
         Store st = dao.getPersonnalInfo(1013)
         mdb.outTable(st)
-
     }
+
+    @Test
+    void testPlanLoad() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadPlan(Map.of(
+                "date", "2025-07-29",
+                "periodType", 41,
+                "objLocation", 1009
+        ))
+        mdb.outTable(st)
+    }
+
 
 
     @Test
