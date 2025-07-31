@@ -26,6 +26,12 @@ class Obj_Test extends Apx_Test {
         mdb.outTable(st)
     }
 
+    @Test
+    void loadWorkForSelect() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadWorkForSelect(1011)
+        mdb.outTable(st)
+    }
 
 
     @Test

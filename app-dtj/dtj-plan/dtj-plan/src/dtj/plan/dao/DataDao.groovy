@@ -412,11 +412,9 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
         }
 
-
-
-
-
-        return loadPlan(Map.of("id", own))
+        Map<String, Object> mapRez = new HashMap<>()
+        mapRez.put("id", own)
+        return loadPlan(mapRez)
     }
 
     /**
@@ -440,6 +438,91 @@ class DataDao extends BaseMdbUtils {
         """)
         //
         eu.deleteEntity(id)
+    }
+
+    @DaoMethod
+    Store loadWorkForSelect(long id) {
+        //id: from OrgStructure idLocation (Typ_Location)
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_LocationMulti", "")
+
+        Store stNSI = loadSqlService("""
+            select d.objOrRelObj as owner
+            from DataProp d, DataPropval v
+            where d.id=v.dataProp and d.prop=${map.get("Prop_LocationMulti")} and v.obj=${id}
+        """, "", "nsidata")
+        Set<Object> ids = stNSI.getUniqueValues("owner")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Collections", "")
+        stNSI = loadSqlService("""
+            select d.objOrRelObj as owner
+            from DataProp d, DataPropval v
+            where d.id=v.dataProp and d.prop=${map.get("Prop_Collections")} and v.obj in (0${ids.join(",")})
+        """, "", "nsidata")
+        Set<Object> idsWork = stNSI.getUniqueValues("owner")
+        Store st = loadSqlService("""
+            select o.id, o.cls, v.fullName, null as pv
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsWork.join(",")})
+        """, "", "nsidata")
+
+        for (StoreRecord r in st) {
+            long pv = apiMeta().get(ApiMeta).idPV("cls", r.getLong("cls"), "Prop_Work")
+            r.set("pv", pv)
+        }
+        return st
+    }
+
+    @DaoMethod
+    Store loadObjectServedForSelect(long id) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("RelTyp", "RT_Works", "")
+        Store stTyp = loadSqlMeta("""
+            select typ from reltypmember
+            where reltyp=${map.get("RT_Works")}
+            order by ord
+        """, "")
+        long typ1 = stTyp.get(0).getLong("typ")
+        long typ2 = stTyp.get(1).getLong("typ")
+
+        Store stRCM1 = loadSqlMeta("""
+            select distinct cls 
+            from relclsmember
+            where cls in (
+                select id from Cls where typ=${typ1}
+            )
+        """, "")
+
+        Set<Object> idsCls1 = stRCM1.getUniqueValues("cls")
+        Store stRCM2 = loadSqlMeta("""
+            select distinct cls 
+            from relclsmember
+            where cls in (
+                select id from Cls where typ=${typ2}
+            )
+        """, "")
+        Set<Object> idsCls2 = stRCM2.getUniqueValues("cls")
+
+        Store stTmp = loadSqlService("""
+            select obj from relobjmember
+            where cls in (${idsCls2.join(",")})
+                and relobj in (
+                    select relobj from relobjmember
+                    where cls in (${idsCls1.join(",")}) and obj=${id}
+                )
+        """, "", "nsidata")
+
+        Set<Object> idsObj = stTmp.getUniqueValues("obj")
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ObjectType", "")
+        stTmp = loadSqlService("""
+            select d.objOrRelObj as owner
+            from DataProp d, DataPropval v
+            where d.id=v.dataProp and d.prop=${map.get("Prop_ObjectType")} and v.obj in (0${idsObj.join(",")})
+        """, "", "objectdata")
+        Set<Object> owners = stTmp.getUniqueValues("owner")
+
+
+
+
     }
 
     private void validateForDeleteOwner(long owner) {
