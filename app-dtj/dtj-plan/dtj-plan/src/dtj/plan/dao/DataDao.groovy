@@ -18,7 +18,6 @@ import tofi.apinator.ApinatorService
 @CompileStatic
 class DataDao extends BaseMdbUtils {
 
-
     ApinatorApi apiMeta() {
         return app.bean(ApinatorService).getApi("meta")
     }
@@ -31,7 +30,6 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiPersonnalData() {
         return app.bean(ApinatorService).getApi("personnaldata")
     }
-
 
     @DaoMethod
     Store getPersonnalInfo(long userId) {
