@@ -1101,8 +1101,7 @@ class DataDao extends BaseMdbUtils {
         if (mode.equalsIgnoreCase("ins")) {
             own = eu.insertEntity(par)
             pms.put("own", own)
-            //1 Prop_TechCard
-            //fillProperties(true, "Prop_TechCard", pms)
+            //1 Prop_TechCard Deleted
             //2 Prop_NumberSource
             fillProperties(true, "Prop_NumberSource", pms)
             //3 Prop_Source
@@ -1117,13 +1116,7 @@ class DataDao extends BaseMdbUtils {
             eu.updateEntity(par)
             //
             pms.put("own", own)
-            //1 Prop_TechCard
-/*
-            if (params.containsKey("idTechCard"))
-                updateProperties("Prop_TechCard", pms)
-            else
-                fillProperties(true, "Prop_TechCard", pms)
-*/
+            //1 Prop_TechCard   Deleted
             //2 Prop_NumberSource
             if (params.containsKey("idNumberSource"))
                 updateProperties("Prop_NumberSource", pms)
