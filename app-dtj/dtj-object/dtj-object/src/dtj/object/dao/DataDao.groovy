@@ -236,14 +236,18 @@ class DataDao extends BaseMdbUtils {
             //1 Prop_ObjectType
             if (pms.containsKey("idObjectType"))
                 updateProperties("Prop_ObjectType", pms)
-            else
-                fillProperties(true, "Prop_ObjectType", pms)
+            else {
+                if (pms.containsKey("objObjectType"))
+                    fillProperties(true, "Prop_ObjectType", pms)
+            }
 
             //1 a Prop_Section
             if (pms.containsKey("idSection"))
                 updateProperties("Prop_Section", pms)
-            else
-                fillProperties(true, "Prop_Section", pms)
+            else {
+                if (pms.containsKey("objSection"))
+                    fillProperties(true, "Prop_Section", pms)
+            }
 
             //2 Prop_StartKm
             if (pms.containsKey("idStartKm"))
@@ -273,8 +277,10 @@ class DataDao extends BaseMdbUtils {
             //7 Prop_Side
             if (pms.containsKey("idSide"))
                 updateProperties("Prop_Side", pms)
-            else
-                fillProperties(true, "Prop_Side", pms)
+            else {
+                if (pms.containsKey("fvSide"))
+                    fillProperties(true, "Prop_Side", pms)
+            }
             //8 Prop_Specs
             if (pms.containsKey("idSpecs"))
                 updateProperties("Prop_Specs", pms)
@@ -574,7 +580,7 @@ class DataDao extends BaseMdbUtils {
             if ( cod.equalsIgnoreCase("Prop_Specs") ||
                     cod.equalsIgnoreCase("Prop_LocationDetails") ||
                     cod.equalsIgnoreCase("Prop_Number")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else {
@@ -584,7 +590,7 @@ class DataDao extends BaseMdbUtils {
         //
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_Description")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else {
@@ -595,7 +601,7 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_InstallationDate") ||
                     cod.equalsIgnoreCase("Prop_CreatedAt") ||
                     cod.equalsIgnoreCase("Prop_UpdatedAt")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else
@@ -631,7 +637,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_FinishKm") ||
                     cod.equalsIgnoreCase("Prop_FinishPicket") ||
                         cod.equalsIgnoreCase("Prop_PeriodicityReplacement")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
                     if (digit) v = v.round(digit)
