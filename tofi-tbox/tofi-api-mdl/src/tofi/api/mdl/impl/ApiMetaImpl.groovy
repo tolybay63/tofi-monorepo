@@ -574,4 +574,5 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         ClsTreeUtils cu = new ClsTreeUtils(mdb)
         return cu.ListClsParents(typ, cls)
     }
+
 }

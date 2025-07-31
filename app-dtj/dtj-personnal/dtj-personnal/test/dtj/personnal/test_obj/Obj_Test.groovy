@@ -18,9 +18,9 @@ class Obj_Test extends Apx_Test {
     @Test
     void savePersonnalIns() {
         Map<String, Object> map = new HashMap<>()
-        map.put("login", "user_dtj")
+        map.put("login", "user_test")
         map.put("passwd", "111")
-        map.put("UserEmail", "user_dtj@gmail.com")
+        map.put("UserEmail", "user_test@gmail.com")
         map.put("UserPhone", "7773334455")
         map.put("UserFirstName", "Иван")
         map.put("UserSecondName", "Иванов")
@@ -31,8 +31,8 @@ class Obj_Test extends Apx_Test {
         map.put("pvUserSex", 1085)
         map.put("fvPosition", 1130)
         map.put("pvPosition", 1246)
-        map.put("objLocation", 1001)
-        map.put("pvLocation", 1144)
+        map.put("objLocation", 1011)
+        map.put("pvLocation", 1276)
 
         //
         savePersonnal("ins", map)
