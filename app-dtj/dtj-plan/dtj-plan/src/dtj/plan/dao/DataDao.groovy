@@ -520,9 +520,13 @@ class DataDao extends BaseMdbUtils {
         """, "", "objectdata")
         Set<Object> owners = stTmp.getUniqueValues("owner")
 
+        stTmp = loadSqlService("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (${owners.join(",")})
+        """, "", "objectdata")
 
-
-
+        return stTmp
     }
 
     private void validateForDeleteOwner(long owner) {
