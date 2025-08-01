@@ -249,6 +249,7 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
+
     @DaoMethod
     Store savePlan(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -259,9 +260,9 @@ class DataDao extends BaseMdbUtils {
         if (mode.equalsIgnoreCase("ins")) {
             // find cls(linkCls)
             long linkCls = pms.getLong("linkCls")
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkType", "")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Work", "")
             if (map.isEmpty())
-                throw new XError("NotFoundCod@Typ_WorkType")
+                throw new XError("NotFoundCod@Typ_Work")
             map.put("linkCls", linkCls)
             Store stTmp = loadSqlMeta("""
                 with fv as (
@@ -276,7 +277,7 @@ class DataDao extends BaseMdbUtils {
                     string_agg (cast(c.factorval as varchar(1000)), ',' order by factorval) as fvlist
                     from clsfactorval c, factor f  
                     where c.factorval =f.id and c.cls in (
-                        select id from Cls where typ=${map.get("Typ_WorkType")}
+                        select id from Cls where typ=${map.get("Typ_Work")}
                     )
                     group by c.cls
                 ) t where t.fvlist in (select fv.fvlist from fv)
