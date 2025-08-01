@@ -733,9 +733,7 @@ class DataDao extends BaseMdbUtils {
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
                     cod.equalsIgnoreCase("Prop_UpdatedAt") ||
-                    cod.equalsIgnoreCase("Prop_DateEmployment") ||
-                    cod.equalsIgnoreCase("Prop_DateDismissal") ||
-                    cod.equalsIgnoreCase("Prop_UserDateBirth")) {
+                    cod.equalsIgnoreCase("Prop_PlanDateEnd")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -745,8 +743,7 @@ class DataDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_UserSex") ||
-                    cod.equalsIgnoreCase("Prop_Position")) {
+            if ( cod.equalsIgnoreCase("Prop_UserSex")) {    //template
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -768,7 +765,10 @@ class DataDao extends BaseMdbUtils {
 
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_StartKm")) { // template
+            if (cod.equalsIgnoreCase("Prop_StartKm") ||
+                    cod.equalsIgnoreCase("Prop_FinishKm") ||
+                    cod.equalsIgnoreCase("Prop_StartPicket") ||
+                    cod.equalsIgnoreCase("Prop_FinishPicket")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -779,9 +779,11 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-        // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Location")) {
+            if (cod.equalsIgnoreCase("Prop_LocationClsSection") ||
+                    cod.equalsIgnoreCase("Prop_Work") ||
+                    cod.equalsIgnoreCase("Prop_Object") ||
+                    cod.equalsIgnoreCase("Prop_User")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -836,13 +838,7 @@ class DataDao extends BaseMdbUtils {
         def strValue = mapProp.getString(keyValue)
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_TabNumber") ||
-                    cod.equalsIgnoreCase("Prop_UserSecondName") ||
-                    cod.equalsIgnoreCase("Prop_UserFirstName") ||
-                    cod.equalsIgnoreCase("Prop_UserMiddleName") ||
-                    cod.equalsIgnoreCase("Prop_UserEmail") ||
-                    cod.equalsIgnoreCase("Prop_UserPhone") ||
-                    cod.equalsIgnoreCase("Prop_UserId")) {
+            if (cod.equalsIgnoreCase("Prop_TabNumber")) {   //For Template
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -873,9 +869,7 @@ class DataDao extends BaseMdbUtils {
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_CreatedAt") ||
                     cod.equalsIgnoreCase("Prop_UpdatedAt") ||
-                    cod.equalsIgnoreCase("Prop_DateEmployment") ||
-                    cod.equalsIgnoreCase("Prop_DateDismissal") ||
-                    cod.equalsIgnoreCase("Prop_UserDateBirth")) {
+                    cod.equalsIgnoreCase("Prop_PlanDateEnd")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
                         delete from DataPropVal where id=${idVal};
@@ -894,8 +888,7 @@ class DataDao extends BaseMdbUtils {
 
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if ( cod.equalsIgnoreCase("Prop_UserSex") ||
-                    cod.equalsIgnoreCase("Prop_Position")) {
+            if ( cod.equalsIgnoreCase("Prop_UserSex")) {    //template
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
@@ -933,9 +926,15 @@ class DataDao extends BaseMdbUtils {
             }
         }
 
-        // For Meter
+        // For Meter Prop_StartKm
+        //Prop_FinishKm
+        //Prop_StartPicket
+        //Prop_FinishPicket
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_StartKm")) {
+            if (cod.equalsIgnoreCase("Prop_StartKm") ||
+                    cod.equalsIgnoreCase("Prop_FinishKm") ||
+                    cod.equalsIgnoreCase("Prop_StartPicket") ||
+                    cod.equalsIgnoreCase("Prop_FinishPicket")) {
                 if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != 0) {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
@@ -957,7 +956,10 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Location")) {
+            if (cod.equalsIgnoreCase("Prop_LocationClsSection") ||
+                    cod.equalsIgnoreCase("Prop_Work") ||
+                    cod.equalsIgnoreCase("Prop_Object") ||
+                    cod.equalsIgnoreCase("Prop_User")) {
                 if (objRef > 0)
                     sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
                 else {
