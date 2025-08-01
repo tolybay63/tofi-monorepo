@@ -107,6 +107,8 @@ public interface ApiMeta {
      */
     long idPV(String entity, long idEntity, String codProp);
 
+    Store getPvFromCls(Set<Object> idsCls, String codProp);
+
     /**
      *
      * @param cod cod of Prop

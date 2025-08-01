@@ -33,6 +33,15 @@ class Obj_Test extends Apx_Test {
         mdb.outTable(st)
     }
 
+    @Test
+    void loadObjectServedForSelect() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.loadObjectServedForSelect(2477)
+        mdb.outTable(st)
+    }
+
+
+
 
     @Test
     void jsonrpc1() throws Exception {
