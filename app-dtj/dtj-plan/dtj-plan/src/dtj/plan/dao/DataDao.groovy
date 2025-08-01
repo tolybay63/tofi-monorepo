@@ -519,12 +519,65 @@ class DataDao extends BaseMdbUtils {
             where d.id=v.dataProp and d.prop=${map.get("Prop_ObjectType")} and v.obj in (0${idsObj.join(",")})
         """, "", "objectdata")
         Set<Object> owners = stTmp.getUniqueValues("owner")
-
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         stTmp = loadSqlService("""
-            select o.id, o.cls, v.name
+            select o.id as objObject, o.cls as linkCls, v.fullName as nameObject, null as pvObject,
+                v1.obj as objObjectType, null as nameObjectType, 
+                v2.obj as objSection, null as nameSection,
+                v3.numberVal as StartKm,
+                v4.numberVal as FinishKm,
+                v5.numberVal as StartPicket,
+                v6.numberVal as FinishPicket
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=${map.get("Prop_ObjectType")}
+                left join DataPropVal v1 on d1.id=v1.dataProp
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_Section")}
+                left join DataPropVal v2 on d2.id=v2.dataProp
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v3 on d3.id=v3.dataProp
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v4 on d4.id=v4.dataProp
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v5 on d5.id=v5.dataProp
+                left join DataProp d6 on d6.objorrelobj=o.id and d6.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v6 on d6.id=v6.dataProp
+            where o.id in (0${owners.join(",")})
+        """, "Obj.objectServedForSelect", "objectdata")
+
+        Set<Object> idsOT = stTmp.getUniqueValues("objObjectType")
+        Set<Object> idsSec = stTmp.getUniqueValues("objSection")
+        Set<Object> idsCls = stTmp.getUniqueValues("linkCls")
+
+        Store stObjOT = loadSqlService("""
+            select o.id, v.name
             from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id in (${owners.join(",")})
-        """, "", "objectdata")
+            where o.id=v.ownerVer and v.lastVer=1
+                and o.id in (0${idsOT.join(",")})
+        """, "", "nsidata")
+        StoreIndex indObjOT = stObjOT.getIndex("id")
+        Store stObjSec = loadSqlService("""
+            select o.id, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1
+                and o.id in (0${idsSec.join(",")})
+        """, "", "nsidata")
+        StoreIndex indObjSec = stObjSec.getIndex("id")
+        //
+        Store stPV = apiMeta().get(ApiMeta).getPvFromCls(idsCls, "Prop_Object")
+        StoreIndex indPV = stPV.getIndex("cls")
+        for (StoreRecord r in stTmp) {
+            StoreRecord rPV = indPV.get(r.getLong("linkCls"))
+            if (rPV != null)
+                r.set("pvObject", rPV.getLong("propVal"))
+
+            StoreRecord rec = indObjOT.get(r.getLong("objObjectType"))
+            if (rec != null)
+                r.set("nameObjectType", rec.getString("name"))
+            rec = indObjSec.get(r.getLong("objSection"))
+            if (rec != null)
+                r.set("nameSection", rec.getString("name"))
+        }
 
         return stTmp
     }

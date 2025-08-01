@@ -301,6 +301,14 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
+    Store getPvFromCls(Set<Object> idsCls, String codProp) {
+        return mdb.loadQuery("""
+            select pv.cls, pv.id as propVal from PropVal pv, Prop p
+            where pv.prop=p.id and pv.cls in (0${idsCls.join(",")}) and p.cod like '${codProp}'
+        """)
+    }
+
+    @Override
     Store getPropInfo(String codProp) {
         Store stProp = mdb.createStore("Prop.cust")
         mdb.loadQuery(stProp, """
