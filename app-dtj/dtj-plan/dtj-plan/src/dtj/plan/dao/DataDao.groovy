@@ -17,6 +17,7 @@ import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiObjectData
 import tofi.api.dta.ApiOrgStructureData
 import tofi.api.dta.ApiPersonnalData
+import tofi.api.dta.ApiPlanData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta
@@ -49,6 +50,9 @@ class DataDao extends BaseMdbUtils {
     }
     ApinatorApi apiObjectData() {
         return app.bean(ApinatorService).getApi("objectdata")
+    }
+    ApinatorApi apiPlanData() {
+        return app.bean(ApinatorService).getApi("plandata")
     }
 
 
@@ -1012,6 +1016,8 @@ class DataDao extends BaseMdbUtils {
             return apiOrgStructureData().get(ApiOrgStructureData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("objectdata"))
             return apiObjectData().get(ApiObjectData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("plandata"))
+            return apiPlanData().get(ApiPlanData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }
