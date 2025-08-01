@@ -134,7 +134,7 @@ class DataDao extends BaseMdbUtils {
             wheV7 = "and v7.dateTimeVal between '${d1}' and '${d2}'"
         }
 
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
 
 
 
@@ -149,7 +149,7 @@ class DataDao extends BaseMdbUtils {
                 v5.id as idStartPicket, v5.numberVal as StartPicket,
                 v6.id as idFinishPicket, v6.numberVal as FinishPicket,
                 v7.id as idPlanDateEnd, v7.dateTimeVal as PlanDateEnd,
-                v8.id as idUser, v8.propVal as pvUser, v8.obj as objUser, null as nameUser,
+                v8.id as idUser, v8.propVal as pvUser, v8.obj as objUser, null as fullNameUser,
                 v9.id as idCreatedAt, v9.dateTimeVal as CreatedAt,
                 v10.id as idUpdatedAt, v10.dateTimeVal as UpdatedAt,
                 v11.id as idWork, v11.propVal as pvWork, v11.obj as objWork,
@@ -197,17 +197,19 @@ class DataDao extends BaseMdbUtils {
             select c.id, v.name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and typ=${map.get("Typ_Work")}
         """, "")
         StoreIndex indCls = stCls.getIndex("id")
+        //
         idsCls = stCls.getUniqueValues("id")
         Store stWork = loadSqlService("""
             select o.id, o.cls, v.fullName, null as nameClsWork
             from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
-        """, "", "orgstructuredata")
+        """, "", "nsidata")
+
         for (StoreRecord r in stWork) {
             StoreRecord rec = indCls.get(r.getLong("cls"))
             if (rec != null)
                 r.set("nameClsWork", rec.getString("name"))
         }
-        StoreIndex indWork = stLocation.getIndex("id")
+        StoreIndex indWork = stWork.getIndex("id")
         //
 
         map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Object", "")
@@ -216,6 +218,7 @@ class DataDao extends BaseMdbUtils {
         """, "")
         indCls = stCls.getIndex("id")
         idsCls = stCls.getUniqueValues("id")
+
         Store stObject = loadSqlService("""
             select o.id, o.cls, v.fullName, null as nameClsObject
             from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
@@ -227,6 +230,13 @@ class DataDao extends BaseMdbUtils {
                 r.set("nameClsObject", rec.getString("name"))
         }
         StoreIndex indObject = stObject.getIndex("id")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
+        //
+        Store stUser = loadSqlService("""
+            select o.id, o.cls, v.fullName
+            from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls=${map.get("Cls_Personnel")}
+        """, "", "personnaldata")
+        StoreIndex indUser = stUser.getIndex("id")
         //
         for (StoreRecord r in st) {
             StoreRecord rCls = indClsWork.get(r.getLong("cls"))
@@ -237,13 +247,19 @@ class DataDao extends BaseMdbUtils {
                 r.set("nameLocationClsSection", rObj.getString("name"))
             StoreRecord rWork = indWork.get(r.getLong("objWork"))
             if (rWork != null) {
-                r.set("nameClsWork", rWork.getString("nameCls"))
+                r.set("nameClsWork", rWork.getString("nameClsWork"))
                 r.set("fullNameWork", rWork.getString("fullName"))
             }
             StoreRecord rObject = indObject.get(r.getLong("objObject"))
             if (rObject != null) {
                 r.set("fullNameObject", rObject.getString("fullName"))
+                r.set("nameClsObject", rObject.getString("nameClsObject"))
             }
+            StoreRecord rUser = indUser.get(r.getLong("objUser"))
+            if (rObject != null) {
+                r.set("fullNameUser", rUser.getString("fullName"))
+            }
+
         }
         //...
         return st
@@ -260,7 +276,7 @@ class DataDao extends BaseMdbUtils {
         if (mode.equalsIgnoreCase("ins")) {
             // find cls(linkCls)
             long linkCls = pms.getLong("linkCls")
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Work", "")
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WorkPlan", "")
             if (map.isEmpty())
                 throw new XError("NotFoundCod@Typ_Work")
             map.put("linkCls", linkCls)
@@ -277,7 +293,7 @@ class DataDao extends BaseMdbUtils {
                     string_agg (cast(c.factorval as varchar(1000)), ',' order by factorval) as fvlist
                     from clsfactorval c, factor f  
                     where c.factorval =f.id and c.cls in (
-                        select id from Cls where typ=${map.get("Typ_Work")}
+                        select id from Cls where typ=${map.get("Typ_WorkPlan")}
                     )
                     group by c.cls
                 ) t where t.fvlist in (select fv.fvlist from fv)
@@ -291,6 +307,7 @@ class DataDao extends BaseMdbUtils {
             }
 
             par.put("cls", cls)
+            par.put("fullName", par.get("name"))
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_LocationClsSection
