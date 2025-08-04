@@ -8,6 +8,27 @@ import org.junit.jupiter.api.Test
 
 class Obj_Test extends Apx_Test {
 
+
+    @Test
+    void test_findLocationOfCoord() {
+/*
+        {
+			"objWork": 2425,
+            "StartKm": 7,
+            "FinishKm": 10,
+            "StartPicket": 7,
+            "FinishPicket": 7
+        }
+ */
+
+        Map<String, Object> map = Map.of("objWork", 2425, "StartKm", 7,
+        "FinishKm", 10, "StartPicket", 7, "FinishPicket", 7) //new HashMap<>()
+        DataDao dao = mdb.createDao(DataDao.class)
+        Store st = dao.findLocationOfCoord(map)
+        mdb.outTable(st)
+
+    }
+
     @Test
     void testPersonnalInfo() {
         DataDao dao = mdb.createDao(DataDao.class)

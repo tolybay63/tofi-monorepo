@@ -55,6 +55,60 @@ class DataDao extends BaseMdbUtils {
         return app.bean(ApinatorService).getApi("plandata")
     }
 
+    @DaoMethod
+    Store findLocationOfCoord(Map<String, Object> params) {
+        long objWork = UtCnv.toLong(params.get("objWork"))
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Collections", "")
+        Store stObj = loadSqlService("""
+            select v.obj
+            from DataProp d, DataPropval v
+            where d.id=v.dataProp and d.objorrelobj=${objWork} and d.prop=${map.get("Prop_Collections")}
+        """, "", "nsidata")
+        if (stObj.size()==0)
+            throw new XError("objWork not found")
+        long objCollection = stObj.get(0).getLong("obj")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_LocationMulti", "")
+        stObj = loadSqlService("""
+            select v.obj
+            from DataProp d, DataPropval v
+            where d.id=v.dataProp and d.objorrelobj=${objCollection} and d.prop=${map.get("Prop_LocationMulti")}
+        """, "", "nsidata")
+        if (stObj.size()==0)
+            throw new XError("objCollection not found")
+        Set<Object> objLocation = stObj.getUniqueValues("obj")
+
+        String whe = "o.id in (${objLocation.join(",")})"
+
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_")
+
+        int beg = UtCnv.toInt(params.get('StartKm')) * 1000 + UtCnv.toInt(params.get('StartPicket')) * 100
+        int end = UtCnv.toInt(params.get('FinishKm')) * 1000 + UtCnv.toInt(params.get('FinishPicket')) * 100
+
+        String sql = """
+            select o.id, o.cls, v.name, null as pv,
+                v2.numberVal * 1000 + v4.numberVal * 100 as beg,
+                v3.numberVal * 1000 + v5.numberVal *100 as end
+            from Obj o 
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=${map.get("Prop_StartKm")}
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=${map.get("Prop_FinishKm")}
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=${map.get("Prop_StartPicket")}
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.objorrelobj=o.id and d5.prop=${map.get("Prop_FinishPicket")}
+                left join DataPropVal v5 on d5.id=v5.dataprop
+            where ${whe} and v2.numberVal * 1000 + v4.numberVal*100 <= ${beg} and v3.numberVal * 1000 + v5.numberVal *100 >= ${end}
+        """
+        Store st = loadSqlServiceWithParams(sql, params, "", "orgstructuredata")
+        //mdb.outTable(st)
+        if (st.size()==1) {
+            long idPV = apiMeta().get(ApiMeta).idPV("cls", st.get(0).getLong("cls"), "Prop_LocationClsSection")
+            st.get(0).set("pv", idPV )
+            return st
+        } else
+            throw new XError("Not Found")
+    }
 
     @DaoMethod
     Store getPersonnalInfo(long userId) {
@@ -1018,6 +1072,23 @@ class DataDao extends BaseMdbUtils {
             return apiObjectData().get(ApiObjectData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("plandata"))
             return apiPlanData().get(ApiPlanData).loadSql(sql, domain)
+        else
+            throw new XError("Unknown model [${model}]")
+    }
+
+    private Store loadSqlServiceWithParams(String sql, Map<String, Object> params, String domain, String model) {
+        if (model.equalsIgnoreCase("userdata"))
+            return apiUserData().get(ApiUserData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("nsidata"))
+            return apiNSIData().get(ApiNSIData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("objectdata"))
+            return apiObjectData().get(ApiObjectData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("plandata"))
+            return apiPlanData().get(ApiPlanData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("personnaldata"))
+            return apiPersonnalData().get(ApiPersonnalData).loadSqlWithParams(sql, params, domain)
+        else if (model.equalsIgnoreCase("orgstructuredata"))
+            return apiOrgStructureData().get(ApiOrgStructureData).loadSqlWithParams(sql, params, domain)
         else
             throw new XError("Unknown model [${model}]")
     }

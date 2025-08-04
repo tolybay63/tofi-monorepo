@@ -323,7 +323,6 @@ class DataDao extends BaseMdbUtils {
         return loadObjectServed(own)
     }
 
-
     @DaoMethod
     Store loadObjectServed(long id) {
 
