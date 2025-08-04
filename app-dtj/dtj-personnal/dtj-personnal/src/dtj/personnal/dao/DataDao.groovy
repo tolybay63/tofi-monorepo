@@ -98,37 +98,33 @@ class DataDao extends BaseMdbUtils {
                 own = eu.insertEntity(par)
                 params.put("own", own)
                 //1 Prop_TabNumber
-                if (params.containsKey("TabNumber"))
-                    fillProperties(true, "Prop_TabNumber", params)
+                fillProperties(true, "Prop_TabNumber", params)
                 //2 Prop_UserSecondName
-                if (params.containsKey("UserSecondName"))
-                    fillProperties(true, "Prop_UserSecondName", params)
+                fillProperties(true, "Prop_UserSecondName", params)
                 //3 Prop_UserFirstName
-                if (params.containsKey("UserFirstName"))
-                    fillProperties(true, "Prop_UserFirstName", params)
+                fillProperties(true, "Prop_UserFirstName", params)
                 //4 Prop_UserMiddleName
-                if (params.containsKey("UserMiddleName"))
+                if (!params.get("UserMiddleName").toString().isEmpty())
                     fillProperties(true, "Prop_UserMiddleName", params)
                 //5 Prop_UserDateBirth
-                if (params.containsKey("UserDateBirth"))
-                    fillProperties(true, "Prop_UserDateBirth", params)
+                fillProperties(true, "Prop_UserDateBirth", params)
                 //6 Prop_UserEmail
-                if (params.containsKey("UserEmail"))
+                if (!params.get("UserEmail").toString().isEmpty())
                     fillProperties(true, "Prop_UserEmail", params)
                 //7 Prop_UserPhone
-                if (params.containsKey("UserPhone"))
+                if (!params.get("UserPhone").toString().isEmpty())
                     fillProperties(true, "Prop_UserPhone", params)
                 //8 Prop_DateEmployment
-                if (params.containsKey("DateEmployment"))
+                if (!params.get("DateEmployment").toString().isEmpty())
                     fillProperties(true, "Prop_DateEmployment", params)
                 //9 Prop_DateDismissal
-                if (params.containsKey("DateDismissal"))
+                if (!params.get("DateDismissal").toString().isEmpty())
                     fillProperties(true, "Prop_DateDismissal", params)
                 //10 Prop_CreatedAt
-                if (params.containsKey("CreatedAt"))
+                if (!params.get("CreatedAt").toString().isEmpty())
                     fillProperties(true, "Prop_CreatedAt", params)
                 //11 Prop_UpdatedAt
-                if (params.containsKey("UpdatedAt"))
+                if (!params.get("UpdatedAt").toString().isEmpty())
                     fillProperties(true, "Prop_UpdatedAt", params)
 
                 //12 Prop_UserId
@@ -136,15 +132,11 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_UserId", params)
 
                 //13 Prop_UserSex
-                if (params.containsKey("fvUserSex"))
-                    fillProperties(true, "Prop_UserSex", params)
+                fillProperties(true, "Prop_UserSex", params)
                 //14 Prop_Position
-                if (params.containsKey("fvPosition"))
-                    fillProperties(true, "Prop_Position", params)
-
+                fillProperties(true, "Prop_Position", params)
                 //15 Prop_Location
-                if (params.containsKey("objLocation"))
-                    fillProperties(true, "Prop_Location", params)
+                fillProperties(true, "Prop_Location", params)
             } catch (Exception e) {
                 e.printStackTrace()
                 if (userId > 0)
@@ -157,41 +149,23 @@ class DataDao extends BaseMdbUtils {
             //
             params.put("own", own)
             //1 Prop_TabNumber
-            if (params.containsKey("idTabNumber"))
-                updateProperties("Prop_TabNumber", params)
-            else {
-                if (!params.get("TabNumber").toString().isEmpty())
-                    fillProperties(true, "Prop_TabNumber", params)
-            }
+            updateProperties("Prop_TabNumber", params)
 
             //2 Prop_UserSecondName
-            if (params.containsKey("idUserSecondName"))
-                updateProperties("Prop_UserSecondName", params)
-            else {
-                if (!params.get("UserSecondName").toString().isEmpty())
-                    fillProperties(true, "Prop_UserSecondName", params)
-            }
+            updateProperties("Prop_UserSecondName", params)
+
             //3 Prop_UserFirstName
-            if (params.containsKey("idUserFirstName"))
-                updateProperties("Prop_UserFirstName", params)
-            else {
-                if (!params.get("UserFirstName").toString().isEmpty())
-                    fillProperties(true, "Prop_UserFirstName", params)
-            }
+            updateProperties("Prop_UserFirstName", params)
+
             //4 Prop_UserMiddleName
-            if (params.containsKey("idUserMiddleName"))
+            if (params.containsKey("idUserMiddleName")) {
                 updateProperties("Prop_UserMiddleName", params)
-            else {
+            } else {
                 if (!params.get("UserMiddleName").toString().isEmpty())
                     fillProperties(true, "Prop_UserMiddleName", params)
             }
             //5 Prop_UserDateBirth
-            if (params.containsKey("idUserDateBirth"))
-                updateProperties("Prop_UserDateBirth", params)
-            else {
-                if (!params.get("UserDateBirth").toString().isEmpty())
-                    fillProperties(true, "Prop_UserDateBirth", params)
-            }
+            updateProperties("Prop_UserDateBirth", params)
             //6 Prop_UserEmail
             if (params.containsKey("idUserEmail"))
                 updateProperties("Prop_UserEmail", params)
@@ -238,26 +212,11 @@ class DataDao extends BaseMdbUtils {
             //12 Prop_UserId
 
             //13 Prop_UserSex
-            if (params.containsKey("idUserSex"))
-                updateProperties("Prop_UserSex", params)
-            else {
-                if (params.containsKey("fvUserSex"))
-                    fillProperties(true, "Prop_UserSex", params)
-            }
+            updateProperties("Prop_UserSex", params)
             //14 Prop_Position
-            if (params.containsKey("idPosition"))
-                updateProperties( "Prop_Position", params)
-            else {
-                if (params.containsKey("fvPosition"))
-                    fillProperties(true, "Prop_Position", params)
-            }
+            updateProperties( "Prop_Position", params)
             //15 Prop_Location
-            if (params.containsKey("idLocation"))
-                updateProperties("Prop_Location", params)
-            else {
-                if (params.containsKey("objLocation"))
-                    fillProperties(true, "Prop_Location", params)
-            }
+            updateProperties("Prop_Location", params)
         } else {
             throw new XError("Unknown mode")
         }
@@ -354,25 +313,25 @@ class DataDao extends BaseMdbUtils {
 
     private static void validatePersonal(String mode, Map<String, Object> params) {
         if (mode=="ins") {
-            if (!params.containsKey("login"))
-                throw new XError("login not specified")
-            if (!params.containsKey("passwd"))
-                throw new XError("passwd not specified")
+            if (params.get("login").toString().isEmpty())
+                throw new XError("[login] not specified")
+            if (params.get("passwd").toString().isEmpty())
+                throw new XError("[passwd] not specified")
         }
-        if (!params.containsKey("TabNumber"))
-            throw new XError("TabNumber not specified")
-        if (!params.containsKey("UserSecondName"))
-            throw new XError("UserSecondName not specified")
-        if (!params.containsKey("UserFirstName"))
-            throw new XError("UserFirstName not specified")
-        if (!params.containsKey("UserDateBirth"))
-            throw new XError("UserDateBirth not specified")
-        if (!params.containsKey("fvUserSex"))
-            throw new XError("UserSex not specified")
-        if (!params.containsKey("fvPosition"))
-            throw new XError("Position not specified")
-        if (!params.containsKey("objLocation"))
-            throw new XError("Location not specified")
+        if (params.get("TabNumber").toString().isEmpty())
+            throw new XError("[TabNumber] not specified")
+        if (params.get("UserSecondName").toString().isEmpty())
+            throw new XError("[UserSecondName] not specified")
+        if (params.get("UserFirstName").toString().isEmpty())
+            throw new XError("[UserFirstName] not specified")
+        if (params.get("UserDateBirth").toString().isEmpty())
+            throw new XError("[UserDateBirth] not specified")
+        if (UtCnv.toLong(params.get("fvUserSex")) == 0)
+            throw new XError("[UserSex] not specified")
+        if (UtCnv.toLong(params.containsKey("fvPosition"))==0)
+            throw new XError("[Position] not specified")
+        if (UtCnv.toLong(params.containsKey("objLocation"))==0)
+            throw new XError("[Location] not specified")
     }
 
     private long regUser(Map<String, Object> params) {
@@ -615,7 +574,7 @@ class DataDao extends BaseMdbUtils {
 
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_Description")) {
-                if (params.get(keyValue) != null) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = "update DataPropval set multiStrVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
                 }
             } else {
@@ -689,7 +648,7 @@ class DataDao extends BaseMdbUtils {
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_StartKm")) {
-                if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != 0) {
+                if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
                     if (digit) v = v.round(digit)

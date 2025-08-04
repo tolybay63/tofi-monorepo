@@ -18,12 +18,12 @@ class Obj_Test extends Apx_Test {
     @Test
     void savePersonnalIns() {
         Map<String, Object> map = new HashMap<>()
-        map.put("login", "user_test")
-        map.put("passwd", "111")
-        map.put("UserEmail", "user_test@gmail.com")
+        map.put("login", "user_test1")
+        map.put("passwd", "")
+        map.put("UserEmail", "user_test1@gmail.com")
         map.put("UserPhone", "7773334455")
-        map.put("UserFirstName", "Иван")
-        map.put("UserSecondName", "Иванов")
+        map.put("UserFirstName", "Иван2")
+        map.put("UserSecondName", "Иванов2")
         map.put("TabNumber", "123456789")
         map.put("CreatedAt", "2025-07-27")
         map.put("UserDateBirth", "2020-07-27")
