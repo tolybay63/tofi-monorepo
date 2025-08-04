@@ -161,7 +161,7 @@ class DataDao extends BaseMdbUtils {
         mdb.loadQuery(st, """
             select o.id, v.objParent as parent, o.cls, v.name, v.fullName, null as nameCls, prn.name as nameParent,
                 v1.id as idAddress, v1.strVal as Address,
-                v2.id as idPhone, v2.numberVal as Phone,
+                v2.id as idPhone, v2.strVal as Phone,
                 null as objObjectTypeMulti,
                 v4.id as idStartKm, v4.numberVal as StartKm,
                 v5.id as idFinishKm, v5.numberVal as FinishKm,
@@ -320,40 +320,37 @@ class DataDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_Address
-            if (pms.containsKey("Address"))
+            if (pms.getString("Address") != "")
                 fillProperties(true, "Prop_Address", pms)
             //2 Prop_Phone
-            if (pms.containsKey("Phone"))
+            if (pms.getString("Phone") != "")
                 fillProperties(true, "Prop_Phone", pms)
 
             //3 Prop_StartKm
-            if (pms.containsKey("FinishKm"))
+            if (pms.getString("FinishKm") != "")
                 fillProperties(true, "Prop_FinishKm", pms)
 
             //4 Prop_FinishKm
-            if (pms.containsKey("StartKm"))
+            if (pms.getString("StartKm") != "")
                 fillProperties(true, "Prop_StartKm", pms)
 
             //5 Prop_StartPicket
-            if (pms.containsKey("StageLength"))
+            if (pms.getString("StageLength") != "")
                 fillProperties(true, "Prop_StageLength", pms)
-
-
             //6 Prop_Region
             if (pms.getLong("fvRegion") > 0)
                 fillProperties(true, "Prop_Region", pms)
-
             //7 Prop_IsActive
             if (pms.getLong("fvIsActive") > 0)
                 fillProperties(true, "Prop_IsActive", pms)
             //8 Prop_CreatedAt
-            if (pms.containsKey("CreatedAt"))
+            if (pms.getString("CreatedAt") != "")
                 fillProperties(true, "Prop_CreatedAt", pms)
             //9 Prop_UpdatedAt
-            if (pms.containsKey("UpdatedAt"))
+            if (pms.getString("UpdatedAt") != "")
                 fillProperties(true, "Prop_UpdatedAt", pms)
             //10 Prop_Description
-            if (pms.containsKey("Description"))
+            if (pms.getString("Description") != "")
                 fillProperties(true, "Prop_Description", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
@@ -433,7 +430,7 @@ class DataDao extends BaseMdbUtils {
                     fillProperties(true, "Prop_Description", pms)
             }
         } else {
-            throw new XError("Нейзвестный режим сохранения ('ins', 'upd')")
+            throw new XError("Неизвестный режим сохранения ('ins', 'upd')")
         }
         //
         if (objMulti) {
@@ -782,7 +779,7 @@ class DataDao extends BaseMdbUtils {
 
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_Description")) {
-                if (params.get(keyValue) != null) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = "update DataPropval set multiStrVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
                 }
             } else {
@@ -856,7 +853,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_FinishKm") ||
                     cod.equalsIgnoreCase("Prop_FinishPicket") ||
                     cod.equalsIgnoreCase("Prop_StageLength")) {
-                if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != 0) {
+                if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
                     if (digit) v = v.round(digit)
