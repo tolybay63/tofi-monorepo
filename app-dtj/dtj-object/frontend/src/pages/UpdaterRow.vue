@@ -54,7 +54,7 @@
           v-model="form['fvSide']"
           :model-value="form['fvSide']"
           :label="fmReqLabel('Значение фактора')"
-          :options="optFv"
+          :options="optFv" clearable
           dense options-dense map-options
           option-label="name" option-value="id"
           class="q-ma-md"
@@ -236,13 +236,18 @@ export default {
     },
 
     fnSelectFv(v) {
-      this.form.fvSide = v.id
-      this.form.pvSide = v["pv"]
+      if (v) {
+        this.form.fvSide = v.id
+        this.form.pvSide = v["pv"]
+      } else {
+        this.form.fvSide = null
+        this.form.pvSide = null
+      }
     },
 
 
     validSave() {
-      if (!this.form.name || !this.form.fullName || !this.form.objObjectType || !this.form["fvSide"]) return true
+      if (!this.form.name || !this.form.fullName || !this.form.objObjectType) return true
     },
 
     // following method is REQUIRED
@@ -281,7 +286,7 @@ export default {
             this.$emit("ok", response.data.result["records"][0])
           },
           (error) => {
-            error = true
+            err = true
             if (error.response)
               notifyError(error.response.data.error.message);
           }
