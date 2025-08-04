@@ -575,6 +575,15 @@ class DataDao extends BaseMdbUtils {
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_Description")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
                     sql = "update DataPropval set multiStrVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
                 }
             } else {
