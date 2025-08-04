@@ -200,13 +200,23 @@ export default {
     },
 
     fnSelectFvRegion(v) {
-      this.form.fvRegion = v.id
-      this.form.pvRegion = parseInt(v["pv"], 10)
+      if (v) {
+        this.form.fvRegion = v.id
+        this.form.pvRegion = v["pv"]
+      } else {
+        this.form.fvRegion = null
+        this.form.pvRegion = null
+      }
     },
 
     fnSelectFvIsActive(v) {
-      this.form.fvIsActive = v.id
-      this.form.pvIsActive = parseInt(v["pv"], 10)
+      if (v) {
+        this.form.fvIsActive = v.id
+        this.form.pvIsActive = v["pv"]
+      } else {
+        this.form.fvIsActive = null
+        this.form.pvIsActive = null
+      }
     },
 
     validSave() {
