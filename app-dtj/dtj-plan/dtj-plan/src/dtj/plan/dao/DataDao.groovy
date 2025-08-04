@@ -369,37 +369,61 @@ class DataDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
             //1 Prop_LocationClsSection
-            if (pms.containsKey("objLocationClsSection"))
+            if (pms.getLong("objLocationClsSection") > 0)
                 fillProperties(true, "Prop_LocationClsSection", pms)
+            else
+                throw new XError("[objLocationClsSection] not specified")
             //2 Prop_Work
-            if (pms.containsKey("objWork"))
+            if (pms.getLong("objWork") > 0)
                 fillProperties(true, "Prop_Work", pms)
+            else
+                throw new XError("[objWork] not specified")
             //3 Prop_Object
-            if (pms.containsKey("objObject"))
+            if (pms.getLong("objObject") > 0)
                 fillProperties(true, "Prop_Object", pms)
+            else
+                throw new XError("[objObject] not specified")
             //4 Prop_User
-            if (pms.containsKey("objUser"))
+            if (pms.getLong("objUser") > 0)
                 fillProperties(true, "Prop_User", pms)
+            else
+                throw new XError("[objUser] not specified")
+
             //5 Prop_StartKm
-            if (pms.containsKey("StartKm"))
+            if (pms.getString("StartKm") != "")
                 fillProperties(true, "Prop_StartKm", pms)
+            else
+                throw new XError("[StartKm] not specified")
+
             //6 Prop_FinishKm
-            if (pms.containsKey("FinishKm"))
+            if (pms.getString("FinishKm") != "")
                 fillProperties(true, "Prop_FinishKm", pms)
+            else
+                throw new XError("[FinishKm] not specified")
+
             //7 Prop_StartPicket
-            if (pms.containsKey("StartPicket"))
+            if (pms.getString("StartPicket") != "")
                 fillProperties(true, "Prop_StartPicket", pms)
+            else
+                throw new XError("[StartPicket] not specified")
+
             //8 Prop_FinishPicket
-            if (pms.containsKey("FinishPicket"))
+            if (pms.getString("FinishPicket") != "")
                 fillProperties(true, "Prop_FinishPicket", pms)
+            else
+                throw new XError("[FinishPicket] not specified")
+
             //9 Prop_PlanDateEnd
-            if (pms.containsKey("PlanDateEnd"))
+            if (pms.getString("PlanDateEnd") != "")
                 fillProperties(true, "Prop_PlanDateEnd", pms)
+            else
+                throw new XError("[PlanDateEnd] not specified")
+
             //10 Prop_CreatedAt
-            if (pms.containsKey("CreatedAt"))
+            if (pms.getString("CreatedAt") != "")
                 fillProperties(true, "Prop_CreatedAt", pms)
             //11 Prop_UpdatedAt
-            if (pms.containsKey("UpdatedAt"))
+            if (pms.getString("UpdatedAt") != "")
                 fillProperties(true, "Prop_UpdatedAt", pms)
         } else if (mode.equalsIgnoreCase("upd")) {
             own = pms.getLong("id")
@@ -408,80 +432,35 @@ class DataDao extends BaseMdbUtils {
             pms.put("own", own)
 
             //1 Prop_ObjectType
-            if (pms.containsKey("idLocationClsSection"))
-                updateProperties("Prop_LocationClsSection", pms)
-            else {
-                if (pms.containsKey("objLocationClsSection"))
-                    fillProperties(true, "Prop_ObjectType", pms)
-            }
+            updateProperties("Prop_LocationClsSection", pms)
             //2 Prop_Work
-            if (pms.containsKey("idWork"))
-                updateProperties("Prop_Work", pms)
-            else {
-                if (pms.containsKey("objWork"))
-                    fillProperties(true, "Prop_Work", pms)
-            }
+            updateProperties("Prop_Work", pms)
             //3 Prop_Object
-            if (pms.containsKey("idObject"))
-                updateProperties("Prop_Object", pms)
-            else {
-                if (pms.containsKey("objObject"))
-                    fillProperties(true, "Prop_Object", pms)
-            }
+            updateProperties("Prop_Object", pms)
             //4 Prop_User
-            if (pms.containsKey("idUser"))
-                updateProperties("Prop_User", pms)
-            else {
-                if (pms.containsKey("objUser"))
-                    fillProperties(true, "Prop_User", pms)
-            }
+            updateProperties("Prop_User", pms)
             //5 Prop_StartKm
-            if (pms.containsKey("idStartKm"))
-                updateProperties("Prop_StartKm", pms)
-            else {
-                if (pms.containsKey("StartKm"))
-                    fillProperties(true, "Prop_StartKm", pms)
-            }
+            updateProperties("Prop_StartKm", pms)
             //6 Prop_FinishKm
-            if (pms.containsKey("idFinishKm"))
-                updateProperties("Prop_FinishKm", pms)
-            else {
-                if (pms.containsKey("FinishKm"))
-                    fillProperties(true, "Prop_FinishKm", pms)
-            }
+            updateProperties("Prop_FinishKm", pms)
             //7 Prop_StartPicket
-            if (pms.containsKey("idStartPicket"))
-                updateProperties("Prop_StartPicket", pms)
-            else {
-                if (pms.containsKey("StartPicket"))
-                    fillProperties(true, "Prop_StartPicket", pms)
-            }
+            updateProperties("Prop_StartPicket", pms)
             //8 Prop_FinishPicket
-            if (pms.containsKey("idFinishPicket"))
-                updateProperties("Prop_FinishPicket", pms)
-            else {
-                if (pms.containsKey("FinishPicket"))
-                    fillProperties(true, "Prop_FinishPicket", pms)
-            }
+            updateProperties("Prop_FinishPicket", pms)
             //9 Prop_PlanDateEnd
-            if (pms.containsKey("idPlanDateEnd"))
-                updateProperties("Prop_PlanDateEnd", pms)
-            else {
-                if (pms.containsKey("PlanDateEnd"))
-                    fillProperties(true, "Prop_PlanDateEnd", pms)
-            }
+            updateProperties("Prop_PlanDateEnd", pms)
             //10 Prop_CreatedAt
             if (pms.containsKey("idCreatedAt"))
                 updateProperties("Prop_CreatedAt", pms)
             else {
-                if (pms.containsKey("CreatedAt"))
+                if (pms.getString("CreatedAt") != "")
                     fillProperties(true, "Prop_CreatedAt", pms)
             }
             //11 Prop_UpdatedAt
             if (pms.containsKey("idUpdatedAt"))
                 updateProperties("Prop_UpdatedAt", pms)
             else {
-                if (pms.containsKey("UpdatedAt"))
+                if (pms.getString("UpdatedAt") != "")
                     fillProperties(true, "Prop_UpdatedAt", pms)
             }
         } else {
@@ -933,7 +912,16 @@ class DataDao extends BaseMdbUtils {
 
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if ( cod.equalsIgnoreCase("Prop_Description")) {
-                if (params.get(keyValue) != null) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    sql = """
+                        delete from DataPropVal where id=${idVal};
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        );
+                    """
+                } else {
                     sql = "update DataPropval set multiStrVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
                 }
             } else {
@@ -1001,16 +989,12 @@ class DataDao extends BaseMdbUtils {
             }
         }
 
-        // For Meter Prop_StartKm
-        //Prop_FinishKm
-        //Prop_StartPicket
-        //Prop_FinishPicket
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_StartKm") ||
                     cod.equalsIgnoreCase("Prop_FinishKm") ||
                     cod.equalsIgnoreCase("Prop_StartPicket") ||
                     cod.equalsIgnoreCase("Prop_FinishPicket")) {
-                if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != 0) {
+                if (mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
                     if (digit) v = v.round(digit)
