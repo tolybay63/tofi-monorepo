@@ -39,6 +39,5 @@
 
     <x-include path="dao/index.cfx"/>
     <x-include path="metadao/index.cfx"/>
-    <x-include path="admdao/index.cfx"/>
 
 </root>
