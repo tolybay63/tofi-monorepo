@@ -7,13 +7,12 @@
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
       separator-class="bg-red"
-      style="height: calc(100vh - 140px); width: 100%"
+
     >
 
       <template v-slot:before>
-
-
         <q-table
+          style="height: calc(100vh - 140px); width: 100%"
           color="primary" dense
           card-class="bg-amber-1 text-brown"
           row-key="id"
