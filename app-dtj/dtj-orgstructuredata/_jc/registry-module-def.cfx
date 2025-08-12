@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <!--THIS FILE GENERATED, NOT MODIFY!-->
+    <system>
+        <module-def name="dtj.orgstructuredata"
+                    path="file:///D:/jc-projects/tofi-monorepo/app-dtj/dtj-orgstructuredata/dtj-orgstructuredata/src/dtj/orgstructuredata"
+                    depends="jandcode.core,jandcode.core.apx,jandcode.core.db.postgresql,tofi.api.adm,tofi.api.dta,tofi.api.mdl,tofi.auth">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\app-dtj\dtj-orgstructuredata\dtj-orgstructuredata"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\app-dtj\dtj-orgstructuredata\dtj-orgstructuredata\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\app-dtj\dtj-orgstructuredata\dtj-orgstructuredata\test"/>
+        </module-def>
+        <module-def name="tofi.auth"
+                    path="file:///D:/jc-projects/tofi-monorepo/tofi-tbox/tofi-auth/src/tofi/auth"
+                    depends="jandcode.core">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-auth"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-auth\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-auth\test"/>
+        </module-def>
+        <module-def name="tofi.config"
+                    path="file:///D:/jc-projects/tofi-monorepo/tofi-tbox/tofi-config/src/tofi/config"
+                    depends="jandcode.core,jandcode.core.apx,tofi.zookeeper">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-config"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-config\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-config\test"/>
+        </module-def>
+        <module-def name="tofi.pulsar"
+                    path="file:///D:/jc-projects/tofi-monorepo/tofi-tbox/tofi-pulsar/src/tofi/pulsar"
+                    depends="jandcode.core">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-pulsar"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-pulsar\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-pulsar\test"/>
+        </module-def>
+        <module-def name="tofi.minio"
+                    path="file:///D:/jc-projects/tofi-monorepo/tofi-tbox/tofi-minio/src/tofi/minio"
+                    depends="jandcode.core">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-minio"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-minio\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-minio\test"/>
+        </module-def>
+        <module-def name="tofi.zookeeper"
+                    path="file:///D:/jc-projects/tofi-monorepo/tofi-tbox/tofi-zookeeper/src/tofi/zookeeper"
+                    depends="jandcode.core">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-zookeeper"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-zookeeper\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-zookeeper\test"/>
+        </module-def>
+        <module-def name="tofi.api.mdl"
+                    path="file:///D:/jc-projects/tofi-monorepo/tofi-tbox/tofi-api-mdl/src/tofi/api/mdl"
+                    depends="jandcode.core,jandcode.core.apx,tofi.apinator">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-api-mdl"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-api-mdl\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-api-mdl\test"/>
+        </module-def>
+        <module-def name="tofi.api.dta"
+                    path="file:///D:/jc-projects/tofi-monorepo/tofi-tbox/tofi-api-dta/src/tofi/api/dta"
+                    depends="jandcode.core,jandcode.core.apx,tofi.apinator">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-api-dta"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-api-dta\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-api-dta\test"/>
+        </module-def>
+        <module-def name="tofi.api.adm"
+                    path="file:///D:/jc-projects/tofi-monorepo/tofi-tbox/tofi-api-adm/src/tofi/api/adm"
+                    depends="jandcode.core,jandcode.core.apx,tofi.apinator">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-api-adm"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-api-adm\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-api-adm\test"/>
+        </module-def>
+        <module-def name="tofi.apinator"
+                    path="file:///D:/jc-projects/tofi-monorepo/tofi-tbox/tofi-apinator/src/tofi/apinator"
+                    depends="jandcode.core,jandcode.core.apx">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-apinator"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-apinator\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\tofi-tbox\tofi-apinator\test"/>
+        </module-def>
+    </system>
+</root>
