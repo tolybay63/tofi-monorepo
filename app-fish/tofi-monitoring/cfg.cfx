@@ -5,15 +5,16 @@
 
         <dbsource name="default"
                   dbdriver="postgresql"  
-                  host="localhost"
+                  host="192.168.1.39"
                   database="fish_monitoring"
                   username="pg"
                   password="1q2w3e4R"
         />
 
         <dbsource name="meta"
+                  id="fish"
                   dbdriver="postgresql"
-                  host="localhost"
+                  host="192.168.1.39"
                   database="fish_model"
                   username="pg"
                   password="1q2w3e4R"
@@ -21,7 +22,7 @@
 
         <dbsource name="adm"
                   dbdriver="postgresql"
-                  host="localhost"
+                  host="192.168.1.39"
                   database="fish_admin"
                   username="pg"
                   password="1q2w3e4R"
@@ -29,7 +30,7 @@
 
         <dbsource name="userdata"
                   dbdriver="postgresql"
-                  host="localhost"
+                  host="192.168.1.39"
                   database="fish_userdata"
                   username="pg"
                   password="1q2w3e4R"
@@ -37,7 +38,7 @@
 
         <dbsource name="nsidata"
                   dbdriver="postgresql"
-                  host="localhost"
+                  host="192.168.1.39"
                   database="fish_nsi"
                   username="pg"
                   password="1q2w3e4R"
@@ -45,7 +46,7 @@
 
         <dbsource name="monitoringdata"
                   dbdriver="postgresql"
-                  host="localhost"
+                  host="192.168.1.39"
                   database="fish_monitoring"
                   username="pg"
                   password="1q2w3e4R"
