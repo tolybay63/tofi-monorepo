@@ -54,6 +54,7 @@
         <field name="ReservoirHydroLevel" parent="double"/>
         <field name="oldReservoirHydroLevel" parent="double"/>
 
+<!--
         <field name="didWaterLength" parent="long"/>
         <field name="idWaterLength" parent="long"/>
         <field name="WaterLength" parent="double"/>
@@ -99,11 +100,40 @@
 
         <field name="idCoordinates" parent="long"/>
         <field name="Coordinates" parent="string"/>
+-->
 
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="memo"/>
-
     </domain>
+
+    <domain name="Obj.reservoirsMeter" parent="base">
+        <field name="obj" parent="long"/>
+
+        <field name="didWaterArea" parent="long"/>
+        <field name="idWaterArea" parent="long"/>
+        <field name="WaterArea" parent="double"/>
+        <field name="oldWaterArea" parent="double"/>
+
+        <field name="didWaterAreaFishing" parent="long"/>
+        <field name="idWaterAreaFishing" parent="long"/>
+        <field name="WaterAreaFishing" parent="double"/>
+        <field name="oldWaterAreaFishing" parent="double"/>
+
+        <field name="didWaterAreaLittoral" parent="long"/>
+        <field name="idWaterAreaLittoral" parent="long"/>
+        <field name="WaterAreaLittoral" parent="double"/>
+        <field name="oldWaterAreaLittoral" parent="double"/>
+
+        <field name="didReservoirHydroLevel" parent="long"/>
+        <field name="idReservoirHydroLevel" parent="long"/>
+        <field name="ReservoirHydroLevel" parent="double"/>
+        <field name="oldReservoirHydroLevel" parent="double"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="memo"/>
+    </domain>
+
+
 
     <domain name="Obj.FishFamily" parent="base">
         <field name="obj" parent="long"/>

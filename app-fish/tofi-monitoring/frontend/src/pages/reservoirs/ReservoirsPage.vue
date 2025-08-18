@@ -347,7 +347,7 @@ export default {
         sortBy: 'name'
       }),
       dte: today(),
-      periodType: 71,
+      periodType: 41,
       optPeriod: []
 
     }
@@ -422,9 +422,10 @@ export default {
 
     updateSelected() {
       if (this.selected.length > 0) {
-        //console.info(this.selected[0]);
+        console.info(this.selected[0]);
         this.splitterModel = 70
         this.recUpd = extend(true, {}, this.selected[0], {dte: this.dte})
+        console.info(this.recUpd);
       } else
         this.splitterModel = 100
     },
@@ -587,7 +588,7 @@ export default {
             obj = this.selected[0].obj
           }
           this.rows = response.data.result.records
-          //console.info("rows", this.rows)
+          console.info("rows", this.rows)
           if (obj > 0) {
             this.selected = []
             let sel = this.rows.filter((item) => {
