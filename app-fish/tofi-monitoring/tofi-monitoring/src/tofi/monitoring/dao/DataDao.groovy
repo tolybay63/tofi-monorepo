@@ -660,17 +660,14 @@ class DataDao extends BaseMdbUtils {
         }
         Store st = mdb.createStore("Obj.reservoirs")
         mdb.loadQuery(st, """
-            select o.id as obj, o.cls, v.name, null as nameCls,
+            select distinct 
+                o.id as obj, o.cls, v.name, null as nameCls,
                 v1.id as idRegion, v1.propval as pvRegion, v1.obj as objRegion, null as nameRegion,
                 v1_1.id as idDistrict, v1_1.propval as pvDistrict, v1_1.obj as objDistrict, null as nameDistrict,
                 v2.id as idBranch, v2.propval as pvBranch, v2.obj as objBranch, null as nameBranch,
                 v3.id as idReservoirType, v3.propval as pvReservoirType, null as fvReservoirType,
                 v4.id as idReservoirStatus, v4.propval as pvReservoirStatus, null as fvReservoirStatus,
-                v4_1.id as idFishFarmingType, v4_1.propval as pvFishFarmingType, null as fvFishFarmingType,
-                d8.id as didWaterArea, v8.id as idWaterArea, v8.numberval as WaterArea, v8.numberval as oldWaterArea,
-                d16.id as didWaterAreaFishing, v16.id as idWaterAreaFishing, v16.numberval as WaterAreaFishing, v16.numberval as oldWaterAreaFishing,
-                d17.id as didWaterAreaLittoral, v17.id as idWaterAreaLittoral, v17.numberval as WaterAreaLittoral, v17.numberval as oldWaterAreaLittoral,
-                d18.id as didReservoirHydroLevel, v18.id as idReservoirHydroLevel, v18.numberval as ReservoirHydroLevel, v18.numberval as oldReservoirHydroLevel
+                v4_1.id as idFishFarmingType, v4_1.propval as pvFishFarmingType, null as fvFishFarmingType
             from Obj o
                 left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
                 left join DataProp d1 on d1.isobj=1 and d1.objorrelobj=o.id and d1.prop=:Prop_Region   --1000
@@ -685,18 +682,75 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v4 on d4.id=v4.dataprop and '${dte}' between v4.dbeg and v4.dend
                 left join DataProp d4_1 on d4_1.isobj=1 and d4_1.objorrelobj=o.id and d4_1.prop=:Prop_FishFarmingType   --1045
                 left join DataPropVal v4_1 on d4_1.id=v4_1.dataprop and '${dte}' between v4_1.dbeg and v4_1.dend
-                left join DataProp d8 on d8.isobj=1 and d8.objorrelobj=o.id and d8.periodType=${periodType} and d8.prop=:Prop_WaterArea --1004
-                left join DataPropVal v8 on d8.id=v8.dataprop and v8.dbeg='${d1}' and v8.dend='${d2}'
-                left join DataProp d16 on d16.isobj=1 and d16.objorrelobj=o.id and d16.periodType=${periodType} and d16.prop=:Prop_WaterAreaFishing  --1076
-                left join DataPropVal v16 on d16.id=v16.dataprop and v16.dbeg='${d1}' and v16.dend='${d2}'
-                left join DataProp d17 on d17.isobj=1 and d17.objorrelobj=o.id and d17.periodType=${periodType} and d17.prop=:Prop_WaterAreaLittoral --1077
-                left join DataPropVal v17 on d17.id=v17.dataprop and v17.dbeg='${d1}' and v17.dend='${d2}'
-                left join DataProp d18 on d18.isobj=1 and d18.objorrelobj=o.id and d18.periodType=${periodType} and d18.prop=:Prop_ReservoirHydroLevel   --1078
-                left join DataPropVal v18 on d18.id=v18.dataprop and v18.dbeg='${d1}' and v18.dend='${d2}'
             where '${dte}' between v.dbeg and v.dend and ${whe}
-            --order by v.name
         """, map)
+        Store st2 = mdb.createStore("Obj.reservoirsMeter")
+        mdb.loadQuery(st2, """
+            select o.id as obj,
+                d8.id as didWaterArea, v8.id as idWaterArea, v8.numberval as WaterArea, v8.numberval as oldWaterArea,
+                d16.id as didWaterAreaFishing, v16.id as idWaterAreaFishing, v16.numberval as WaterAreaFishing, v16.numberval as oldWaterAreaFishing,
+                d17.id as didWaterAreaLittoral, v17.id as idWaterAreaLittoral, v17.numberval as WaterAreaLittoral, v17.numberval as oldWaterAreaLittoral,
+                d18.id as didReservoirHydroLevel, v18.id as idReservoirHydroLevel, v18.numberval as ReservoirHydroLevel, v18.numberval as oldReservoirHydroLevel
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d8 on d8.isobj=1 and d8.objorrelobj=o.id and d8.periodType=${periodType} and d8.prop=:Prop_WaterArea --1004
+                left join DataPropVal v8 on d8.id=v8.dataprop and v8.dbeg='${d1}' and v8.dend='${d2}' and v8.numberVal is not null
+                left join DataProp d16 on d16.isobj=1 and d16.objorrelobj=o.id and d16.periodType=${periodType} and d16.prop=:Prop_WaterAreaFishing  --1076
+                left join DataPropVal v16 on d16.id=v16.dataprop and v16.dbeg='${d1}' and v16.dend='${d2}' and v16.numberVal is not null
+                left join DataProp d17 on d17.isobj=1 and d17.objorrelobj=o.id and d17.periodType=${periodType} and d17.prop=:Prop_WaterAreaLittoral --1077
+                left join DataPropVal v17 on d17.id=v17.dataprop and v17.dbeg='${d1}' and v17.dend='${d2}' and v17.numberVal is not null
+                left join DataProp d18 on d18.isobj=1 and d18.objorrelobj=o.id and d18.periodType=${periodType} and d18.prop=:Prop_ReservoirHydroLevel   --1078
+                left join DataPropVal v18 on d18.id=v18.dataprop and v18.dbeg='${d1}' and v18.dend='${d2}' and v18.numberVal is not null
+            where '${dte}' between v.dbeg and v.dend and ${whe}
+        """, map)
+        mdb.outTable(st2)
+        //
+        StoreIndex indSt2 = st2.getIndex("obj")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indSt2.get(r.getLong("obj"))
+            if (rec != null) {
+                r.set("didWaterArea", rec.get("didWaterArea"))
+                r.set("idWaterArea", rec.get("idWaterArea"))
+                if (rec.get("WaterArea") != null) {
+                    r.set("WaterArea", rec.get("WaterArea"))
+                }
+                if (rec.get("oldWaterArea") != null) {
+                    r.set("oldWaterArea", rec.get("oldWaterArea"))
+                }
 
+                r.set("didWaterAreaFishing", rec.get("didWaterAreaFishing"))
+                r.set("idWaterAreaFishing", rec.get("idWaterAreaFishing"))
+                if (rec.get("WaterAreaFishing") != null) {
+                    r.set("WaterAreaFishing", rec.get("WaterAreaFishing"))
+                }
+                if (rec.get("oldWaterAreaFishing") != null) {
+                    r.set("WaterAreaFishing", rec.get("WaterAreaFishing"))
+                }
+
+                r.set("didWaterAreaLittoral", rec.get("didWaterAreaLittoral"))
+                r.set("idWaterAreaLittoral", rec.get("idWaterAreaLittoral"))
+                if (rec.get("WaterAreaLittoral") != null) {
+                    r.set("WaterAreaLittoral", rec.get("WaterAreaLittoral"))
+                }
+                if (rec.get("oldWaterAreaLittoral") != null) {
+                    r.set("oldWaterAreaLittoral", rec.get("oldWaterAreaLittoral"))
+                }
+
+                r.set("didReservoirHydroLevel", rec.get("didReservoirHydroLevel"))
+                r.set("idReservoirHydroLevel", rec.get("idReservoirHydroLevel"))
+                if (rec.getValue("ReservoirHydroLevel") != null) {
+                    r.set("ReservoirHydroLevel", rec.get("ReservoirHydroLevel"))
+                }
+                if (rec.getValue("oldReservoirHydroLevel") != null) {
+                    r.set("oldReservoirHydroLevel", rec.get("oldReservoirHydroLevel"))
+                }
+
+            }
+        }
+        //
+        mdb.outTable(st)
+
+        //
         Set<Object> idsCls = st.getUniqueValues("cls")
         if (idsCls.isEmpty()) idsCls.add(0L)
 
