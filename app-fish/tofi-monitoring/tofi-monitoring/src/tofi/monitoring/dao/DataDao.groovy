@@ -1084,7 +1084,7 @@ class DataDao extends BaseMdbUtils {
         if (pms.getString("mode")=="ins") {
             //Prop_WaterArea
             if (pms.containsKey("WaterArea")) {
-                validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),
+                validatePropsMeter(pms.getLong("own"), pms.getLong("PeriodType"),
                         pms.getString("dte"), "Prop_WaterArea")
                 fillProperties(true, "Prop_WaterArea", pms)
             }
