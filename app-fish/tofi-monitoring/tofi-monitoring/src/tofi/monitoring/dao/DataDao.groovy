@@ -98,6 +98,8 @@ class DataDao extends BaseMdbUtils {
             }
             //
             //3 Объект имеет значение?
+
+/*
             stTmp = mdb.loadQuery("""
                 select ov.name nm1, d.prop, d.periodType, v.dbeg, v.dend
                 from DataProp d
@@ -116,6 +118,8 @@ class DataDao extends BaseMdbUtils {
                 """, "")
                 throw new XError("Имеется значения свойства [" + stProp.get(0).getString("name") + "] объекта [" + stTmp.get(0).getString("nm1") + "]" + periodName)
             }
+*/
+
             //3 Объект/отношение является значением объекта?
             stTmp = mdb.loadQuery("""
                 select  
