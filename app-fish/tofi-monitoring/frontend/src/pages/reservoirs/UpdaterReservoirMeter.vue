@@ -216,7 +216,9 @@ export default {
       this.form.dte = this.dt
       this.form.periodType = this.pt
       this.form.mode = this.mode
-
+      if (typeof this.form.periodType === "object")
+        this.form.periodType = parseInt(this.form["periodType"]["id"], 10)
+console.log("this.form", this.form)
       this.$axios
         .post(baseURL, {
           method: 'data/saveReservoirPropertiesMeter',
