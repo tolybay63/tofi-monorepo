@@ -357,7 +357,7 @@ export default {
     hasTarget,
 
     fnSelectPeriodType(v) {
-      console.log(v, this.periodType)
+      //console.log(v, this.periodType)
     },
 
     fnReqLabel(label) {
@@ -422,10 +422,10 @@ export default {
 
     updateSelected() {
       if (this.selected.length > 0) {
-        console.info(this.selected[0]);
+        //console.info(this.selected[0]);
         this.splitterModel = 70
         this.recUpd = extend(true, {}, this.selected[0], {dte: this.dte})
-        console.info(this.recUpd);
+        //console.info(this.recUpd);
       } else
         this.splitterModel = 100
     },
@@ -588,7 +588,7 @@ export default {
             obj = this.selected[0].obj
           }
           this.rows = response.data.result.records
-          console.info("rows", this.rows)
+          //console.info("rows", this.rows)
           if (obj > 0) {
             this.selected = []
             let sel = this.rows.filter((item) => {

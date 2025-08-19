@@ -3,6 +3,7 @@
 
     <domain name="Obj.reservoirs" parent="base">
         <field name="obj" parent="long"/>
+
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
         <field name="nameCls" parent="string"/>
