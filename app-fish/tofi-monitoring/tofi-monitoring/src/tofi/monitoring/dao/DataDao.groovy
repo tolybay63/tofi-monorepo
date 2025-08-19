@@ -661,7 +661,7 @@ class DataDao extends BaseMdbUtils {
         Store st = mdb.createStore("Obj.reservoirs")
         mdb.loadQuery(st, """
             select distinct 
-                o.id as obj, o.cls, v.name, null as nameCls,
+                o.id as obj, v.id, o.cls, v.name, null as nameCls,
                 v1.id as idRegion, v1.propval as pvRegion, v1.obj as objRegion, null as nameRegion,
                 v1_1.id as idDistrict, v1_1.propval as pvDistrict, v1_1.obj as objDistrict, null as nameDistrict,
                 v2.id as idBranch, v2.propval as pvBranch, v2.obj as objBranch, null as nameBranch,
@@ -684,9 +684,10 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v4_1 on d4_1.id=v4_1.dataprop and '${dte}' between v4_1.dbeg and v4_1.dend
             where '${dte}' between v.dbeg and v.dend and ${whe}
         """, map)
+        //mdb.outTable(st)
         Store st2 = mdb.createStore("Obj.reservoirsMeter")
         mdb.loadQuery(st2, """
-            select o.id as obj,
+            select o.id as obj, 
                 d8.id as didWaterArea, v8.id as idWaterArea, v8.numberval as WaterArea, v8.numberval as oldWaterArea,
                 d16.id as didWaterAreaFishing, v16.id as idWaterAreaFishing, v16.numberval as WaterAreaFishing, v16.numberval as oldWaterAreaFishing,
                 d17.id as didWaterAreaLittoral, v17.id as idWaterAreaLittoral, v17.numberval as WaterAreaLittoral, v17.numberval as oldWaterAreaLittoral,
@@ -701,55 +702,54 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v17 on d17.id=v17.dataprop and v17.dbeg='${d1}' and v17.dend='${d2}' and v17.numberVal is not null
                 left join DataProp d18 on d18.isobj=1 and d18.objorrelobj=o.id and d18.periodType=${periodType} and d18.prop=:Prop_ReservoirHydroLevel   --1078
                 left join DataPropVal v18 on d18.id=v18.dataprop and v18.dbeg='${d1}' and v18.dend='${d2}' and v18.numberVal is not null
-            where '${dte}' between v.dbeg and v.dend and ${whe}
+            where '${dte}' between v.dbeg and v.dend and ${whe}                   
         """, map)
-        mdb.outTable(st2)
+        //mdb.outTable(st2)
+        Store st3 = mdb.createStore("Obj.reservoirsMeter")
+        for (StoreRecord r in st2) {
+            if ( r.getLong("idWaterArea")>0 || r.getLong("idWaterAreaFishing")>0
+                    || r.getLong("idWaterAreaLittoral") >0 || r.getLong("idReservoirHydroLevel") >0 ) {
+                st3.add(r)
+            }
+        }
+        //mdb.outTable(st3)
+
         //
-        StoreIndex indSt2 = st2.getIndex("obj")
+        StoreIndex indSt3 = st3.getIndex("obj")
         for (StoreRecord r in st) {
-            StoreRecord rec = indSt2.get(r.getLong("obj"))
+            StoreRecord rec = indSt3.get(r.getLong("obj"))
             if (rec != null) {
                 r.set("didWaterArea", rec.get("didWaterArea"))
                 r.set("idWaterArea", rec.get("idWaterArea"))
-                if (rec.get("WaterArea") != null) {
-                    r.set("WaterArea", rec.get("WaterArea"))
-                }
-                if (rec.get("oldWaterArea") != null) {
-                    r.set("oldWaterArea", rec.get("oldWaterArea"))
+                if (rec.getLong("idWaterArea") > 0) {
+                    r.set("WaterArea", rec.getDouble("WaterArea"))
+                    r.set("oldWaterArea", rec.getDouble("WaterArea"))
                 }
 
                 r.set("didWaterAreaFishing", rec.get("didWaterAreaFishing"))
                 r.set("idWaterAreaFishing", rec.get("idWaterAreaFishing"))
-                if (rec.get("WaterAreaFishing") != null) {
-                    r.set("WaterAreaFishing", rec.get("WaterAreaFishing"))
-                }
-                if (rec.get("oldWaterAreaFishing") != null) {
-                    r.set("WaterAreaFishing", rec.get("WaterAreaFishing"))
+                if (rec.getLong("idWaterAreaFishing") > 0) {
+                    r.set("WaterAreaFishing", rec.getDouble("WaterAreaFishing"))
+                    r.set("oldWaterAreaFishing", rec.getDouble("WaterAreaFishing"))
                 }
 
                 r.set("didWaterAreaLittoral", rec.get("didWaterAreaLittoral"))
                 r.set("idWaterAreaLittoral", rec.get("idWaterAreaLittoral"))
-                if (rec.get("WaterAreaLittoral") != null) {
-                    r.set("WaterAreaLittoral", rec.get("WaterAreaLittoral"))
-                }
-                if (rec.get("oldWaterAreaLittoral") != null) {
-                    r.set("oldWaterAreaLittoral", rec.get("oldWaterAreaLittoral"))
+                if (rec.getLong("idWaterAreaLittoral") > 0) {
+                    r.set("WaterAreaLittoral", rec.getDouble("WaterAreaLittoral"))
+                    r.set("oldWaterAreaLittoral", rec.getDouble("WaterAreaLittoral"))
                 }
 
                 r.set("didReservoirHydroLevel", rec.get("didReservoirHydroLevel"))
                 r.set("idReservoirHydroLevel", rec.get("idReservoirHydroLevel"))
-                if (rec.getValue("ReservoirHydroLevel") != null) {
-                    r.set("ReservoirHydroLevel", rec.get("ReservoirHydroLevel"))
+                if (rec.getLong("idReservoirHydroLevel") > 0) {
+                    r.set("ReservoirHydroLevel", rec.getDouble("ReservoirHydroLevel"))
+                    r.set("oldReservoirHydroLevel", rec.getDouble("ReservoirHydroLevel"))
                 }
-                if (rec.getValue("oldReservoirHydroLevel") != null) {
-                    r.set("oldReservoirHydroLevel", rec.get("oldReservoirHydroLevel"))
-                }
-
             }
         }
         //
-        mdb.outTable(st)
-
+        //mdb.outTable(st)
         //
         Set<Object> idsCls = st.getUniqueValues("cls")
         if (idsCls.isEmpty()) idsCls.add(0L)
