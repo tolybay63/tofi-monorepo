@@ -379,24 +379,27 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadProvider(long prop, String model, String metamodel) {
+    Store loadProvider(long prop, /*String model,*/long providerTyp, String metamodel) {
         String sql = """
             select p.cls as id, p.obj, v.name, p.isdefault, d.modelname
             from PropProvider p
-                left join Cls c on c.id=p.cls
+                left join Cls c on c.id=p.cls and c.typ=${providerTyp}
                 left join ClsVer v on c.id=v.ownerVer and v.lastVer=1
                 left join Database d on c.database=d.id
-            where prop=${prop} and d.modelname='${model}'
+            where prop=${prop}
         """
+        // and d.modelname='${model}'
         Store st = apiMetaData().get(ApiMetaData).loadSql(sql, "")
+        //
+        if (st.size()==0)
+            throw XError("Not Found Provider")
+        String model = st.get(0).getString("modelname")
+
+        //
         Set<Object> idsObj = st.getUniqueValues("obj")
         String whe = "(0" + idsObj.join(",") + ")"
-        //if (whe.isEmpty()) whe = 0
-        //if (idsObj.size() > 0) {
-        Store stObj = loadSql("""
-                select o.id, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastver=1 and
-                    o.id in ${whe}
-            """, "", model, metamodel)
+        String sql2 = "select o.id, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastver=1 and o.id in ${whe}"
+        Store stObj = loadSql(sql2, "", model, metamodel)
 
 /*            StoreIndex stInd = stObj.getIndex("id")
             for(StoreRecord r in st) {
