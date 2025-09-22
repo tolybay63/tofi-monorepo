@@ -383,6 +383,7 @@ export default {
 
     console.log("mounted requestParam", this.requestParam)
     console.log("owner", this.owner, this.isObj)
+    console.log("Provider Typ", this.requestParam.providerTyp)
 
     this.loading = ref(true)
     api

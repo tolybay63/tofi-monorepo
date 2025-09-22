@@ -322,6 +322,8 @@ export default {
 
       console.info("params MeterValue", params)
       console.info("requestParams MeterValue", this.requestParams)
+      console.info("Provider Typ", this.requestParams.provider)
+      console.info("Provider Typ", this.requestParams.providerTyp)
       /////
 
       if (!this.provider && this.status) this.hideProvider();
@@ -352,7 +354,7 @@ export default {
         api
           .post(baseURL, {
             method: "data/loadProvider",
-            params: [this.requestParams.prop, getModel.value, getMetaModel.value],
+            params: [this.requestParams.prop, /*getModel.value*/ this.requestParams.providerTyp , getMetaModel.value],
           })
           .then((response) => {
             this.Provider = new Map();

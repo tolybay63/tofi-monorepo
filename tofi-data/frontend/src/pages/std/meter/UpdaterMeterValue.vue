@@ -182,7 +182,9 @@ export default {
   props: ["rec", "requestParams", "mode", "lg"],
 
   data() {
-    console.log("upd data", this.rec, this.requestParams)
+    console.log("upd rec", this.rec)
+    console.log("upd requestParams", this.requestParams)
+    console.log("upd Provider", this.requestParams.providerTyp)
     let r = Object.assign({}, this.rec);
     r.minVal= this.requestParams.minVal
     r.maxVal= this.requestParams.maxVal
@@ -319,13 +321,7 @@ export default {
       } else if ( this.reqParams.provider && this.reqParams.status ) {
         b =
           this.form.numberVal === "" ||
-          this.form.numberVal === undefined ||
-          this.form.providerTyp === null ||
-          this.form.providerTyp === "" ||
-          this.form.providerTyp === undefined ||
-          this.form.statusFactor === null ||
-          this.form.statusFactor === "" ||
-          this.form.statusFactor === undefined;
+          this.form.numberVal === undefined
       }
       //console.info("b", b)
       b = b || !this.validValue(this.form.numberVal);
@@ -452,11 +448,12 @@ export default {
         this.FD_PeriodType = response.data.result.records;
       });
 
+    //todo Временное решение 22/09/2025
     if (this.reqParams.provider > 0) {
       api
         .post(baseURL, {
           method: "data/loadProvider",
-          params: [this.reqParams.prop, getModel.value, getMetaModel.value],
+          params: [this.reqParams.prop, /*getModel.value*/ this.requestParams.providerTyp, getMetaModel.value],
         })
         .then((response) => {
           this.optionsProviderOrg = response.data.result.records;
