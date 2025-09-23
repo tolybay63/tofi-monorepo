@@ -34,6 +34,7 @@
               option-label="name"
               option-value="id"
               class="q-ma-md"
+              :disable="mode==='upd'"
               @update:model-value="fnSelectCls"
             />
           </div>
@@ -66,7 +67,6 @@
               use-input
               @update:model-value="fnSelectRegion"
               @filter="filterRegion"
-              :disable="mode==='upd'"
             />
           </div>
           <!-- District -->
@@ -108,7 +108,6 @@
               use-input
               @update:model-value="fnSelectBranch"
               @filter="filterBranch"
-              :disable="mode==='upd'"
             />
           </div>
           <div class="col">

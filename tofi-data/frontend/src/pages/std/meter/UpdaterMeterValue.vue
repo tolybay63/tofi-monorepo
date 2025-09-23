@@ -209,7 +209,7 @@ export default {
 
       //period: null,
       optionsPeriod: [],
-      FD_PeriodType: null,
+      FD_PeriodType: [],
       msg: "",
     };
   },
@@ -446,6 +446,9 @@ export default {
       })
       .then((response) => {
         this.FD_PeriodType = response.data.result.records;
+      })
+      .catch(error => {
+        notifyError("Ошибка при загрузке Типов Периодов")
       });
 
     //todo Временное решение 22/09/2025
@@ -494,6 +497,7 @@ export default {
         })
         .then((response) => {
           this.optionsPeriod = [];
+
           this.FD_PeriodType.forEach((r) => {
             if (response.data.result.includes(r.id)) {
               this.optionsPeriod.push(r);
