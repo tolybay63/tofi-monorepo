@@ -671,9 +671,9 @@ class DataDao extends BaseMdbUtils {
             from Obj o
                 left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
                 left join DataProp d1 on d1.isobj=1 and d1.objorrelobj=o.id and d1.prop=:Prop_Region   --1000
-                inner join DataPropVal v1 on d1.id=v1.dataprop and '${dte}' between v1.dbeg and v1.dend
+                left join DataPropVal v1 on d1.id=v1.dataprop and '${dte}' between v1.dbeg and v1.dend     --inner
                 left join DataProp d2 on d2.isobj=1 and d2.objorrelobj=o.id and d2.prop=:Prop_Branch   --1013
-                inner join DataPropVal v2 on d2.id=v2.dataprop and '${dte}' between v2.dbeg and v2.dend
+                left join DataPropVal v2 on d2.id=v2.dataprop and '${dte}' between v2.dbeg and v2.dend     --inner
                 left join DataProp d1_1 on d1_1.isobj=1 and d1_1.objorrelobj=o.id and d1_1.prop=:Prop_District   --1044
                 left join DataPropVal v1_1 on d1_1.id=v1_1.dataprop and '${dte}' between v1_1.dbeg and v1_1.dend
                 left join DataProp d3 on d3.isobj=1 and d3.objorrelobj=o.id and d3.prop=:Prop_ReservoirType    --1002
@@ -1166,7 +1166,7 @@ class DataDao extends BaseMdbUtils {
             }
         } else {
             //Prop_WaterArea
-            if (pms.containsKey("idWaterArea")) {
+            if (pms.getLong("idWaterArea")>0) {
                 updateProperties("Prop_WaterArea", pms)
             } else {
                 validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),
@@ -1174,7 +1174,7 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_WaterArea", pms)
             }
             //Prop_WaterAreaFishing
-            if (pms.containsKey("idWaterAreaFishing")) {
+            if (pms.getLong("idWaterAreaFishing")>0) {
                 updateProperties("Prop_WaterAreaFishing", pms)
             } else {
                 validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),
@@ -1182,10 +1182,8 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_WaterAreaFishing", pms)
             }
 
-
-
             //Prop_WaterAreaLittoral
-            if (pms.containsKey("idWaterAreaLittoral")) {
+            if (pms.getLong("idWaterAreaLittoral")>0) {
                 updateProperties("Prop_WaterAreaLittoral", pms)
             } else {
                 validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),
@@ -1194,7 +1192,7 @@ class DataDao extends BaseMdbUtils {
             }
 
             //Prop_ReservoirHydroLevel
-            if (pms.containsKey("idReservoirHydroLevel")) {
+            if (pms.getLong("idReservoirHydroLevel")>0) {
                 updateProperties("Prop_ReservoirHydroLevel", pms)
             } else {
                 validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),

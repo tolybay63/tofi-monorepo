@@ -357,7 +357,9 @@ export default {
     hasTarget,
 
     fnSelectPeriodType(v) {
-      //console.log(v, this.periodType)
+      console.log(v, this.periodType)
+      this.periodType = v.id
+      this.loadReservors()
     },
 
     fnReqLabel(label) {
@@ -425,7 +427,7 @@ export default {
         //console.info(this.selected[0]);
         this.splitterModel = 70
         this.recUpd = extend(true, {}, this.selected[0], {dte: this.dte})
-        //console.info(this.recUpd);
+        console.info(this.recUpd);
       } else
         this.splitterModel = 100
     },
