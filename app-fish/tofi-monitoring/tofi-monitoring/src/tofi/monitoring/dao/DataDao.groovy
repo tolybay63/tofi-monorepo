@@ -1227,16 +1227,16 @@ class DataDao extends BaseMdbUtils {
         par.put("fullName", pms.get("name"))
         if (pms.getString("mode").equalsIgnoreCase("ins")) {
             own = eu.insertEntity(par)
-            pms.put("own", own)
+            par.put("own", own)
             // Prop_FishFamily
             if (pms.containsKey("fvFishFamily"))
-                fillProperties(true, "Prop_FishFamily", pms)
+                fillProperties(true, "Prop_FishFamily", par)
         } else {
             own = pms.getLong("obj")
             par.put("id", own)
             eu.updateEntity(par)
             //
-            pms.put("own", own)
+            par.put("own", own)
             //1 Prop_FishFamily
             if (pms.containsKey("idFishFamily")) {
                 //old propval
@@ -1247,7 +1247,7 @@ class DataDao extends BaseMdbUtils {
                     where v.id=${pms.getLong("idFishFamily")}
                 """)
                 //
-                updateProperties("Prop_FishFamily", pms)
+                updateProperties("Prop_FishFamily", par)
                 //
                 if (stOld.get(0).getLong("propval") != pms.getLong("pvFishFamily")) {
                     Store stNew = mdb.loadQuery("""
@@ -1266,7 +1266,7 @@ class DataDao extends BaseMdbUtils {
 
                 }
             } else {
-                fillProperties(true, "Prop_FishFamily", pms)
+                fillProperties(true, "Prop_FishFamily", par)
             }
         }
         return loadFishFamily([codCls: "", isRec: true, idObj: own] as Map<String, Object>)
@@ -1381,12 +1381,12 @@ class DataDao extends BaseMdbUtils {
         } else {
             if (params.keySet().contains("isFirst")) {
                 if (UtCnv.toInt(params.get("isFirst")) == 1) {
-                    Store st = mdb.loadQuery("""
-                    select v.id, d.id as did, v.dbeg, v.dend 
-                    from DataProp d, DataPropVal v
-                    where d.id=v.dataprop and d.isobj=1 and d.prop=${prop} and d.objorrelobj=${own}
-                    order by dbeg desc, dend
-                """)
+                        Store st = mdb.loadQuery("""
+                        select v.id, d.id as did, v.dbeg, v.dend 
+                        from DataProp d, DataPropVal v
+                        where d.id=v.dataprop and d.isobj=1 and d.prop=${prop} and d.objorrelobj=${own}
+                        order by dbeg desc, dend
+                    """)
                     if (st.size() > 0) {
                         String dte = UtCnv.toString(params.get("dte"))
                         for (StoreRecord r in st) {
@@ -1524,6 +1524,9 @@ class DataDao extends BaseMdbUtils {
                 } else {
                     updateDbegDend(UtCnv.toInt(isObj), prop, cod, params, recDPV)
                 }
+            } else {
+                recDPV.set("dbeg", params.get("dbeg"))
+                recDPV.set("dend", params.get("dend"))
             }
         }
 
