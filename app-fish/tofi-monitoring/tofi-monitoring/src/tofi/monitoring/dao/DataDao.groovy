@@ -1001,7 +1001,6 @@ class DataDao extends BaseMdbUtils {
             pms.put("isFirst", 1)
 
             //todo isUniq
-/*
             //1 Prop_Region
             if (params.containsKey("idRegion"))
                 updateProperties("Prop_Region", pms)
@@ -1009,7 +1008,6 @@ class DataDao extends BaseMdbUtils {
             if (params.containsKey("idBranch"))
                 updateProperties("Prop_Branch", pms)
 
-*/
 
             //1_1 Prop_District
             if (params.containsKey("idDistrict"))
