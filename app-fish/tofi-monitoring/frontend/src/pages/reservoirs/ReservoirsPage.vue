@@ -316,7 +316,7 @@
 <script>
 import { hasTarget, notifyError, notifyInfo, today } from 'src/utils/jsutils'
 import { api, baseURL } from 'boot/axios'
-import { extend } from 'quasar'
+import { extend, date } from 'quasar'
 import { ref } from 'vue'
 import LifiInfo from 'pages/reservoirs/LifiInfo.vue'
 import UpdaterReservoirRefs from 'pages/reservoirs/UpdaterReservoirRefs.vue'
@@ -433,11 +433,15 @@ export default {
     },
 
     fnDt(val) {
-      this.dte = val
-      this.loadReservors()
+      //let dt = date.formatDate(val).isWellFormed()
+      //console.log(val.length)
+      if (val.length===10 && date.formatDate(val).isWellFormed()) {
+        this.dte = val
+        this.loadReservors()
 
-      if (this.selected.length > 0) {
-        this.recUpd.dte = this.dte
+        if (this.selected.length > 0) {
+          this.recUpd.dte = this.dte
+        }
       }
     },
 
