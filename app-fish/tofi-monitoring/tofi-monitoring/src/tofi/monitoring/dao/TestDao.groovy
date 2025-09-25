@@ -306,7 +306,7 @@ class TestDao extends BaseMdbUtils {
         def eachLineTest = { Map m ->
             count++
             if (count == 1) {
-                if ( !(m.keySet().containsAll(["owner","isObj","prop","periodType","dbeg","dend","value"]) && ["owner","isObj","prop","status","provider","periodType","dbeg","dend","value"].containsAll(m.keySet())) )
+                if (!(m.keySet().containsAll(["owner", "isObj", "prop", "periodType", "dbeg", "dend", "value"]) && ["owner", "isObj", "prop", "status", "provider", "periodType", "dbeg", "dend", "value"].containsAll(m.keySet())))
                     errHeader = true
             }
         }
@@ -321,40 +321,47 @@ class TestDao extends BaseMdbUtils {
             errLine = false
             long owner = UtCnv.toLong(m.get("owner"))
             int isObj = UtCnv.toInt(m.get("isObj"))
-            long prop = UtCnv.toLong(m.get("prop"))
+            String codProp = UtCnv.toString(m.get("prop"))
             long status = UtCnv.toLong(m.get("status"))
             long provider = UtCnv.toLong(m.get("provider"))
             int periodType = UtCnv.toInt(m.get("periodType"))
             String dbeg = UtCnv.toString(m.get("dbeg"))
             String dend = UtCnv.toString(m.get("dend"))
-            double value = UtCnv.toDouble(m.get("value"))
-            if (owner==0) {
+            String value = UtCnv.toString(m.get("value"))
+            if (owner == 0) {
                 errLine = true
-                textErr.add("Строка ${count+1}: owner=${owner}")
+                textErr.add("Строка ${count + 1}: owner=${owner}")
             }
             if (isObj < 0 || isObj > 1) {
                 errLine = true
-                textErr.add("Строка ${count+1}: isObj=${isObj}")
+                textErr.add("Строка ${count + 1}: isObj=${isObj}")
             }
-            if (prop==0) {
+            if (codProp.isEmpty()) {
                 errLine = true
-                textErr.add("Строка ${count+1}: prop=${prop}")
+                textErr.add("Строка ${count + 1}: prop=BLANK")
             }
-            if (![11,21,31,41,51,61,71].contains(periodType)) {
+            if (![11, 21, 31, 41, 51, 61, 71].contains(periodType)) {
                 errLine = true
-                textErr.add("Строка ${count+1}: periodType=${periodType}")
+                textErr.add("Строка ${count + 1}: periodType=${periodType}")
             }
             if (XDate.create(dbeg).toJavaLocalDate().isAfter(XDate.create(dend).toJavaLocalDate())) {
                 errLine = true
-                textErr.add("Строка ${count+1}: dbeg=${dbeg} dend=${dend}")
+                textErr.add("Строка ${count + 1}: dbeg=${dbeg} dend=${dend}")
             }
             if (UtCnv.toString(m.get("value")).isEmpty()) {
                 errLine = true
-                textErr.add("Строка ${count+1}: value=${value}")
+                textErr.add("Строка ${count + 1}: value=${value}")
             }
 
             if (!errLine) { //fill
-                System.out.println(count)
+                try {
+                    fillPropertiesMeter(owner, isObj, codProp, status, provider, periodType, dbeg, dend, value)
+                } catch (Exception e) {
+                    errLine = true
+                    textErr.add("Строка ${count + 1}: prop=${codProp}")
+                    errFill = true
+                    countErr++
+                }
             } else {
                 errFill = true
                 countErr++
@@ -373,18 +380,17 @@ class TestDao extends BaseMdbUtils {
             //
             reader.eachRow(eachLine)
             //
+            Set<String> set = new HashSet<>()
+            String cnt = "${count - countErr}/${count}"
+            set.add(cnt)
+
             if (errFill) {
-                String cnt = "${count-countErr}/${count}"
-                Set<String> set = new HashSet<>()
-                set.add(cnt)
                 set.add(textErr.join(";"))
-                String msg = set.join("@")
-                mdb.execQuery("""
-                    update log set err=1, msg='${msg}' where id=1
-                """)
             }
-
-
+            String msg = set.join("@")
+            mdb.execQuery("""
+                update log set err=1, msg='${msg}' where id=1
+            """)
         } else {
             mdb.execQuery("""
                 CREATE TABLE IF NOT EXISTS log (
@@ -411,17 +417,17 @@ class TestDao extends BaseMdbUtils {
             } else {
                 String msg = "Заголовок файла не соответствует шаблону"
                 mdb.execQuery("""
-                        update log set err=1, msg='${msg}' where id=1
+                        update log set err=1, msg='${msg}', cnt=${count} where id=1
                     """)
             }
         }
     }
 
-    void fillPropertiesMeter(long own, boolean isObj, String codProp, def status, def provider,
-            long periodType, double value) {
+    void fillPropertiesMeter(long own, int isObj, String codProp, def status, def provider,
+                             long periodType, String dbeg, String dend, String value) {
         //
         Store stProp = apiMeta().get(ApiMeta).getPropInfo(codProp)
-        if (stProp.size()==0)
+        if (stProp.size() == 0)
             throw new XError("Не найден код пропа [{0}]", codProp)
         //
         def prop = stProp.get(0).getLong("id")
@@ -434,139 +440,63 @@ class TestDao extends BaseMdbUtils {
         long idDP = 0
         //
         String whe = ""
-        if (status)
-        String sql = """
+        if (status > 0)
+            whe = "and d.status=${status} "
+        else
+            whe = "and d.status is null "
+
+        if (provider > 0)
+            whe = whe + "and d.provider=${provider}"
+        else
+            whe = "and d.provider is null"
+        Store st = mdb.loadQuery("""
             select d.id from DataProp d, DataPropVal v
             where d.id=v.dataProp and d.isObj=${isObj} and d.objorrelobj=${own} and d.prop=${prop} and d.periodType=${periodType}
-                v.db
-        """
+                ${whe}
+        """)
 
+        if (st.size()>0)
+            idDP = st.get(0).getLong("id")
+        else {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", isObj)
+            recDP.set("objOrRelObj", own)
+            recDP.set("prop", prop)
+            if (status > 0)
+                recDP.set("status", status)
+            if (provider > 0)
+                recDP.set("provider", provider)
+            recDP.set("periodType", periodType)
+            idDP = mdb.insertRec("DataProp", recDP, true)
+        }
         //
         StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
         recDPV.set("dataProp", idDP)
-        // For Attrib
-        if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_SampleNumber") ||
-                    cod.equalsIgnoreCase("Prop_ResearchNumber")) {
-                if (params.get(keyValue) != null) {
-                    recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
-        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_RegDocumentsDateApproval") ||
-                    cod.equalsIgnoreCase("Prop_RegDocumentsLifeDoc") ||
-                    cod.equalsIgnoreCase("Prop_SampleDate") ||
-                    cod.equalsIgnoreCase("Prop_ResearchDate")) {
-                if (params.get(keyValue) != null) {
-                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
-                }
-            } else
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-        }
-        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_Description")) {
-                if (params.get(keyValue) != null) {
-                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
-        // For Typ
-        if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Region") ||
-                    cod.equalsIgnoreCase("Prop_Branch") ||
-                    cod.equalsIgnoreCase("Prop_District") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirShore") ||
-                    cod.equalsIgnoreCase("Prop_SampleExecutor") ||
-                    cod.equalsIgnoreCase("Prop_StationSampling") ||
-                    cod.equalsIgnoreCase("Prop_LinkToSample") ||
-                    cod.equalsIgnoreCase("Prop_ResearchExecutor") ||
-                    cod.equalsIgnoreCase("Prop_FishTyp") ||
-                    cod.equalsIgnoreCase("Prop_FishGear") ||
-                    cod.equalsIgnoreCase("Prop_FishZone")) {
-                if (objRef > 0) {
-                    recDPV.set("propVal", propVal)
-                    recDPV.set("obj", objRef)
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
-        // For FV
-        if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ReservoirType") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirStatus") ||
-                    cod.equalsIgnoreCase("Prop_FishFamily") ||
-                    cod.equalsIgnoreCase("Prop_FishFarmingType") ||
-                    cod.equalsIgnoreCase("Prop_FishGender")) {
-                if (propVal > 0) {
-                    recDPV.set("propVal", propVal)
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
         // For Meter
-        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_WaterArea") ||
-                    cod.equalsIgnoreCase("Prop_WorkDuration") ||
-                    cod.equalsIgnoreCase("Prop_FishAge") ||
-                    cod.equalsIgnoreCase("Prop_FishWeight") ||
-                    cod.equalsIgnoreCase("Prop_FishLength") ||
-                    cod.equalsIgnoreCase("Prop_Ph") ||
-                    cod.equalsIgnoreCase("Prop_DissGasesCO2") ||
-                    cod.equalsIgnoreCase("Prop_DissGasesO2") ||
-                    cod.equalsIgnoreCase("Prop_DissGasesCO2Percent") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompNH4") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompNO2") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompNO3") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompPO4") ||
-                    cod.equalsIgnoreCase("Prop_OrganicMatter") ||
-                    cod.equalsIgnoreCase("Prop_Mineralization") ||
-                    cod.equalsIgnoreCase("Prop_WaterAreaFishing") ||
-                    cod.equalsIgnoreCase("Prop_WaterAreaLittoral") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirHydroLevel") ||
-                    cod.equalsIgnoreCase("Prop_AreaOfTon")) {
-                if (params.get(keyValue) != null) {
-                    double v = UtCnv.toDouble(params.get(keyValue))
-                    v = v / koef
-                    if (digit) v = v.round(digit)
-                    recDPV.set("numberVal", v)
-                }
-            } else {
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
-        }
 
-        //
-        if (dependPeriod) {
-            if (!params.containsKey("dte"))
-                params.put("dte", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
-            UtPeriod utPeriod = new UtPeriod()
-            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), periodType, 0)
-            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), periodType, 0)
-            recDPV.set("dbeg", d1.toString(XDateTimeFormatter.ISO_DATE))
-            recDPV.set("dend", d2.toString(XDateTimeFormatter.ISO_DATE))
+        if (codProp.equalsIgnoreCase("Prop_MaximumAllowableCatch") ||
+                codProp.equalsIgnoreCase("Prop_FishNumber") ||
+                codProp.equalsIgnoreCase("Prop_FishIchthyomassa") ||
+                codProp.equalsIgnoreCase("Prop_FishIndustrialStock") ||
+                codProp.equalsIgnoreCase("Prop_FishWithdrawalRate") ||
+                codProp.equalsIgnoreCase("Prop_FishBiologicalCapacity") ||
+                codProp.equalsIgnoreCase("Prop_FishMinimumSusPopulation") ||
+                codProp.equalsIgnoreCase("Prop_FishAbsolutNumber") ||
+                codProp.equalsIgnoreCase("Prop_FishCriticalValueBiomass") ||
+                codProp.equalsIgnoreCase("Prop_FishNumberComStocksYear") ||
+                codProp.equalsIgnoreCase("Prop_FishComStockBiomassYear")) {
+            if (!value.isEmpty()) {
+                double v = UtCnv.toDouble(value)
+                v = v / koef
+                if (digit) v = v.round(digit)
+                recDPV.set("numberVal", v)
+            }
         } else {
-            if (params.keySet().contains("isFirst")) {
-                if (UtCnv.toInt(params.get("isFirst")) == 1) {
-                    recDPV.set("dbeg", UtCnv.toString(params.get("dte")))
-                    recDPV.set("dend", dend)
-                } else {
-                    updateDbegDend(UtCnv.toInt(isObj), prop, cod, params, recDPV)
-                }
-            } else {
-                recDPV.set("dbeg", params.get("dbeg"))
-                recDPV.set("dend", params.get("dend"))
-            }
+            throw new XError("for dev: [${codProp}] отсутствует в реализации")
         }
-
-        long au = getUser()
-        recDPV.set("authUser", au)
+        recDPV.set("dbeg", dbeg)
+        recDPV.set("dend", dend)
+        recDPV.set("authUser", 1)
         recDPV.set("inputType", FD_InputType_consts.app)
         long idDPV = mdb.getNextId("DataPropVal")
         recDPV.set("id", idDPV)
