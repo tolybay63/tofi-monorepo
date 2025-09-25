@@ -116,13 +116,13 @@
       <div v-if="!isFill2">
         <div v-if="errTest2">
           <div>
-            Проверка формата: <span class="text-red"> {{ logs2[0].msg }} </span>
+            Проверка формата: <span class="text-red"> Заголовок файла не соответствует шаблону </span>
           </div>
-          <div>Количество строк: {{ logs2[0].cnt }}</div>
+          <div>Количество строк: {{ logs2.cnt }}</div>
         </div>
         <div v-else>
           <div>Проверка формата: <span class="text-green"> Успешно </span></div>
-          <div>Количество строк: {{ logs2.length > 0 ? logs2[0].cnt : '' }}</div>
+          <div>Количество строк: {{ logs2.cnt }}</div>
         </div>
       </div>
       <div v-else>
@@ -130,7 +130,7 @@
           <div>Заливка данных: <span class="text-black"> {{cnt2}} </span></div>
         </div>
 
-        <div v-if="logs2.length > 0" class="text-black">
+        <div v-if="logs2Err.length > 0" class="text-black">
           <div>Пропущенные строки:</div>
 
           <div v-for="log in logs2Err" :key="log.index" class="text-red" >
@@ -173,7 +173,7 @@ export default {
       errFill2: false,
       isFill2: false,
       cnt2: "",
-      logs2: [],
+      logs2: "",
       logs2Err: []
     }
   },
@@ -198,7 +198,8 @@ export default {
       this.file2 = ref(null)
       this.errTest2 = false
       this.errFill2 = false
-      this.logs2 = []
+      this.logs2 = ""
+      this.logs2Err = []
     },
 
     updFile(val) {
@@ -289,16 +290,16 @@ export default {
               params: []
             })
             .then((response) => {
-              let resp = response.data.result.records
-              this.errFill2 = resp.err === 1
+              this.logs2 = response.data.result.records[0]
+              this.errFill2 = this.logs2.err === 1
               if (fill) {
-                let arr = resp[0]["msg"].split("@")
-                this.cnt2 = arr[1]
-                this.logs2Err = arr[0].split(";")
+                let arr = this.logs2["msg"].split("@")
+                this.cnt2 = arr[0]
+                this.logs2Err = arr[1].split(";")
 
                 console.info("fill", arr)
               } else {
-                this.logs2 =resp
+                this.errTest2 = this.logs2.err === 1
               }
             })
             .finally(() => {
