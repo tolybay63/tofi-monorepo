@@ -1,6 +1,9 @@
 package tofi.monitoring.dao
 
 import jandcode.commons.UtCnv
+import jandcode.commons.datetime.XDate
+import jandcode.commons.datetime.XDateTime
+import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.domain.Domain
@@ -10,7 +13,11 @@ import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.model.utils.EntityMdbUtils
+import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.model.consts.FD_AttribValType_consts
+import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 import tofi.monitoring.dao.utils.XLSXReader_withoutDescription
@@ -107,7 +114,7 @@ class TestDao extends BaseMdbUtils {
                 pms.put(k, props_atrib.get(k))
                 pms.put(k.split("_")[1], m.get(k))
                 if (UtCnv.toString(m.get(k)).trim() != "") {
-                   dao.fillProperties(true, k, pms)
+                    dao.fillProperties(true, k, pms)
                 }
             }
 
@@ -119,7 +126,7 @@ class TestDao extends BaseMdbUtils {
                 pms.put(k, props_meter.get(k))
                 pms.put(k.split("_")[1], m.get(k))
                 if (UtCnv.toDouble(m.get(k)) != 0) {
-                   dao.fillProperties(true, k, pms)
+                    dao.fillProperties(true, k, pms)
                 }
             }
 
@@ -131,7 +138,7 @@ class TestDao extends BaseMdbUtils {
                 pms.put(k, props_fv.get(k))
                 pms.put("pv" + k.split("_")[1], m.get(k))
                 if (UtCnv.toLong(m.get(k)) > 0) {
-                   dao.fillProperties(true, k, pms)
+                    dao.fillProperties(true, k, pms)
                 }
             }
 
@@ -287,7 +294,286 @@ class TestDao extends BaseMdbUtils {
         }
     }
 
+    @DaoMethod
+    void fillReservoirMeter(File file, boolean fill) {
+        Store st = mdb.createStore()
+        Domain d = mdb.createDomain(st)
+        XLSXReader_withoutDescription reader = new XLSXReader_withoutDescription(mdb, file, d, st)
 
+
+        int count = 0
+        boolean errHeader = false
+        def eachLineTest = { Map m ->
+            count++
+            if (count == 1) {
+                if ( !(m.keySet().containsAll(["owner","isObj","prop","periodType","dbeg","dend","value"]) && ["owner","isObj","prop","status","provider","periodType","dbeg","dend","value"].containsAll(m.keySet())) )
+                    errHeader = true
+            }
+        }
+
+        count = 0
+        int countErr = 0
+        boolean errFill = false
+        boolean errLine = false
+        Set<String> textErr = new HashSet<>()
+        def eachLine = { Map m ->
+            count++
+            errLine = false
+            long owner = UtCnv.toLong(m.get("owner"))
+            int isObj = UtCnv.toInt(m.get("isObj"))
+            long prop = UtCnv.toLong(m.get("prop"))
+            long status = UtCnv.toLong(m.get("status"))
+            long provider = UtCnv.toLong(m.get("provider"))
+            int periodType = UtCnv.toInt(m.get("periodType"))
+            String dbeg = UtCnv.toString(m.get("dbeg"))
+            String dend = UtCnv.toString(m.get("dend"))
+            double value = UtCnv.toDouble(m.get("value"))
+            if (owner==0) {
+                errLine = true
+                textErr.add("Строка ${count+1}: owner=${owner}")
+            }
+            if (isObj < 0 || isObj > 1) {
+                errLine = true
+                textErr.add("Строка ${count+1}: isObj=${isObj}")
+            }
+            if (prop==0) {
+                errLine = true
+                textErr.add("Строка ${count+1}: prop=${prop}")
+            }
+            if (![11,21,31,41,51,61,71].contains(periodType)) {
+                errLine = true
+                textErr.add("Строка ${count+1}: periodType=${periodType}")
+            }
+            if (XDate.create(dbeg).toJavaLocalDate().isAfter(XDate.create(dend).toJavaLocalDate())) {
+                errLine = true
+                textErr.add("Строка ${count+1}: dbeg=${dbeg} dend=${dend}")
+            }
+            if (UtCnv.toString(m.get("value")).isEmpty()) {
+                errLine = true
+                textErr.add("Строка ${count+1}: value=${value}")
+            }
+
+            if (!errLine) { //fill
+                System.out.println(count)
+            } else {
+                errFill = true
+                countErr++
+            }
+        }
+
+
+        //*******************************************************
+        // Основное тело алгоритма
+        //*******************************************************
+
+        if (fill) {
+            mdb.execQuery("""
+                update log set err=0, msg='' where id=1
+            """)
+            //
+            reader.eachRow(eachLine)
+            //
+            if (errFill) {
+                String cnt = "${count-countErr}/${count}"
+                Set<String> set = new HashSet<>()
+                set.add(cnt)
+                set.add(textErr.join(";"))
+                String msg = set.join("@")
+                mdb.execQuery("""
+                    update log set err=1, msg='${msg}' where id=1
+                """)
+            }
+
+
+        } else {
+            mdb.execQuery("""
+                CREATE TABLE IF NOT EXISTS log (
+                    id int8 NOT NULL,
+                    msg varchar(800) NULL,
+                    cnt int8 NULL,
+                    err int2 NULL,
+                    CONSTRAINT pk_log PRIMARY KEY (id)
+                );                
+                ALTER TABLE log OWNER TO pg;
+                GRANT ALL ON TABLE log TO pg; 
+                INSERT INTO log (id, msg, cnt, err)
+                    SELECT 1 AS id, '' AS msg, 0 as cnt, 0 as err FROM log
+                    WHERE NOT EXISTS ( SELECT id FROM log WHERE id = 1 );
+                update log set err=0, msg='', cnt=0 where id=1;
+            """)
+            //
+            reader.eachRow(eachLineTest)
+            //
+            if (!errHeader) {
+                mdb.execQuery("""
+                    update log set err=0, msg='', cnt=${count} where id=1
+                """)
+            } else {
+                String msg = "Заголовок файла не соответствует шаблону"
+                mdb.execQuery("""
+                        update log set err=1, msg='${msg}' where id=1
+                    """)
+            }
+        }
+    }
+
+    void fillPropertiesMeter(long own, boolean isObj, String codProp, def status, def provider,
+            long periodType, double value) {
+        //
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(codProp)
+        if (stProp.size()==0)
+            throw new XError("Не найден код пропа [{0}]", codProp)
+        //
+        def prop = stProp.get(0).getLong("id")
+        long propType = stProp.get(0).getLong("propType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+        long idDP = 0
+        //
+        String whe = ""
+        if (status)
+        String sql = """
+            select d.id from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.isObj=${isObj} and d.objorrelobj=${own} and d.prop=${prop} and d.periodType=${periodType}
+                v.db
+        """
+
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        recDPV.set("dataProp", idDP)
+        // For Attrib
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_SampleNumber") ||
+                    cod.equalsIgnoreCase("Prop_ResearchNumber")) {
+                if (params.get(keyValue) != null) {
+                    recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_RegDocumentsDateApproval") ||
+                    cod.equalsIgnoreCase("Prop_RegDocumentsLifeDoc") ||
+                    cod.equalsIgnoreCase("Prop_SampleDate") ||
+                    cod.equalsIgnoreCase("Prop_ResearchDate")) {
+                if (params.get(keyValue) != null) {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_Description")) {
+                if (params.get(keyValue) != null) {
+                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Region") ||
+                    cod.equalsIgnoreCase("Prop_Branch") ||
+                    cod.equalsIgnoreCase("Prop_District") ||
+                    cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    cod.equalsIgnoreCase("Prop_SampleExecutor") ||
+                    cod.equalsIgnoreCase("Prop_StationSampling") ||
+                    cod.equalsIgnoreCase("Prop_LinkToSample") ||
+                    cod.equalsIgnoreCase("Prop_ResearchExecutor") ||
+                    cod.equalsIgnoreCase("Prop_FishTyp") ||
+                    cod.equalsIgnoreCase("Prop_FishGear") ||
+                    cod.equalsIgnoreCase("Prop_FishZone")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ReservoirType") ||
+                    cod.equalsIgnoreCase("Prop_ReservoirStatus") ||
+                    cod.equalsIgnoreCase("Prop_FishFamily") ||
+                    cod.equalsIgnoreCase("Prop_FishFarmingType") ||
+                    cod.equalsIgnoreCase("Prop_FishGender")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_WaterArea") ||
+                    cod.equalsIgnoreCase("Prop_WorkDuration") ||
+                    cod.equalsIgnoreCase("Prop_FishAge") ||
+                    cod.equalsIgnoreCase("Prop_FishWeight") ||
+                    cod.equalsIgnoreCase("Prop_FishLength") ||
+                    cod.equalsIgnoreCase("Prop_Ph") ||
+                    cod.equalsIgnoreCase("Prop_DissGasesCO2") ||
+                    cod.equalsIgnoreCase("Prop_DissGasesO2") ||
+                    cod.equalsIgnoreCase("Prop_DissGasesCO2Percent") ||
+                    cod.equalsIgnoreCase("Prop_BiogenicCompNH4") ||
+                    cod.equalsIgnoreCase("Prop_BiogenicCompNO2") ||
+                    cod.equalsIgnoreCase("Prop_BiogenicCompNO3") ||
+                    cod.equalsIgnoreCase("Prop_BiogenicCompPO4") ||
+                    cod.equalsIgnoreCase("Prop_OrganicMatter") ||
+                    cod.equalsIgnoreCase("Prop_Mineralization") ||
+                    cod.equalsIgnoreCase("Prop_WaterAreaFishing") ||
+                    cod.equalsIgnoreCase("Prop_WaterAreaLittoral") ||
+                    cod.equalsIgnoreCase("Prop_ReservoirHydroLevel") ||
+                    cod.equalsIgnoreCase("Prop_AreaOfTon")) {
+                if (params.get(keyValue) != null) {
+                    double v = UtCnv.toDouble(params.get(keyValue))
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    recDPV.set("numberVal", v)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        //
+        if (dependPeriod) {
+            if (!params.containsKey("dte"))
+                params.put("dte", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), periodType, 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), periodType, 0)
+            recDPV.set("dbeg", d1.toString(XDateTimeFormatter.ISO_DATE))
+            recDPV.set("dend", d2.toString(XDateTimeFormatter.ISO_DATE))
+        } else {
+            if (params.keySet().contains("isFirst")) {
+                if (UtCnv.toInt(params.get("isFirst")) == 1) {
+                    recDPV.set("dbeg", UtCnv.toString(params.get("dte")))
+                    recDPV.set("dend", dend)
+                } else {
+                    updateDbegDend(UtCnv.toInt(isObj), prop, cod, params, recDPV)
+                }
+            } else {
+                recDPV.set("dbeg", params.get("dbeg"))
+                recDPV.set("dend", params.get("dend"))
+            }
+        }
+
+        long au = getUser()
+        recDPV.set("authUser", au)
+        recDPV.set("inputType", FD_InputType_consts.app)
+        long idDPV = mdb.getNextId("DataPropVal")
+        recDPV.set("id", idDPV)
+        recDPV.set("ord", idDPV)
+        recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+        mdb.insertRec("DataPropVal", recDPV, false)
+    }
 }
 
 
