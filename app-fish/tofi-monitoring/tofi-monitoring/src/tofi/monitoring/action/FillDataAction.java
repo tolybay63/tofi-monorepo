@@ -21,6 +21,7 @@ public class FillDataAction extends BaseAction {
 
         String fnOrg = getReq().getParams().getString("filename");
         boolean fill = getReq().getParams().getBoolean("fill");
+        int num = getReq().getParams().getInt("num");
 
         //Сгенерированный файл
         File fle = findFile(tempDir);
@@ -29,7 +30,10 @@ public class FillDataAction extends BaseAction {
             ModelService modelSvc = getApp().bean(ModelService.class);
             Mdb mdb =  modelSvc.getModel().createMdb();
             TestDao dao = mdb.createDao(TestDao.class);
-            dao.fillReservoir(fle, fill);
+            if (num==1)
+                dao.fillReservoir(fle, fill);
+            else
+                dao.fillReservoirMeter(fle, fill);
         }
 
         getReq().render("filename: "+ fnOrg);
