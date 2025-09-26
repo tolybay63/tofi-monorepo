@@ -118,7 +118,6 @@
           <div>
             Проверка формата: <span class="text-red"> Заголовок файла не соответствует шаблону </span>
           </div>
-          <div>Количество строк: {{ logs2.cnt }}</div>
         </div>
         <div v-else>
           <div>Проверка формата: <span class="text-green"> Успешно </span></div>
@@ -296,8 +295,6 @@ export default {
                 let arr = this.logs2["msg"].split("@")
                 this.cnt2 = arr[0]
                 this.logs2Err = arr[1].split(";")
-
-                console.info("fill", arr)
               } else {
                 this.errTest2 = this.logs2.err === 1
               }
