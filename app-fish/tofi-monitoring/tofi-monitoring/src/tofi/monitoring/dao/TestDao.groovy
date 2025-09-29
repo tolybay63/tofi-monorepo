@@ -473,7 +473,6 @@ class TestDao extends BaseMdbUtils {
         StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
         recDPV.set("dataProp", idDP)
         // For Meter
-
         if (codProp.equalsIgnoreCase("Prop_MaximumAllowableCatch") ||
                 codProp.equalsIgnoreCase("Prop_FishNumber") ||
                 codProp.equalsIgnoreCase("Prop_FishIchthyomassa") ||
@@ -484,7 +483,14 @@ class TestDao extends BaseMdbUtils {
                 codProp.equalsIgnoreCase("Prop_FishAbsolutNumber") ||
                 codProp.equalsIgnoreCase("Prop_FishCriticalValueBiomass") ||
                 codProp.equalsIgnoreCase("Prop_FishNumberComStocksYear") ||
-                codProp.equalsIgnoreCase("Prop_FishComStockBiomassYear")) {
+                codProp.equalsIgnoreCase("Prop_FishComStockBiomassYear") ||
+                codProp.equalsIgnoreCase("Prop_ReservoirHydroLevel") ||
+                codProp.equalsIgnoreCase("Prop_WaterArea") ||
+                codProp.equalsIgnoreCase("Prop_FishAverageWeight") ||
+                codProp.equalsIgnoreCase("Prop_FishCount") ||
+                codProp.equalsIgnoreCase("Prop_FishCountFemale") ||
+                codProp.equalsIgnoreCase("Prop_FishCountMale") ||
+                codProp.equalsIgnoreCase("Prop_FishCountJuvenile")) {
             if (!value.isEmpty()) {
                 double v = UtCnv.toDouble(value)
                 v = v / koef
