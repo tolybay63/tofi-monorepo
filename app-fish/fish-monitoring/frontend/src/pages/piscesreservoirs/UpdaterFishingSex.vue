@@ -40,6 +40,7 @@
 <script>
 
 import {notifyError, notifySuccess} from 'src/utils/jsutils'
+import {api} from "boot/axios.js";
 
 export default {
   props: ['mode', 'data'],

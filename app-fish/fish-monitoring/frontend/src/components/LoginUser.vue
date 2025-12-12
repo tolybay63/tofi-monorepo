@@ -82,7 +82,7 @@
 </template>
 <script>
 import {ref} from 'vue'
-import {authURL} from 'boot/axios.js'
+import {api, authURL} from 'boot/axios.js'
 import ForgetPsw from 'components/ForgetPsw.vue'
 import {notifyError} from 'src/utils/jsutils.js'
 
