@@ -623,7 +623,7 @@ export default defineComponent({
 
       //console.info("formData", formData)
 
-      api
+      this.$axios
         .post("/download",
           formData,
           {
