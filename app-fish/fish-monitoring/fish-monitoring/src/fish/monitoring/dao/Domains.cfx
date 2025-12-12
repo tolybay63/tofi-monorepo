@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Obj.reservoirs" parent="base">
+        <field name="obj" parent="long"/>
+
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="nameCls" parent="string"/>
+
+        <field name="idRegion" parent="long"/>
+        <field name="pvRegion" parent="long"/>
+        <field name="objRegion" parent="long"/>
+        <field name="nameRegion" parent="string"/>
+
+        <field name="idDistrict" parent="long"/>
+        <field name="pvDistrict" parent="long"/>
+        <field name="objDistrict" parent="long"/>
+        <field name="nameDistrict" parent="string"/>
+
+        <field name="idBranch" parent="long"/>
+        <field name="pvBranch" parent="long"/>
+        <field name="objBranch" parent="long"/>
+        <field name="nameBranch" parent="string"/>
+
+        <field name="idReservoirType" parent="long"/>
+        <field name="pvReservoirType" parent="long"/>
+        <field name="fvReservoirType" parent="long"/>
+
+        <field name="idReservoirStatus" parent="long"/>
+        <field name="pvReservoirStatus" parent="long"/>
+        <field name="fvReservoirStatus" parent="long"/>
+
+        <field name="idFishFarmingType" parent="long"/>
+        <field name="pvFishFarmingType" parent="long"/>
+        <field name="fvFishFarmingType" parent="long"/>
+
+        <field name="didWaterArea" parent="long"/>
+        <field name="idWaterArea" parent="long"/>
+        <field name="WaterArea" parent="double"/>
+        <field name="oldWaterArea" parent="double"/>
+
+        <field name="didWaterAreaFishing" parent="long"/>
+        <field name="idWaterAreaFishing" parent="long"/>
+        <field name="WaterAreaFishing" parent="double"/>
+        <field name="oldWaterAreaFishing" parent="double"/>
+
+        <field name="didWaterAreaLittoral" parent="long"/>
+        <field name="idWaterAreaLittoral" parent="long"/>
+        <field name="WaterAreaLittoral" parent="double"/>
+        <field name="oldWaterAreaLittoral" parent="double"/>
+
+        <field name="didReservoirHydroLevel" parent="long"/>
+        <field name="idReservoirHydroLevel" parent="long"/>
+        <field name="ReservoirHydroLevel" parent="double"/>
+        <field name="oldReservoirHydroLevel" parent="double"/>
+
+<!--
+        <field name="didWaterLength" parent="long"/>
+        <field name="idWaterLength" parent="long"/>
+        <field name="WaterLength" parent="double"/>
+        <field name="oldWaterLength" parent="double"/>
+
+        <field name="didCurrentSpeed" parent="long"/>
+        <field name="idCurrentSpeed" parent="long"/>
+        <field name="CurrentSpeed" parent="double"/>
+        <field name="oldCurrentSpeed" parent="double"/>
+
+        <field name="didReservoirDepthMax" parent="long"/>
+        <field name="idReservoirDepthMax" parent="long"/>
+        <field name="ReservoirDepthMax" parent="double"/>
+        <field name="oldReservoirDepthMax" parent="double"/>
+
+        <field name="didReservoirDepthAvg" parent="long"/>
+        <field name="idReservoirDepthAvg" parent="long"/>
+        <field name="ReservoirDepthAvg" parent="double"/>
+        <field name="oldReservoirDepthAvg" parent="double"/>
+
+        <field name="didReservoirDepthMin" parent="long"/>
+        <field name="idReservoirDepthMin" parent="long"/>
+        <field name="ReservoirDepthMin" parent="double"/>
+        <field name="oldReservoirDepthMin" parent="double"/>
+
+        <field name="didReservoirWidthMax" parent="long"/>
+        <field name="idReservoirWidthMax" parent="long"/>
+        <field name="ReservoirWidthMax" parent="double"/>
+        <field name="oldReservoirWidthMax" parent="double"/>
+
+        <field name="didReservoirWidthAvg" parent="long"/>
+        <field name="idReservoirWidthAvg" parent="long"/>
+        <field name="ReservoirWidthAvg" parent="double"/>
+        <field name="oldReservoirWidthAvg" parent="double"/>
+
+        <field name="didReservoirWidthMin" parent="long"/>
+        <field name="idReservoirWidthMin" parent="long"/>
+        <field name="ReservoirWidthMin" parent="double"/>
+        <field name="oldReservoirWidthMin" parent="double"/>
+
+        <field name="idLocation" parent="long"/>
+        <field name="Location" parent="string"/>
+
+        <field name="idCoordinates" parent="long"/>
+        <field name="Coordinates" parent="string"/>
+-->
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="memo"/>
+    </domain>
+
+    <domain name="Obj.reservoirsMeter" parent="base">
+        <field name="obj" parent="long"/>
+
+        <field name="didWaterArea" parent="long"/>
+        <field name="idWaterArea" parent="long"/>
+        <field name="WaterArea" parent="double"/>
+        <field name="oldWaterArea" parent="double"/>
+
+        <field name="didWaterAreaFishing" parent="long"/>
+        <field name="idWaterAreaFishing" parent="long"/>
+        <field name="WaterAreaFishing" parent="double"/>
+        <field name="oldWaterAreaFishing" parent="double"/>
+
+        <field name="didWaterAreaLittoral" parent="long"/>
+        <field name="idWaterAreaLittoral" parent="long"/>
+        <field name="WaterAreaLittoral" parent="double"/>
+        <field name="oldWaterAreaLittoral" parent="double"/>
+
+        <field name="didReservoirHydroLevel" parent="long"/>
+        <field name="idReservoirHydroLevel" parent="long"/>
+        <field name="ReservoirHydroLevel" parent="double"/>
+        <field name="oldReservoirHydroLevel" parent="double"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="memo"/>
+    </domain>
+
+
+
+    <domain name="Obj.FishFamily" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="nameCls" parent="string"/>
+        <field name="idFishFamily" parent="long"/>
+        <field name="pvFishFamily" parent="long"/>
+        <field name="fvFishFamily" parent="long"/>
+        <field name="id" parent="long"/>
+        <field name="parent" parent="long"/>
+        <field name="ord" parent="long"/>
+        <field name="cmt" parent="memo"/>
+    </domain>
+
+    <domain name="Obj.Stations" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idBranch" parent="long"/>
+        <field name="pvBranch" parent="long"/>
+        <field name="objBranch" parent="long"/>
+
+        <field name="idReservoirShore" parent="long"/>
+        <field name="pvReservoirShore" parent="long"/>
+        <field name="objReservoirShore" parent="long"/>
+
+        <field name="cmt" parent="memo"/>
+    </domain>
+
+    <domain name="Obj.Sampling" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="cmt" parent="memo"/>
+
+        <field name="periodType" parent="long"/>
+        <field name="dbeg" parent="string"/>
+        <field name="dend" parent="string"/>
+        <field name="periodName" parent="string"/>
+
+<!--
+        <field name="idSampleExecutor" parent="long"/>
+        <field name="pvSampleExecutor" parent="long"/>
+-->
+        <field name="objsSampleExecutor" parent="string"/>
+        <field name="nameSampleExecutor" parent="string"/>
+
+        <field name="idBranch" parent="long"/>
+        <field name="pvBranch" parent="long"/>
+        <field name="objBranch" parent="long"/>
+
+        <field name="idReservoirShore" parent="long"/>
+        <field name="pvReservoirShore" parent="long"/>
+        <field name="objReservoirShore" parent="long"/>
+        <field name="nameReservoir" parent="string"/>
+
+        <field name="idFishZone" parent="long"/>
+        <field name="pvFishZone" parent="long"/>
+        <field name="objFishZone" parent="long"/>
+        <field name="nameFishZone" parent="string"/>
+
+        <field name="idFishGear" parent="long"/>
+        <field name="pvFishGear" parent="long"/>
+        <field name="objFishGear" parent="long"/>
+
+        <field name="idAreaOfTon" parent="long"/>
+        <field name="AreaOfTon" parent="double"/>
+    </domain>
+
+    <domain name="Obj.ResultSampling" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+
+        <field name="idLinkToSample" parent="long"/>
+        <field name="pvLinkToSample" parent="long"/>
+        <field name="objLinkToSample" parent="long"/>
+        <field name="SampleNumber" parent="string"/>
+
+        <field name="idResearchNumber" parent="long"/>
+        <field name="ResearchNumber" parent="string"/>
+
+        <field name="idResearchDate" parent="long"/>
+        <field name="ResearchDate" parent="date"/>
+
+        <field name="idResearchExecutor" parent="long"/>
+        <field name="pvResearchExecutor" parent="long"/>
+        <field name="objResearchExecutor" parent="long"/>
+    </domain>
+
+    <domain name="Obj.ResultSamplingChild" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="parent" parent="long"/>
+
+        <field name="idFishTyp" parent="long"/>
+        <field name="pvFishTyp" parent="long"/>
+        <field name="objFishTyp" parent="long"/>
+
+        <field name="idFishAge" parent="long"/>
+        <field name="FishAge" parent="double"/>
+
+        <field name="idFishWeight" parent="long"/>
+        <field name="FishWeight" parent="double"/>
+
+        <field name="idFishLength" parent="long"/>
+        <field name="FishLength" parent="double"/>
+
+        <field name="idFishGender" parent="long"/>
+        <field name="pvFishGender" parent="long"/>
+        <field name="fvFishGender" parent="long"/>
+
+    </domain>
+
+    <domain name="Obj.ResultHydrochemistry" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="parent" parent="long"/>
+
+        <field name="idPh" parent="long"/>
+        <field name="Ph" parent="double"/>
+
+        <field name="idDissGasesCO2" parent="long"/>
+        <field name="DissGasesCO2" parent="double"/>
+
+        <field name="idDissGasesO2" parent="long"/>
+        <field name="DissGasesO2" parent="double"/>
+
+        <field name="idDissGasesCO2Percent" parent="long"/>
+        <field name="DissGasesCO2Percent" parent="double"/>
+
+        <field name="idBiogenicCompNH4" parent="long"/>
+        <field name="BiogenicCompNH4" parent="double"/>
+
+        <field name="idBiogenicCompNO2" parent="long"/>
+        <field name="BiogenicCompNO2" parent="double"/>
+
+        <field name="idBiogenicCompNO3" parent="long"/>
+        <field name="BiogenicCompNO3" parent="double"/>
+
+        <field name="idBiogenicCompPO4" parent="long"/>
+        <field name="BiogenicCompPO4" parent="double"/>
+
+        <field name="idOrganicMatter" parent="long"/>
+        <field name="OrganicMatter" parent="double"/>
+
+        <field name="idMineralization" parent="long"/>
+        <field name="Mineralization" parent="double"/>
+    </domain>
+
+    <domain name="Analis.input" parent="base">
+        <field name="namePeriod" parent="string"/>
+        <field name="dbeg" parent="string"/>
+        <field name="dend" parent="string"/>
+        <field name="prop" parent="long"/>
+    </domain>
+
+
+</root>
+
