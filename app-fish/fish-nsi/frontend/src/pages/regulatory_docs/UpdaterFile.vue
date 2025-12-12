@@ -142,7 +142,7 @@ export default {
       fd.append("file", this.file)
       fd.append("params", JSON.stringify(this.form))
 
-      api
+      this.$axios
         .post("/upload", fd, {
           headers: {
             "Content-Type": "multipart/form-data",

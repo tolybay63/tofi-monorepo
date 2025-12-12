@@ -51,7 +51,7 @@ export default {
       formData.append("id", this.id);
       formData.append("model", "nsidata");
       formData.append("filename", this.fileName);
-      api
+      this.$axios
         .post('/loadpdf',
         formData,
         {
@@ -95,7 +95,7 @@ export default {
   beforeUnmount() {
     let formData = new FormData();
     formData.append("filename", this.fileName);
-    api
+    this.$axios
       .post('/deletefile',
         formData,
         )
