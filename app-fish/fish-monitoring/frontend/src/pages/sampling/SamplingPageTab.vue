@@ -237,12 +237,11 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
+import {api} from 'boot/axios'
 import UpdaterSampling from 'pages/sampling/UpdaterSampling.vue'
-import { hasTarget, notifyError } from 'src/utils/jsutils'
-import { date } from 'quasar'
-import { extend } from 'quasar'
-import { ref } from 'vue'
+import {hasTarget, notifyError} from 'src/utils/jsutils'
+import {date, extend} from 'quasar'
+import {ref} from 'vue'
 import UpdaterSamplingTab1 from 'pages/sampling/UpdaterSamplingTab1.vue'
 
 export default {
@@ -349,8 +348,8 @@ export default {
         })
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'data/deleteSamplingTab1',
               params: [row["id_" + col.name], dta],
             })
@@ -430,8 +429,8 @@ export default {
           focus: 'cancel',
         })
         .onOk(() => {
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'data/deleteOwnerWithProperties',
               params: [row.obj, 1],
             })
@@ -472,7 +471,7 @@ export default {
     loadSampling() {
       this.loading2 = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadSampling',
           params: [this.cls, false, 0, this.gridMode],
         })
@@ -509,7 +508,7 @@ export default {
     loadExecutor() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadExecutor',
           params: ['Typ_Users', 'Prop_SampleExecutor'],
         })
@@ -579,7 +578,7 @@ export default {
     this.loading2 = true
 
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/CodCls',
         params: [this.cls],
       })
@@ -621,7 +620,7 @@ export default {
       })
       .then(()=> {
         api
-          .post(baseURL, {
+          .post('', {
             method: 'data/measureInfo',
             params: [],
           })
@@ -631,7 +630,7 @@ export default {
           })
           .then(() => {
             api
-              .post(baseURL, {
+              .post('', {
                 method: 'data/loadBranchName',
                 params: ['Cls_Branch'],
               })
@@ -640,7 +639,7 @@ export default {
               })
               .then(() => {
                 api
-                  .post(baseURL, {
+                  .post('', {
                     method: 'data/loadFishGearName',
                     params: ['Cls_FishGearTrade'],
                   })

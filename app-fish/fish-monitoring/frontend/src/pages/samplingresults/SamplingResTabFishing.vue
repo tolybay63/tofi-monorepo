@@ -81,7 +81,7 @@
 </template>
 
 <script>
-import {api, baseURL} from 'boot/axios'
+import {api} from 'boot/axios'
 import {hasTarget, notifyError} from 'src/utils/jsutils'
 import {extend} from 'quasar'
 import UpdaterResFishingChild from 'pages/samplingresults/UpdaterResFishingChild.vue'
@@ -159,8 +159,8 @@ export default {
           focus: 'cancel',
         })
         .onOk(() => {
-            this.$axios
-              .post(baseURL, {
+            api
+              .post('', {
                 method: 'data/deleteOwnerWithProperties',
                 params: [row.obj, 1],
               })
@@ -189,7 +189,7 @@ export default {
     loadChildProps(obj) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadResultSamplingChild',
           params: [obj, false, 0],
         })
@@ -275,7 +275,7 @@ export default {
     loadFishTyp() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadTypeOfFish',
           params: ['Cls_FishTypes', 'Prop_FishTyp'],
         })
@@ -299,7 +299,7 @@ export default {
 
     loadFishGender() {
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/mapFvNameFromId',
           params: [],
         })
@@ -318,7 +318,7 @@ export default {
   created() {
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/measureInfo',
         params: [],
       })

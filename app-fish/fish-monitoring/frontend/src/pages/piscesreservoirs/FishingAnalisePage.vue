@@ -335,8 +335,8 @@
 </template>
 
 <script>
-import {notifyError, pack, today} from 'src/utils/jsutils.js'
-import {api, baseURL} from 'boot/axios.js'
+import {notifyError, today} from 'src/utils/jsutils.js'
+import {api} from 'boot/axios.js'
 import UpdaterFishingAnalise from 'pages/piscesreservoirs/UpdaterFishingAnalise.vue'
 import UpdaterFishingSex from "pages/piscesreservoirs/UpdaterFishingSex.vue";
 
@@ -422,8 +422,8 @@ export default {
         })
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'data/deleteAnalise',
               params: [props.row["id_" + props.col.name]],
             })
@@ -504,8 +504,8 @@ export default {
           focus: 'cancel',
         })
         .onOk(() => {
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'data/deleteFishSex',
               params: [props.row["id_" + props.col.name], dta],
             })
@@ -523,7 +523,7 @@ export default {
     fnShow() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadAnalisys',
           params: [this.form],
         })
@@ -553,7 +553,7 @@ export default {
     loadFishSex(params) {
       this.loading3 = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadFishSex',
           params: [params],
         })
@@ -597,7 +597,7 @@ export default {
     loadReservoir(branch) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadReservoir',
           params: [branch],
         })
@@ -687,7 +687,7 @@ export default {
   created() {
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadPeriodType',
         params: [],
       })
@@ -704,7 +704,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadBranchName',
         params: ['Cls_Branch'],
       })
@@ -725,7 +725,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadTypeOfFishFirstLevel',
         params: ['Cls_FishTypes'],
       })

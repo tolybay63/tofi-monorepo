@@ -33,8 +33,8 @@
 
 <script>
 import languages from 'quasar/lang/index.json'
-import { Quasar } from 'quasar'
-import { useI18n } from 'vue-i18n'
+import {Quasar} from 'quasar'
+import {useI18n} from 'vue-i18n'
 
 let localeOptions
 

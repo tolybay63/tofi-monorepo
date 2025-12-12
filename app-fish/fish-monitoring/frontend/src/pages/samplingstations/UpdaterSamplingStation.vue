@@ -79,8 +79,8 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
-import { notifyError, notifySuccess } from 'src/utils/jsutils'
+import {api} from 'boot/axios'
+import {notifyError, notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data'],
@@ -160,7 +160,7 @@ export default {
     loadReservoir(branch) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadReservoir',
           params: [branch],
         })
@@ -209,8 +209,8 @@ export default {
 
       let err = false
       this.form.mode = this.mode
-      this.$axios
-        .post(baseURL, {
+      api
+        .post('', {
           method: 'data/saveSamplingStation',
           params: [this.form],
         })
@@ -242,7 +242,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadBranchName',
         params: ['Cls_Branch'],
       })

@@ -92,8 +92,8 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
-import { notifyError, notifySuccess } from 'src/utils/jsutils'
+import {api} from 'boot/axios'
+import {notifyError, notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data'],
@@ -190,8 +190,8 @@ export default {
 
       let err = false
       this.form.mode = this.mode
-      this.$axios
-        .post(baseURL, {
+      api
+        .post('', {
           method: 'data/saveResultSamplingPropertiesChild',
           params: [this.form],
         })
@@ -224,7 +224,7 @@ export default {
 
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadTypeOfFishForRes',
         params: [this.form.parent, /*'Cls_FishTypes',*/ 'Prop_FishTyp'],
         //params: ['Cls_FishTypes', 'Prop_FishTyp'],
@@ -236,7 +236,7 @@ export default {
       })
       .then(() => {
         api
-          .post(baseURL, {
+          .post('', {
             method: 'data/measureInfo',
             params: [],
           })
@@ -246,7 +246,7 @@ export default {
       })
       .then(() => {
         api
-          .post(baseURL, {
+          .post('', {
             method: 'data/loadFvFishFamilyForSelect',
             params: ['Factor_FishGender'],
           })

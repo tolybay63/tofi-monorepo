@@ -24,7 +24,7 @@
 
 <script>
 
-import { ref } from 'vue'
+import {ref} from 'vue'
 
 import PiscesReservoirsPage from 'pages/piscesreservoirs/PiscesReservoirsPage.vue'
 import FishingAnalisePage from 'pages/piscesreservoirs/FishingAnalisePage.vue'

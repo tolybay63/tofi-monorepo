@@ -314,10 +314,10 @@
 </template>
 
 <script>
-import { hasTarget, notifyError, notifyInfo, today } from 'src/utils/jsutils'
-import { api, baseURL } from 'boot/axios'
-import { extend, date } from 'quasar'
-import { ref } from 'vue'
+import {hasTarget, notifyError, notifyInfo, today} from 'src/utils/jsutils'
+import {api} from 'boot/axios'
+import {date, extend} from 'quasar'
+import {ref} from 'vue'
 import LifiInfo from 'pages/reservoirs/LifiInfo.vue'
 import UpdaterReservoirRefs from 'pages/reservoirs/UpdaterReservoirRefs.vue'
 import UpdaterReservoirMeter from 'pages/reservoirs/UpdaterReservoirMeter.vue'
@@ -503,8 +503,8 @@ export default {
         })
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'data/deleteOwnerWithProperties',
               params: [row.obj, 1]
             })
@@ -584,7 +584,7 @@ export default {
     loadReservors() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadReservors',
           params: [{ codTyp: 'Typ_WaterBodies', isRec: false, idObj: 0, dte: this.dte, periodType: this.periodType }]
         })
@@ -630,7 +630,7 @@ export default {
     this.cols = this.getColumns()
     //
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadPeriodType',
         params: [],
       })
@@ -646,7 +646,7 @@ export default {
       })
 
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadFvReservoirType',
         params: ['Factor_ReservoirType']
       })
@@ -664,7 +664,7 @@ export default {
       })
     //
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadFvReservoirStatus',
         params: ['Factor_ReservoirStatus']
       })
@@ -682,7 +682,7 @@ export default {
       })
     //
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadFvFishFarmingType',
         params: ['Factor_FishFarmingType']
       })

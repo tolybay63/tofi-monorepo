@@ -177,8 +177,8 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
-import { notifyError, notifySuccess } from 'src/utils/jsutils'
+import {api} from 'boot/axios'
+import {notifyError, notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data'],
@@ -332,7 +332,7 @@ export default {
     loadReservoir(branch) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadReservoir',
           params: [branch],
         })
@@ -355,7 +355,7 @@ export default {
     loadAreaSampling(reservoir) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadAreaSampling',
           params: [reservoir],
         })
@@ -413,8 +413,8 @@ export default {
       this.form.mode = this.mode
       //console.info("Object", this.form.objsSampleExecutor)
 
-      this.$axios
-        .post(baseURL, {
+      api
+        .post('', {
           method: 'data/saveSamplingProperties',
           params: [this.form],
         })
@@ -445,7 +445,7 @@ export default {
   created() {
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadPeriodType',
         params: [],
       })
@@ -462,7 +462,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/measureInfo',
         params: [],
       })
@@ -487,7 +487,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadBranchName',
         params: ['Cls_Branch'],
       })
@@ -497,7 +497,7 @@ export default {
       })
       .then(() => {
         api
-          .post(baseURL, {
+          .post('', {
             method: 'data/loadExecutor',
             params: ['Typ_Users', 'Prop_SampleExecutor'],
           })
@@ -519,7 +519,7 @@ export default {
           })
           .then(() => {
             api
-              .post(baseURL, {
+              .post('', {
                 method: 'data/loadFishGearName',
                 params: ['Cls_FishGearTrade'],
               })

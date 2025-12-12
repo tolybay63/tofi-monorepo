@@ -158,8 +158,7 @@
 </template>
 
 <script>
-import { baseURL } from 'boot/axios'
-import { notifyError, notifySuccess } from 'src/utils/jsutils'
+import {notifyError, notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data'],
@@ -214,8 +213,8 @@ export default {
 
       let err = false
       this.form.mode = this.mode
-      this.$axios
-        .post(baseURL, {
+      api
+        .post('', {
           method: 'data/saveResultHydrochemistryChild',
           params: [this.form],
         })

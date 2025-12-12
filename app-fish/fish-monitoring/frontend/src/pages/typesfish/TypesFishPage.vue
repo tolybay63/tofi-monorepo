@@ -120,9 +120,9 @@
 
 
 <script>
-import { defineComponent } from 'vue'
-import {api, baseURL} from "boot/axios";
-import { collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack } from 'src/utils/jsutils'
+import {defineComponent} from 'vue'
+import {api} from "boot/axios";
+import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack} from 'src/utils/jsutils'
 import QTreeTable from "components/QTreeTable.vue";
 import UpdaterTypesFish from 'pages/typesfish/UpdaterTypesFish.vue'
 import {extend} from "quasar";
@@ -174,7 +174,7 @@ export default defineComponent({
     loadFishFamily() {
       this.visible = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadFishFamily',
           params: [{ codCls: 'Cls_FishTypes', isRec: false, idObj: 0 }],
         })
@@ -184,7 +184,7 @@ export default defineComponent({
         })
         .then(() => {
           api
-            .post(baseURL, {
+            .post('', {
               method: 'data/mapFvNameFromId',
               params: [],
             })
@@ -331,8 +331,8 @@ export default defineComponent({
         })
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'data/deleteOwnerWithProperties',
               params: [row.obj, 1],
             })
@@ -358,7 +358,7 @@ export default defineComponent({
   created() {
     this.visible = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadClsId',
         params: ['Cls_FishTypes'],
       })

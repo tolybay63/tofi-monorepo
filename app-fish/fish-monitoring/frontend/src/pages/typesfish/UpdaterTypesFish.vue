@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError} from "src/utils/jsutils";
 
 export default {
@@ -137,7 +137,7 @@ export default {
       let err = false
       this.form.mode = this.mode
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/saveTypesFishProperties',
           params: [this.form],
         })
@@ -167,7 +167,7 @@ export default {
   created() {
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadFvFishFamilyForSelect',
         params: ['Factor_FishType'],
       })
