@@ -56,7 +56,7 @@
     </cfg>
 
     <datadir>
-        <path name="dbfilestorage" path="C:/dbfilestorage"/>
+        <path name="dbfilestorage" path="C:/dbfilestorage_fish"/>
 
 
 <!--

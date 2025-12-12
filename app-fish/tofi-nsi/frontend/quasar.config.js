@@ -68,13 +68,22 @@ export default defineConfig((ctx) => {
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
-      // vueRouterBase,
+      vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? '/dtj/nsi/' : '',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
+      publicPath: ctx.modeName === 'spa' && ctx.prod ? '/dtj/nsi/' : '',
+      extendViteConf(viteConf, { isServer, isClient }) {
+        if (ctx.modeName === 'spa' && ctx.prod) {
+          viteConf.base = '/dtj/nsi/';
+        } else {
+          viteConf.base = '';
+        }
+      },
+
       // analyze: true,
       // env: {},
       // rawDefine: {}
