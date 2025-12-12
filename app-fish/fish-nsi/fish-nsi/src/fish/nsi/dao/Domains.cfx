@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <domain name="Obj.regDocs" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="idRegDocumentsNameDoc" parent="long"/>
+        <field name="RegDocumentsNameDoc" parent="string"/>
+
+        <field name="idRegDocumentsNumberDoc" parent="long"/>
+        <field name="RegDocumentsNumberDoc" parent="string"/>
+
+        <field name="idRegDocumentsAuthorDoc" parent="long"/>
+        <field name="RegDocumentsAuthorDoc" parent="string"/>
+
+        <field name="idRegDocumentsNumberOrder" parent="long"/>
+        <field name="RegDocumentsNumberOrder" parent="string"/>
+
+        <field name="idRegDocumentsDateApproval" parent="long"/>
+        <field name="RegDocumentsDateApproval" parent="date"/>
+        <field name="idRegDocumentsLifeDoc" parent="long"/>
+        <field name="RegDocumentsLifeDoc" parent="date"/>
+
+        <field name="hasFile" parent="long"/>
+    </domain>
+
+
+    <domain name="Obj.methodology" parent="base">
+
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idMethodStatus" parent="long"/>
+        <field name="pvMethodStatus" parent="long"/>
+        <field name="fvMethodStatus" parent="long"/>
+
+        <field name="idMethodApprovalDate" parent="long"/>
+        <field name="MethodApprovalDate" parent="date"/>
+
+        <field name="hasFile" parent="long"/>
+
+    </domain>
+
+</root>
+
