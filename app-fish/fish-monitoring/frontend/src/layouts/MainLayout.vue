@@ -119,7 +119,7 @@
 import {defineComponent, ref} from 'vue'
 import LoginUser from 'components/LoginUser.vue'
 import SetLocale from 'components/SetLocale.vue'
-import {authURL, urlMainApp} from 'boot/axios'
+import {api, authURL, urlMainApp} from 'boot/axios'
 import {notifyError} from 'src/utils/jsutils'
 
 import {useUserStore} from 'stores/user-store'
