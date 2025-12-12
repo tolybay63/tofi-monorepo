@@ -28,6 +28,7 @@
 
 
 import {notifyError} from "src/utils/jsutils";
+import {api} from "boot/axios.js";
 
 export default {
   props: ["id", "fileName"],
