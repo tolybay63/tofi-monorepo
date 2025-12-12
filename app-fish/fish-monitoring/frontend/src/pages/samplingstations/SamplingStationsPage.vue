@@ -102,8 +102,8 @@
 
 <script>
 import {extend} from 'quasar'
-import { api, baseURL } from 'boot/axios'
-import { hasTarget, notifyError, notifyInfo } from 'src/utils/jsutils'
+import {api} from 'boot/axios'
+import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
 import UpdaterSamplingStation from 'pages/samplingstations/UpdaterSamplingStation.vue'
 
 export default {
@@ -172,8 +172,8 @@ export default {
         })
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'data/deleteOwnerWithProperties',
               params: [row.obj, 1],
             })
@@ -208,7 +208,7 @@ export default {
     loadSamplingStations() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadSamplingStations',
           params: [{ codCls: 'Cls_StationSampling', isRec: false, idObj: 0 }],
         })
@@ -278,7 +278,7 @@ export default {
     this.cols = this.getColumns()
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadBranchName',
         params: ['Cls_Branch'],
       })
@@ -300,7 +300,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadReservoirName',
         params: [],
       })

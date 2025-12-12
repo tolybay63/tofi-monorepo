@@ -42,9 +42,9 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
-import { notifyError } from 'src/utils/jsutils'
-import { ref } from 'vue'
+import {api} from 'boot/axios'
+import {notifyError} from 'src/utils/jsutils'
+import {ref} from 'vue'
 import SamplingResTabs from 'pages/samplingresults/SamplingResTabs.vue'
 
 export default {
@@ -75,7 +75,7 @@ export default {
     loadResSamplingCls() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadCls',
           params: ['Typ_Research'],
         })

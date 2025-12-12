@@ -130,10 +130,9 @@
 </template>
 
 <script>
-import { api, baseURL, tofi_dbeg, tofi_dend } from 'boot/axios'
-import { hasTarget, notifyError } from 'src/utils/jsutils'
-import { date } from 'quasar'
-import { extend } from 'quasar'
+import {api, tofi_dbeg, tofi_dend} from 'boot/axios'
+import {hasTarget, notifyError} from 'src/utils/jsutils'
+import {date, extend} from 'quasar'
 import UpdaterResFishing from 'pages/samplingresults/UpdaterResFishing.vue'
 import SamplingResTabFishing from 'pages/samplingresults/SamplingResTabFishing.vue'
 import SamplingResTabZoobenthos from 'pages/samplingresults/SamplingResTabZoobenthos.vue'
@@ -228,8 +227,8 @@ export default {
           focus: 'cancel',
         })
         .onOk(() => {
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'data/deleteOwnerWithProperties',
               params: [row.obj, 1],
             })
@@ -277,7 +276,7 @@ export default {
     loadResultSampling() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadResultSampling',
           params: [this.cls, false, 0],
         })
@@ -307,7 +306,7 @@ export default {
     loadExecutor() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadExecutor',
           params: ['Typ_Users', 'Prop_ResearchExecutor'],
         })

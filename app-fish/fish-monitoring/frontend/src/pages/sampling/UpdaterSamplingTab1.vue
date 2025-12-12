@@ -39,8 +39,8 @@
 
 <script>
 
-import { api, baseURL } from 'boot/axios'
-import { notifyError, notifySuccess } from 'src/utils/jsutils'
+import {api} from 'boot/axios'
+import {notifyError, notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data'],
@@ -101,7 +101,7 @@ export default {
       let err = false
       this.form.mode = this.mode
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/saveSamplingTab1',
           params: [this.form],
         })

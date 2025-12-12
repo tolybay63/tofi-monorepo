@@ -188,9 +188,9 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
-import { notifyError, notifySuccess, today } from 'src/utils/jsutils'
-import { date } from 'quasar'
+import {api} from 'boot/axios'
+import {notifyError, notifySuccess, today} from 'src/utils/jsutils'
+import {date} from 'quasar'
 import LifiInfo from 'pages/reservoirs/LifiInfo.vue'
 
 export default {
@@ -251,7 +251,7 @@ export default {
     loadDistrict(region) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadDistrict',
           params: [region],
         })
@@ -409,8 +409,8 @@ export default {
       this.form.dte = this.dte
       this.form.periodType = this.periodType
 
-      this.$axios
-        .post(baseURL, {
+      api
+        .post('', {
           method: 'data/saveReservoirPropertiesRef',
           params: [this.form],
         })
@@ -457,7 +457,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadChildClsForSelect',
         params: ['Typ_WaterBodies'],
       })
@@ -478,7 +478,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadRegion',
         params: ['Cls_Regions'],
       })
@@ -499,7 +499,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadBranchName',
         params: ['Cls_Branch'],
       })
@@ -520,7 +520,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadFvReservoirType',
         params: ['Factor_ReservoirType'],
       })
@@ -540,7 +540,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadFvReservoirStatus',
         params: ['Factor_ReservoirStatus'],
       })
@@ -560,7 +560,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadFvFishFarmingType',
         params: ['Factor_FishFarmingType'],
       })

@@ -116,14 +116,14 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
+import {defineComponent, ref} from 'vue'
 import LoginUser from 'components/LoginUser.vue'
 import SetLocale from 'components/SetLocale.vue'
-import { authURL, baseURL, urlMainApp } from 'boot/axios'
-import { notifyError } from 'src/utils/jsutils'
+import {authURL, urlMainApp} from 'boot/axios'
+import {notifyError} from 'src/utils/jsutils'
 
-import { useUserStore } from 'stores/user-store'
-import { storeToRefs } from 'pinia'
+import {useUserStore} from 'stores/user-store'
+import {storeToRefs} from 'pinia'
 
 export default defineComponent({
   name: 'MainLayout',
@@ -254,8 +254,8 @@ export default defineComponent({
               },
             })
             .onOk(() => {
-              this.$axios
-                .post(baseURL, {
+              api
+                .post('', {
                   method: 'data/getCurUserInfo',
                   params: [],
                 })
@@ -275,7 +275,7 @@ export default defineComponent({
                 })
             })
         } else {
-          this.$axios
+          api
             .post(authURL + '/logout', {
               params: {},
             })

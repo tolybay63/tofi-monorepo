@@ -32,8 +32,7 @@
 </template>
 
 <script>
-import { baseURL } from 'boot/axios'
-import { notifyError, notifySuccess } from 'src/utils/jsutils'
+import {notifyError, notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['data', 'dim1', 'dim2'],
@@ -77,8 +76,8 @@ export default {
 
       let err = false
 
-      this.$axios
-        .post(baseURL, {
+      api
+        .post('', {
           method: 'datamulti/saveResultZooplankton',
           params: [this.form],
         })

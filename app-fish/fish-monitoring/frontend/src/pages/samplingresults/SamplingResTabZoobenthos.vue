@@ -68,9 +68,9 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
+import {api} from 'boot/axios'
 import UpdaterResZooplankton from 'pages/samplingresults/UpdaterResZooplankton.vue'
-import { hasTarget, notifyError } from 'src/utils/jsutils'
+import {hasTarget, notifyError} from 'src/utils/jsutils'
 
 export default {
   name: 'SamplingResTabZoobenthos',
@@ -140,8 +140,8 @@ export default {
           focus: 'cancel',
         })
         .onOk(() => {
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'datamulti/deleteZooplankton',
               params: [row[id]],
             })
@@ -159,7 +159,7 @@ export default {
     loadData(obj) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'datamulti/loadZooplankton',
           params: ['MP_Zoobenthos', this.cls, obj],
         })
@@ -179,7 +179,7 @@ export default {
   created() {
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'datamulti/colsZooplankton',
         params: ['MP_Zoobenthos', this.cls],
       })

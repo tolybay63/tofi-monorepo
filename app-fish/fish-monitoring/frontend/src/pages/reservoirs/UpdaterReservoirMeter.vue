@@ -151,9 +151,9 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
-import { notifyError, notifySuccess, today } from 'src/utils/jsutils'
-import { date } from 'quasar'
+import {api} from 'boot/axios'
+import {notifyError, notifySuccess, today} from 'src/utils/jsutils'
+import {date} from 'quasar'
 import LifiInfo from 'pages/reservoirs/LifiInfo.vue'
 
 export default {
@@ -219,8 +219,8 @@ export default {
       if (typeof this.form.periodType === "object")
         this.form.periodType = parseInt(this.form["periodType"]["id"], 10)
 console.log("this.form", this.form)
-      this.$axios
-        .post(baseURL, {
+      api
+        .post('', {
           method: 'data/saveReservoirPropertiesMeter',
           params: [this.form]
         })
@@ -259,7 +259,7 @@ console.log("this.form", this.form)
     //console.info("data", this.data)
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadPeriodType',
         params: [],
       })

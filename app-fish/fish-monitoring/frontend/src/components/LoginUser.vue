@@ -81,10 +81,10 @@
   </q-dialog>
 </template>
 <script>
-import { ref } from 'vue'
-import { authURL } from 'boot/axios.js'
+import {ref} from 'vue'
+import {authURL} from 'boot/axios.js'
 import ForgetPsw from 'components/ForgetPsw.vue'
-import { notifyError } from 'src/utils/jsutils.js'
+import {notifyError} from 'src/utils/jsutils.js'
 
 export default {
   props: ['lg'],
@@ -160,7 +160,7 @@ params: {username: this.form.login, password: this.form.psw},
       let fd = new FormData()
       fd.append('username', this.form.login)
       fd.append('password', this.form.psw)
-      this.$axios
+      api
         .post(authURL + '/login', fd, {
           responseType: 'arraybuffer',
           headers: {

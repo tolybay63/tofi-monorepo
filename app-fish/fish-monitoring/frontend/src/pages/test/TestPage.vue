@@ -151,8 +151,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
-import { baseURL } from 'boot/axios'
+import {ref} from 'vue'
 
 export default {
   name: 'TestPage',
@@ -225,7 +224,7 @@ export default {
       fd.append('fill', fill)
       fd.append('num', 1)
 
-      this.$axios
+      api
         .post('/filldata', fd, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -238,8 +237,8 @@ export default {
         })
         .then(() => {
           this.loading = true
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'test/loadLog',
               params: []
             })
@@ -270,7 +269,7 @@ export default {
       fd.append('filename', this.file2.name)
       fd.append('fill', fill)
       fd.append('num', 2)
-      this.$axios
+      api
         .post('/filldata', fd, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -283,8 +282,8 @@ export default {
         })
         .then(() => {
           this.loading2 = true
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'test/loadLog',
               params: []
             })

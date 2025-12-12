@@ -174,9 +174,9 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
-import { hasTarget, notifyError } from 'src/utils/jsutils'
-import { extend } from 'quasar'
+import {api} from 'boot/axios'
+import {hasTarget, notifyError} from 'src/utils/jsutils'
+import {extend} from 'quasar'
 import UpdaterResHydrochemistryChild from 'pages/samplingresults/UpdaterResHydrochemistryChild.vue'
 
 export default {
@@ -241,8 +241,8 @@ export default {
           focus: 'cancel',
         })
         .onOk(() => {
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               method: 'data/deleteOwnerWithProperties',
               params: [row.obj, 1],
             })
@@ -262,7 +262,7 @@ export default {
     loadHydrochemistry(obj) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadResultHydrochemistry',
           params: [obj, false, 0],
         })
@@ -290,7 +290,7 @@ export default {
   created() {
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/measureInfo',
         params: [],
       })

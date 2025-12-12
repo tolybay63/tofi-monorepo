@@ -87,9 +87,9 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
-import { hasTarget, notifyError, notifyInfo } from 'src/utils/jsutils'
-import { extend } from 'quasar'
+import {api} from 'boot/axios'
+import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
+import {extend} from 'quasar'
 import UpdaterPiscesReservoir from 'pages/piscesreservoirs/UpdaterPiscesReservoir.vue'
 
 export default {
@@ -165,8 +165,8 @@ export default {
           focus: 'cancel',
         })
         .onOk(() => {
-          this.$axios
-            .post(baseURL, {
+          api
+            .post('', {
               //method: 'data/deleteFishInResoirvoir',
               //params: [row.relobj, row.typeoffish],
               method: 'data/deleteOwnerWithProperties',
@@ -195,7 +195,7 @@ export default {
     loadData() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadPiscesReservoir',
           params: [{ codRelTyp: 'RelTyp_FishType' }],
         })
@@ -268,7 +268,7 @@ export default {
     this.cols = this.getColumns()
     //this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadBranchName',
         params: ['Cls_Branch'],
       })
@@ -290,7 +290,7 @@ export default {
     //
     //this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadReservoirName',
         params: [],
       })
@@ -312,7 +312,7 @@ export default {
     //
     //this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadTypeOfFish',
         params: ['Cls_FishTypes', null],
       })

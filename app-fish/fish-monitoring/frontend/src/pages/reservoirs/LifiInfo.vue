@@ -24,9 +24,8 @@
 </template>
 
 <script>
-import { api, baseURL, tofi_dbeg, tofi_dend } from 'boot/axios'
-import { notifyError } from 'src/utils/jsutils'
-import { date } from 'quasar'
+import {api} from 'boot/axios'
+import {notifyError} from 'src/utils/jsutils'
 
 export default {
   name: 'LifiInfo',
@@ -50,7 +49,7 @@ export default {
     load() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post('', {
           method: 'data/loadReservorLife',
           params: [{ codProp: 'Prop_' + this.field, obj: this.rec['obj'] }],
         })

@@ -84,8 +84,8 @@
 </template>
 
 <script>
-import { api, baseURL } from 'boot/axios'
-import { notifyError, notifySuccess } from 'src/utils/jsutils'
+import {api} from 'boot/axios'
+import {notifyError, notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data', 'codCls'],
@@ -193,8 +193,8 @@ export default {
 
       let err = false
       this.form.mode = this.mode
-      this.$axios
-        .post(baseURL, {
+      api
+        .post('', {
           method: 'data/saveResultSamplingProperties',
           params: [this.form],
         })
@@ -225,7 +225,7 @@ export default {
   created() {
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadSampleNumber',
         params: [this.codCls],
       })
@@ -246,7 +246,7 @@ export default {
     //
     this.loading = true
     api
-      .post(baseURL, {
+      .post('', {
         method: 'data/loadExecutor',
         params: ['Typ_Users', 'Prop_ResearchExecutor'],
       })
