@@ -261,7 +261,7 @@ import {hasTarget, notifyError, notifyInfo} from "src/utils/jsutils";
 import UpdaterFile from "pages/regulatory_docs/UpdaterFile.vue";
 import ViewPdf from "components/ViewPdf.vue";
 import UpdaterObjOfProperties from "pages/regulatory_docs/UpdaterObjOfProperties.vue";
-import {date, extend} from "quasar";
+import {date} from "quasar";
 
 export default defineComponent({
   name: "RegulatoryDocsPage",
@@ -355,8 +355,8 @@ export default defineComponent({
 
       let data = {cls: this.selected[0].id}
       if (mode === "upd") {
-        extend(true, data, row)
-        //Object.assign(data, row)
+        //extend(true, data, row)
+        Object.assign(data, row)
       }
       if (data.RegDocumentsDateApproval<=tofi_dbeg)
         data.RegDocumentsDateApproval = null
@@ -624,7 +624,7 @@ export default defineComponent({
       //console.info("formData", formData)
 
       this.$axios
-        .post("/download",
+        .post("/fish_download",
           formData,
           {
             responseType: "arraybuffer",

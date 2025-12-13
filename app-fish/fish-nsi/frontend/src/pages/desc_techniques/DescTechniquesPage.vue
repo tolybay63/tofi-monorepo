@@ -211,7 +211,7 @@
 <script>
 import {defineComponent} from "vue";
 import {api, tofi_dbeg, tofi_dend} from "boot/axios";
-import {date, extend} from "quasar";
+import {date} from "quasar";
 import {hasTarget, notifyError, notifyInfo} from "src/utils/jsutils";
 import UpdaterFile from "pages/regulatory_docs/UpdaterFile.vue";
 import ViewPdf from "components/ViewPdf.vue";
@@ -304,7 +304,8 @@ export default defineComponent({
 
       let data = {cls: this.clsMethod}
       if (mode === "upd") {
-        extend(true, data, row)
+        //extend(true, data, row)
+        Object.assign(data, row)
         if (data.MethodApprovalDate <= tofi_dbeg || data.MethodApprovalDate >= tofi_dend)
           data.MethodApprovalDate = null
       }
@@ -451,7 +452,7 @@ export default defineComponent({
       //console.info("formData", formData)
 
       this.$axios
-        .post("/download",
+        .post("/fish_download",
           formData,
           {
             responseType: "arraybuffer",

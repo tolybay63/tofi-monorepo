@@ -52,7 +52,7 @@ export default {
       formData.append("model", "nsidata");
       formData.append("filename", this.fileName);
       this.$axios
-        .post('/loadpdf',
+        .post('/fish_loadpdf',
         formData,
         {
           responseType: "blob"

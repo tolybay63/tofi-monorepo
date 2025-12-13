@@ -9,11 +9,13 @@
         />
 
         <action name="auth"
-                class="jandcode.core.apx.auth.AuthAction"/>
-        <action name="download"
+                class="jandcode.core.apx.auth.AuthAction"
+        />
+
+        <action name="fish_download"
                 class = "fish.nsi.action.DownloadAction"
         />
-        <action name="loadpdf"
+        <action name="fish_loadpdf"
                 class = "fish.nsi.action.LoadpdfAction"
         />
         <action name="deletefile"
