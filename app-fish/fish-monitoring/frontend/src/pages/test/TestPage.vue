@@ -153,6 +153,7 @@
 <script>
 import {ref} from 'vue'
 import {api} from "boot/axios.js";
+import axios from "axios";
 
 export default {
   name: 'TestPage',
