@@ -225,7 +225,7 @@ export default {
       fd.append('fill', fill)
       fd.append('num', 1)
 
-      api
+      this.$axios
         .post('/filldata', fd, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -270,7 +270,7 @@ export default {
       fd.append('filename', this.file2.name)
       fd.append('fill', fill)
       fd.append('num', 2)
-      api
+      this.$axios
         .post('/filldata', fd, {
           headers: {
             'Content-Type': 'multipart/form-data'
