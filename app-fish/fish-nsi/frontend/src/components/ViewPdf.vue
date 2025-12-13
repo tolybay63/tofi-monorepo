@@ -1,34 +1,39 @@
 <template>
   <q-dialog
     ref="dialog"
-    @hide="onDialogHide"
-    persistent
     autofocus
-    transition-show="slide-down"
+    persistent
     transition-hide="slide-down"
+    transition-show="slide-down"
+    @hide="onDialogHide"
   >
-    <q-card class="no-scroll" style="min-width: 80vw; min-height: 80vh; width: 100%; height: 90%;">
+    <q-card
+      ref="cardRef"
+      :style="cardStyle"
+      class="no-scroll pdf-viewer-card"
+    >
       <q-bar class="bg-brand-light">
-        {{fileName}}
+        {{ fileName }}
         <q-space></q-space>
-        <q-btn @click="hide" color="white" flat icon="close"></q-btn>
+        <q-btn color="white" flat icon="close" @click="hide"></q-btn>
       </q-bar>
       <q-inner-loading :showing="loading" color="secondary"/>
-        <div class="fit">
+      <div class="fit">
         <q-pdfviewer
-          type="html5"
           :src="path"
+          type="html5"
         />
-        </div>
+      </div>
 
     </q-card>
   </q-dialog>
 </template>
+
 <script>
 
-
 import {notifyError} from "src/utils/jsutils";
-import {api} from "boot/axios.js";
+
+let saveTimeout = null
 
 export default {
   props: ["id", "fileName"],
@@ -37,6 +42,9 @@ export default {
     return {
       path: "",
       loading: false,
+      width: '80vw',
+      height: '80vh',
+      resizeObserver: null
     };
   },
 
@@ -53,16 +61,15 @@ export default {
       formData.append("filename", this.fileName);
       this.$axios
         .post('/fish_loadpdf',
-        formData,
-        {
-          responseType: "blob"
-        })
+          formData,
+          {
+            responseType: "blob"
+          })
         .then(res => {
           const blob = new Blob([res.data], {type: "application/pdf"})
-          this.path  = window.URL.createObjectURL(blob)
-          //console.log("path", this.path);
+          this.path = window.URL.createObjectURL(blob)
         })
-        .catch(err => {
+        .catch(() => {
           notifyError({
             message: 'Ошибка загрузки PDF',
             type: 'negative',
@@ -73,7 +80,7 @@ export default {
             position: 'top'
           })
         })
-        .finally(()=> {
+        .finally(() => {
           this.loading = false;
         })
     },
@@ -90,47 +97,103 @@ export default {
       this.$emit("hide");
     },
 
+    debounceSave() {
+      if (saveTimeout) clearTimeout(saveTimeout)
+      saveTimeout = setTimeout(() => {
+        localStorage.setItem('pdfViewerWidth', this.width)
+        localStorage.setItem('pdfViewerHeight', this.height)
+      }, 500)
+    }
+
+  },
+
+  mounted() {
+    const savedWidth = localStorage.getItem('pdfViewerWidth')
+    const savedHeight = localStorage.getItem('pdfViewerHeight')
+
+    if (savedWidth) this.width = savedWidth
+    if (savedHeight) this.height = savedHeight
+
+    // Отслеживание изменения размера - используем nextTick для доступа к DOM
+    this.$nextTick(() => {
+      const cardElement = this.$refs.cardRef?.$el
+      if (cardElement) {
+        this.resizeObserver = new ResizeObserver(() => {
+          const rect = cardElement.getBoundingClientRect()
+          this.width = `${rect.width}px`
+          this.height = `${rect.height}px`
+          this.debounceSave()
+        })
+        this.resizeObserver.observe(cardElement)
+      }
+    })
   },
 
   beforeUnmount() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+      this.resizeObserver = null
+    }
+
     let formData = new FormData();
     formData.append("filename", this.fileName);
     this.$axios
       .post('/deletefile',
         formData,
-        )
-      .then(
-        (resp) => {
+      )
+      .then(() => {
         })
-      .catch((err)=> {
-      })
+      .catch(() => {
+        })
+  },
+
+  computed: {
+    cardStyle() {
+      return {
+        minWidth: '400px',
+        minHeight: '300px',
+        width: this.width,
+        height: this.height,
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+        resize: 'both',
+        overflow: 'auto'
+      }
+    }
   },
 
   created() {
-
-/*
-    this.loading = ref(true);
-    api
-      .post(baseURL, {
-        method: "data/getPathFile",
-        params: [this.id],
-      })
-      .then(
-        (response) => {
-          //this.path = "/pdf/"+this.fileName
-          this.path = response.data.result;
-          console.log("path", this.path);
-        })
-      .catch(error => {
-        notifyError(error.message);
-      })
-      .finally(() => {
-        this.loading = ref(false);
-      })
-*/
-
     this.loadPDF()
-
   },
 };
 </script>
+
+<style scoped>
+.pdf-viewer-card {
+  position: relative;
+}
+
+.pdf-viewer-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(
+    -45deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(0, 0, 0, 0.2) 30%,
+    rgba(0, 0, 0, 0.2) 40%,
+    transparent 40%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.2) 70%,
+    rgba(0, 0, 0, 0.2) 80%,
+    transparent 80%
+  );
+  cursor: nwse-resize;
+  pointer-events: none;
+  z-index: 1;
+}
+</style>
