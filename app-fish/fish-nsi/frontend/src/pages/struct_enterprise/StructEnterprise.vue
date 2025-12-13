@@ -124,7 +124,6 @@ import QTreeTable from "components/QTreeTable.vue";
 import {api} from "boot/axios";
 import {expandAll, hasTarget, notifyError, notifyInfo, pack} from "src/utils/jsutils";
 import UpdaterStructEnterprise from "pages/struct_enterprise/UpdaterStructEnterprise.vue";
-import {extend} from "quasar";
 
 export default defineComponent({
   name: "StructEnterprise",
@@ -193,7 +192,8 @@ export default defineComponent({
         else
           data.parent = this.parentId
       } else if (mode === "upd") {
-        extend(true, data, this.selected2[0])
+        //extend(true, data, this.selected2[0])
+        Object.assign(data, this.selected2[0])
       }
 
       this.$q

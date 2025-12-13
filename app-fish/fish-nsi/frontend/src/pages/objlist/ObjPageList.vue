@@ -98,7 +98,6 @@
 import {hasTarget, notifyError, notifyInfo,} from "src/utils/jsutils";
 import {api} from "boot/axios";
 import UpdaterObj from "pages/objlist/UpdaterObj.vue";
-import {extend} from "quasar";
 
 
 export default {
@@ -127,7 +126,8 @@ export default {
       }
 
       if (mode === "upd") {
-        extend(true, data, row)
+        //extend(true, data, row)
+        Object.assign(data, row)
       }
 
       this.$q

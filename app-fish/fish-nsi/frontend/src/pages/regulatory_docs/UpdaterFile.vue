@@ -64,9 +64,7 @@
 <script>
 
 import {ref} from "vue";
-import {extend} from "quasar";
 import {useUserStore} from "stores/user-store";
-import {api} from "boot/axios.js";
 
 const store = useUserStore();
 
@@ -137,7 +135,8 @@ export default {
       this.form.metamodel = "fish"
       let err = false
 
-      extend(this.form, {filename: this.file.name})
+      //extend(this.form, {filename: this.file.name})
+      Object.assign(this.form, {filename: this.file.name})
       let fd = new FormData()
       fd.append("file", this.file)
       fd.append("params", JSON.stringify(this.form))
