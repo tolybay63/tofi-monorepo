@@ -22,7 +22,7 @@
                 class = "fish.nsi.action.DeletefileAction"
         />
 
-        <action name="upload"
+        <action name="fish_upload"
                 class = "fish.nsi.action.UploadAction"
         />
         <type name="fish.nsi.action.DownFile"

@@ -142,7 +142,7 @@ export default {
       fd.append("params", JSON.stringify(this.form))
 
       this.$axios
-        .post("/upload", fd, {
+        .post("/fish_upload", fd, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
