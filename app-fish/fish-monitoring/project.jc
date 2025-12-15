@@ -10,6 +10,8 @@ class P extends ProjectScript {
         load("../../tofi-tbox")
     }
 
+/*
+    // <for nginx
     void onInclude() {
         //
         project.name = "fish-monitoring"
@@ -24,5 +26,40 @@ class P extends ProjectScript {
             )
         }
     }
+    // for nginx>
+*/
+
+
+    // <for jc
+    String frontendDir = "frontend"
+    String frontendDirDist = "${frontendDir}/dist/spa"
+
+    void onInclude() {
+        //
+        project.name = "fish-nsi"
+        project.version = include(GitVersion)
+        //
+        include(AppRunBat).with {
+            mainClass = "fish.nsi.main.Main"
+        }
+        include(RootProject).with {
+            modules(
+                    "fish-nsi",
+            )
+        }
+        include(WebRootProject).with {
+            addResourceWebroot(frontendDirDist, "")
+        }
+        //
+        include(BuildProject)
+        onEvent(BuildProject.Event_Build, this.&buildHandler)
+        //
+        // перекрытие для конкретного разработчика
+        ut.includeIfExists('./_project.jc')
+    }
+    void buildHandler() {
+        ut.runcmd(cmd: "npm run build", dir: wd(frontendDir))
+    }
+    // for jc>
 
 }

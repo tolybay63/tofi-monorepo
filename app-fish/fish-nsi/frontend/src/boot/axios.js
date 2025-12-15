@@ -14,6 +14,10 @@ import axios from 'axios'
 let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
 
 let url = 'http://127.0.0.1:8080'
+if (import.meta.env.PROD) {
+  url = process.env.VITE_PRODUCT_URL
+}
+
 let authURL = url + "/auth"
 let baseURL = url + "/api"
 
@@ -21,7 +25,6 @@ if (import.meta.env.PROD) {
   authURL = "/auth"
   baseURL = "/api"
 }
-
 
 const api = axios.create({ baseURL: baseURL })
 
