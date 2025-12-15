@@ -36,15 +36,15 @@ class P extends ProjectScript {
 
     void onInclude() {
         //
-        project.name = "fish-nsi"
+        project.name = "fish-monitoring"
         project.version = include(GitVersion)
         //
         include(AppRunBat).with {
-            mainClass = "fish.nsi.main.Main"
+            mainClass = "fish.monitoring.main.Main"
         }
         include(RootProject).with {
             modules(
-                    "fish-nsi",
+                    "fish-monitoring",
             )
         }
         include(WebRootProject).with {
