@@ -173,7 +173,7 @@ params: {username: this.form.login, password: this.form.psw},
       let fd = new FormData()
       fd.append("username", this.form.login);
       fd.append("password", this.form.psw);
-      api
+      this.$axios
         .post(authURL + "/login", fd,{
           responseType: "arraybuffer",
           headers: {

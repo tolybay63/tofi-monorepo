@@ -11,17 +11,11 @@ import axios from 'axios'
 
 let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
 
-/*
-let url = 'http://localhost:8080'
+let url = 'http://127.0.0.1:8080'
 if (import.meta.env.PROD) {
   url = process.env.VITE_PRODUCT_URL
 }
-const authURL = url + '/auth'
-const baseURL = url + '/api'
-*/
 
-
-let url = 'http://127.0.0.1:8080'
 let authURL = url + "/auth"
 let baseURL = url + "/api"
 
