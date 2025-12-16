@@ -1,5 +1,5 @@
 import jandcode.core.jc.*
-import jandcode.core.web.jc.*
+//import jandcode.core.web.jc.*
 import jandcode.jc.*
 import jandcode.jc.std.*
 
@@ -10,7 +10,6 @@ class P extends ProjectScript {
         load("../../tofi-tbox")
     }
 
-/*
     // <for nginx
     void onInclude() {
         //
@@ -27,10 +26,10 @@ class P extends ProjectScript {
         }
     }
     // for nginx>
-*/
 
 
     // <for jc
+/*
     String frontendDir = "frontend"
     String frontendDirDist = "${frontendDir}/dist/spa"
 
@@ -60,6 +59,7 @@ class P extends ProjectScript {
     void buildHandler() {
         ut.runcmd(cmd: "npm run build", dir: wd(frontendDir))
     }
+*/
     // for jc>
 
 }

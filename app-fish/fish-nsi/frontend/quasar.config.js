@@ -11,7 +11,8 @@
 const { configure } = require('quasar/wrappers');
 const path = require('path');
 
-let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
+
+let url = 'http://127.0.0.1:8080'
 
 module.exports = configure(ctx => {
   return ({
@@ -57,22 +58,33 @@ module.exports = configure(ctx => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
+      env: {
+        url: ctx.dev
+          ? 'http://127.0.0.1:8080'
+          : process.env.VITE_PRODUCT_URL
+      },
+
       target: {
         browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
         node: 'node20'
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
-      // vueRouterBase,
+
+      vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? '/fish/nsi/' : '',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
-      publicPath: '',
+      publicPath: ctx.modeName === 'spa' && ctx.prod ? '/fish/nsi/' : '',
       extendViteConf(viteConf, { isServer, isClient }) {
-        viteConf.base = '';
+        if (ctx.modeName === 'spa' && ctx.prod) {
+          viteConf.base = '/fish/nsi/';
+        } else {
+          viteConf.base = '';
+        }
       },
 
       // analyze: true,

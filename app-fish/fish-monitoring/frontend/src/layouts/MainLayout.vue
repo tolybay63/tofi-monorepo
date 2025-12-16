@@ -275,7 +275,7 @@ export default defineComponent({
                 })
             })
         } else {
-          this.$axios
+          api
             .post(authURL + '/logout', {
               params: {},
             })

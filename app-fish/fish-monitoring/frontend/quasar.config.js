@@ -1,11 +1,10 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-import { defineConfig } from '#q-app/wrappers'
-import { fileURLToPath } from 'node:url'
+import {defineConfig} from '#q-app/wrappers'
+import {fileURLToPath} from 'node:url'
 
-let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
-
+let url = 'http://127.0.0.1:8080'
 
 export default defineConfig((ctx) => {
   return {
@@ -36,6 +35,12 @@ export default defineConfig((ctx) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
+      env: {
+        url: ctx.dev
+          ? 'http://127.0.0.1:8080'
+          : process.env.VITE_PRODUCT_URL
+      },
+
       target: {
         browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
         node: 'node20',
@@ -43,17 +48,23 @@ export default defineConfig((ctx) => {
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
-      // vueRouterBase,
+      vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? '/fish/monitoring/' : '',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
-      publicPath: '',
-      extendViteConf(viteConf, { isServer, isClient }) {
-        viteConf.base = '';
+      publicPath:
+        ctx.modeName === 'spa' && ctx.prod ? '/fish/monitoring/' : '',
+      extendViteConf(viteConf, {isServer, isClient}) {
+        if (ctx.modeName === 'spa' && ctx.prod) {
+          viteConf.base = '/fish/monitoring/';
+        } else {
+          viteConf.base = '';
+        }
       },
+
 
       // analyze: true,
       // env: {},
