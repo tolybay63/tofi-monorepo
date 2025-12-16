@@ -22,6 +22,8 @@
         <q-pdfviewer
           :src="path"
           type="html5"
+          content-class="fit container"
+          inner-content-class="fit container"
         />
       </div>
 

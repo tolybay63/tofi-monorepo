@@ -1,7 +1,10 @@
 //import {defineStore} from '#q-app/wrappers'
 //import {createPinia} from 'pinia'
-import {store} from 'quasar/wrappers'
+//import {store} from 'quasar/wrappers'
+//import {createPinia} from 'pinia'
+import {defineStore} from '#q-app/wrappers'
 import {createPinia} from 'pinia'
+
 
 
 /*
@@ -13,7 +16,7 @@ import {createPinia} from 'pinia'
  * with the Store instance.
  */
 
-export default store((/* { ssrContext } */) => {
+export default defineStore((/* { ssrContext } */) => {
   // You can add Pinia plugins here
   // pinia.use(SomePiniaPlugin)
 
