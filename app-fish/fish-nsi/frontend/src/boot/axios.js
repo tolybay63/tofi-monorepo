@@ -1,7 +1,11 @@
 //import {defineBoot} from '#q-app/wrappers'
 
-import { boot } from 'quasar/wrappers'
+//import { boot } from 'quasar/wrappers'
+//import axios from 'axios'
+
+import {defineBoot} from '#q-app/wrappers'
 import axios from 'axios'
+
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -29,7 +33,7 @@ if (import.meta.env.PROD) {
 
 const api = axios.create({ baseURL: baseURL })
 
-export default boot(({ app }) => {
+export default defineBoot(({ app }) => {
   // for use inside Vue files (Options API) through api and this.$api
 
   app.config.globalProperties.$axios = axios
