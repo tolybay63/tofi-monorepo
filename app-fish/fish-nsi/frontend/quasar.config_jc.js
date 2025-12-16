@@ -134,7 +134,7 @@ module.exports = configure(ctx => {
           target: url,
           changeOrigin: true,
         },
-        "/upload": {
+        "/fish_upload": {
           target: url,
           changeOrigin: true,
         },

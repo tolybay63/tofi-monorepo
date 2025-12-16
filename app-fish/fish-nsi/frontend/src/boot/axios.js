@@ -11,11 +11,12 @@ import axios from 'axios'
 // for each client)
 //const api = axios.create({ baseURL: 'https://api.example.com' })
 
-let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
+
+let urlMainApp = import.meta.env.VITE_PRODUCT_URL_MAIN_APP
 
 let url = 'http://127.0.0.1:8080'
 if (import.meta.env.PROD) {
-  url = process.env.VITE_PRODUCT_URL
+  url = import.meta.env.VITE_PRODUCT_URL
 }
 
 let authURL = url + "/auth"

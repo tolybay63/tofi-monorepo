@@ -160,7 +160,7 @@ params: {username: this.form.login, password: this.form.psw},
       let fd = new FormData()
       fd.append('username', this.form.login)
       fd.append('password', this.form.psw)
-      this.$axios
+      api
         .post(authURL + '/login', fd, {
           responseType: 'arraybuffer',
           headers: {

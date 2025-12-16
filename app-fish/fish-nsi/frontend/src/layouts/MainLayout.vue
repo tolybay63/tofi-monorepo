@@ -160,6 +160,8 @@ export default defineComponent({
   methods: {
     hasTarget,
     mainApp() {
+      console.info("mainApp", urlMainApp)
+
       open(urlMainApp, "_self");
     },
 
@@ -281,7 +283,7 @@ export default defineComponent({
                 });
             });
         } else {
-          this.$axios
+          api
             .post(authURL + "/logout", {
               params: {},
             })
