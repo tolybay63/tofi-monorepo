@@ -1,8 +1,3 @@
-//import {defineBoot} from '#q-app/wrappers'
-
-//import { boot } from 'quasar/wrappers'
-//import axios from 'axios'
-
 import {defineBoot} from '#q-app/wrappers'
 import axios from 'axios'
 
