@@ -10,6 +10,7 @@
 
 import {defineConfig} from '#q-app/wrappers'
 import {fileURLToPath} from 'node:url'
+import {resolve} from 'node:path'
 
 
 let url = 'http://127.0.0.1:8080'
@@ -86,6 +87,28 @@ export default defineConfig((ctx) => {
         } else {
           viteConf.base = '';
         }
+
+        // Исправление пути для quasar-app-extension-qpdfviewervue3
+        // Расширение использует неправильный путь к composable
+        if (!viteConf.resolve) {
+          viteConf.resolve = {};
+        }
+
+        const quasarPath = resolve(process.cwd(), 'node_modules/quasar');
+        const correctPath = resolve(quasarPath, 'src/composables/private.use-model-toggle/use-model-toggle.js');
+
+        if (Array.isArray(viteConf.resolve.alias)) {
+          viteConf.resolve.alias.push({
+            find: 'quasar/src/composables/private/use-model-toggle.js',
+            replacement: correctPath
+          });
+        } else {
+          if (!viteConf.resolve.alias) {
+            viteConf.resolve.alias = {};
+          }
+          viteConf.resolve.alias['quasar/src/composables/private/use-model-toggle.js'] = correctPath;
+        }
+
       },
 
       // analyze: true,
