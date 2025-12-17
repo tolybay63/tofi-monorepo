@@ -8,8 +8,6 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-//const { configure } = require('quasar/wrappers');
-//const path = require('path');
 import {defineConfig} from '#q-app/wrappers'
 import {fileURLToPath} from 'node:url'
 
@@ -120,20 +118,6 @@ export default defineConfig((ctx) => {
             include: [fileURLToPath(new URL('./src/i18n', import.meta.url))],
           },
         ],
-
-/*
-        ['@intlify/vite-plugin-vue-i18n', {
-          // if you want to use Vue I18n Legacy API, you need to set `compositionOnly: false`
-          // compositionOnly: false,
-
-          // if you want to use named tokens in your Vue I18n messages, such as 'Hello {name}',
-          // you need to set `runtimeOnly: false`
-          // runtimeOnly: false,
-
-          // you need to set i18n resource including paths !
-          include: path.resolve(__dirname, './src/i18n/!**')
-        }]
-*/
       ],
 
       // Add the following configuration for the index-html-transform plugin
