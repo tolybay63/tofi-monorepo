@@ -5,6 +5,7 @@
   "productName": "Fish NRI",
   "author": "Tolybay Kuanov <tolybay.zh@gmail.com>",
   "private": true,
+  "type": "module",
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
@@ -31,7 +32,8 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vue": "^10.6.2",
     "postcss": "^8.5.6",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "vite": "^7.3.0"
   },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
