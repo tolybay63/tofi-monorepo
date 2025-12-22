@@ -12,6 +12,7 @@
         />
 
         <dbsource name="meta"
+                  id="fish"
                   dbdriver="postgresql"
                   host="192.168.1.39"
                   database="fish_model"
