@@ -7,6 +7,7 @@ export default {
   appModelName: "TOFI platform. Simulation environment.",
   appAdmName: "TOFI platform. Administration environment.",
   company: 'LLP "Systems research company "Factor"',
+  tofi: "TOFI",
 
   chooseLanguage: "Language selection",
   mainPage: "Main page",
