@@ -1,93 +1,93 @@
 <template>
   <div class="q-pa-md" style="height: calc(100vh - 190px)">
-    <q-banner dense inline-actions class="bg-amber-1">
+    <q-banner class="bg-amber-1" dense inline-actions>
       <div style="font-size: 1.2em; font-weight: bold">
-        <q-avatar color="black" text-color="white" icon="code"></q-avatar>
+        <q-avatar color="black" icon="code" text-color="white"></q-avatar>
         {{ $t("tml_permis") }}
       </div>
 
       <template v-slot:action>
-        <q-btn dense icon="save" color="secondary" @click="fnSave()">
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+        <q-btn color="secondary" dense icon="save" @click="fnSave()">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("save") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
+          class="q-ml-sm"
+          color="secondary"
           dense
           icon="expand_more"
-          color="secondary"
-          class="q-ml-sm"
           @click="fnExpand()"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("expandAll") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
+          class="q-ml-sm"
+          color="secondary"
           dense
           icon="expand_less"
-          color="secondary"
-          class="q-ml-sm"
           @click="fnCollapse()"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("collapseAll") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
           v-if="hasTarget('adm:tml:ins')"
+          class="q-ml-sm"
+          color="secondary"
           dense
           icon="post_add"
-          color="secondary"
-          class="q-ml-sm"
           @click="fnIns('ins', false)"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("create1level") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
           v-if="hasTarget('adm:tml:ins')"
+          :disable="currentNode == null"
+          class="q-ml-sm img-vert"
+          color="secondary"
           dense
           icon="post_add"
-          color="secondary"
-          class="q-ml-sm img-vert"
           @click="fnIns('ins', true)"
-          :disable="currentNode == null"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("createChild") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
           v-if="hasTarget('adm:tml:upd')"
+          :disable="currentNode == null"
+          class="q-ml-sm"
+          color="secondary"
           dense
           icon="edit"
-          color="secondary"
-          class="q-ml-sm"
           @click="fnIns('upd', null)"
-          :disable="currentNode == null"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("editRecord") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
           v-if="hasTarget('adm:tml:del')"
+          :disable="currentNode == null"
+          class="q-ml-sm"
+          color="secondary"
           dense
           icon="delete"
-          color="secondary"
-          class="q-ml-sm"
           @click="fnDel(currentNode)"
-          :disable="currentNode == null"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("deletingRecord") }}
           </q-tooltip>
         </q-btn>
@@ -99,19 +99,20 @@
       {{ this.nodeInfo() }}
     </div>
 
-    <div
-      class="q-table-container q-table--dense wrap bg-amber-1 scroll"
-      style="height: 100%; width: 100%"
-    >
-      <table class="q-table q-table--cell-separator q-table--bordered wrap">
-        <thead class="text-bold text-white bg-blue-grey-13">
+    <div class="sticky-header-table">
+      <div
+        class="q-table-container q-table--dense wrap bg-amber-1 scroll"
+        style="height: 100%; width: 100%"
+      >
+        <table class="q-table q-table--cell-separator q-table--bordered wrap">
+          <thead class="text-bold text-white bg-blue-grey-13">
           <tr>
             <th :style="columns[0].headerStyle">{{ columns[0].label }}</th>
             <th :style="columns[0].headerStyle">{{ columns[1].label }}</th>
           </tr>
-        </thead>
+          </thead>
 
-        <tbody style="background: aliceblue; height: 100%">
+          <tbody style="background: aliceblue;">
           <tr v-for="(item, index) in arrayTreeObj" :key="index">
             <td :data-th="columns[0].name" @click="toggle(item, index)">
               <span
@@ -119,22 +120,22 @@
                 v-bind:style="setPadding(item)"
               >
                 <q-icon
-                  style="cursor: pointer"
                   :name="iconName(item)"
                   color="secondary"
+                  style="cursor: pointer"
                 ></q-icon>
 
                 <q-btn
-                  dense
-                  flat
-                  color="blue"
+                  :disable="!hasTarget('adm:tml:upd')"
                   :icon="
                     selected.length === 1 && item.id === selected[0].id
                       ? 'check_box'
                       : 'check_box_outline_blank'
                   "
+                  color="blue"
+                  dense
+                  flat
                   @click.stop="selectedRow(item)"
-                  :disable="!hasTarget('adm:tml:upd')"
                 >
                 </q-btn>
 
@@ -144,8 +145,9 @@
             <!--id-->
             <td :data-th="columns[1].id">{{ item.id }}</td>
           </tr>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -340,7 +342,7 @@ export default {
           api
             .post(baseURL, {
               method: "permis/delete",
-              params: [{ rec: rec }],
+              params: [{rec: rec}],
             })
             .then(
               () => {
@@ -436,11 +438,37 @@ export default {
 </script>
 
 <style scoped>
-
 .img-vert {
   transform: scaleY(-1);
   filter: "FlipV";
   -ms-filter: "FlipV";
 }
 
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 95%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
 </style>
+
