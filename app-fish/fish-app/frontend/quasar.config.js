@@ -6,14 +6,10 @@
 import { defineConfig } from '#q-app/wrappers'
 import { fileURLToPath } from 'node:url'
 
-let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
-
-/*
 let url = "http://localhost:8080"
 if (process.env.NODE_ENV === 'production') {
   url = process.env.VITE_PRODUCT_URL
 }
-*/
 
 export default defineConfig((ctx) => {
   return {
@@ -56,20 +52,16 @@ export default defineConfig((ctx) => {
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
-      vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? '/fish/' : '',
+      vueRouterBase: '',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
-      publicPath: ctx.modeName === 'spa' && ctx.prod ? '/fish/' : '',
+      publicPath: '',
       extendViteConf(viteConf, { isServer, isClient }) {
-        if (ctx.modeName === 'spa' && ctx.prod) {
-          viteConf.base = '/fish/';
-        } else {
           viteConf.base = '';
-        }
       },
 
       // analyze: true,

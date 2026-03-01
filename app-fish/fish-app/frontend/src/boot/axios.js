@@ -13,18 +13,16 @@ const appAdmURL = process.env.VITE_PRUDUCT_ADM_URL
 const appModelURL = process.env.VITE_PRUDUCT_MODEL_URL
 const appDataUserURL = process.env.VITE_PRUDUCT_DATAUSER_URL
 const appDataURL = process.env.VITE_PRUDUCT_DATA_URL
+const appCubeURL = process.env.VITE_PRUDUCT_CUBE_URL
 const appNSIURL = process.env.VITE_PRUDUCT_NSI_URL
 const appMonitoringURL = process.env.VITE_PRUDUCT_MONITORING_URL
-const appCubeURL = process.env.VITE_PRUDUCT_CUBE_URL
 
-/*
-let url = 'http://localhost:8080'
+let url = "http://localhost:8080"
 if (import.meta.env.PROD) {
   url = process.env.VITE_PRODUCT_URL
 }
-*/
 
-const baseURL = "/api"
+const baseURL = url + "/api"
 const api = axios.create({ baseURL: baseURL })
 
 
