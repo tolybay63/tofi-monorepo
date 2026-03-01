@@ -162,7 +162,7 @@
           </template>
         </q-banner>
 
-        <div style="height: calc(100vh - 215px); width: 100%" class="scroll">
+        <div style="height: calc(100vh - 230px); width: 100%" class="scroll">
           <q-table
             style="height: 100%; width: 100%"
             color="primary"

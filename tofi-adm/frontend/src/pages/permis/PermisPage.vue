@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-md" style="height: calc(100vh - 190px)">
+  <div class="q-pa-md" style="height: calc(100vh - 180px)">
     <q-banner class="bg-amber-1" dense inline-actions>
       <div style="font-size: 1.2em; font-weight: bold">
         <q-avatar color="black" icon="code" text-color="white"></q-avatar>
@@ -99,22 +99,21 @@
       {{ this.nodeInfo() }}
     </div>
 
-    <div class="sticky-header-table">
-      <div
-        class="q-table-container q-table--dense wrap bg-amber-1 scroll"
-        style="height: 100%; width: 100%"
-      >
-        <table class="q-table q-table--cell-separator q-table--bordered wrap">
-          <thead class="text-bold text-white bg-blue-grey-13">
-          <tr>
-            <th :style="columns[0].headerStyle">{{ columns[0].label }}</th>
-            <th :style="columns[0].headerStyle">{{ columns[1].label }}</th>
-          </tr>
-          </thead>
+    <div
+      class="q-table-container q-table--dense wrap bg-amber-1 scroll sticky-header-table"
+      style="height: 100%; width: 100%"
+    >
+      <table class="q-table q-table--cell-separator q-table--bordered wrap">
+        <thead class="text-bold text-white bg-blue-grey-13">
+        <tr>
+          <th :style="columns[0].headerStyle">{{ columns[0].label }}</th>
+          <th :style="columns[0].headerStyle">{{ columns[1].label }}</th>
+        </tr>
+        </thead>
 
-          <tbody style="background: aliceblue;">
-          <tr v-for="(item, index) in arrayTreeObj" :key="index">
-            <td :data-th="columns[0].name" @click="toggle(item, index)">
+        <tbody style="background: aliceblue;">
+        <tr v-for="(item, index) in arrayTreeObj" :key="index">
+          <td :data-th="columns[0].name" @click="toggle(item, index)">
               <span
                 class="q-tree-link q-tree-label"
                 v-bind:style="setPadding(item)"
@@ -141,14 +140,14 @@
 
                 {{ item.text }}
               </span>
-            </td>
-            <!--id-->
-            <td :data-th="columns[1].id">{{ item.id }}</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
+          </td>
+          <!--id-->
+          <td :data-th="columns[1].id">{{ item.id }}</td>
+        </tr>
+        </tbody>
+      </table>
     </div>
+
   </div>
 </template>
 

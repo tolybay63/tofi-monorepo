@@ -26,13 +26,13 @@
     </q-tabs>
 
     <q-tab-panels v-model="tab" animated>
-      <q-tab-panel name="desc" style="height: calc(100vh - 190px); width: 100%">
+      <q-tab-panel name="desc">
         <role-desc :role="role" />
       </q-tab-panel>
 
       <q-tab-panel
         name="permis"
-        style="height: calc(100vh - 190px); width: 100%"
+
       >
         <role-permis />
       </q-tab-panel>
