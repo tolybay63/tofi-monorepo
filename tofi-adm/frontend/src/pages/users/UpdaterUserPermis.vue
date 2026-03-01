@@ -297,7 +297,7 @@ export default {
     // following method is REQUIRED
     // (don't change its name --> "show")
     show() {
-      this.$refs.dialog.show();
+      this.$refs.dialog["show"]();
     },
 
     onOKClick() {
@@ -353,7 +353,7 @@ export default {
     // following method is REQUIRED
     // (don't change its name --> "hide")
     hide() {
-      this.$refs.dialog.hide();
+      this.$refs.dialog["hide"]();
     },
 
     onDialogHide() {
@@ -407,7 +407,7 @@ export default {
       return "";
     },
 
-    toggle(item, index) {
+    toggle(item) {
       if (item.children && item.children.length > 0) {
         if (item.expend) collaps(item);
         else expand(item);

@@ -105,13 +105,12 @@ export default {
     return {
       user_id: 0,
       userName: "",
-      FD_AccessLevel: null,
+      FD_AccessLevel: new Map(),
       isExpanded: true,
       itemId: null,
       columns: [],
       table: [],
-      separator: "cell",
-      loading: ref(false),
+      loading: false,
     };
   },
 
@@ -122,7 +121,7 @@ export default {
     },
 
     fetchData(user) {
-      this.loading = ref(true);
+      this.loading = true;
       api
         .post(baseURL, {
           method: "usr/loadUserPermis",
@@ -133,12 +132,12 @@ export default {
         })
         .finally(() => {
           this.fnExpand();
-          this.loading = ref(false);
+          this.loading = false;
         });
     },
 
     loadUser(user) {
-      this.loading = ref(true);
+      this.loading = true;
       api
         .post(baseURL, {
           method: "usr/loadUser",
@@ -149,7 +148,7 @@ export default {
         })
         .finally(() => {
           this.fnExpand();
-          this.loading = ref(false);
+          this.loading = false;
         });
     },
 
@@ -205,7 +204,7 @@ export default {
       return "";
     },
 
-    toggle(item, index) {
+    toggle(item) {
       let vm = this;
       vm.itemId = item.id;
 
@@ -270,7 +269,7 @@ export default {
   },
 
   mounted() {
-    this.user_id = this.$route.params.user;
+    this.user_id = this.$route["params"].user;
     this.loadUser(this.user_id);
     this.fetchData(this.user_id);
   },
@@ -280,7 +279,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.columns = this.getColumns();
 
-    this.loading = ref(true)
+    this.loading = true
 
     api
       .post(baseURL, {
@@ -291,7 +290,7 @@ export default {
         this.FD_AccessLevel = response.data.result
       })
       .finally(() => {
-        this.loading = ref(false)
+        this.loading = false
       })
   },
 

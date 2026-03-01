@@ -203,9 +203,8 @@
 </template>
 
 <script>
-import {ref} from "vue";
 import {api, baseURL} from "boot/axios";
-import { expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
+import {expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
 import QTreeTable from "components/QTreeTable.vue";
 import UpdateGroup from "pages/users/UpdateGroup.vue";
 import UpdateUser from "pages/users/UpdateUser.vue";
@@ -231,14 +230,14 @@ export default {
       cols: [],
       rows: [],
       currentNode: null,
-      visible: ref(false),
+      visible: false,
 
       dense: true,
       //
       cols2: [],
       rows2: [],
-      FD_AccessLevel: null,
-      loading2: ref(false),
+      FD_AccessLevel: new Map(),
+      loading2: false,
       //
       selected2: [],
       user_id: 0,
@@ -249,7 +248,7 @@ export default {
   methods: {
     hasTarget,
     authSelect() {
-      this.$router.push({
+      this.$router["push"]({
         name: "UserSelected",
         params: {
           userGr: this.currentNode.id,
@@ -271,7 +270,7 @@ export default {
     },
 
     fetchDataGr() {
-      this.visible = ref(true);
+      this.visible = true;
 
       this.currentNode = null;
       this.selected2 = [];
@@ -287,9 +286,7 @@ export default {
             this.fnExpand();
           },
           (error) => {
-
-            this.$router.push("/");
-
+            this.$router["push"]("/");
             let msg = error.message;
             if (error.response)
               msg = this.$t(error.response.data.error.message);
@@ -308,7 +305,7 @@ export default {
           }
         })
         .finally(() => {
-          this.visible = ref(false);
+          this.visible = false;
         });
     },
 
@@ -481,7 +478,7 @@ export default {
     },
 
     fetchData(gr) {
-      this.loading2 = ref(true);
+      this.loading2 = true;
       api
         .post(baseURL, {
           method: "usr/load",
@@ -507,7 +504,7 @@ export default {
           }
         })
         .finally(() => {
-          this.loading2 = ref(false);
+          this.loading2 = false;
         });
     },
 
@@ -626,7 +623,7 @@ export default {
     this.lang = localStorage.getItem("curLang");
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
-    this.visible = ref(true)
+    this.visible = true
     api
       .post(baseURL, {
         method: "dict/loadDict",
@@ -636,7 +633,7 @@ export default {
         this.FD_AccessLevel = response.data.result
       })
       .finally(() => {
-        this.visible = ref(false)
+        this.visible = false
       })
 
     this.cols = this.getColumns();
@@ -646,8 +643,8 @@ export default {
   },
 
   mounted() {
-    this.user_id = parseInt(this.$route.params.user, 10);
-    this.userGr_id = parseInt(this.$route.params.userGr, 10);
+    this.user_id = parseInt(this.$route["params"].user, 10);
+    this.userGr_id = parseInt(this.$route["params"].userGr, 10);
   },
 
   setup() {
