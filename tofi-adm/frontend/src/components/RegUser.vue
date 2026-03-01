@@ -103,15 +103,16 @@
             -->
             <!-- phone -->
             <q-input
-                dense
-                clearable
-                v-model="form.phone"
-                :model-value="form.phone"
-                unmasked-value
-                :label="$t('phone')"
-                prefix="+7"
-                mask="### ### ####"
-                fill-mask="_"
+              dense
+              clearable
+              v-model="form.phone"
+              :model-value="form.phone"
+              unmasked-value
+              :label="$t('phone')"
+              prefix="+7"
+              mask="### ### ####"
+              fill-mask="_"
+              @update:model-value="isValid"
             />
           </q-card-section>
         </div>
@@ -125,14 +126,7 @@
             icon="how_to_reg"
             :label="$t('registration')"
             @click="onOKClick"
-            :disable="
-            !(
-              loginTest(form.login) &&
-              emailTest(form.email) &&
-              form.passwd &&
-              form.passwd === form.psw2
-            )
-          "
+            :disable="disableReg()"
         >
           <template #loading>
             <q-spinner-hourglass color="white"/>
@@ -170,11 +164,15 @@ export default {
       },
       lang: this.lg,
       isPwd: ref(true),
-      loading: ref(false),
+      loading: false,
     };
   },
 
   methods: {
+    isValid() {
+      return this.form.phone.length === 10
+    },
+
     emailTest: function (v) {
       return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
           v
@@ -190,18 +188,22 @@ export default {
     },
 
     disableReg() {
-      return (
-          !!this.form.login &&
-          !!this.form.login.trim() &&
-          this.emailTest(this.form.email)
-      );
+      return !(
+        this.loginTest(this.form.login) &&
+        this.loginTest(this.form.name) &&
+        this.loginTest(this.form.fullName) &&
+        this.emailTest(this.form.email) &&
+        this.form.passwd && this.form.passwd === this.form.psw2 &&
+        this.isValid()
+      )
+
     },
 
     show() {
-      this.$refs.dialog.show();
+      this.$refs.dialog["show"]();
     },
     hide() {
-      this.$refs.dialog.hide();
+      this.$refs.dialog["hide"]();
     },
 
     onDialogHide() {
@@ -211,7 +213,7 @@ export default {
     onOKClick() {
       //const data = JSON.parse(JSON.stringify(this.form));
 
-      this.loading = ref(true);
+      this.loading = true;
 
       api
           .post(baseURL, {
@@ -219,20 +221,20 @@ export default {
             params: [this.form],
           })
           .then(
-              (response) => {
+              () => {
                 this.$emit("ok", {res: true});
                 this.hide();
               },
               (error) => {
-                let msg = "";
+                let msg = error.message;
                 if (error.response)
                   msg = this.$t(error.response.data.error.message);
-                else msg = error.message;
+
                 notifyError(msg);
               }
           )
           .finally(() => {
-            this.loading = ref(false);
+            this.loading = false;
           });
     },
 
