@@ -1,96 +1,94 @@
 <template>
-  <div class="q-pa-sm-sm" style="height: calc(100vh - 270px)">
-    <q-banner dense inline-actions class="bg-amber-1">
+  <div class="q-pa-sm-sm"  style="height: calc(100vh - 270px)">
+    <q-banner class="bg-amber-1" dense inline-actions>
       <div style="font-size: 1.2em; font-weight: bold">
         {{ $t("roles2") }}
       </div>
 
       <template v-slot:action>
         <q-btn
+          class="q-ml-sm"
+          color="secondary"
           dense
           icon="expand_more"
-          color="secondary"
-          class="q-ml-sm"
           @click="fnExpand()"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("expandAll") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
+          class="q-ml-sm"
+          color="secondary"
           dense
           icon="expand_less"
-          color="secondary"
-          class="q-ml-sm"
           @click="fnCollapse()"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("collapseAll") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
           v-if="hasTarget('adm:usr:gr:usr:sel:priv')"
+          class="q-ml-sm"
+          color="secondary"
           dense
           icon="edit_note"
-          color="secondary"
-          class="q-ml-sm"
           @click="fnEdit()"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("update") }}
           </q-tooltip>
         </q-btn>
 
-        <q-inner-loading :showing="loading" color="secondary" />
+        <q-inner-loading :showing="loading" color="secondary"/>
 
       </template>
     </q-banner>
 
     <div
-      class="q-table-container q-table--dense wrap bg-amber-1"
+      class="q-table-container q-table--dense wrap bg-amber-1 sticky-header-table"
       style="height: 100%; width: 100%"
     >
-      <div class="q-pa-sm-sm">
-        <div class="q-table-middle scroll">
-          <table class="q-table q-table--cell-separator q-table--bordered wrap">
-            <thead class="text-bold text-white bg-blue-grey-13">
-              <tr class style="text-align: left">
-                <th :style="columns[0].headerStyle">{{ columns[0].label }}</th>
-                <th :style="columns[1].headerStyle">{{ columns[1].label }}</th>
-              </tr>
-            </thead>
+      <table class="q-table q-table--cell-separator q-table--bordered wrap">
+        <thead class="text-bold text-white bg-blue-grey-13">
+        <tr class style="text-align: left">
+          <th :style="columns[0].headerStyle">{{ columns[0].label }}</th>
+          <th :style="columns[1].headerStyle">{{ columns[1].label }}</th>
+        </tr>
+        </thead>
 
-            <tbody style="background: aliceblue; height: 100%">
-              <tr v-for="(item, index) in arrayTreeObj" :key="index">
-                <td
-                  :data-th="columns[0].name"
-                  style="width: 20%"
-                  @click="toggle(item, index)"
-                >
+        <tbody style="background: aliceblue; height: 100%">
+        <tr v-for="(item, index) in arrayTreeObj" :key="index">
+          <td
+            :data-th="columns[0].name"
+            style="width: 20%"
+            @click="toggle(item, index)"
+          >
                   <span
                     class="q-tree-link q-tree-label"
                     v-bind:style="setPadding(item)"
                   >
                     <q-icon
-                      style="cursor: pointer"
                       :name="iconName(item)"
                       color="secondary"
+                      style="cursor: pointer"
                     ></q-icon>
 
                     {{ item.text }}
                   </span>
-                </td>
-                <td :data-th="columns[1].name">
-                  {{ fnAL(item.accessLevel) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+          </td>
+          <td :data-th="columns[1].name">
+            {{ fnAL(item.accessLevel) }}
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
     </div>
+
   </div>
 </template>
 
@@ -312,4 +310,31 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 100%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
+</style>
