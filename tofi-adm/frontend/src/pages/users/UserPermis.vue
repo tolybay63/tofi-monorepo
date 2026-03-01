@@ -159,7 +159,6 @@ export default {
           componentProps: {
             user: this.user_id,
             userName: this.userName,
-            lg: this.lang,
             dense: true,
           },
         })
@@ -275,8 +274,6 @@ export default {
   },
 
   created() {
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.columns = this.getColumns();
 
     this.loading = true

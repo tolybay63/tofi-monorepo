@@ -57,12 +57,11 @@
 import {api, baseURL} from "boot/axios";
 
 export default {
-  props: ["data", "lg", "dense"],
+  props: ["data", "dense"],
 
   data() {
     return {
       form: JSON.parse(JSON.stringify(this.data)),
-      lang: this.lg,
       options: [],
       al: this.data.accessLevel === undefined ? null : this.data.accessLevel,
       loading: false

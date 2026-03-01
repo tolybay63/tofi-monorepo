@@ -186,14 +186,13 @@ const uncheckChilds = (node) => {
 };
 
 export default {
-  props: ["user", "userName", "lg", "dense"],
+  props: ["user", "userName", "dense"],
 
   data() {
     return {
-      lang: this.lg,
       cols: [],
       rows: [],
-      FD_AccessLevel: null,
+      FD_AccessLevel: new Map(),
       loading: false,
       //
       isExpanded: true,
@@ -216,7 +215,6 @@ export default {
           component: UpdateAccessLevel,
           componentProps: {
             data: row,
-            lg: this.lang,
             dense: true,
           },
         })

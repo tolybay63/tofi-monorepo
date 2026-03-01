@@ -36,7 +36,10 @@
             {{ $t("update") }}
           </q-tooltip>
         </q-btn>
+
+        <q-inner-loading :showing="loading" color="secondary" />
       </template>
+
     </q-banner>
 
     <div
@@ -95,13 +98,13 @@ export default {
   data: function () {
     return {
       role_id: 0,
-      FD_AccessLevel: null,
+      FD_AccessLevel: new Map(),
       isExpanded: true,
       itemId: null,
       columns: [],
       table: [],
       separator: "cell",
-      loading: ref(false),
+      loading: false,
     };
   },
 
@@ -112,7 +115,7 @@ export default {
     },
 
     fetchData(role) {
-      this.loading = ref(true);
+      this.loading = true;
       api
         .post(baseURL, {
           method: "role/loadRolePermis",
@@ -123,7 +126,7 @@ export default {
         })
         .finally(() => {
           this.fnExpand();
-          this.loading = ref(false);
+          this.loading = false;
         });
     },
 
@@ -133,7 +136,6 @@ export default {
           component: UpdaterRolePermis,
           componentProps: {
             role: this.role_id,
-            lg: this.lang,
             dense: true,
           },
         })
@@ -246,11 +248,9 @@ export default {
   },
 
   created() {
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.columns = this.getColumns();
 
-    this.loading = ref(true)
+    this.loading = true
     api
       .post(baseURL, {
         method: "dict/loadDict",
@@ -260,7 +260,7 @@ export default {
         this.FD_AccessLevel = response.data.result
       })
       .finally(() => {
-        this.loading = ref(false)
+        this.loading = false
       })
   },
 

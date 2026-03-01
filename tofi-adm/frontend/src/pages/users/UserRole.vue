@@ -57,9 +57,7 @@ export default {
       user_id: 0,
       cols: [],
       rows: [],
-
       loading: false,
-
     };
   },
 
@@ -71,7 +69,6 @@ export default {
           component: UpdaterUserRole,
           componentProps: {
             user: this.user_id, // userName: this.userName,
-            lg: this.lang,
             dense: true,
           },
         })
@@ -138,8 +135,6 @@ export default {
   computed: {},
 
   created() {
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.cols = this.getColumns();
   },
 

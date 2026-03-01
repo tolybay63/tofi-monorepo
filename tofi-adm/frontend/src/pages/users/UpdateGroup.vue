@@ -106,12 +106,11 @@ import {ref} from "vue";
 export default {
   components: { treeselect },
 
-  props: ["data", "mode", "lg", "isChild", "parentName", "dense"],
+  props: ["data", "mode", "isChild", "parentName", "dense"],
 
   data() {
     return {
       form: this.data,
-      lang: this.lg,
       optAL: [],
       al: this.data.accessLevel,
       //

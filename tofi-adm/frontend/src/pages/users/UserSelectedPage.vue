@@ -114,9 +114,6 @@ export default {
   },
 
   created() {
-    //console.log("<<<<<  created")
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
   },
 
   computed: {},

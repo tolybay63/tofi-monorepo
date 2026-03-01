@@ -169,13 +169,12 @@ import {notifyError} from "src/utils/jsutils";
 import {api, baseURL} from "boot/axios";
 
 export default {
-  props: ["rec", "mode", "lg", "dense"],
+  props: ["rec", "mode", "dense"],
   emits: ["ok", "hide"],
 
   data() {
     return {
       form: this.rec,
-      lang: this.lg,
       isPwd: ref(true),
       loading: false,
       optionsLevel: [],

@@ -280,8 +280,6 @@ export default {
         text: "",
       };
 
-      //const lg = this.lang;
-
       let parent = null;
       let parentName = null;
       if (isChild) {
@@ -415,8 +413,6 @@ export default {
   },
 
   created() {
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.columns = this.getColumns();
     this.fetchData();
   },
