@@ -14,7 +14,6 @@
       :filter="filter"
       :loading="loading"
       :dense="dense"
-      @update:pagination="updPagination"
       :rows-per-page-options="[20, 25, 0]"
       :max="pagesNumber"
       @request="requestData"
@@ -158,7 +157,7 @@ export default {
   methods: {
     hasTarget,
     fnChoose() {
-      this.$router.push({
+      this.$router["push"]({
         name: "RoleSelected",
         params: {
           role: this.selected[0].id,
@@ -288,7 +287,7 @@ export default {
             }
           },
           (error) => {
-            this.$router.push("/");
+            this.$router["push"]("/");
             let msg = error.message;
             if (error.response)
               msg = this.$t(error.response.data.error.message);
@@ -305,11 +304,6 @@ export default {
 
     pagesNumber: function () {
       return 1;
-    },
-
-    updPagination(newPagination) {
-      //console.info(newPagination)
-      return (this.pagination.sortBy = requestParam.sortBy);
     },
 
     requestData(requestProps) {
@@ -368,7 +362,7 @@ export default {
   },
 
   mounted() {
-    this.role_id = parseInt(this.$route.params.role, 10);
+    this.role_id = parseInt(this.$route["params"].role, 10);
   },
 
   created() {

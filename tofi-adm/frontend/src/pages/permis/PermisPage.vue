@@ -224,7 +224,7 @@ export default {
       return "";
     },
 
-    toggle(item, index) {
+    toggle(item) {
       let vm = this;
       vm.itemId = item.id;
 
@@ -370,7 +370,7 @@ export default {
             this.table = pack(response.data.result.records, "ord");
           },
           (error) => {
-            this.$router.push("/");
+            this.$router["push"]("/");
             let msg = error.message;
             if (error.response)
               msg = this.$t(error.response.data.error.message);

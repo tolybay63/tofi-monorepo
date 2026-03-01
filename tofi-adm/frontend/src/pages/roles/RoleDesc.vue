@@ -44,7 +44,7 @@ export default {
   },
 
   mounted() {
-    let role_id = this.$route.params.role;
+    let role_id = this.$route["params"].role;
     this.loading = ref(true);
     api
       .post(baseURL, {

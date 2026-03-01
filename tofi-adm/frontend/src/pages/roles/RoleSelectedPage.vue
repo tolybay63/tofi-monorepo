@@ -60,7 +60,7 @@ export default {
 
   methods: {
     toBack() {
-      this.$router.push({
+      this.$router["push"]({
         name: "Roles",
         params: {
           role: this.role_id,
@@ -74,7 +74,7 @@ export default {
   },
 
   mounted() {
-    this.role_id = parseInt(this.$route.params.role, 10);
+    this.role_id = parseInt(this.$route["params"].role, 10);
 
     // load role
     this.loading = ref(true);
