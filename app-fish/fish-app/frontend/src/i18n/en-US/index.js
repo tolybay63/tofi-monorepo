@@ -4,6 +4,7 @@
 export default {
   lang: "en",
   appName: "TOFI platform",
+  tofi: "TOFI",
   //
 
   appModelName: "Simulation environment",

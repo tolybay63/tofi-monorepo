@@ -5,6 +5,7 @@
 export default {
   lang: "ru",
   appName: "Платформа ТОФИ",
+  tofi: "ТОФИ",
   //
 
   appModelName: "Среда моделирования",

@@ -5,6 +5,7 @@
 export default {
   lang: "kz",
   appName: "ТНФӨ платформасы",
+  tofi: "ТНФӨ",
   //
   appModelName: "Модельдеу ортасы",
   appAdmName: "Әкімшілік ортасы",
