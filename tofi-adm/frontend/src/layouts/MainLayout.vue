@@ -226,13 +226,11 @@ const hasTarget = (tg) => {
 const loginOnOff = () => {
 
   if (getUserName.value === '') {
-    const lang = localStorage.getItem('curLang')
     leftDrawerOpen.value = true
     $q
       .dialog({
         component: LoginUser,
         componentProps: {
-          lg: lang,
           // ...
         },
       })
@@ -273,11 +271,9 @@ const loginOnOff = () => {
 }
 
 const regUser = async () => {
-  const lang = localStorage.getItem('curLang')
   try {
     $q.dialog({
       component: RegUser,
-      componentProps: {lg: lang}
     })
       .onOk((response)=> {
         if (response.res) {
@@ -292,11 +288,9 @@ const regUser = async () => {
 
 const profileUser = () => {
   if (getUserName.value && getUserId.value !== 1) {
-    const lang = localStorage.getItem('curLang')
     $q.dialog({
       component: ProfileUser,
       componentProps: {
-        lg: lang,
         userId: getUserId.value
       }
     })

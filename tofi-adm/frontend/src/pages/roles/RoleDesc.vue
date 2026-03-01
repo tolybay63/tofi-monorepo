@@ -24,12 +24,14 @@
           <strong> {{ permis }} </strong>
         </q-item>
       </div>
+
+      <q-inner-loading :showing="loading" color="secondary" />
+
     </q-card-section>
   </q-card>
 </template>
 
 <script>
-import {ref} from "vue";
 import {api, baseURL} from "boot/axios";
 import {notifyError} from "src/utils/jsutils";
 
@@ -40,12 +42,13 @@ export default {
   data() {
     return {
       permis: "",
+      loading: false,
     };
   },
 
   mounted() {
     let role_id = this.$route["params"].role;
-    this.loading = ref(true);
+    this.loading = true;
     api
       .post(baseURL, {
         method: "role/getRolePermis",
@@ -58,7 +61,7 @@ export default {
         notifyError(error.message);
       })
       .finally(() => {
-        this.loading = ref(false);
+        this.loading = false;
       });
 
     //this.fetchData(requestParam);

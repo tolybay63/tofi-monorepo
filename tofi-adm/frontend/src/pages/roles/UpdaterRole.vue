@@ -71,12 +71,11 @@ import {api, baseURL} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
-  props: ["data", "mode", "lg"],
+  props: ["data", "mode"],
 
   data() {
     return {
       form: this.data,
-      lang: this.lg,
       options: [],
     };
   },

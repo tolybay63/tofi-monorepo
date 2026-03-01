@@ -221,14 +221,12 @@ export default {
         };
       }
 
-      const lg = { name: this.lang };
       this.$q
         .dialog({
           component: UpdateRole,
           componentProps: {
             data: data,
             mode: mode,
-            lg: lg,
             // ...
           },
         })
@@ -366,11 +364,7 @@ export default {
   },
 
   created() {
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
-
     this.cols = this.getColumns();
-
     this.fetchData(requestParam);
   },
 
