@@ -76,7 +76,7 @@ export default {
 
   methods: {
     toBack() {
-      this.$router.push({
+      this.$router["push"]({
         name: "Users",
         params: {
           user: this.user_id,
@@ -91,8 +91,8 @@ export default {
   },
 
   mounted() {
-    this.user_id = parseInt(this.$route.params.user, 10);
-    this.userGr_id = parseInt(this.$route.params.userGr, 10);
+    this.user_id = parseInt(this.$route["params"].user, 10);
+    this.userGr_id = parseInt(this.$route["params"].userGr, 10);
 
     // load user
     this.loading = ref(true);

@@ -17,11 +17,11 @@ export const useUserStore = defineStore("user", {
   },
 
   getters: {
-    getUserId: (state) => state.user.id,
-    isSysAdmin: (state) => parseInt(state.user.id, 10) === 1,
-    getUserName: (state) => state.user.name,
+    getUserId: (state) => state["user"].id,
+    isSysAdmin: (state) => parseInt(state["user"].id, 10) === 1,
+    getUserName: (state) => state["user"].name,
     getTarget: (state) =>
-      state.user.target ? state.user.target.split(",") : "",
+      state["user"].target ? state["user"].target.split(",") : "",
   },
 
   actions: {
@@ -33,11 +33,11 @@ export const useUserStore = defineStore("user", {
       //console.info("setUserStore", data)
       if (JSON.stringify(data) !== "{}") {
         this.user.id = data.id;
-        this.user.name = data.fullname;
+        this.user.name = data["fullname"];
         this.user.target = data.target;
 
         sessionStorage.setItem("userid", data.id.toString());
-        sessionStorage.setItem("username", data.fullname);
+        sessionStorage.setItem("username", data["fullname"]);
         sessionStorage.setItem("target", data.target);
       } else {
         sessionStorage.removeItem("userid");
