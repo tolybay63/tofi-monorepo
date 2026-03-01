@@ -176,7 +176,7 @@ export default {
       return "";
     },
 
-    toggle(item, index) {
+    toggle(item) {
       let vm = this;
       vm.itemId = item.id;
 
@@ -241,7 +241,7 @@ export default {
   },
 
   mounted() {
-    this.role_id = this.$route.params.role;
+    this.role_id = this.$route["params"].role;
     this.fetchData(this.role_id);
   },
 
