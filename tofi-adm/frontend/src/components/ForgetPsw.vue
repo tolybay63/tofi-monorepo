@@ -54,8 +54,6 @@
   </q-dialog>
 </template>
 <script>
-import {ref} from "vue";
-import {useQuasar} from "quasar";
 
 export default {
   props: ["lg"],
@@ -64,7 +62,7 @@ export default {
     return {
       form: { email: "" },
       lang: this.lg,
-      loading: ref(false),
+      loading: false,
     };
   },
 
@@ -78,11 +76,11 @@ export default {
     },
 
     show() {
-      this.$refs.dialog.show();
+      this.$refs.dialog["show"]();
     },
 
     hide() {
-      this.$refs.dialog.hide();
+      this.$refs.dialog["hide"]();
     },
 
     onDialogHide() {
@@ -91,12 +89,11 @@ export default {
 
     onOKClick() {
       try {
-        this.loading = ref(true);
+        this.loading = true;
         //code...
       } finally {
         setTimeout(() => {
-          this.loading = ref(false);
-          const $q = useQuasar();
+          this.loading = false;
           this.$q
             .dialog({
               title: "Сообщение",

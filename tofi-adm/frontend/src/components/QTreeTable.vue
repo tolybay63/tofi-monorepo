@@ -48,7 +48,7 @@
 
       <tbody style="background: aliceblue">
         <tr v-for="(item, index) in arrayTreeObj" :key="index">
-          <td :data-th="cols0[0].name" @click="toggle(item, index)">
+          <td :data-th="cols0[0]['name']" @click="toggle(item, index)">
               <span class="q-tree__node" v-bind:style="setPadding(item)">
                 <q-icon
                     style="cursor: pointer"
@@ -79,38 +79,38 @@
               </span>
           </td>
           <!--other cols without 0-->
-          <td v-for="(col, i) in cols_" :data-th="col.name" :key="i">
-              <span v-if="col.checked && col.checked === 'true'">
+          <td v-for="(col, i) in cols_" :data-th="col['name']" :key="i">
+              <span v-if="col['checked'] && col['checked'] === 'true'">
                 <q-btn
                     dense
                     flat
                     color="blue"
                     :icon="
-                    item[col.field] ? 'check_box' : 'check_box_outline_blank'
+                    item[col['field']] ? 'check_box' : 'check_box_outline_blank'
                   "
                 >
                 </q-btn>
               </span>
               <span v-else>
-                  <span v-if="col.field === 'propType'">
+                  <span v-if="col['field'] === 'propType'">
                     <q-icon
                         size="24px"
                         :color="getColor(item)"
-                        :name="getIcon(item[col.field])"
+                        :name="getIcon(item[col['field']])"
                     ></q-icon>
                   </span>
                   {{
-                  col.field === "accessLevel"
-                      ? fnAL(item[col.field])
-                      : col.field === "propType"
+                  col['field'] === "accessLevel"
+                      ? fnAL(item[col['field']])
+                      : col['field'] === "propType"
                           ? fnPT(item)
-                          : col.field === "dimPropType"
+                          : col['field'] === "dimPropType"
                               ? fnDPT(item)
-                              : col.field === "dbeg"
-                                  ? fnDbeg(item[col.field])
-                                  : col.field === "dend"
-                                      ? fnDend(item[col.field])
-                                      : item[col.field]
+                              : col['field'] === "dbeg"
+                                  ? fnDbeg(item[col['field']])
+                                  : col['field'] === "dend"
+                                      ? fnDend(item[col['field']])
+                                      : item[col['field']]
                   }}
               </span>
           </td>
@@ -173,10 +173,10 @@ export default {
     };
   },
   methods: {
-    clrAny() {
+/*    clrAny() {
       this.selected = [];
       this.currentNode = null;
-    },
+    },*/
 
     getColor(item) {
       if (item.propType === 2 || item.propType === 3) {
@@ -209,7 +209,7 @@ export default {
 
     fnDPT(item) {
       return this.FD_DimPropType
-          ? this.FD_DimPropType.get(item.dimPropType)
+          ? this.FD_DimPropType.get(item["dimPropType"])
           : null;
     },
 
@@ -312,7 +312,7 @@ export default {
       return this.icon_leaf;
     },
 
-    toggle(item, index) {
+    toggle(item) {
       if (item.children && item.children.length > 0) {
         if (item.expend) collaps(item);
         else expand(item);

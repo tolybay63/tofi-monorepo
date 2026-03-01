@@ -39,13 +39,14 @@
                 fill-mask="_"
                 :rules="[(val) => val.length > 9 || $t('req')]"
                 @change="onChangePhone"
+                @update:model-value="isValid"
             />
 
             <q-toggle
                 v-model="chPsw"
                 :label="$t('changePsw')"
                 :model-value="chPsw"
-                @click="onToogle"
+
             />
 
             <!--
@@ -166,7 +167,7 @@ export default {
       form: {},
       form2: {},
       lang: this.lg,
-      loading: ref(false),
+      loading: false,
       chPsw: ref(false),
       newForm: {},
     };
@@ -175,6 +176,10 @@ export default {
   emits: ["ok", "hide"],
 
   methods: {
+    isValid() {
+      return this.form.phone.length !== 10
+    },
+
     onBlur() {
       if (this.form.name) {
         this.form.name = this.form.name.trim();
@@ -234,10 +239,10 @@ export default {
     },
 
     show() {
-      this.$refs.dialog.show();
+      this.$refs.dialog["show"]();
     },
     hide() {
-      this.$refs.dialog.hide();
+      this.$refs.dialog["hide"]();
     },
 
     onDialogHide() {
@@ -251,23 +256,23 @@ export default {
       this.newForm.id = this.userId;
       //console.log("new Form", this.newForm);
 
-      this.loading = ref(true);
+      this.loading = true;
       api
           .post(baseURL, {
             method: "auth/saveProfile",
             params: [this.newForm],
           })
           .then(
-              (response) => {
+              () => {
                 setUserName(this.form.fullName);
                 if (this.chPsw) {
                   api
                       .post(authURL + "/logout", {
                         params: {},
                       })
-                      .then((response) => {
+                      .then(() => {
                         setUserStore({});
-                        this.$router.push("/");
+                        this.$router["push"]("/");
                       });
 
                   this.$q
@@ -296,7 +301,7 @@ export default {
               }
           )
           .finally(() => {
-            this.loading = ref(false);
+            this.loading = false;
           });
     },
 
@@ -308,7 +313,7 @@ export default {
     },
   },
   created() {
-    this.loading = ref(true);
+    this.loading = true;
     api
         .post(baseURL, {
           id: "1",
@@ -325,7 +330,7 @@ export default {
             }
         )
         .finally(() => {
-          this.loading = ref(false);
+          this.loading = false;
         });
 
     return {};

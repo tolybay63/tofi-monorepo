@@ -37,7 +37,7 @@ import languages from "quasar/lang/index.json";
 import {Quasar} from "quasar";
 import {useI18n} from "vue-i18n";
 
-let localeOptions;
+//let localeOptions;
 
 export default {
   methods: {
@@ -64,7 +64,7 @@ export default {
     const appLanguages = languages.filter((lang) =>
       ["kk", "ru", "en-US"].includes(lang.isoName)
     );
-    localeOptions = appLanguages.map((lang) => ({
+    const localeOptions = appLanguages.map((lang) => ({
       label: lang.nativeName,
       value: lang.isoName,
     }));
