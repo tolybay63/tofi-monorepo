@@ -7,7 +7,7 @@ export default {
   appName: "ТНФӨ платформасы",
   appModelName: "ТНФӨ платформасы. Модельдеу ортасы.",
   company: 'ЖШС "Фактор" жүйелік зерттеулер компаниясы"',
-
+  tofi: "ТНФӨ",
   serviceIDunique: "Сервис идентификаторы бірегей",
   chooseLanguage: "Тілді таңдау",
   mainPage: "Басты бет",
