@@ -8,6 +8,7 @@ export default {
   appName: "Платформа ТОФИ",
   appCubeName: "Работа с кубами",
   company: 'ТОО "Компания системных исследований "Фактор"',
+  tofi: "ТОФИ",
   menu: "Меню",
   chooseLanguage: "Выбор языка",
   mainPage: "Главная страница",

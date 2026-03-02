@@ -8,6 +8,7 @@ export default {
   appName: "ТНФӨ платформасы",
   appCubeName: "Кубтармен жұмыс",
   company: 'ЖШС "Фактор" жүйелі зерттеулер компаниясы"',
+  tofi: "ТНФӨ",
   menu: "Мәзір",
   chooseLanguage: "Тіл таңдау",
   mainPage: "Басты бет",

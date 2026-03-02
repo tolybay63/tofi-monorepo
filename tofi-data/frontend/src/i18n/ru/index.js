@@ -8,6 +8,7 @@ export default {
   appModelName: "Платформа ТОФИ. Среда моделирования.",
   appAdmName: "Платформа ТОФИ. Среда администрирования.",
   appDataName: "Платформа ТОФИ. Ввод данных.",
+  tofi: "ТОФИ",
 
   company: 'ТОО "КСИ "Фактор"',
   chooseLanguage: "Выбор языка",

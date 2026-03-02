@@ -8,7 +8,7 @@ export default {
   appModelName: "ТНФӨ платформасы. Модельдеу ортасы.",
   appAdmName: "ТНФӨ платформасы. Әкімшілік орта.",
   appDataName: "ТНФӨ платформасы. Деректерді енгізу.",
-
+  tofi: "ТНФӨ",
   company: 'ЖШС "Фактор" ЖЗК"',
   chooseLanguage: "Тіл таңдау",
   mainPage: "Басты бет",
