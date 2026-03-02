@@ -6,7 +6,7 @@ export default {
   appName: "TOFI platform",
   appNSIName: "Normative reference information",
   company: 'LLP "Systems research company "Factor"',
-
+  tofi: "TOFI",
   chooseLanguage: "Language selection",
   mainPage: "Main page",
   logIn: "Login",

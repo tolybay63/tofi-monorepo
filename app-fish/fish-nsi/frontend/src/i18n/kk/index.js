@@ -7,7 +7,7 @@ export default {
   appName: "ТНФӨ платформасы",
   appNSIName: "Нормативтік анықтамалық ақпарат",
   company: 'ЖШС "Фактор" жүйелі зерттеулер компаниясы"',
-
+  tofi: "ТНФӨ",
   chooseLanguage: "Тіл таңдау",
   mainPage: "Басты бет",
   logIn: "Кіру",

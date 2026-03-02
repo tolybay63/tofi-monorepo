@@ -6,7 +6,7 @@ export default {
   appName: 'TOFI platform',
   appMonitoringName: 'Monitoring of industrial reservoirs',
   company: 'LLP "Systems research company "Factor"',
-
+  tofi: "TOFI",
   chooseLanguage: 'Language selection',
   mainPage: 'Main page',
   logIn: 'Login',

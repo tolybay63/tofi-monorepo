@@ -7,7 +7,7 @@ export default {
   appName: 'ТНФӨ платформасы',
   appMonitoringName: 'Өндірістік су қоймаларының мониторингі',
   company: 'ЖШС "Фактор" жүйелі зерттеулер компаниясы"',
-
+  tofi: "ТНФӨ",
   chooseLanguage: 'Тіл таңдау',
   mainPage: 'Басты бет',
   logIn: 'Кіру',
