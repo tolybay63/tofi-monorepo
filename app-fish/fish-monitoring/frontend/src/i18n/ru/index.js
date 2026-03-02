@@ -8,6 +8,7 @@ export default {
   appName: 'Платформа ТОФИ',
   appMonitoringName: 'Мониторинг рыбопромысловых водоемов',
   company: 'ТОО "Компания системных исследований "Фактор"',
+  tofi: "ТОФИ",
 
   chooseLanguage: 'Выбор языка',
   mainPage: 'Главная страница',

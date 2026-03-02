@@ -17,7 +17,6 @@ if (process.env.NODE_ENV === 'production') {
   url = process.env.VITE_PRODUCT_URL
 }
 
-//module.exports = configure(ctx => {
 export default defineConfig((ctx) => {
   return ({
     eslint: {
