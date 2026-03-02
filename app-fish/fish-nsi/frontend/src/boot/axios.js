@@ -11,20 +11,15 @@ import axios from 'axios'
 //const api = axios.create({ baseURL: 'https://api.example.com' })
 
 
-let urlMainApp = import.meta.env.VITE_PRODUCT_URL_MAIN_APP
+let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
 
-let url = 'http://127.0.0.1:8080'
+let url = 'http://localhost:8080'
 if (import.meta.env.PROD) {
-  url = import.meta.env.VITE_PRODUCT_URL
+  url = process.env.VITE_PRODUCT_URL
 }
 
-let authURL = url + "/auth"
+const authURL = url + "/auth"
 let baseURL = url + "/api"
-
-if (import.meta.env.PROD) {
-  authURL = "/auth"
-  baseURL = "/api"
-}
 
 const api = axios.create({ baseURL: baseURL })
 
@@ -43,4 +38,4 @@ export default defineBoot(({ app }) => {
 const tofi_dbeg = "1800-01-01";
 const tofi_dend = "3333-12-31";
 
-export { authURL, api, baseURL, urlMainApp, tofi_dbeg, tofi_dend };
+export { api, authURL, baseURL, urlMainApp, tofi_dbeg, tofi_dend };

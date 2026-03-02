@@ -12,8 +12,10 @@ import {defineConfig} from '#q-app/wrappers'
 import {fileURLToPath} from 'node:url'
 import {resolve} from 'node:path'
 
-
-let url = 'http://127.0.0.1:8080'
+let url = 'http://localhost:8080'
+if (process.env.NODE_ENV === 'production') {
+  url = process.env.VITE_PRODUCT_URL
+}
 
 //module.exports = configure(ctx => {
 export default defineConfig((ctx) => {
@@ -60,12 +62,6 @@ export default defineConfig((ctx) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
-      env: {
-        url: ctx.dev
-          ? 'http://127.0.0.1:8080'
-          : process.env.VITE_PRODUCT_URL
-      },
-
       target: {
         browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
         node: 'node20'
@@ -73,20 +69,16 @@ export default defineConfig((ctx) => {
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
-      vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? '/fish/nsi/' : '',
+      vueRouterBase: '',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
-      publicPath: ctx.modeName === 'spa' && ctx.prod ? '/fish/nsi/' : '',
+      publicPath: '',
       extendViteConf(viteConf, { isServer, isClient }) {
-        if (ctx.modeName === 'spa' && ctx.prod) {
-          viteConf.base = '/fish/nsi/';
-        } else {
-          viteConf.base = '';
-        }
+        viteConf.base = '';
 
         // Исправление пути для quasar-app-extension-qpdfviewervue3
         // Расширение использует неправильный путь к composable
