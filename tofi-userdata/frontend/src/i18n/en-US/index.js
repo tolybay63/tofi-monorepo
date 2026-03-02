@@ -7,7 +7,7 @@ export default {
   appUserDataName: "TOFI platform. User's personal account.",
   company: 'LLP "Systems research company "Factor"',
   company2: "Institute of Mechanics and Engineering named after U.A.Dzholdasbekov",
-
+  tofi: "TOFI",
   chooseLanguage: "Language selection",
   mainPage: "Main page",
   logIn: "Login",

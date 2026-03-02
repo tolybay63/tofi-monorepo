@@ -9,6 +9,7 @@ export default {
   appName: "TOFI platform",
   appCubeName: "Working with cubes",
   company: 'LLP "Systems research company "Factor"',
+  tofi: "TOFI",
   menu: "Menu",
   chooseLanguage: "Language selection",
   mainPage: "Main page",
