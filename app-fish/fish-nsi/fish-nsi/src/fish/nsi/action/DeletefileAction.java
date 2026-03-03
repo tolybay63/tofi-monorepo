@@ -2,7 +2,8 @@ package fish.nsi.action;
 
 import jandcode.commons.UtFile;
 import jandcode.core.web.action.BaseAction;
-import java.io.*;
+
+import java.io.File;
 
 public class DeletefileAction extends BaseAction {
 
