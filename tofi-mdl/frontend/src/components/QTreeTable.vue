@@ -31,7 +31,7 @@
     </span>
   </span>
 
-  <div class="q-pa-sm-sm bg-orange-1">
+  <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
     <table class="q-table q-table--cell-separator q-table--bordered wrap">
       <thead class="text-bold text-white bg-blue-grey-13">
         <tr class style="text-align: left">
@@ -391,4 +391,31 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 95%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
+</style>
