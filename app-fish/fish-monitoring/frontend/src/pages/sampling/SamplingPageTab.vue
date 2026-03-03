@@ -126,7 +126,7 @@
                 :key="col.name"
                 :props="props"
               >
-                <div v-if="fnCell(props.row, col.name)">
+                <div v-if="fnCell(col.name)">
 
                   <q-btn
                     color="primary" round size="sm" flat dense icon="more_vert" class="absolute-right"
@@ -276,7 +276,7 @@ export default {
       return this.$t(label) + "*";
     },
 
-    fnCell(row, col) {
+    fnCell(col) {
       //console.info(col)
       return col.startsWith('p_')
     },

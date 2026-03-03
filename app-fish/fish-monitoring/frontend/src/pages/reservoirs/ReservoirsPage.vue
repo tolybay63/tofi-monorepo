@@ -407,7 +407,7 @@ export default {
             // ...
           }
         })
-        .onOk((r) => {
+        .onOk(() => {
 
           //console.info("UpdMeter", r)
           this.loadReservors()

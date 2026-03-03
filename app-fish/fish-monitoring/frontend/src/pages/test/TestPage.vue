@@ -48,7 +48,7 @@
       <div v-if="!isFill">
         <div v-if="errTest">
           <div>
-            Проверка формата: <span class="text-red"> {{ logs[0].msg }} </span>
+            Проверка формата: <span class="text-red"> {{ logs[0]["msg"] }} </span>
           </div>
           <div>Количество строк: {{ logs[0].cnt }}</div>
         </div>
@@ -153,7 +153,6 @@
 <script>
 import {ref} from 'vue'
 import {api} from "boot/axios.js";
-import axios from "axios";
 
 export default {
   name: 'TestPage',
