@@ -15,8 +15,8 @@
         >
           <q-banner dense inline-actions class="bg-orange-1 q-mb-sm">
             <div style="font-size: 1.2em; font-weight: bold">
-                <q-avatar color="black" text-color="white" icon="folder"/>
-                {{ $t("userGr") }}
+              <q-avatar color="black" text-color="white" icon="folder"/>
+              {{ $t("userGr") }}
             </div>
 
             <template v-slot:action>
@@ -75,7 +75,7 @@
                 </q-tooltip>
               </q-btn>
 
-              <q-inner-loading :showing="visible" color="secondary" />
+              <q-inner-loading :showing="visible" color="secondary"/>
             </template>
           </q-banner>
 
@@ -164,6 +164,7 @@
 
         <div style="height: calc(100vh - 230px); width: 100%" class="scroll">
           <q-table
+            class="sticky-header-table"
             style="height: 100%; width: 100%"
             color="primary"
             card-class="bg-amber-1"
@@ -222,7 +223,7 @@ const findNode = (nodes, key, value, res) => {
 
 export default {
   name: "UserPage",
-  components: { QTreeTable },
+  components: {QTreeTable},
 
   data() {
     return {
@@ -356,7 +357,7 @@ export default {
           this.fetchDataGr();
           this.currentNode = r;
           this.$refs.childComp.restoreSelect(this.currentNode);
-          this.onUpdateSelect({ selected: r });
+          this.onUpdateSelect({selected: r});
         });
     },
 
@@ -412,8 +413,8 @@ export default {
           },
         })
         .onOk((data) => {
-            this.fetchData(this.currentNode.id);
-            this.selected2.push(data)
+          this.fetchData(this.currentNode.id);
+          this.selected2.push(data)
 
         });
     },
@@ -646,9 +647,38 @@ export default {
 };
 </script>
 
-<style scoped>
-.img-vert {
-  transform: scaleY(-1);
-  -ms-filter: "FlipV";
-}
+<style lang="sass">
+
+
+.sticky-header-table
+  /* height or max-height is important */
+  height: calc(100vh - 130px)
+
+  .q-table__top,
+  .q-table__bottom,
+  thead tr:first-child th
+    /* bg color is important for th; just specify one #00b4ff #bdbdcb*/
+    background-color: #bdbdbd //#607d8b
+  // #bdbdbd
+
+  thead tr th
+    position: sticky
+    z-index: 1
+
+  thead tr:first-child th
+    top: 0
+
+  /* this is when the loading indicator appears */
+
+
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 48px
+
+  /* prevent scrolling behind sticky top row on focus */
+
+
+  tbody
+    /* height of all previous header rows */
+    scroll-margin-top: 48px
 </style>
