@@ -179,7 +179,7 @@ export default {
     },
 
     getColor(item) {
-      if (item['propType'] === 2 || item.propType === 3) {
+      if (item['propType'] === 2 || item["propType"] === 3) {
         if (item['meterStruct'] === allConsts.FD_MeterStruct.hard) return "orange";
         else return "green";
       } else {
@@ -209,7 +209,7 @@ export default {
 
     fnDPT(item) {
       return this.FD_DimPropType
-          ? this.FD_DimPropType.get(item.dimPropType)
+          ? this.FD_DimPropType.get(item["dimPropType"])
           : null;
     },
 
@@ -226,10 +226,6 @@ export default {
           at = " (" + this.$t("dttm") + ")";
         else if (item['attribValType'] === allConsts.FD_AttribValType.tm)
           at = " (" + this.$t("tm") + ")";
-        else if (item['attribValType'] === allConsts.FD_AttribValType.integ)
-          at = " (" + this.$t("integ") + ")";
-        else if (item['attribValType'] === allConsts.FD_AttribValType.num)
-          at = " (" + this.$t("num") + ")";
         else if (item['attribValType'] === allConsts.FD_AttribValType.file)
           at = " (" + this.$t("file") + ")";
         else if (item['attribValType'] === allConsts.FD_AttribValType.multistr)
@@ -239,7 +235,7 @@ export default {
         else if (item['attribValType'] === allConsts.FD_AttribValType.entity)
           at = " (" + this.$t("entity") + ")";
       }
-      return this.FD_PropType ? this.FD_PropType.get(item.propType) + at : null;
+      return this.FD_PropType ? this.FD_PropType.get(item["propType"]) + at : null;
     },
 
     fnDbeg(val) {

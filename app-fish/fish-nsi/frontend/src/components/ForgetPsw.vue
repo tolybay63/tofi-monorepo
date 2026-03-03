@@ -54,7 +54,6 @@
   </q-dialog>
 </template>
 <script>
-import {useQuasar} from "quasar";
 
 export default {
   props: ["lg"],
@@ -77,11 +76,11 @@ export default {
     },
 
     show() {
-      this.$refs.dialog.show();
+      this.$refs.dialog["show"]();
     },
 
     hide() {
-      this.$refs.dialog.hide();
+      this.$refs.dialog["hide"]();
     },
 
     onDialogHide() {
@@ -95,7 +94,6 @@ export default {
       } finally {
         setTimeout(() => {
           this.loading = false;
-          const $q = useQuasar();
           this.$q
             .dialog({
               title: "Сообщение",

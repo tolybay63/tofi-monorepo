@@ -119,13 +119,13 @@ export default {
     // following method is REQUIRED
     // (don't change its name --> "show")
     show() {
-      this.$refs.dialog.show();
+      this.$refs.dialog["show"]();
     },
 
     // following method is REQUIRED
     // (don't change its name --> "hide")
     hide() {
-      this.$refs.dialog.hide();
+      this.$refs.dialog["hide"]();
     },
 
     onDialogHide() {

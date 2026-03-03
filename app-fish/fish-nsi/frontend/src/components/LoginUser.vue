@@ -142,22 +142,24 @@ export default {
         });
     },
 
+/*
     emailTest: function (v) {
       return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
         v
       );
     },
+*/
 
     loginTest() {
       return this.form.login && this.form.login.trim() && this.form.psw && this.form.psw.trim();
     },
 
     show() {
-      this.$refs.dialog.show();
+      this.$refs.dialog["show"]();
     },
 
     hide() {
-      this.$refs.dialog.hide();
+      this.$refs.dialog["hide"]();
     },
 
     onDialogHide() {
@@ -181,7 +183,7 @@ params: {username: this.form.login, password: this.form.psw},
           },
         })
         .then(
-          (response) => {
+          () => {
             //const JSESSIONID = Cookies.get("JSESSIONID");
             //console.info(JSESSIONID, JSESSIONID);
             //console.log("loginUser: response", response);
@@ -191,9 +193,9 @@ params: {username: this.form.login, password: this.form.psw},
             //console.log("loginUser: error", error.message)
             //console.log("loginUser: error.response", error.response)
             err = true
-            let msg = error.message;
-            if (error.response) msg = this.$t("invalidLoginPasswd");
-            else msg = this.$t("networkError");
+            let msg = this.$t("networkError");
+            if (error.response)
+              msg = this.$t("invalidLoginPasswd");
 
             notifyError(msg);
           }
