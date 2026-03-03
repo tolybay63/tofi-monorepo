@@ -1,5 +1,5 @@
 <template>
-  <div class="no-padding no-margin" style="height: calc(100vh - 190px)">
+  <div class="no-padding no-margin">
     <q-splitter
       v-model="splitterModel2"
       :model-value="splitterModel2"
@@ -10,7 +10,7 @@
     >
       <template v-slot:before>
         <q-table
-          style="max-height: 900px; width: 100%"
+          style="height: calc(100vh - 185px); width: 100%"
           class="my-sticky-header-table"
           color="primary"
           dense
