@@ -5,8 +5,11 @@ import jandcode.commons.error.XError
 import jandcode.core.dbm.domain.Domain
 import jandcode.core.dbm.mdb.Mdb
 import jandcode.core.store.Store
-import org.apache.poi.ss.usermodel.*
-import org.apache.poi.xssf.usermodel.*
+import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.xssf.usermodel.XSSFSheet
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 
 class XLSXReader_withoutDescription {
 
