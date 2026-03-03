@@ -180,7 +180,6 @@ const { setUserStore } = store
 
 // Reactive state
 const leftDrawerOpen = ref(true)
-
 // Computed properties
 const reqAuth = computed(() => getUserName.value === '')
 const notAccess = computed(() => getTarget.value.length === 0 && !isSysAdmin.value)
@@ -284,7 +283,6 @@ const regUser = async () => {
     notifyError(error.message)
   }
 }
-
 
 const profileUser = () => {
   if (getUserName.value && getUserId.value !== 1) {

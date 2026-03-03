@@ -22,7 +22,8 @@ public class RoleMdbUtils {
         Map<String, Object> par = new HashMap<>();
         int offset = (UtCnv.toInt(params.get("page")) - 1) * UtCnv.toInt(params.get("limit"));
         par.put("offset", offset);
-        par.put("limit", UtCnv.toInt(params.get("limit")));
+        if (UtCnv.toInt(params.get("limit")) > 0)
+            par.put("limit", UtCnv.toInt(params.get("limit")));
         sqlText.setSql(sql);
         sqlText.paginate(true);
 
@@ -40,7 +41,7 @@ public class RoleMdbUtils {
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cmt like '%" + filter + "%'");
         int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
-        Map<String, Object> meta = new HashMap<String, Object>();
+        Map<String, Object> meta = new HashMap<>();
         meta.put("total", total);
         meta.put("page", UtCnv.toInt(params.get("page")));
         meta.put("limit", UtCnv.toInt(params.get("limit")));

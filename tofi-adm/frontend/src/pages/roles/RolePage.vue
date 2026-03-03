@@ -1,7 +1,8 @@
 <template>
-  <q-page class="q-pa-md" style="height: 100px">
+  <q-page class="q-pa-md" style="height: calc(100vh - 150px);">
     <q-table
-      style="height: 100%; width: 100%"
+      class="sticky-header-table"
+      style="width: 100%"
       color="primary"
       card-class="bg-amber-1"
       row-key="id"
@@ -14,7 +15,7 @@
       :filter="filter"
       :loading="loading"
       :dense="dense"
-      :rows-per-page-options="[20, 25, 0]"
+      :rows-per-page-options="[25, 0]"
       :max="pagesNumber"
       @request="requestData"
       selection="single"
@@ -123,7 +124,7 @@ import UpdateRole from "pages/roles/UpdaterRole.vue";
 
 const requestParam = {
   page: 1,
-  rowsPerPage: 20,
+  rowsPerPage: 25,
   rowsNumber: 0,
   filter: "",
   descending: false,
@@ -146,7 +147,7 @@ export default {
         sortBy: null,
         descending: false,
         page: 1,
-        rowsPerPage: 15,
+        rowsPerPage: 25,
         rowsNumber: 0,
       },
       selected: [],
@@ -248,12 +249,8 @@ export default {
     fetchData(requestProps) {
       this.loading = true;
 
-      const page =
-        requestProps.rowsPerPage === undefined ? 1 : requestProps.page;
-      const rowsPerPage =
-        requestProps.rowsPerPage === 0
-          ? this.pagination.rowsNumber
-          : requestProps.rowsPerPage;
+      const page = requestProps.page;
+      const rowsPerPage = requestProps.rowsPerPage;
       const orderBy = requestProps.sortBy;
       const filter = requestProps.filter;
       //
@@ -380,4 +377,31 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 95%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
+</style>

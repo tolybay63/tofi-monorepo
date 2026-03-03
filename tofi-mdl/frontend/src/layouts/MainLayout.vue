@@ -85,7 +85,7 @@
           {{ $t("company") }}
 
           <span class="absolute-right q-pt-sm" v-if="metamodel==='fish'">
-          <a href="http://tofishstocks-model.kz" target="_blank" style="font-size: 12px" class="q-pr-md text-white"> {{$t("fish_model")}} </a>
+          <a :href="site_url()" target="_blank" style="font-size: 12px" class="q-pr-md text-white"> {{$t("fish_model")}} </a>
           </span>
 
         </q-toolbar-title>
@@ -195,6 +195,10 @@ export default defineComponent({
       selected,
       mainApp() {
         open(urlMainApp, "_self");
+      },
+
+      site_url() {
+        return process.env.SITE_URL
       },
 
       nameIcon() {
