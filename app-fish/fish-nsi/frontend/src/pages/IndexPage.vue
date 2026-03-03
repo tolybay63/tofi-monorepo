@@ -41,11 +41,6 @@ export default defineComponent({
   overflow: hidden;
 }
 
-.content-wrapper {
-  position: relative;
-  z-index: 2; /* Логотипы поверх фона */
-}
-
 /* Контейнер для элементов фона */
 .bg-elements {
   position: absolute;
