@@ -83,7 +83,7 @@
           <template v-slot:option="{ itemProps, opt, selected, toggleOption }">
             <q-item v-bind="itemProps">
               <q-item-section>
-                <q-item-label v-html="opt.label" />
+                <q-item-label v-html="opt['label']" />
               </q-item-section>
               <q-item-section side>
                 <q-toggle :model-value="selected" @update:model-value="toggleOption(opt)" />
@@ -389,13 +389,13 @@ export default {
     // following method is REQUIRED
     // (don't change its name --> "show")
     show() {
-      this.$refs.dialog.show()
+      this.$refs.dialog["show"]()
     },
 
     // following method is REQUIRED
     // (don't change its name --> "hide")
     hide() {
-      this.$refs.dialog.hide()
+      this.$refs.dialog["hide"]()
     },
 
     onDialogHide() {
