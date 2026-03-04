@@ -1,6 +1,7 @@
 <template>
-  <q-page class="q-pa-md" style="height: 100px">
+  <q-page class="q-pa-md" style="height: calc(100vh - 150px);">
     <q-table
+      class="sticky-header-table"
         style="height: 100%; width: 100%"
         color="primary"
         card-class="bg-amber-1"
@@ -16,6 +17,7 @@
         dense
         selection="single"
         v-model:selected="selected"
+      :rows-per-page-options="[25, 0]"
     >
       <template #bottom-row>
         <q-td colspan="100%" v-if="selected.length > 0">
@@ -335,3 +337,29 @@ export default defineComponent({
   },
 });
 </script>
+
+<style lang="sass">
+.sticky-header-table
+  /* height or max-height is important */
+  height: calc(100vh - 140px)
+
+  thead tr th
+    position: sticky
+    z-index: 1
+
+  thead tr:first-child th
+    top: 0
+
+  /* this is when the loading indicator appears */
+
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 48px
+
+  /* prevent scrolling behind sticky top row on focus */
+
+  tbody
+    /* height of all previous header rows */
+    scroll-margin-top: 48px
+</style>
+

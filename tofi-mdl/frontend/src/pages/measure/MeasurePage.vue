@@ -70,7 +70,7 @@
       </template>
     </q-banner>
 
-    <div style="height: calc(100vh - 220px); width: 100%" class="scroll">
+    <div style="height: calc(100vh - 250px); width: 100%">
       <QTreeTable
         :cols="cols"
         :rows="rows"
@@ -346,7 +346,6 @@ export default {
 
 .img-vert {
   -moz-transform: scaleY(-1);
-  -o-transform: scaleY(-1);
   -webkit-transform: scaleY(-1);
   transform: scaleY(-1);
   -ms-filter: "FlipV";
