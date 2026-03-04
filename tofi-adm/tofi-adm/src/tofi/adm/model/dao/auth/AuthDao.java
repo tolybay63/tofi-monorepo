@@ -37,12 +37,4 @@ public class AuthDao extends BaseModelDao {
         ut.savePsw(rec);
     }
 
-/*
-    public void checkTarget(String target) throws Exception {
-        AuthMdbUtils ut = new AuthMdbUtils(getMdb());
-        ut.checkTarget(target);
-    }
-*/
-
-
 }
