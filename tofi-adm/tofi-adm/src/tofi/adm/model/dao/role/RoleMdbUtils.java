@@ -17,34 +17,38 @@ public class RoleMdbUtils {
     }
 
     public Map<String, Object> loadRolePaginate(Map<String, Object> params) throws Exception {
-        String sql = "select * from AuthRole where 0=0 order by id";
+        //count
+        String sql = "select count(*) as cnt from AuthRole where 0=0";
         SqlText sqlText = mdb.createSqlText(sql);
+        sqlText.setSql(sql);
+        int pg = UtCnv.toInt(params.get("page"));
+        int limit = UtCnv.toInt(params.get("limit"));
+        String filter = UtCnv.toString(params.get("filter")).trim();
+        if (!filter.isEmpty())
+            sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cmt like '%" + filter + "%'");
+        int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
+        limit = limit==0 ? total : limit;
+        sql = "select * from AuthRole where 0=0 order by id";
+
         Map<String, Object> par = new HashMap<>();
-        int offset = (UtCnv.toInt(params.get("page")) - 1) * UtCnv.toInt(params.get("limit"));
+        int offset = (pg - 1) * limit;
         par.put("offset", offset);
-        if (UtCnv.toInt(params.get("limit")) > 0)
-            par.put("limit", UtCnv.toInt(params.get("limit")));
+        par.put("limit", limit);
         sqlText.setSql(sql);
         sqlText.paginate(true);
 
         if (!UtCnv.toString(params.get("orderBy")).trim().isEmpty())
             sqlText = sqlText.replaceOrderBy(UtCnv.toString(params.get("orderBy")));
 
-        String filter = UtCnv.toString(params.get("filter")).trim();
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("(name like '%" + filter + "%' or fullName like '%" + filter + "%'  or cmt like '%" + filter + "%')");
         Store st = mdb.createStore("AuthRole");
         mdb.loadQuery(st, sqlText, par);
-        //count
-        sql = "select count(*) as cnt from AuthRole where 0=0";
-        sqlText.setSql(sql);
-        if (!filter.isEmpty())
-            sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cmt like '%" + filter + "%'");
-        int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
+
         Map<String, Object> meta = new HashMap<>();
         meta.put("total", total);
-        meta.put("page", UtCnv.toInt(params.get("page")));
-        meta.put("limit", UtCnv.toInt(params.get("limit")));
+        meta.put("page", pg);
+        meta.put("limit", limit);
 
         return Map.of("store", st, "meta", meta);
     }

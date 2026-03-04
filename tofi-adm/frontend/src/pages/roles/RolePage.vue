@@ -271,7 +271,7 @@ export default {
             this.rows = response.data.result.store.records;
             const meta = response.data.result.meta;
             this.pagination.page = meta.page;
-            this.pagination.rowsPerPage = meta.limit;
+            this.pagination.rowsPerPage = meta.limit===meta.total ? 0 : meta.limit;
             this.pagination.rowsNumber = meta.total;
             this.maxLen = this.rows.length;
             //
@@ -381,12 +381,6 @@ export default {
 .sticky-header-table
   /* height or max-height is important */
   height: calc(100vh - 140px)
-
-  .q-table__top,
-  .q-table__bottom,
-  thead tr:first-child th
-    /* bg color is important for th; just specify one #00b4ff #bdbdcb*/
-    background-color: #bdbdbd
 
   thead tr th
     position: sticky
