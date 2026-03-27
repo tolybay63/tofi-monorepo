@@ -345,8 +345,8 @@ export default {
   .q-table__top,
   .q-table__bottom,
   thead tr:first-child th
-    /* bg color is important for th; just specify one */
-    background-color: #bdbdbd
+    /* bg color is important for th; just specify one  #bdbdbd*/
+    background-color: #607d8b
 
   thead tr th
     position: sticky

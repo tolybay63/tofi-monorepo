@@ -1,12 +1,11 @@
 <template>
 
-<!--        style="margin-bottom: 5px" -->
-  <div class="q-pa-md no-scroll">
+  <div class="q-pa-md no-scroll bg-amber-1">
     <q-banner
       dense
       inline-actions
-      class="bg-grey-5"
-      style="margin-bottom: -5px"
+      style="margin-bottom: -5px;"
+      class="bg-amber-1"
     >
 
       <div style="font-size: 1.2em; font-weight: bold;">
@@ -113,7 +112,7 @@
 
     </div>
 
-    <q-banner style="background-color: #bdbdbd" >Всего записей: {{this.cnt}} </q-banner>
+    <q-banner style="background-color: #607d8b;" class="text-white" >Всего записей: {{this.cnt}} </q-banner>
   </div>
 
 </template>
