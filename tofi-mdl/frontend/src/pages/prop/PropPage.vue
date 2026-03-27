@@ -8,6 +8,7 @@
         after-class="overflow-hidden q-ml-sm"
         separator-class="bg-red"
         class="bg-amber-1"
+        style="height: calc(100vh - 150px); width: 100%"
     >
       <template v-slot:before>
         <div class="q-pa-sm-sm">
@@ -196,11 +197,11 @@ export default {
 
   data() {
     return {
-      splitterModel: ref(30),
+      splitterModel: 30,
       cols: [],
       rows: [],
       currentNode: null,
-      visible: ref(false),
+      visible: false,
 
       dense: true,
       //
@@ -359,7 +360,7 @@ export default {
     },*/
 
     fetchDataGr() {
-      this.visible = ref(true)
+      this.visible = true
       this.currentNode = null
 
       api
@@ -391,7 +392,7 @@ export default {
             }
           })
           .finally(() => {
-            this.visible = ref(false);
+            this.visible = false;
           });
     },
 
@@ -605,7 +606,7 @@ export default {
     },
 
     fetchData(propGr) {
-      this.visible = ref(true)
+      this.visible = true
       this.currentNode2 = null
 
       api
@@ -636,7 +637,7 @@ export default {
             }
           })
           .finally(() => {
-            this.visible = ref(false);
+            this.visible = false;
           });
     },
 
