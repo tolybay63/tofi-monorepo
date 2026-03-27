@@ -7,36 +7,19 @@
                 class = "tofi.adm.action.RootAction"
         />
 
-
         <action name="auth"
                 class="jandcode.core.apx.auth.AuthAction"/>
 
-
-        <x-if env.dev="true">
-            <!-- автологин подключаем только в режиме dev -->
-            <filter name="auth-autologin"
-                    class="jandcode.core.apx.auth.AuthAutoLoginFilter"
-                    type="startRequest" weight="-100"/>
-        </x-if>
-
-        <filter name="auth"
+        <filter name="jc-auth-engine"
                 class="jandcode.core.apx.auth.AuthFilter"
-                type="*" weight="-100"/>
-
-
-        <auth>
-            <autologin username="sysadmin" password="SysAdmin"/>
-        </auth>
-
+                type="*" weight="-110"/>
     </web>
 
     <bean name="jandcode.core.auth.AuthService"
           class="jandcode.core.auth.impl.AuthServiceImpl">
 
-        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
         <auth-processor name="default"
-                        class="tofi.adm.auth.TofiAuthProcessor"/>
-
+                        class="tofi.adm.auth.AdmAuthProcessor"/>
     </bean>
 
     <dbm>

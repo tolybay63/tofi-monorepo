@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
+    <web>
+        <filter name="auth"
+                class="tofi.auth.TofiSecurityFilter"
+                type="*" weight="-100"/>
+    </web>
+
+    <dbm>
+        <model name="adm" instance="tofi.adm.model"/>
+        <model name="meta" instance="tofi.mdl.model"/>
+    </dbm>
+
+    <dbm>
+        <model name="tofi.api.adm.model">
+            <include name="apx.base"/>
+            <dbsource name="default" dbdriver="postgresql"/>
+        </model>
+    </dbm>
+
 </root>

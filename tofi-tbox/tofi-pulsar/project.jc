@@ -13,8 +13,8 @@ class P extends ProjectScript {
         include(JavaProject).with {
             moduleDef("tofi.pulsar").with {
                 depends.prod(
-                    "pulsar-client",
-                    "pulsar-client-admin",
+                    //"pulsar-client",
+                    //"pulsar-client-admin",
                 )
                 depends.dev(
                 )
