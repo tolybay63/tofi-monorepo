@@ -148,8 +148,8 @@ export default defineComponent({
       cols: [],
       rows: [],
       filter: ref(""),
-      loading: ref(false),
-      selected: ref([]),
+      loading: false,
+      selected: [],
       dense: true,
       tcg: 0
     };
@@ -228,8 +228,8 @@ export default defineComponent({
     },
 
     fetchData() {
-      this.loading = ref(true);
-      this.selected = ref([]);
+      this.loading = true;
+      this.selected = [];
       //
       api
           .post(baseURL, {
@@ -256,7 +256,7 @@ export default defineComponent({
           })
           .finally(() => {
             //setTimeout(() => {
-            this.loading = ref(false);
+            this.loading = false;
             //}, 500)
           });
     },
@@ -287,7 +287,7 @@ export default defineComponent({
                 .then(
                     () => {
                       this.rows.splice(index, 1);
-                      this.selected = ref([]);
+                      this.selected = [];
                       notifySuccess(this.$t("success"));
                     },
                     (error) => {
