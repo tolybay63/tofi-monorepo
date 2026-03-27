@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md" style="height: calc(100vh - 150px);">
+  <q-page class="q-pa-md" style="height: 100px">
     <q-table
       class="sticky-header-table"
       style="height: 100%; width: 100%"
@@ -501,31 +501,30 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
-.sticky-header-table {
-  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
-  max-height: 95%;
-  overflow: auto;
-}
+<style lang="sass">
+.sticky-header-table
+  /* height or max-height is important */
+  height: calc(100vh - 140px)
+  /* bg color is important for th; just specify one */
+  background-color: #bdbdbd
 
-.sticky-header-table table {
-  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
-  border-collapse: separate;
-  border-spacing: 0;
-}
+  thead tr th
+    position: sticky
+    z-index: 1
 
-.sticky-header-table thead th {
-  /* Делаем заголовок липким */
-  position: sticky;
-  top: 0;
-  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
-  z-index: 1;
-  /* Фон обязателен, иначе заголовок будет прозрачным */
-  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
-}
+  thead tr:first-child th
+    top: 0
 
-/* Опционально: если у таблицы есть границы, фиксируем их отображение */
-.sticky-header-table .q-table--bordered {
-  border-top: none;
-}
+  /* this is when the loading indicator appears */
+
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 48px
+
+  /* prevent scrolling behind sticky top row on focus */
+
+  tbody
+    /* height of all previous header rows */
+    scroll-margin-top: 48px
 </style>
+

@@ -584,7 +584,7 @@ export default defineComponent({
 <style scoped>
 .sticky-header-table {
   /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
-  max-height: 95%;
+  max-height: 100%;
   overflow: auto;
 }
 
