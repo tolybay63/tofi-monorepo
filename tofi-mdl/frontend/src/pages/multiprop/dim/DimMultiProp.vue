@@ -8,6 +8,7 @@
       after-class="overflow-hidden q-ml-sm"
       separator-class="bg-red"
       class="bg-amber-1 no-scroll"
+      style="height: calc(100vh - 150px); width: 100%"
     >
       <template v-slot:before>
         <div class="q-pa-sm-sm">
