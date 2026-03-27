@@ -1,8 +1,9 @@
 
 <template>
-  <q-page class="q-pa-sm" style="height: calc(100vh - 140px); width: 100%">
+  <q-page class="q-pa-sm" style="height: 100px">
     <q-table
       class="sticky-header-table"
+      style="height: 100%; width: 100%"
       color="primary" dense
       card-class="bg-amber-1 text-brown"
       row-key="id"
@@ -273,8 +274,8 @@ export default {
   .q-table__top,
   .q-table__bottom,
   thead tr:first-child th
-    /* bg color is important for th; just specify one #00b4ff #bdbdcb*/
-    background-color: #bdbdbd
+    /* bg color is important for th; just specify one #00b4ff #bdbdcb  #bdbdbd*/
+    background-color: 00b4ff
 
   thead tr th
     position: sticky
@@ -296,3 +297,31 @@ export default {
     scroll-margin-top: 48px
 </style>
 
+<!--<style scoped>
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 100%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table&#45;&#45;bordered {
+  border-top: none;
+}
+</style>-->

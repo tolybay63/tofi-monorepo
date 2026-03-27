@@ -2,7 +2,7 @@
   <q-page class="q-pa-md" style="height: 100px">
     <q-table
       class="sticky-header-table"
-      style="height: 100%; width: 100%"
+      style="height: calc(100vh - 200px); width: 100%"
       color="primary"
       card-class="bg-amber-1"
       row-key="id"

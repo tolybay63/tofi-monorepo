@@ -10,9 +10,10 @@
     >
 
       <template v-slot:before>
+        <div class="q-pa-sm" style="height: calc(100vh - 140px); width: 100%">
         <q-table
-          style="height: calc(100vh - 140px); width: 100%"
-          class="my-sticky-header-table"
+          style="height: 100%; width: 100%"
+          class="sticky-header-table"
 
           dense
           card-class="bg-amber-1 text-brown"
@@ -134,6 +135,7 @@
             <q-inner-loading showing color="secondary" />
           </template>
         </q-table>
+</div>
       </template>
 
       <template v-slot:after>
@@ -707,7 +709,7 @@ export default {
 }
 </script>
 
-<style lang="sass">
+<!--<style lang="sass">
 .my-sticky-header-table
   /* height or max-height is important */
   height: calc(100vh - 190px)
@@ -715,8 +717,8 @@ export default {
   .q-table__top,
   .q-table__bottom,
   thead tr:first-child th
-    /* bg color is important for th; just specify one #00b4ff #bdbdcb*/
-    background-color: #bdbdbd
+    /* bg color is important for th; just specify one #00b4ff #bdbdcb  #bdbdbd*/
+    background-color: #607d8b
 
   thead tr th
     position: sticky
@@ -727,7 +729,7 @@ export default {
 
   /* this is when the loading indicator appears */
 
-  &.q-table--loading thead tr:last-child th
+  &.q-table&#45;&#45;loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
@@ -736,4 +738,33 @@ export default {
   tbody
     /* height of all previous header rows */
     scroll-margin-top: 48px
+</style>-->
+
+<style scoped>
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 95%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
 </style>
