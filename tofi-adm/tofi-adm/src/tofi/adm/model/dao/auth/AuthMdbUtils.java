@@ -5,112 +5,106 @@ import jandcode.commons.UtString;
 import jandcode.commons.error.XError;
 import jandcode.core.auth.AuthService;
 import jandcode.core.auth.AuthUser;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
+import jandcode.core.store.StoreRecord;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class AuthMdbUtils {
-    Mdb mdb;
-
-    public AuthMdbUtils(Mdb mdb) throws Exception {
-        this.mdb = mdb;
-    }
-
-    public Map<String, Object> getUserInfo(String l, String p, String app) throws Exception {
-        String p1 = UtString.md5Str(p);
-        Store st = mdb.loadQuery("""
-            select * from authuser where login=:l and passwd=:p
-        """, Map.of("l", l, "p", p1));
-        Map<String, Object> res = new HashMap<>();
-        if (st.size() == 1) {
-            res.putAll(st.get(0).getValues());
-            //
-            Store stPer = mdb.loadQuery("""
-                WITH RECURSIVE r AS (
-                   SELECT *
-                   FROM permis
-                   WHERE parent=:app
-                   union ALL
-                   SELECT t.*
-                   FROM ( SELECT * FROM permis ) t JOIN r ON t.parent = r.id
-                ),
-                o as (
-                    SELECT * FROM permis WHERE id=:app
-                ),
-                perm as (
-                    SELECT * FROM o
-                    union ALL
-                    SELECT * FROM r where 0=0
-                )
-                SELECT distinct p.id as permis
-                FROM perm p
-                    inner join (
-                        select distinct * from (
-                            select a2.permis
-                            from authroleuser a
-                                left join authrolepermis a2  on a2.authrole=a.authrole
-                            where a.authuser=:u
-                            union all
-                            select permis
-                            from authuserpermis
-                            where authuser=:u
-                        ) e where 0=0
-                    ) t on t.permis=p.id
-            """, Map.of("u", UtCnv.toLong(st.get(0).getLong("id")),
-                    "app", app));
-
-            Set<Object> sp = stPer.getUniqueValues("permis");
-            String target = UtString.join(sp, ",");
-            res.put("target", target);
-        }
-
-        return res;
-    }
-
-    public Map<String, Object> getCurUserInfo() throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
+public class AuthMdbUtils extends BaseMdbUtils {
+    @DaoMethod
+    public Map<String, Object> getUserInfo() {
+        AuthService authSvc = getMdb().getApp().bean(AuthService.class);
         AuthUser au = authSvc.getCurrentUser();
         if (au==null) {
-            throw new XError("NotLogined");
+            throw new XError("notLoginned");
         }
         return au.getAttrs();
     }
 
+    @DaoMethod
     public Store loadProfile(long id) throws Exception {
-        Store st = mdb.createStore("AuthUser");
-        mdb.loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));
+        Store st = getMdb().createStore("AuthUser");
+        getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));
         st.get(0).set("passwd", null);
         return st;
     }
 
+    @DaoMethod
     public void saveProfile(Map<String, Object> rec) throws Exception {
         if (rec.size() > 1)
-            mdb.updateRec("AuthUser", rec);
+            getMdb().updateRec("AuthUser", rec);
     }
 
+    @DaoMethod
     public void savePsw(Map<String, Object> rec) throws Exception {
         String po = UtString.md5Str(UtCnv.toString(rec.get("passwdold")));
-        Store st = mdb.loadQuery("select passwd from AuthUser where id=:id",
+        Store st = getMdb().loadQuery("select passwd from AuthUser where id=:id",
                 Map.of("id", UtCnv.toLong(rec.get("id"))));
 
         if (po.equals(st.get(0).getString("passwd"))) {
             String p = UtString.md5Str(UtCnv.toString(rec.get("passwd")));
-            mdb.updateRec("AuthUser",
+            getMdb().updateRec("AuthUser",
                     Map.of("id", UtCnv.toLong(rec.get("id")), "passwd", p));
         } else {
             throw new XError("invalidOldPasswd");
         }
     }
 
-/*
-    public void checkTarget(String target) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
-        long usr = au.getAttrs().getLong("id");
+    @DaoMethod
+    public void regUser(Map<String, Object> rec) throws Exception {
+        String psw = UtString.md5Str(UtCnv.toString(rec.get("passwd")));
+        String login = UtString.toString(rec.get("login")).trim();
+        Store st = getMdb().loadQuery("""
+                    select id from AuthUser where login like :l
+                """, Map.of("l", login));
+        if (st.size() > 0) {
+            throw new XError("loginExists");
+        }
+
+        rec.put("passwd", psw);
+
+        //
+        st = getMdb().createStore("AuthUser");
+        StoreRecord r = st.add(rec);
+        r.set("authUserGr", 2);
+        r.set("accessLevel", 1);
+        r.set("locked", 0);
+        getMdb().insertRec("AuthUser", r, true);
     }
-*/
+
+    @DaoMethod
+    public void checkTarget(String target) {
+        AuthService authService = getModel().getApp().bean(AuthService.class);
+        AuthUser usr = authService.getCurrentUser();
+
+        //if (getMdb().getApp().getEnv().isDev()) {
+        System.out.println("--- DEBUG ---");
+        System.out.println("Target: " + target);
+        System.out.println("User ID from Attrs: " + usr.getAttrs().getLong("id"));
+        System.out.println("User Login: " + usr.getAttrs().getString("login"));
+        System.out.println("-------------");
+        //}
+
+        if (usr.getAttrs().getLong("id") == 1) return;
+
+        if (usr.getAttrs().getLong("id") == 0)
+            throw new XError("notLoginned");
+
+        String userTargets = usr.getAttrs().getString("target", "");
+        String [] targets = userTargets.trim().split("\\s*,\\s*");
+        if (!Arrays.asList(targets).contains(target)) {
+            if (target.equals("adm")) {
+                throw new XError("notAccessService");
+            }
+            throw new XError("notAccess");
+        }
+    }
+
 
 }
