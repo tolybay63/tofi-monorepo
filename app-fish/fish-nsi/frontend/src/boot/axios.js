@@ -4,10 +4,7 @@ import { LoadingBar, Notify } from 'quasar'
 import {useUserStore} from "stores/user-store.js";
 
 let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
-
-//**********************************
 const SERVICE_NAME = 'nsi';
-//**********************************
 
 const url = 'http://127.0.0.1:8080'
 let authURL = url + "/auth"
@@ -25,10 +22,9 @@ if (import.meta.env.PROD) {
 
 const api = axios.create({ baseURL: baseURL })
 
-
-// Восстанавливаем токен!
+// Восстанавливаем токен только если это реально строка
 const token = localStorage.getItem('fish_token')
-if (token) {
+if (token && typeof token === 'string') {
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 }
 
@@ -42,8 +38,11 @@ api.interceptors.request.use((config) => {
 export default defineBoot(({ app, router }) => {
   const userStore = useUserStore();
 
-  // Инициализируем стор (чтобы имя пользователя появилось в шапке)
-  userStore.initFromToken();
+  // Инициализируем стор ТОЛЬКО если токен существует и он не пустой
+  // Это уберет ошибку "пришел object" (потому что null это object)
+  if (token && token !== 'undefined' && token !== 'null') {
+    userStore.initFromToken();
+  }
 
   api.interceptors.response.use(
     (response) => {
@@ -56,13 +55,22 @@ export default defineBoot(({ app, router }) => {
       const data = error.response?.data;
       const failingUrl = error.config?.url;
 
-      let errorCode = (data && typeof data === 'object') ? (data?.error?.message || data?.message) : error.message;
-      if (!errorCode) errorCode = error.message;
+      // --- УЛУЧШЕННЫЙ ПОИСК КОДА ОШИБКИ ---
+      let errorCode = error.message;
 
-      // Защита сессии. Если токен в хранилище есть, значит мы залогинены.
+      if (data) {
+        if (typeof data === 'object') {
+          // Ищем везде: в message, в error.message или просто в error
+          errorCode = data.error?.message || data.message || data.error || error.message;
+        } else if (typeof data === 'string') {
+          errorCode = data;
+        }
+      }
+
+      // Защита сессии
       if (status === 401 || errorCode === 'notLoginned') {
         if (localStorage.getItem('fish_token')) {
-          console.warn('[Session Control] JWT активен, игнорируем 401 для:', failingUrl);
+          console.warn('[Session Control] JWT активен, игнорируем 401');
           return Promise.reject(error);
         }
         userStore.clearUserStore();
@@ -70,11 +78,14 @@ export default defineBoot(({ app, router }) => {
         return Promise.reject(error);
       }
 
+      // Выводим уведомление. Если errorCode = 'invalid_user_passwd', Quasar его покажет.
       Notify.create({
         type: 'negative',
         message: app.config.globalProperties.$t(errorCode) || errorCode,
-        position: 'bottom-right'
+        position: 'bottom-right',
+        timeout: 5000
       });
+
       return Promise.reject(error);
     }
   );

@@ -148,6 +148,7 @@ import {hasTarget} from "src/utils/jsutils";
 import {useUserStore} from "stores/user-store";
 import {storeToRefs} from "pinia";
 import {useRouter} from "vue-router";
+import {Notify} from "quasar";
 
 export default defineComponent({
   name: "MainLayout",
@@ -275,13 +276,22 @@ export default defineComponent({
                 })
                 .then(
                   (response) => {
-                    localStorage.setItem('fish_token', response.data.result.token);
-                    api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.result.token;
-                    setUserStore(response.data.result.token)
-                    router.push('/')
+                  // 1. Проверяем, что путь к токену существует
+                    const token = response.data?.result?.token;
+                    // 2. Проверяем, что это именно строка (JWT)
+                    if (token && typeof token === 'string') {
+                      localStorage.setItem('fish_token', token);
+                      api.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+                      setUserStore(token); // Передаем только строку
+                      router.push('/');
+                    } else {
+                      console.error('Бэкенд вернул токен в неверном формате:', token);
+                      Notify.create({ type: 'negative', message: 'Ошибка формата токена' });
+                    }
                   },
-                  () => {
-                    clearUserStore()
+                  (error) => {
+                    // Здесь clearUserStore() сработает, если интерцептор пробросит ошибку
+                    clearUserStore();
                   }
                 )
             });
