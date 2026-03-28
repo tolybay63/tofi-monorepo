@@ -153,7 +153,7 @@
   </q-dialog>
 </template>
 <script>
-import {api, authURL, baseURL} from "boot/axios.js";
+import {api, authURL } from "boot/axios.js";
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils.js";
 import UpdaterPsw from "components/UpdaterPsw.vue";
@@ -258,7 +258,7 @@ export default {
 
       this.loading = true;
       api
-          .post(baseURL, {
+          .post("", {
             method: "auth/saveProfile",
             params: [this.newForm],
           })
@@ -315,7 +315,7 @@ export default {
   created() {
     this.loading = true;
     api
-        .post(baseURL, {
+        .post("", {
           id: "1",
           method: "auth/loadProfile",
           params: [this.userId],

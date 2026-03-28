@@ -7,8 +7,12 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import tofi.api.adm.ApiAdm
+import tofi.api.adm.ApiMeta
+import tofi.apinator.ApinatorApi
+import tofi.apinator.ApinatorService
 
 class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
+    ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
 
     @Override
     Map<String, Object> getUserInfo(String login, String passwd) {

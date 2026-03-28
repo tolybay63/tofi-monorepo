@@ -6,19 +6,19 @@
         <!--Main App -->
         <q-btn
           class="q-mr-md"
-          rounded
           color="primary"
           dense
           icon="grid_view"
+          rounded
           @click="mainApp()"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("appName") }}
           </q-tooltip>
         </q-btn>
 
-        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer()">
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+        <q-btn dense flat icon="menu" round @click="toggleLeftDrawer()">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("menu") }}
           </q-tooltip>
         </q-btn>
@@ -30,13 +30,13 @@
         <!--Home -->
         <q-btn
           class="q-pa-md-sm"
-          rounded
           color="primary"
           dense
           icon="home"
+          rounded
           @click="this.$router.push('/')"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("mainPage") }}
           </q-tooltip>
         </q-btn>
@@ -45,39 +45,39 @@
         <div class="q-pa-md q-gutter-sm">
           <q-btn
             class="q-pr-sm-sm"
-            rounded
             color="primary"
             dense
             icon="account_circle"
-            @click="loginOnOff()"
             no-caps
+            rounded
+            @click="loginOnOff()"
           >
             <q-tooltip
-              transition-show="rotate"
-              transition-hide="rotate"
               v-if="getUserName === ''"
-              >{{ $t("logIn") }}
+              transition-hide="rotate"
+              transition-show="rotate"
+            >{{ $t("logIn") }}
             </q-tooltip>
             <q-tooltip
-              transition-show="rotate"
-              transition-hide="rotate"
               v-if="getUserName !== ''"
-              >{{ $t("logOut") }}
+              transition-hide="rotate"
+              transition-show="rotate"
+            >{{ $t("logOut") }}
             </q-tooltip>
 
             <div
-              itemid="USERID"
               v-if="getUserName !== ''"
-              @click.prevent="profileUser()"
+              itemid="USERID"
               style="margin-left: 5px"
+              @click.prevent="profileUser()"
             >
               {{ getUserName }}
               <q-tooltip v-if="getUserName !== ''"
-                >{{ $t("myProfile") }}
+              >{{ $t("myProfile") }}
               </q-tooltip>
             </div>
-            <q-badge rounded color="primary" align="middle">
-              <q-icon :name="nameIcon" color="white" />
+            <q-badge align="middle" color="primary" rounded>
+              <q-icon :name="nameIcon" color="white"/>
             </q-badge>
           </q-btn>
         </div>
@@ -85,15 +85,15 @@
         <div>
           <q-btn
             class="q-pr-sm-sm"
-            rounded
             color="primary"
             dense
             icon="person_add"
-            @click="regUser()"
+            rounded
             style="margin-right: 10px"
+            @click="regUser()"
           >
-            <q-tooltip transition-show="rotate" transition-hide="rotate"
-              >{{ $t("registration") }}
+            <q-tooltip transition-hide="rotate" transition-show="rotate"
+            >{{ $t("registration") }}
             </q-tooltip>
           </q-btn>
         </div>
@@ -103,11 +103,11 @@
       </q-toolbar>
     </q-header>
 
-    <q-footer reveal elevated>
+    <q-footer elevated reveal>
       <q-toolbar>
         <q-toolbar-title class="text-center">
           <q-icon class="q-pa-sm">
-            <img src="../assets/factor.png" alt="Logo" />
+            <img alt="Logo" src="../assets/factor.png"/>
           </q-icon>
           {{ $t("company") }}
         </q-toolbar-title>
@@ -115,32 +115,32 @@
     </q-footer>
 
     <q-drawer
-      :width="230"
-      class="q-pa-sm"
-      style="font-size: 16px"
       v-model="leftDrawerOpen"
-      show-if-above
+      :width="230"
       bordered
+      class="q-pa-sm"
       elevated
+      show-if-above
+      style="font-size: 16px"
     >
-      <h6 class="q-pa-md text-red text-bold" v-if="reqAuth">
+      <h6 v-if="reqAuth" class="q-pa-md text-red text-bold">
         {{ $t("notLogined") }}
       </h6>
-      <h6 class="q-pa-md text-red text-bold" v-else-if="notAccess">
+      <h6 v-else-if="notAccess" class="q-pa-md text-red text-bold">
         {{ $t("notAccess") }}
       </h6>
 
       <q-list v-for="link in essentialLinks" :key="link.title">
         <q-item
-          class="q-table--bordered bg-blue-1"
           v-if="hasTarget(link.target)"
-          clickable
-          tag="a"
           :to="link.link"
           active-class="text-bold text-blue"
+          class="q-table--bordered bg-blue-1"
+          clickable
+          tag="a"
         >
           <q-item-section v-if="link.icon" avatar>
-            <q-icon :name="link.icon" />
+            <q-icon :name="link.icon"/>
           </q-item-section>
 
           <q-item-section>
@@ -151,7 +151,7 @@
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <router-view/>
     </q-page-container>
   </q-layout>
 </template>
@@ -166,17 +166,17 @@ import RegUser from 'components/RegUser.vue'
 import ProfileUser from 'components/ProfileUser.vue'
 import LoginUser from 'components/LoginUser.vue'
 import SetLocale from 'components/SetLocale.vue'
-import {api, authURL, baseURL, urlMainApp} from 'boot/axios'
+import {api, authURL, urlMainApp} from 'boot/axios'
 import {notifyError, notifySuccess} from 'src/utils/jsutils'
 import {useQuasar} from 'quasar'
 
 // Composables
 const router = useRouter()
 const $q = useQuasar()
-const { t } = useI18n()
+const {t} = useI18n()
 const store = useUserStore()
-const { isSysAdmin, getUserName, getUserId, getTarget } = storeToRefs(store)
-const { setUserStore } = store
+const {isSysAdmin, getUserName, getUserId, getTarget} = storeToRefs(store)
+const {setUserStore, clearUserStore} = store
 
 // Reactive state
 const leftDrawerOpen = ref(true)
@@ -235,24 +235,20 @@ const loginOnOff = () => {
       })
       .onOk(() => {
         api
-          .post(baseURL, {
-            method: 'auth/getCurUserInfo',
+          .post("", {
+            method: 'auth/getUserInfo',
             params: [],
           })
           .then(
             (response) => {
-              setUserStore(response.data.result)
+              api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.result.token;
+              setUserStore(response.data.result.token)
+              router.push('/')
             },
             (error) => {
-              //console.log("error", error);
-              setUserStore({})
-              notifyError(error.message)
+              clearUserStore()
             }
           )
-          .finally(() => {
-            router.push('/')
-            //location.reload()
-          })
       })
   } else {
     api
@@ -260,11 +256,10 @@ const loginOnOff = () => {
         params: {},
       })
       .then(() => {
-        setUserStore({})
+        clearUserStore()
       })
       .finally(() => {
         router.push('/')
-        location.reload()
       })
   }
 }
@@ -274,7 +269,7 @@ const regUser = async () => {
     $q.dialog({
       component: RegUser,
     })
-      .onOk((response)=> {
+      .onOk((response) => {
         if (response.res) {
           notifySuccess(t('success'))
         }

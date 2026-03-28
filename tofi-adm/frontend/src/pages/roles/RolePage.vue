@@ -118,7 +118,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateRole from "pages/roles/UpdaterRole.vue";
 
@@ -183,7 +183,7 @@ export default {
         .onOk(() => {
           let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "role/delete",
               params: [{ rec: rec }],
             })
@@ -255,7 +255,7 @@ export default {
       const filter = requestProps.filter;
       //
       api
-        .post(baseURL, {
+        .post("", {
           method: "role/loadRolePaginate",
           params: [
             {
