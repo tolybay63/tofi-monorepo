@@ -6,39 +6,39 @@
         <!--Main App -->
         <q-btn
           class="q-mr-md"
-          rounded
           color="primary"
           dense
           icon="grid_view"
+          rounded
           @click="mainApp"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("appName") }}
           </q-tooltip>
         </q-btn>
 
 
-        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer">
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+        <q-btn dense flat icon="menu" round @click="toggleLeftDrawer">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("menu") }}
           </q-tooltip>
         </q-btn>
 
 
-        <q-toolbar-title  class="text-center">
+        <q-toolbar-title class="text-center">
           {{ $t("appModelName") }}
         </q-toolbar-title>
 
         <!--Home -->
         <q-btn
           class="q-pa-md-sm"
-          rounded
           color="primary"
           dense
           icon="home"
+          rounded
           @click="this.$router.push('/')"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate"
+          <q-tooltip transition-hide="rotate" transition-show="rotate"
           >{{ $t("mainPage") }}
           </q-tooltip>
         </q-btn>
@@ -46,27 +46,27 @@
         <div class="q-pa-md q-gutter-sm">
           <q-btn
             class="q-pr-sm-sm"
-            rounded
             color="primary"
             dense
             icon="account_circle"
-            @click="loginOnOff"
             no-caps
+            rounded
+            @click="loginOnOff"
           >
             <q-tooltip
-              transition-show="rotate"
-              transition-hide="rotate"
               v-if="userName === ''"
+              transition-hide="rotate"
+              transition-show="rotate"
             >{{ $t("logIn") }}
             </q-tooltip>
             <q-tooltip
-              transition-show="rotate"
-              transition-hide="rotate"
               v-if="userName !== ''"
+              transition-hide="rotate"
+              transition-show="rotate"
             >{{ $t("logOut") }}
             </q-tooltip>
-              {{ userName }}
-            <q-badge rounded color="primary" align="middle">
+            {{ userName }}
+            <q-badge align="middle" color="primary" rounded>
               <q-icon :name="nameIcon()" color="white"/>
             </q-badge>
           </q-btn>
@@ -76,16 +76,17 @@
       </q-toolbar>
     </q-header>
 
-    <q-footer reveal elevated>
+    <q-footer elevated reveal>
       <q-toolbar>
         <q-toolbar-title class="flex flex-center">
           <q-icon class="q-pa-sm">
-            <img src="../assets/factor.png" alt="Logo"/>
+            <img alt="Logo" src="../assets/factor.png"/>
           </q-icon>
           {{ $t("company") }}
 
-          <span class="absolute-right q-pt-sm" v-if="metamodel==='fish'">
-          <a :href="site_url()" target="_blank" style="font-size: 12px" class="q-pr-md text-white"> {{$t("fish_model")}} </a>
+          <span v-if="metamodel==='fish'" class="absolute-right q-pt-sm">
+          <a :href="site_url()" class="q-pr-md text-white" style="font-size: 12px"
+             target="_blank"> {{ $t("fish_model") }} </a>
           </span>
 
         </q-toolbar-title>
@@ -94,26 +95,26 @@
 
     <q-drawer
       v-model="leftDrawerOpen"
-      show-if-above
+      :width="270"
       class="bg-blue-1"
       elevated
-      :width="270"
+      show-if-above
     >
       <div class="q-pa-md">
         <q-tree
-          :nodes="getMenu()"
-          node-key="id"
-          label-key="label"
-          selected-color="blue"
-          :no-nodes-label="getMsg()"
-          control-color="red"
-          :color="getClr()"
-          :style="getStyle()"
           v-model:selected="selected"
+          :color="getClr()"
           :duration="500"
-          @update:selected="updateSelected"
-          no-selection-unset
+          :no-nodes-label="getMsg()"
+          :nodes="getMenu()"
+          :style="getStyle()"
           accordion
+          control-color="red"
+          label-key="label"
+          no-selection-unset
+          node-key="id"
+          selected-color="blue"
+          @update:selected="updateSelected"
         />
       </div>
     </q-drawer>
@@ -128,13 +129,11 @@
 import SetLocale from "components/SetLocale.vue";
 import {computed, defineComponent, ref} from "vue";
 import LoginUser from "components/LoginUser.vue";
-import {api, authURL, baseURL, fnMeta, urlMainApp} from "boot/axios";
-import {notifyError} from "src/utils/jsutils";
+import {api, authURL, urlMainApp} from "boot/axios";
 import {useUserStore} from "stores/user-store";
 import {storeToRefs} from "pinia";
 import {useRouter} from "vue-router";
-import {extend} from "quasar";
-import {useQuasar} from "quasar";
+import {extend, useQuasar} from "quasar";
 
 export default defineComponent({
   components: {
@@ -144,13 +143,11 @@ export default defineComponent({
   created() {
     console.info("Created!");
     const store = useUserStore();
-    const { setUserStore } = store;
-    const { getUserId } = storeToRefs(store);
-
-    fnMeta()
+    const {clearUserStore} = store;
+    const {getUserId} = storeToRefs(store);
 
     if (!getUserId.value > 0) {
-      setUserStore({})
+      clearUserStore()
       this.$router["push"]("/")
     }
 
@@ -163,9 +160,8 @@ export default defineComponent({
     const leftDrawerOpen = ref(false);
 
     const store = useUserStore();
-    const {isSysAdmin, getUserName, getTarget, metamodel} =
-      storeToRefs(store);
-    const {setUserStore} = store;
+    const {isSysAdmin, getUserName, getTarget, metamodel} = storeToRefs(store);
+    const {setUserStore, clearUserStore} = store;
     const router = useRouter();
     const $q = useQuasar();
 
@@ -225,34 +221,32 @@ export default defineComponent({
             })
             .onOk(() => {
               api
-                .post(baseURL, {
-                  method: "auth/getCurUserInfo",
+                .post("", {
+                  method: "auth/getUserInfo",
                   params: [],
                 })
                 .then(
                   (response) => {
-                    setUserStore(response.data.result);
+                    localStorage.setItem('auth_token', response.data.result.token);
+                    api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.result.token;
+                    setUserStore(response.data.result.token)
+                    router.push('/')
                   },
-                  (error) => {
-                    console.log("error", error);
-                    setUserStore({});
-                    notifyError(error.message);
+                  () => {
+                    clearUserStore()
                   }
                 )
-                .finally(() => {
-                  router.push("/");
-                  //location.reload()
-                });
             });
         } else {
           api
             .post(authURL + "/logout", {
-              params: {},
+              params: [],
             })
             .then(() => {
-              setUserStore({})
-              router.push("/")
-              location.reload()
+              clearUserStore()
+            })
+            .finally(()=> {
+              router.push('/')
             })
         }
       },

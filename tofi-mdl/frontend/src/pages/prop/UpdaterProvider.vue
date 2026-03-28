@@ -80,7 +80,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils";
 
@@ -121,7 +121,7 @@ export default {
     loadObj(cls) {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: this.act + "/loadProviderObjForSelect",
           params: [cls],
         })
@@ -199,7 +199,7 @@ export default {
     onOKClick() {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: this.act + "/saveProvider",
             params: [this.form, this.mode],
           })
@@ -243,7 +243,7 @@ export default {
 
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: this.act + "/loadProviderClsForSelect",
           params: [this.prop, this.typ, this.mode],
         })

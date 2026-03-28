@@ -95,7 +95,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateNotExtended from "pages/typ/notextended/UpdateNotExtended.vue";
 
@@ -186,7 +186,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "typ/deleteNotExtended",
                   params: [rec],
                 })
@@ -212,7 +212,7 @@ export default {
     fetchData(typ) {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadNotExtended",
             params: [typ],
           })

@@ -89,7 +89,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios.js";
+import {api} from "boot/axios.js";
 import DimsPage from "pages/cubes/tabs/DimsPage.vue";
 import EdjesPropPage from "pages/cubes/tabs/EdjesPropPage.vue";
 import EdjesPropFltPage from "pages/cubes/tabs/EdjesPropFltPage.vue";
@@ -135,7 +135,7 @@ export default {
     checkDimProp(cubeId) {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/checkDimProp",
           params: [cubeId],
         })
@@ -153,7 +153,7 @@ export default {
     checkDimObj(cubeId) {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/checkDimObj",
           params: [cubeId],
         })
@@ -187,7 +187,7 @@ export default {
 
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "cubes/loadRec",
         params: [this.cubesId],
       })

@@ -3,7 +3,8 @@ package tofi.mdl.model.dao.reltyp.relcls;
 import jandcode.commons.UtCnv;
 import jandcode.commons.UtString;
 import jandcode.commons.error.XError;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreIndex;
@@ -19,60 +20,52 @@ import tofi.mdl.model.utils.EntityMdbUtils;
 
 import java.util.*;
 
-public class RelClsMdbUtils extends EntityMdbUtils {
-    Mdb mdb;
-    String tableName;
-
-    public RelClsMdbUtils(Mdb mdb, String tableName) {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-        //
-    }
+public class RelClsMdbUtils extends BaseMdbUtils {
 
     ApinatorApi apiMonitoringData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("monitoringdata");
+        return getMdb().getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
     ApinatorApi apiUserData() {
-        return  mdb.getApp().bean(ApinatorService.class).getApi("userdata");
+        return  getMdb().getApp().bean(ApinatorService.class).getApi("userdata");
     }
     ApinatorApi apiNSIData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
+        return getMdb().getApp().bean(ApinatorService.class).getApi("nsidata");
     }
 
     //---------------------------------------------------
 
+    @DaoMethod
     public Store load(long relTyp) throws Exception {
-        Store st = mdb.createStore("RelCls.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("RelCls.full");
+        return getMdb().loadQuery(st, """
                     select * from RelCls c, RelClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.relTyp=:relTyp
                 """, Map.of("relTyp", relTyp));
     }
 
-
+    @DaoMethod
     public Store insert(Map<String, Object> rec) throws Exception {
         //
-        //long id = insertEntityWithVer(rec);
-        long id = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "RelCls");
+        long id = eu.insertEntity(rec);
         //
-        Store st = mdb.createStore("RelCls.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("RelCls.full");
+        getMdb().loadQuery(st, """
                     select * from RelCls t, RelClsVer v where t.id=v.ownerVer and v.lastver=1 and t.id=:id
                 """, Map.of("id", id));
-        mdb.resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public Store update(Map<String, Object> rec) throws Exception {
         //
-        //updateEntityWithVer(rec);
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "RelCls");
+        eu.updateEntity(rec);
         //
-        Store st = mdb.createStore("RelCls.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("RelCls.full");
+        getMdb().loadQuery(st, """
                     select * from RelCls t, RelClsVer v where t.id=v.ownerVer and v.lastver=1 and t.id=:id
                 """, Map.of("id", UtCnv.toLong(rec.get("id"))));
-        mdb.resolveDicts(st);
+        getMdb().resolveDicts(st);
         return st;
     }
 
@@ -96,66 +89,76 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
     }
 
+    @DaoMethod
     public void delete(Map<String, Object> rec) throws Exception {
 
         //---< check data in other DB
-        CfgService cfgSvc = mdb.getApp().bean(CfgService.class);
+        CfgService cfgSvc = getMdb().getApp().bean(CfgService.class);
         String modelMeta = cfgSvc.getConf().getString("dbsource/default/id");
         if (modelMeta.isEmpty())
             throw new XError("Не найден id мета модели");
 
         checkExistOwners(UtCnv.toLong(rec.get("id")), modelMeta);
         //--->
-
-        deleteEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "RelCls");
+        eu.deleteEntity(rec);
     }
 
+    @DaoMethod
     public StoreRecord loadRec(long id) throws Exception {
-        StoreRecord st = mdb.createStoreRecord("RelCls.full");
-        return mdb.loadQueryRecord(st, """
+        StoreRecord st = getMdb().createStoreRecord("RelCls.full");
+        return getMdb().loadQueryRecord(st, """
                     select * from RelCls c, RelClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.id=:id
                 """, Map.of("id", id));
     }
 
+    @DaoMethod
     public Store loadVer(long relcls) throws Exception {
-        Store st = mdb.createStore("RelClsVer");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("RelClsVer");
+        getMdb().loadQuery(st, """
                     select * from RelClsVer where ownerver=:relcls order by dend desc
                 """, Map.of("relcls", relcls));
         return st;
     }
 
+    @DaoMethod
     public Store insertVer(Map<String, Object> rec) throws Exception {
         //
-        long id = insertEntityVer(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "RelCls");
+        long id = eu.insertEntityVer(rec);
         //
-        Store st = mdb.createStore("RelClsVer");
-        mdb.loadQuery(st, "select * from RelClsVer where id=:id", Map.of("id", id));
+        Store st = getMdb().createStore("RelClsVer");
+        getMdb().loadQuery(st, "select * from RelClsVer where id=:id", Map.of("id", id));
 
         return st;
     }
 
+    @DaoMethod
     public Store updateVer(Map<String, Object> rec) throws Exception {
         long id = UtCnv.toLong(rec.get("id"));
         if (id == 0) {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        updateEntityVer(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "RelCls");
+        eu.updateEntityVer(rec);
         // Загрузка записи
-        Store st = mdb.createStore("RelClsVer");
-        mdb.loadQuery(st, "select * from RelClsVer where id=:id", Map.of("id", id));
+        Store st = getMdb().createStore("RelClsVer");
+        getMdb().loadQuery(st, "select * from RelClsVer where id=:id", Map.of("id", id));
         return st;
     }
 
+    @DaoMethod
     public void deleteVer(Map<String, Object> rec) throws Exception {
-        deleteEntityVer(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "RelCls");
+        eu.deleteEntityVer(rec);
     }
 
     // RelClsMember
+    @DaoMethod
     public Store loadRelClsMember(long relcls) throws Exception {
-        Store st = mdb.createStore("RelClsMember");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("RelClsMember");
+        getMdb().loadQuery(st, """
                     select m.*
                     from RelClsMember m
                         left join ClsVer cv on cv.ownerver=m.cls and cv.lastVer=1
@@ -167,14 +170,14 @@ public class RelClsMdbUtils extends EntityMdbUtils {
         return st;
     }
 
-
+    @DaoMethod
     public Store loadAllMembers(Map<String, Object> params) throws Exception {
         long reltyp = UtCnv.toLong(params.get("relTyp"));
 
-        Store stRes = mdb.createStore("RelClsMember.all");
-        ClsTreeMdbUtils utCls = new ClsTreeMdbUtils(mdb);
+        Store stRes = getMdb().createStore("RelClsMember.all");
+        ClsTreeMdbUtils utCls = new ClsTreeMdbUtils();
 
-        Store stRTM = mdb.loadQuery("""
+        Store stRTM = getMdb().loadQuery("""
                     select id, reltyp, card, membertype,
                         case when membertype=:mt then typ else reltypmemb end as ent, ord
                     from RelTypMember
@@ -185,7 +188,7 @@ public class RelClsMdbUtils extends EntityMdbUtils {
         int ind = 0;
         for (StoreRecord r : stRTM) {
             ind++;
-            Store stCur = mdb.createStore("RelClsMember.all");
+            Store stCur = getMdb().createStore("RelClsMember.all");
             if (r.getLong("membertype") == FD_MemberType_consts.typ) {
                 Store stCls = utCls.loadClsTree(Map.of("typ", r.getLong("ent")));
                 stCur.add(stCls);
@@ -201,8 +204,8 @@ public class RelClsMdbUtils extends EntityMdbUtils {
                 }
 
             } else {
-                Store stRelTyp = mdb.createStore("RelClsMember.all");
-                mdb.loadQuery(stRelTyp, """
+                Store stRelTyp = getMdb().createStore("RelClsMember.all");
+                getMdb().loadQuery(stRelTyp, """
                     select 'r'||'_'|| c.id as id, c.cod, v.name, v.fullName, -1 as isOwn, false as checked, c.id as ent
                     from RelTyp c, RelTypVer v
                     where c.id=:id and c.id=v.ownerVer and v.lastVer=1
@@ -211,8 +214,8 @@ public class RelClsMdbUtils extends EntityMdbUtils {
                 stRelTyp.get(0).set("ord", ind);
                 stCur.add(stRelTyp.get(0));
                 //
-                Store stRelCls = mdb.createStore("RelClsMember.all");
-                mdb.loadQuery(stRelCls, """
+                Store stRelCls = getMdb().createStore("RelClsMember.all");
+                getMdb().loadQuery(stRelCls, """
                     select *, c.id as ent from RelCls c, RelClsVer v
                     where c.reltyp=:id and c.id=v.ownerVer and v.lastVer=1 order by c.ord
                 """, Map.of("id", r.getLong("ent")));
@@ -232,20 +235,20 @@ public class RelClsMdbUtils extends EntityMdbUtils {
             stRes.add(stCur);
         }
 
-        //mdb.outTable(stRes);
+        //getMdb().outTable(stRes);
 
         return stRes;
     }
 
-    protected List<List<Object>> combAll(long relTyp) throws Exception {
+    private List<List<Object>> combAll(long relTyp) throws Exception {
 
-        Store stRelCls = mdb.loadQuery
+        Store stRelCls = getMdb().loadQuery
                 ("select id from RelCls where reltyp=:rt order by ord", Map.of("rt", relTyp));
 
         List<List<Object>> lists = new ArrayList<>();
 
         for (StoreRecord r : stRelCls) {
-            Store stMembCls = mdb.loadQuery
+            Store stMembCls = getMdb().loadQuery
                     ("select * from relclsmember where relcls=:c", Map.of("c", r.getLong("id")));
 
             List<Object> lst = new ArrayList<>();
@@ -263,6 +266,7 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
     }
 
+    @DaoMethod
     public void createGroupRelCls(long relTyp, List<List<Map<String, Object>>> lists, long db) throws Exception {
 
         List<List<Object>> lstlstAll = combAll(relTyp);
@@ -275,8 +279,6 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
         for (List<Map<String, Object>> lst : lists) {
             List<Map<String, Object>> lstNew = new ArrayList<>();
-            //setCls.clear();
-            //setRel.clear();
 
             lst.forEach((Map<String, Object> l) -> {
                 System.out.println(l);
@@ -303,15 +305,15 @@ public class RelClsMdbUtils extends EntityMdbUtils {
         wheIdsRel = wheIdsRel.isEmpty() ? "(0)" : "(" + wheIdsRel + ")";
         //
 
-        Store stCls = mdb.createStore("Cls.full");
-        mdb.loadQuery(stCls, """
+        Store stCls = getMdb().createStore("Cls.full");
+        getMdb().loadQuery(stCls, """
                     select c.id, name,fullName, dataBase from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1
                     and c.id in
                 """ + wheIds);
         StoreIndex indCls = stCls.getIndex("id");
         //
-        Store stRelCls = mdb.createStore("Cls.full");
-        mdb.loadQuery(stRelCls, """
+        Store stRelCls = getMdb().createStore("Cls.full");
+        getMdb().loadQuery(stRelCls, """
                     select c.id, name,fullName, dataBase from RelCls c, RelClsVer v where c.id=v.ownerVer and v.lastVer=1
                     and c.id in
                 """ + wheIdsRel);
@@ -324,7 +326,7 @@ public class RelClsMdbUtils extends EntityMdbUtils {
         lstlstUch.forEach((List<Map<String, Object>> lstUch) -> {
             List<Object> sNm = new ArrayList<>();
             List<Object> sFn = new ArrayList<>();
-            Store stMemcls = mdb.createStore("RelClsMember");
+            Store stMemcls = getMdb().createStore("RelClsMember");
             lstUch.forEach((Map<String, Object> u) -> {
                 int memType = UtCnv.toInt(u.get("memType"));
                 int card = UtCnv.toInt(u.get("card"));
@@ -359,7 +361,7 @@ public class RelClsMdbUtils extends EntityMdbUtils {
             map.put("name", nm);
             map.put("fullName", fn);
             try {
-                StoreRecord recRelTyp = mdb.loadQueryRecord("""
+                StoreRecord recRelTyp = getMdb().loadQueryRecord("""
                             select accessLevel, isOpenness from RelTyp where id=:id
                         """, Map.of("id", relTyp));
                 map.put("accessLevel", recRelTyp.getLong("accesslevel"));
@@ -381,16 +383,17 @@ public class RelClsMdbUtils extends EntityMdbUtils {
 
             if (!lstlstAll.contains(setUch)) {
                 try {
-                    RelClsMdbUtils ut = new RelClsMdbUtils(mdb, "RelCls");
+                    //RelClsMdbUtils ut = new RelClsMdbUtils("RelCls");
                     //idRelCls = ut.insertEntityWithVer(map);
-                    idRelCls = ut.insertEntity(map);
+                    EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "RelCls");
+                    idRelCls = eu.insertEntity(map);
                     // add to PropVal
-                    Store rProp = mdb.loadQuery("select id, allItem from Prop where reltyp=:rt and proptype=:pt",
+                    Store rProp = getMdb().loadQuery("select id, allItem from Prop where reltyp=:rt and proptype=:pt",
                             Map.of("rt", relTyp, "pt", FD_PropType_consts.reltyp));
                     if (rProp.size() > 0) {
                         if (rProp.get(0).getBoolean("allItem")) {
                             long prop = rProp.get(0).getLong("id");
-                            mdb.insertRec("PropVal", Map.of("prop", prop, "relCls", idRelCls), true);
+                            getMdb().insertRec("PropVal", Map.of("prop", prop, "relCls", idRelCls), true);
                         }
                     }
 
@@ -401,7 +404,7 @@ public class RelClsMdbUtils extends EntityMdbUtils {
                 for (StoreRecord r : stMemcls) {
                     r.set("relCls", idRelCls);
                     try {
-                        mdb.insertRec("RelClsMember", r, true);
+                        getMdb().insertRec("RelClsMember", r, true);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -410,21 +413,22 @@ public class RelClsMdbUtils extends EntityMdbUtils {
         });
     }
 
+    @DaoMethod
     public String deleteGroupRelCls(long relTyp, List<Map<String, Object>> list) throws Exception {
 
         //1
-        Store stRCG = mdb.loadQuery("""
+        Store stRCG = getMdb().loadQuery("""
             select * from RelTypCharGr where relcls in (select id from RelCls where reltyp=:rt)
         """, Map.of("rt", relTyp));
         StoreIndex indStRCG = stRCG.getIndex("relcls");
         //2
-        Store stFT = mdb.loadQuery("""
+        Store stFT = getMdb().loadQuery("""
             select * from FlatTable where relcls in (select id from RelCls where reltyp=:rt)
         """, Map.of("rt", relTyp));
         StoreIndex indStFT = stFT.getIndex("relcls");
 
         //---< check data in other DB
-        CfgService cfgSvc = mdb.getApp().bean(CfgService.class);
+        CfgService cfgSvc = getMdb().getApp().bean(CfgService.class);
         String modelMeta = cfgSvc.getConf().getString("dbsource/default/id");
         if (modelMeta.isEmpty())
             throw new XError("Не найден id мета модели");
@@ -443,23 +447,25 @@ public class RelClsMdbUtils extends EntityMdbUtils {
             } else {
                 long relcls = UtCnv.toLong(m.get("id"));
                 checkExistOwners(relcls, modelMeta);
-                deleteEntity(m);
+                EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "RelCls");
+                eu.deleteEntity(m);
             }
         }
 
         return sb.toString();
     }
 
+    @DaoMethod
     public Store updateRelClsMember(Map<String, Object> rec) throws Exception {
-        StoreRecord r = mdb.createStoreRecord("RelClsMember", rec);
+        StoreRecord r = getMdb().createStoreRecord("RelClsMember", rec);
         if (r.getLong("id") == 0) {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        mdb.updateRec("RelClsMember", r);
+        getMdb().updateRec("RelClsMember", r);
         // Загрузка записи
-        Store st = mdb.createStore("RelClsMember");
-        mdb.loadQuery(st, "select * from RelClsMember where id=:id", Map.of("id", r.getLong("id")));
+        Store st = getMdb().createStore("RelClsMember");
+        getMdb().loadQuery(st, "select * from RelClsMember where id=:id", Map.of("id", r.getLong("id")));
         return st;
     }
 

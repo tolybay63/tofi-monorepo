@@ -163,7 +163,7 @@
 
 <script>
 import QTreeTable from "components/QTreeTable.vue";
-import {api, baseURL, tofi_dbeg, tofi_dend} from "boot/axios";
+import {api, tofi_dbeg, tofi_dend} from "boot/axios";
 import {getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
 import {date, extend} from "quasar";
 import UpdaterDimPeriodItem from "pages/dimperiod/UpdaterDimPeriodItem.vue";
@@ -228,7 +228,7 @@ export default {
 
       if (this.currentNode) {
         api
-          .post(baseURL, {
+          .post("", {
             method: "dimperiod/loadNotIn",
             params: [this.currentNode.id],
           })
@@ -247,7 +247,7 @@ export default {
       this.visible = true;
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimperiod/loadDPI",
           params: [dimperiod],
         })
@@ -300,7 +300,7 @@ export default {
       if (mode === "ins") {
         if (rec === null) rec = { dimperiod: this.dimPeriod };
         api
-          .post(baseURL, {
+          .post("", {
             method: "dimperiod/newRecDPI",
             params: [isChild, rec],
           })
@@ -361,7 +361,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "dimperiod/deleteDPI",
               params: [rec],
             })
@@ -396,7 +396,7 @@ export default {
           //console.log("Ok! updated", r);
           if (r.res) {
             api
-              .post(baseURL, {
+              .post("", {
                 method: "dimperiod/loadNotIn",
                 params: [this.currentNode.id],
               })
@@ -477,7 +477,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{ dict: "FD_PeriodType" }],
       })

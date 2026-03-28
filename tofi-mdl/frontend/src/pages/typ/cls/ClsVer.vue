@@ -138,7 +138,7 @@
 <script>
 import {ref} from "vue";
 import {date} from "quasar";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateClsVer from "pages/typ/cls/UpdateClsVer.vue";
 
@@ -204,7 +204,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "typ/deleteClsVer",
                   params: [rec],
                 })
@@ -313,7 +313,7 @@ export default {
     fetchData(cls) {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadClsVer",
             params: [cls],
           })
@@ -378,7 +378,7 @@ export default {
     loadInfo(cls) {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadRecCls",
             params: [cls],
           })

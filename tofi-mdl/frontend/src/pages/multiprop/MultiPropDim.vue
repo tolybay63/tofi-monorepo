@@ -115,7 +115,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {hasTarget, notifyError} from "src/utils/jsutils";
 import UpdaterMultiPropDim from "pages/multiprop/UpdaterMultiPropDim.vue";
@@ -150,7 +150,7 @@ export default {
 
     fnUp(up) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/changeOrdMultiPropDim",
             params: [{rec: this.selected[0], up: up}],
           })
@@ -197,7 +197,7 @@ export default {
       //console.log("multiProp", multiProp);
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/loadMultiPropDim",
             params: [multiProp],
           })

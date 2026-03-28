@@ -1,59 +1,88 @@
 import {defineBoot} from '#q-app/wrappers'
 import axios from 'axios'
+import { LoadingBar, Notify } from 'quasar'
 import {useUserStore} from "stores/user-store.js";
-
-const store = useUserStore()
-const { setMetaModel } = store
-
-// Be careful when using SSR for cross-request state pollution
-// due to creating a Singleton instance here;
-// If any client changes this (global) instance, it might be a
-// good idea to move this instance creation inside of the
-// "export default () => {}" function below (which runs individually
-// for each client)
-//const api = axios.create({ baseURL: 'https://api.example.com' })
 
 let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
 
-let url = 'http://localhost:8080'
+//**********************************
+const SERVICE_NAME = 'meta';
+//**********************************
+
+const url = 'http://127.0.0.1:8080'
+let authURL = url + "/auth"
+let baseURL = url + "/api"
+
 if (import.meta.env.PROD) {
-  url = process.env.VITE_PRODUCT_URL
+  const currentPath = window.location.pathname;
+  if (currentPath.includes(`/fish/${SERVICE_NAME}/`)) {
+    baseURL = `/fish/${SERVICE_NAME}/api/`;
+  } else {
+    baseURL = "/api";
+  }
+  authURL = "/auth";
 }
 
-const authURL = url + "/auth"
-const baseURL = url + "/api"
 const api = axios.create({ baseURL: baseURL })
 
+// Восстанавливаем токен!
+const token = localStorage.getItem('fish_token')
+if (token) {
+  api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+}
 
-export default defineBoot(({ app }) => {
-  // for use inside Vue files (Options API) through this.$axios and this.$api
+LoadingBar.setDefaults({ color: 'amber-14', size: '10px', position: 'top' })
+
+api.interceptors.request.use((config) => {
+  LoadingBar.start()
+  return config
+})
+
+export default defineBoot(({ app, router }) => {
+  const userStore = useUserStore();
+
+  // Инициализируем стор (чтобы имя пользователя появилось в шапке)
+  userStore.initFromToken();
+
+  api.interceptors.response.use(
+    (response) => {
+      LoadingBar.stop()
+      return response
+    },
+    (error) => {
+      LoadingBar.stop()
+      const status = error.response?.status;
+      const data = error.response?.data;
+      const failingUrl = error.config?.url;
+
+      let errorCode = (data && typeof data === 'object') ? (data?.error?.message || data?.message) : error.message;
+      if (!errorCode) errorCode = error.message;
+
+      // Защита сессии. Если токен в хранилище есть, значит мы залогинены.
+      if (status === 401 || errorCode === 'notLoginned') {
+        if (localStorage.getItem('fish_token')) {
+          console.warn('[Session Control] JWT активен, игнорируем 401 для:', failingUrl);
+          return Promise.reject(error);
+        }
+        userStore.clearUserStore();
+        if (router) router.push("/");
+        return Promise.reject(error);
+      }
+
+      Notify.create({
+        type: 'negative',
+        message: app.config.globalProperties.$t(errorCode) || errorCode,
+        position: 'bottom-right'
+      });
+      return Promise.reject(error);
+    }
+  );
 
   app.config.globalProperties.$axios = axios
-  // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)
-  //       so you won't necessarily have to import axios in each vue file
-
   app.config.globalProperties.$api = api
-  // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
-  //       so you can easily perform requests against your app's API
 })
 
 const tofi_dbeg = "1800-01-01"
 const tofi_dend = "3333-12-31"
 
-
-const fnMeta = ()=> {
-  axios
-    .post(baseURL, {
-      method: "dataBase/getIdMetaModel",
-      params: [],
-    })
-    .then((response) => {
-      let metaModel = response.data.result
-      setMetaModel(metaModel)
-    })
-    .catch((error) => {
-      console.log(error)
-    })
-}
-
-export { authURL, api, baseURL, urlMainApp, fnMeta, tofi_dbeg, tofi_dend }
+export { authURL, api, urlMainApp, tofi_dbeg, tofi_dend }

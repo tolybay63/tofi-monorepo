@@ -49,18 +49,34 @@
                   class="tofi.mdl.model.dao.role.RoleDao"
                   method="*"
             />
+
             <item name="typ"
-                  class="tofi.mdl.model.dao.typ.TypDao"
+                  class="tofi.mdl.model.dao.typ.TypMdbUtils"
+                  method="*"
+            />
+
+            <item name="typrole"
+                  class="tofi.mdl.model.dao.typ.TypRoleMdbUtils"
                   method="*"
             />
 
             <item name="reltyp"
-                  class="tofi.mdl.model.dao.reltyp.RelTypDao"
+                  class="tofi.mdl.model.dao.reltyp.RelTypMdbUtils"
+                  method="*"
+            />
+
+            <item name="reltyprole"
+                  class="tofi.mdl.model.dao.reltyp.RelTypRoleMdbUtils"
+                  method="*"
+            />
+
+            <item name="reltypmember"
+                  class="tofi.mdl.model.dao.reltyp.RelTypMemberMdbUtils"
                   method="*"
             />
 
             <item name="relcls"
-                  class="tofi.mdl.model.dao.reltyp.relcls.RelClsDao"
+                  class="tofi.mdl.model.dao.reltyp.relcls.RelClsMdbUtils"
                   method="*"
             />
 
@@ -129,7 +145,7 @@
 
             //-----------------
             <item name="test"
-                  class="tofi.mdl.model.dao.typ.test.TestDao"
+                  class="tofi.mdl.model.dao.typ.test.TestMdbUtils"
                   method="*"
             />
 

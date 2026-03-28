@@ -80,7 +80,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError} from "src/utils/jsutils";
 import {ref} from "vue";
 import UpdateDimMultiPropItemMeter from "pages/multiprop/dim/UpdateDimMultiPropItemMeter.vue";
@@ -147,7 +147,7 @@ export default {
           })
           .onOk(() => {
             api
-                .post(baseURL, {
+                .post("", {
                   method: "dimMultiProp/deleteDimMultiPropItemMeter",
                   params: [rec.id],
                 })
@@ -205,7 +205,7 @@ export default {
     loadDimMultiPropItemMeter (dmpi) {
       this.loading = ref(true);
       axios
-        .post(baseURL, {
+        .post("", {
           method: "dimMultiProp/loadDimMultiPropItemMeter",
           params: [dmpi],
         })

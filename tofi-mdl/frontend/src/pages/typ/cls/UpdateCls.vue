@@ -240,7 +240,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {collapsAll, expandAll, notifyError, notifySuccess, pack,} from "src/utils/jsutils";
 import {ref} from "vue";
 
@@ -498,7 +498,7 @@ export default {
 
     fetchData(typ, cls) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadClsFVforUpd",
             params: [typ, cls],
           })
@@ -543,7 +543,7 @@ export default {
       const method = this.mode === "ins" ? "insertCls" : "updateCls";
       let err = false;
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/" + method,
             params: [{rec: this.form, ids: ids}],
           })
@@ -589,7 +589,7 @@ export default {
     this.cols = this.getColumns();
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })
@@ -598,7 +598,7 @@ export default {
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "database/loadDbForSelect",
           params: [],
         })
