@@ -1,16 +1,12 @@
-package tofi.mdl.model.dao.auth;
+package fish.nsi.dao
 
-import jandcode.commons.error.XError;
-import jandcode.core.auth.AuthService;
-import jandcode.core.auth.AuthUser;
-import jandcode.core.dao.DaoMethod;
-import jandcode.core.dbm.mdb.BaseMdbUtils;
+import jandcode.commons.error.XError
+import jandcode.core.auth.AuthService
+import jandcode.core.auth.AuthUser
+import jandcode.core.dao.DaoMethod
+import jandcode.core.dbm.mdb.BaseMdbUtils
 
-import java.util.Arrays;
-import java.util.Map;
-
-public class AuthDao extends BaseMdbUtils {
-
+class AuthDao extends BaseMdbUtils {
     @DaoMethod
     public Map<String, Object> getUserInfo() {
         AuthService authSvc = getMdb().getApp().bean(AuthService.class);

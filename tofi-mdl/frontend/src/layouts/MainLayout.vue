@@ -227,7 +227,7 @@ export default defineComponent({
                 })
                 .then(
                   (response) => {
-                    localStorage.setItem('auth_token', response.data.result.token);
+                    localStorage.setItem('fish_token', response.data.result.token);
                     api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.result.token;
                     setUserStore(response.data.result.token)
                     router.push('/')

@@ -184,14 +184,9 @@ params: {username: this.form.login, password: this.form.psw},
         })
         .then(
           () => {
-            //const JSESSIONID = Cookies.get("JSESSIONID");
-            //console.info(JSESSIONID, JSESSIONID);
-            //console.log("loginUser: response", response);
             this.$emit("ok", {res: true});
           },
           (error) => {
-            //console.log("loginUser: error", error.message)
-            //console.log("loginUser: error.response", error.response)
             err = true
             let msg = this.$t("networkError");
             if (error.response)

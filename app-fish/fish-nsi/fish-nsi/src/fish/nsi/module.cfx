@@ -29,16 +29,16 @@
               render="downfile"/>
         <render name="downfile" class="fish.nsi.action.DownFileRender"/>
 
-
+        <filter name="jc-auth-engine"
+                class="jandcode.core.apx.auth.AuthFilter"
+                type="*" weight="-110"/>
     </web>
 
     <bean name="jandcode.core.auth.AuthService"
           class="jandcode.core.auth.impl.AuthServiceImpl">
 
-        <!--  -->
         <auth-processor name="default"
-                        class="fish.nsi.auth.TofiAuthProcessor"/>
-
+                        class="fish.nsi.auth.NsiAuthProcessor"/>
     </bean>
 
     <dbm>
