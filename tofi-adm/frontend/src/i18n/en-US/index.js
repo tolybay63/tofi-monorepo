@@ -17,8 +17,10 @@ export default {
   myProfile: "My profile",
   browserDenied: "Browser denied file download...",
 
-  notLogined: "Login required",
-  notAccess: "You do not have access rights",
+  notLoginned: "Login required",
+  notAccess: "You do not have the rights to perform this operation",
+  notAccessService: "You do not have access rights to access this service",
+  invalid_user_passwd: "The username or password is incorrect",
 
   networkError: "Network Error",
 
