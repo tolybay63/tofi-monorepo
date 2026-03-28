@@ -361,7 +361,7 @@ export default {
       api
         .post("", {
           method: "permis/load",
-          params: [{}],
+          params: [],
         })
         .then(
           (response) => {
