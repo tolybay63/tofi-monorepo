@@ -185,7 +185,7 @@ params: {username: this.form.login, password: this.form.psw},
         .then(
           () => {
             this.$emit("ok", {res: true});
-          },
+          }/*,
           (error) => {
             err = true
             let msg = this.$t("networkError");
@@ -193,7 +193,7 @@ params: {username: this.form.login, password: this.form.psw},
               msg = this.$t("invalidLoginPasswd");
 
             notifyError(msg);
-          }
+          }*/
         )
         .finally(() => {
           this.loading = false;

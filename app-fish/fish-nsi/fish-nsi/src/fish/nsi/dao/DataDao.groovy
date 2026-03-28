@@ -800,7 +800,7 @@ class DataDao extends BaseMdbUtils {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
         AuthUser au = authSvc.getCurrentUser()
         if (au == null) {
-            throw new XError("NotLogined")
+            throw new XError("NotLoginned")
         }
         return au.getAttrs()
     }
@@ -809,7 +809,7 @@ class DataDao extends BaseMdbUtils {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
         long au = authSvc.getCurrentUser().getAttrs().getLong("id")
         if (au == 0)
-            throw new XError("notLogined")
+            throw new XError("notLoginned")
         return au
     }
 
