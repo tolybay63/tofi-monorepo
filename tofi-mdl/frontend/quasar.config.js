@@ -6,24 +6,16 @@ let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
 export default defineConfig((ctx) => {
   const SERVICE_NAME = 'meta';
   return {
-    // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
-    // preFetch: true,
-
-    // app boot file (/src/boot)
-    // --> boot files are part of "main.js"
-    // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
       'i18n',
       'axios',
       'auth-init'
     ],
 
-    // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: [
       'app.scss'
     ],
 
-    // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
       // 'ionicons-v4',
       // 'mdi-v7',

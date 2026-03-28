@@ -1,42 +1,20 @@
-/* eslint-env node */
-
-/*
- * This file runs in a Node context (it's NOT transpiled by Babel), so use only
- * the ES6 features that are supported by your Node version. https://node.green/
- */
-
-// Configuration for your app
-// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
-
 import {defineConfig} from '#q-app/wrappers'
 import {fileURLToPath} from 'node:url'
 import {resolve} from 'node:path'
 
-let url = 'http://localhost:8080'
-if (process.env.NODE_ENV === 'production') {
-  url = process.env.VITE_PRODUCT_URL
-}
+let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
 
 export default defineConfig((ctx) => {
+  const SERVICE_NAME = 'nsi';
   return ({
     eslint: {
-      // fix: true,
-      // include: [],
-      // exclude: [],
-      // rawOptions: {},
       warnings: true,
       errors: true
     },
-
-    // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
-    // preFetch: true,
-
-    // app boot file (/src/boot)
-    // --> boot files are part of "main.js"
-    // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
       'i18n',
       'axios',
+      'auth-init',
       'qpdfviewer'
     ],
 
@@ -68,16 +46,20 @@ export default defineConfig((ctx) => {
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
-      vueRouterBase: '',
+      vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? `/fish/${SERVICE_NAME}/` : '',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-      // publicPath: '/',
-      publicPath: '',
+
+      publicPath: ctx.modeName === 'spa' && ctx.prod ? `/fish/${SERVICE_NAME}/` : '',
       extendViteConf(viteConf, { isServer, isClient }) {
-        viteConf.base = '';
+        if (ctx.modeName === 'spa' && ctx.prod) {
+          viteConf.base = `/fish/${SERVICE_NAME}/`;
+        } else {
+          viteConf.base = '';
+        }
 
         // Исправление пути для quasar-app-extension-qpdfviewervue3
         // Расширение использует неправильный путь к composable
@@ -204,9 +186,8 @@ export default defineConfig((ctx) => {
       plugins: [
         "Dialog",
         "Notify",
-        "Loading",
         "LocalStorage",
-        "SessionStorage"
+        'LoadingBar'
       ]
     },
 
