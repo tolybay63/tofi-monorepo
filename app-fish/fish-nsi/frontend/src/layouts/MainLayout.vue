@@ -104,7 +104,7 @@
       show-if-above
     >
       <h6 v-if="reqAuth()" class="q-pa-md text-red text-bold">
-        {{ $t("notLogined") }}
+        {{ $t("notLoginned") }}
       </h6>
       <h6 v-else-if="notAccess()" class="q-pa-md text-red text-bold">
         {{ $t("notAccess") }}

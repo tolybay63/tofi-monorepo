@@ -159,7 +159,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
                 .getAttrs()
                 .getLong("accesslevel")
         if (al == 0)
-            throw new XError("notLogined")
+            throw new XError("notLoginned")
         return al
     }
 

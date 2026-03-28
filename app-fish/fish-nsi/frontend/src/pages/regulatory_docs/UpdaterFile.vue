@@ -154,7 +154,6 @@ export default {
           //console.log("error.response=>>>", error.response)
           //console.log("error.response.data=>>>", error.response.data)
           //setUserStore({})
-          //notifyError(this.$t("notLogined"))
         })
         .finally(() => {
           this.loading = false
