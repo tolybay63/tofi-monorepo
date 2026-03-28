@@ -87,7 +87,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 import {ref} from "vue";
 import treeselect from "vue3-treeselect";
@@ -167,7 +167,7 @@ export default {
       this.form.visualFormat =
           typeof this.vf === "object" ? this.vf.id : this.vf;
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimMultiProp/" + method,
             params: [this.form],
           })
@@ -195,7 +195,7 @@ export default {
 
     this.visible = ref(true)
     api
-        .post(baseURL, {
+        .post("", {
           method: "typ/loadClsTree",
           params: [{typ: 0}],
         })
@@ -212,7 +212,7 @@ export default {
 
     this.visible = ref(true)
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_VisualFormat"}],
         })

@@ -95,7 +95,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
@@ -159,7 +159,7 @@ export default {
       let err = false
       const method = this.mode === "ins" ? "insertClsVer" : "updateClsVer";
       api
-          .post(baseURL, {
+          .post("", {
             id: this.myData.id,
             method: "typ/" + method,
             params: [this.myData],

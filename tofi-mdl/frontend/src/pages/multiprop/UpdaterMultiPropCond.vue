@@ -131,7 +131,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import {ref} from "vue";
 
@@ -308,7 +308,7 @@ export default {
 
       let err = false;
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/" + method,
             params: [this.form],
           })
@@ -337,7 +337,7 @@ export default {
     loadFactors() {
       this.visible = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/loadFactorsForSelect",
             params: [this.multiProp, this.mode],
           })
@@ -358,7 +358,7 @@ export default {
     loadTyps() {
       this.visible = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/loadTypsForSelect",
             params: [this.multiProp, this.mode],
           })
@@ -379,7 +379,7 @@ export default {
     loadRelTyps() {
       this.visible = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/loadRelTypsForSelect",
             params: [this.multiProp, this.mode],
           })

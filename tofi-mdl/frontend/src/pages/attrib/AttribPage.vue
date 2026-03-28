@@ -218,7 +218,7 @@
 <script>
 import {defineComponent, ref} from "vue";
 import {exportFile} from "quasar";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateAttrib from "pages/attrib/UpdateAttrib.vue";
 import UpdateAttribChar from "pages/attrib/UpdateAttribChar.vue";
@@ -260,7 +260,7 @@ export default defineComponent({
       if (this.visVals.includes(attribValType)) {
         this.loading2 = ref(true);
         api
-            .post(baseURL, {
+            .post("", {
               method: "attrib/loadAttribChar",
               params: [{attrib: attrib}],
             })
@@ -354,7 +354,7 @@ export default defineComponent({
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "attrib/delete",
                   params: [{rec: rec}],
                 })
@@ -448,7 +448,7 @@ export default defineComponent({
           .onOk(() => {
             let index = this.vals.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "attrib/deleteChar",
                   params: [{id: rec.id}],
                 })
@@ -521,7 +521,7 @@ export default defineComponent({
       const filter = requestProps.filter;
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "attrib/loadAttribPaginate",
             params: [
               {
@@ -769,7 +769,7 @@ export default defineComponent({
     this.cols = this.getColumns();
     //
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })
@@ -781,7 +781,7 @@ export default defineComponent({
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AttribValType"}],
         })
@@ -793,7 +793,7 @@ export default defineComponent({
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_EntityType"}],
         })
@@ -805,7 +805,7 @@ export default defineComponent({
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_PeriodType"}],
         })

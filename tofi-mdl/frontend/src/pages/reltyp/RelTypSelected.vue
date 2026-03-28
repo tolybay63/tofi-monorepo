@@ -49,7 +49,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import RelTypVer from "pages/reltyp/RelTypVer.vue";
 import RelTypRole from "pages/reltyp/reltyprole/RelTypRole.vue";
 import RelTypMember from "pages/reltyp/members/RelTypMember.vue";
@@ -86,7 +86,7 @@ export default {
     onLoadRelTyp(reltyp) {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             id: "1",
             method: "reltyp/loadRec",
             params: [{id: reltyp}],

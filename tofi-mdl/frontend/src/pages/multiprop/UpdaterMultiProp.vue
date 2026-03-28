@@ -197,7 +197,7 @@
 
 <script>
 
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import {ref} from "vue";
 
@@ -352,7 +352,7 @@ export default {
 
       let err = false;
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/" + method,
             params: [{rec: this.form}],
           })
@@ -380,7 +380,7 @@ export default {
 
     getDict(dictName) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "dict/load",
             params: [{dict: dictName}],
           })
@@ -399,7 +399,7 @@ export default {
     //this.getDict("FD_VisualFormat");
     this.visible = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "factor/loadForSelect",
           params: [],
         })
@@ -413,7 +413,7 @@ export default {
 
     this.visible = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "typ/loadTypForSelect",
           params: [{}],
         })

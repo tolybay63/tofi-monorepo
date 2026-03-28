@@ -157,7 +157,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import allConsts from "pages/all-consts";
@@ -210,7 +210,7 @@ export default {
     fnSelectDbeg(value) {
       this.visible = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimperiod/getPeriodBeg",
           params: [value, this.form.periodType],
         })
@@ -236,7 +236,7 @@ export default {
     fnSelectDend(value) {
       this.visible = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimperiod/getPeriodEnd",
           params: [value, this.form.periodType],
         })
@@ -325,7 +325,7 @@ export default {
         typeof this.pit === "object" ? this.pit.id : this.pit;
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimperiod/" + method,
           params: [{ rec: this.form }],
         })
@@ -358,7 +358,7 @@ export default {
     this.visible = ref(true);
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{ dict: "FD_PeriodType" }],
       })
@@ -423,7 +423,7 @@ export default {
       });
     //
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{ dict: "FD_PeriodNameTml" }],
       })
@@ -432,7 +432,7 @@ export default {
       });
     //
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{ dict: "FD_PeriodIncludeTag" }],
       })

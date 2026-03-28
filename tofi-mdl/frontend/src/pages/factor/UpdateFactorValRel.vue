@@ -184,7 +184,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError} from "src/utils/jsutils";
 
 export default {
@@ -241,7 +241,7 @@ export default {
       this.loadFactor("factor2", this.params.factor2);
     } else {
       api
-          .post(baseURL, {
+          .post("", {
             id: 1,
             method: "factorrel/factor2",
             params: [
@@ -331,7 +331,7 @@ export default {
 
     loadFactor(factor, id) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "factor/loadRec",
             params: [{id: id}],
           })
@@ -353,7 +353,7 @@ export default {
     loadData(factor1, factor2) {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "factorrel/factorValRel",
             params: [{factor1: factor1, factor2: factor2}],
           })
@@ -411,7 +411,7 @@ export default {
       console.log("f2", f2)
       console.log("data", data)
       api
-        .post(baseURL, {
+        .post("", {
           method: "factorrel/saveFactorValRel",
           params: [
             {factor1: f1, factor2: f2},
@@ -460,7 +460,7 @@ export default {
       try {
         this.loading = true;
         api
-            .post(baseURL, {
+            .post("", {
               method: "factorrel/saveFactorValRel",
               params: [{factor1: factor1, factor2: factor2}, data],
             })

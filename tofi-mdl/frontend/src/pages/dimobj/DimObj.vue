@@ -193,7 +193,7 @@
 <script>
 import QTreeTable from "components/QTreeTable.vue";
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {
   collapsAll,
   expandAll,
@@ -248,7 +248,7 @@ export default {
       this.currentNode = item.selected !== undefined ? item.selected : null;
       if (this.currentNode) {
         api
-          .post(baseURL, {
+          .post("", {
             method: "group/loadRec",
             params: [{ id: this.currentNode.id, tableName: "DimObjGr" }],
           })
@@ -267,7 +267,7 @@ export default {
       this.visible = ref(true);
       this.currentNode = null
       api
-        .post(baseURL, {
+        .post("", {
           method: "group/loadGroup",
           params: [{ tableName: "DimObjGr" }],
         })
@@ -378,7 +378,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "group/delete",
               params: [rec],
             })
@@ -414,7 +414,7 @@ export default {
       this.visible = ref(true);
       this.selected2 = []
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimobj/loadDimObj",
           params: [dimObjGr],
         })
@@ -470,7 +470,7 @@ export default {
     fnIns(mode) {
       if (mode === "ins") {
         api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/newRec",
             params: [this.currentNode.id],
           })
@@ -500,7 +500,7 @@ export default {
         })
         .onOk(() => {
           api
-            .post(baseURL, {
+            .post("", {
               method: "dimobj/delete",
               params: [rec],
             })

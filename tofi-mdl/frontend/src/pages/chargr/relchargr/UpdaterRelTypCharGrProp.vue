@@ -113,7 +113,7 @@
 <script>
 import treeselect from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, pack} from "src/utils/jsutils";
 import allConsts from "pages/all-consts";
 import {ref} from "vue";
@@ -159,7 +159,7 @@ export default {
       } else {
         this.form.relTypCharGrProp_measure = v.prop;
         api
-            .post(baseURL, {
+            .post("", {
               method: "typ/loadMeasure",
               params: [v.prop],
             })
@@ -233,7 +233,7 @@ export default {
       else this.form.flatTable = this.ft.id;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/updateRelTypCharGrProp",
             params: [this.form],
           })
@@ -260,7 +260,7 @@ export default {
   created() {
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_StorageType"}],
         })
@@ -269,7 +269,7 @@ export default {
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "flatTable/loadTables",
           params: [{}],
         })
@@ -292,7 +292,7 @@ export default {
         this.form.propType === allConsts.FD_PropType.rate
     ) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/loadPropMeasure",
             params: [this.relTypCharGr],
           })
@@ -306,7 +306,7 @@ export default {
               : this.form.relTypCharGrProp_measure;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/loadMeasure",
             params: [meas],
           })

@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import UpdaterMultiPropPeriodType from "pages/multiprop/UpdaterMultiPropPeriodType.vue";
 import {hasTarget, notifyError} from "src/utils/jsutils";
@@ -75,7 +75,7 @@ export default {
     fetchData(multiProp) {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/loadMultiPropPeriodType",
             params: [multiProp],
           })
@@ -126,7 +126,7 @@ export default {
     this.cols = this.getColumns();
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_PeriodType"}],
         })

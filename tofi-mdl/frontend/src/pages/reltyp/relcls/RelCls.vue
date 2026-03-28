@@ -134,7 +134,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import FD_Consts from "pages/all-consts";
 import UpdateRelCls from "pages/reltyp/relcls/UpdateRelCls.vue";
@@ -306,7 +306,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "relcls/delete",
                   params: [rec],
                 })
@@ -332,7 +332,7 @@ export default {
       this.loading = ref(true);
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "relcls/load",
             params: [reltyp],
           })
@@ -428,7 +428,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })
@@ -440,7 +440,7 @@ export default {
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "database/loadDbForSelect",
           params: [],
         })

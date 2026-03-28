@@ -135,7 +135,7 @@
 
 <script>
 import {defineComponent, ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateClusterFactor from "pages/typ/clusterfactor/UpdateClusterFactor.vue";
 
@@ -224,7 +224,7 @@ export default defineComponent({
       this.loading = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadTypClusterFactor",
             params: [typ],
           })
@@ -264,7 +264,7 @@ export default defineComponent({
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "typ/deleteTypClusterFactor",
                   params: [{rec: rec}],
                 })

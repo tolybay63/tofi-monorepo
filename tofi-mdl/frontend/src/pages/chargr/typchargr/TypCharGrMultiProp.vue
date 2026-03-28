@@ -114,7 +114,7 @@
 <script>
 import {ref} from "vue";
 import {collapsAll, expandAll, hasTarget, notifyError, pack} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import UpdateTypCharGrMultiPropUpd from "pages/chargr/typchargr/UpdateTypCharGrMultiPropUpd.vue";
 import UpdateTypCharGrMultiProp from "pages/chargr/typchargr/UpdateTypCharGrMultiProp.vue";
 
@@ -196,7 +196,7 @@ export default {
       //console.log("TypCharGrProp", typCharGr)
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadTypCharGrMultiProp",
             params: [{typCharGr: typCharGr}],
           })
@@ -330,7 +330,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_StorageType"}],
         })

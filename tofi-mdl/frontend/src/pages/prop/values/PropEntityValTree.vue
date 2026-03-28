@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {collapsAll, expandAll, hasTarget, notifyError, pack} from "src/utils/jsutils";
 import UpdaterPropEntityValTree from "pages/prop/values/UpdaterPropEntityValTree.vue";
@@ -136,7 +136,7 @@ export default {
       this.loading = ref(true);
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/loadPropValEntity",
             params: [prop, this.entityType],
           })

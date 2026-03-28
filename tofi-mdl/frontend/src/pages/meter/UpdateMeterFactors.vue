@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
@@ -150,7 +150,7 @@ export default {
 
       this.form.meter = this.meterId;
       api
-          .post(baseURL, {
+          .post("", {
             method: "meterfactor/insert",
             params: [{rec: this.form}],
           })
@@ -179,7 +179,7 @@ export default {
   },
   created() {
     api
-        .post(baseURL, {
+        .post("", {
           method: "meterfactor/factors",
           params: [{meter: this.meterId}],
         })

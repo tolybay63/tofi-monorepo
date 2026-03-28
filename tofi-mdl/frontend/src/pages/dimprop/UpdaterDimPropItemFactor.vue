@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import SelectFV from "pages/dimprop/SelectFV.vue";
 import {extend} from "quasar";
@@ -185,7 +185,7 @@ export default {
       const method = this.mode === "ins" ? "insertDPI" : "updateDPI";
 
       api
-        .post(baseURL, {
+        .post("", {
           id: this.form.id,
           method: "dimprop/" + method,
           params: [this.form],

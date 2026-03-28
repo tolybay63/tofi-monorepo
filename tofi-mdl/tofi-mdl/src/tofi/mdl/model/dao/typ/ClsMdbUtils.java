@@ -3,7 +3,8 @@ package tofi.mdl.model.dao.typ;
 import jandcode.commons.UtCnv;
 import jandcode.commons.UtString;
 import jandcode.commons.error.XError;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
@@ -19,60 +20,40 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ClsMdbUtils extends EntityMdbUtils {
-    ApinatorApi apiUserData() {
-        return  mdb.getApp().bean(ApinatorService.class).getApi("userdata");
-    }
+public class ClsMdbUtils extends BaseMdbUtils {
+    ApinatorApi apiUserData() { return getMdb().getApp().bean(ApinatorService.class).getApi("userdata"); }
     ApinatorApi apiNSIData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
+        return getMdb().getApp().bean(ApinatorService.class).getApi("nsidata");
     }
     ApinatorApi apiMonitoringData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("monitoringdata");
-    }
-    ApinatorApi apiObjectData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("objectdata");
-    }
-    ApinatorApi apiOrgStructureData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("orgstructuredata");
-    }
-    ApinatorApi apiPersonnalData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("personnaldata");
-    }
-    ApinatorApi apiPlanData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("plandata");
+        return getMdb().getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
 
 
-    Mdb mdb;
-    String tableName;
-
-    public ClsMdbUtils(Mdb mdb, String tableName) {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-    }
-
+    @DaoMethod
     public Store loadCls(long typ) throws Exception {
-        Store st = mdb.createStore("Cls.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Cls.full");
+        return getMdb().loadQuery(st, """
                     select * from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.typ=:typ
                 """, Map.of("typ", typ));
     }
 
+    @DaoMethod
     public StoreRecord loadRecCls(long id) throws Exception {
-        StoreRecord st = mdb.createStoreRecord("Cls.full");
-        return mdb.loadQueryRecord(st, """
+        StoreRecord st = getMdb().createStoreRecord("Cls.full");
+        return getMdb().loadQueryRecord(st, """
                     select * from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.id=:id
                 """, Map.of("id", id));
     }
 
 
+    @DaoMethod
     public Store loadClsFVforUpd(long typ, long cls) throws Exception {
-        Store st = mdb.createStore("TypClusterFactor.tree");
-        TypDao typDao = mdb.createDao(TypDao.class);
+        Store st = getMdb().createStore("TypClusterFactor.tree");
+        TypMdbUtils typDao = getMdb().createDao(TypMdbUtils.class);
         long typParent = typDao.loadRec(typ).getLong("parent");
 
-        mdb.loadQuery(st, """
+        getMdb().loadQuery(st, """
                     select a.*, case when c.id > 0 then 1 else 0 end as checked
                     from (
                         select id, name, fullName, cod, cmt, isReq, isUniq, parent, isOwn, ord
@@ -98,9 +79,10 @@ public class ClsMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store loadClsFV(long typ, long cls) throws Exception {
-        Store st = mdb.createStore("TypClusterFactor.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("TypClusterFactor.full");
+        getMdb().loadQuery(st, """
                 select * from (
                   select distinct id, name, fullName, cod, parent, isOwn, ord
                   from
@@ -126,6 +108,7 @@ public class ClsMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store insertCls(Map<String, Object> params) throws Exception {
 
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
@@ -140,30 +123,29 @@ public class ClsMdbUtils extends EntityMdbUtils {
         testForDubleCls(fvs, cnt, 0, typ, "ins");
 
         //add Cls
-        //long cls = insertEntityWithVer(rec);
-        long cls = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Cls");
+        long cls = eu.insertEntity(rec);
         //add to PropVal
-        Store rTmp = mdb.loadQuery("select id, allItem from Prop where typ=:typ and proptype=:pt",
+        Store rTmp = getMdb().loadQuery("select id, allItem from Prop where typ=:typ and proptype=:pt",
                 Map.of("typ", typ, "pt", FD_PropType_consts.typ));
         if (rTmp.size() > 0) {
             if (rTmp.get(0).getBoolean("allItem")) {
                 long prop = rTmp.get(0).getLong("id");
-                mdb.insertRec("PropVal", Map.of("prop", prop, "cls", cls), true);
+                getMdb().insertRec("PropVal", Map.of("prop", prop, "cls", cls), true);
             }
         }
-
 
         //add ClsFactorVal
         for (String sfv : lstFvs) {
             long f = UtCnv.toLong(sfv);
-            mdb.insertRec("ClsFactorVal", Map.of("cls", cls, "factorVal", f), true);
+            getMdb().insertRec("ClsFactorVal", Map.of("cls", cls, "factorVal", f), true);
         }
         //
-        Store st = mdb.createStore("Cls.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Cls.full");
+        getMdb().loadQuery(st, """
                     select * from Cls c, ClsVer v where c.id=v.ownerVer and v.lastver=1 and c.id=:id
                 """, Map.of("id", cls));
-        mdb.resolveDicts(st);
+        //getMdb().resolveDicts(st);
         //
         return st;
     }
@@ -174,17 +156,17 @@ public class ClsMdbUtils extends EntityMdbUtils {
 
         Store ds;
         if (mode.equals("ins")) {
-            ds = mdb.loadQuery("select cls from clsfactorval cl, Cls c where factorval in (" + fvs + ") and " +
+            ds = getMdb().loadQuery("select cls from clsfactorval cl, Cls c where factorval in (" + fvs + ") and " +
                             "cl.cls=c.id  and c.typ=" + typ + " group by cls having count(*)=:cnt and count(*)=(select count(*) from clsfactorval where cls=cl.cls group by cls)",
                     Map.of("fvs", fvs, "cnt", cnt));
         } else {
-            ds = mdb.loadQuery("select cls from clsfactorval cl, Cls c where factorval in (" + fvs + ") and cls<>:cls and " +
+            ds = getMdb().loadQuery("select cls from clsfactorval cl, Cls c where factorval in (" + fvs + ") and cls<>:cls and " +
                             "cl.cls=c.id and c.typ=" + typ + " group by cls having count(*)=:cnt and count(*)=(select count(*) from clsfactorval where cls=cl.cls group by cls)",
                     Map.of("fvs", fvs, "cls", cls, "cnt", cnt));
         }
 
         if (ds.size() > 0) {
-            Store st = mdb.loadQuery("""
+            Store st = getMdb().loadQuery("""
                         select cod, name from Cls c, ClsVer v where c.id=v.ownerver and v.lastver=1 and c.id=:cls
                     """, Map.of("cls", ds.get(0).getLong("cls")));
             String msg = "Существует класс, образованный от указанных значений кластерных факторов: ";//NLS
@@ -193,6 +175,7 @@ public class ClsMdbUtils extends EntityMdbUtils {
 
     }
 
+    @DaoMethod
     public Store updateCls(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         long cls = UtCnv.toLong(rec.get("id"));
@@ -208,31 +191,31 @@ public class ClsMdbUtils extends EntityMdbUtils {
         //
 
         //upd Cls
-        //updateEntityWithVer(rec);
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Cls");
+        eu.updateEntity(rec);
 
-        Store dsOld = mdb.loadQuery("select id,factorVal from clsfactorval where cls=:cls", Map.of("cls", cls));
+        Store dsOld = getMdb().loadQuery("select id,factorVal from clsfactorval where cls=:cls", Map.of("cls", cls));
         Set<Object> oldFvs = dsOld.getUniqueValues("factorVal");
         // Deleting
         for (StoreRecord r : dsOld) {
             if (!fvs.contains(r.getString("factorVal"))) {
                 System.out.println("del " + r.getString("id"));
-                mdb.execQuery("delete from ClsFactorVal where id=:id", Map.of("id", r.getLong("id")));
+                getMdb().execQuery("delete from ClsFactorVal where id=:id", Map.of("id", r.getLong("id")));
             }
         }
         //Adding
         for (String sfv : fvs) {
             long f = UtCnv.toLong(sfv);
             if (!oldFvs.contains(f)) {
-                mdb.insertRec("ClsFactorVal", Map.of("cls", cls, "factorVal", f), true);
+                getMdb().insertRec("ClsFactorVal", Map.of("cls", cls, "factorVal", f), true);
             }
         }
         //
-        Store st = mdb.createStore("Cls.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Cls.full");
+        getMdb().loadQuery(st, """
                     select * from Cls c, ClsVer v where c.id=v.ownerVer and v.lastver=1 and c.id=:id
                 """, Map.of("id", cls));
-        mdb.resolveDicts(st);
+        getMdb().resolveDicts(st);
         //
         return st;
     }
@@ -252,17 +235,18 @@ public class ClsMdbUtils extends EntityMdbUtils {
         }
 
         if (!lstApp.isEmpty()) {
-            throw new XError("ExistObjInApp@"+UtString.join(lstApp, ", "));
+            throw new XError("ExistObjInApp@" + UtString.join(lstApp, ", "));
         }
 
     }
 
+    @DaoMethod
     public void deleteCls(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         long cls = UtCnv.toLong(rec.get("ent"));
 
         //---< check data in other DB
-        CfgService cfgSvc = mdb.getApp().bean(CfgService.class);
+        CfgService cfgSvc = getMdb().getApp().bean(CfgService.class);
         String modelMeta = cfgSvc.getConf().getString("dbsource/default/id");
         if (modelMeta.isEmpty())
             throw new XError("Не найден id мета модели");
@@ -271,16 +255,18 @@ public class ClsMdbUtils extends EntityMdbUtils {
         //--->
 
         // delete ClsFactorVal
-        mdb.execQuery("""
+        getMdb().execQuery("""
                     delete from ClsFactorVal where cls=:cls
                 """, Map.of("cls", cls));
 
         // delete Cls
         rec.put("id", cls);
-        deleteEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Cls");
+        eu.deleteEntity(rec);
     }
 
 
+    @DaoMethod
     public Store loadClsTreeForSelect() throws Exception {
         String sql = """
                     select -t.id as id, v.name, null as parent
@@ -289,49 +275,55 @@ public class ClsMdbUtils extends EntityMdbUtils {
                     select t.id, v.name, -t.typ as parent
                     from Cls t, ClsVer v where t.id=v.ownerVer and v.lastVer=1
                 """;
-        return mdb.loadQuery(sql);
+        return getMdb().loadQuery(sql);
     }
 
+    @DaoMethod
     public Store loadClsVer(long cls) throws Exception {
-        Store st = mdb.createStore("ClsVer");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("ClsVer");
+        getMdb().loadQuery(st, """
                     select * from clsver where ownerver=:cls order by dend desc
                 """, Map.of("cls", cls));
 
-        mdb.outTable(st);
+        getMdb().outTable(st);
 
 
         return st;
     }
 
+    @DaoMethod
     public Store insertClsVer(Map<String, Object> rec) throws Exception {
         //
-        long id = insertEntityVer(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Cls");
+        long id = eu.insertEntityVer(rec);
         //
-        Store st = mdb.createStore("ClsVer");
-        mdb.loadQuery(st, "select * from clsver where id=:id", Map.of("id", id));
+        Store st = getMdb().createStore("ClsVer");
+        getMdb().loadQuery(st, "select * from clsver where id=:id", Map.of("id", id));
 
         return st;
     }
 
+    @DaoMethod
     public Store updateClsVer(Map<String, Object> rec) throws Exception {
         long id = UtCnv.toLong(rec.get("id"));
         if (id == 0) {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        updateEntityVer(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Cls");
+        eu.updateEntityVer(rec);
         // Загрузка записи
-        Store st = mdb.createStore("ClsVer");
-        mdb.loadQuery(st, "select * from clsver where id=:id", Map.of("id", id));
+        Store st = getMdb().createStore("ClsVer");
+        getMdb().loadQuery(st, "select * from clsver where id=:id", Map.of("id", id));
         return st;
     }
 
+    @DaoMethod
     public void deleteClsVer(Map<String, Object> rec) throws Exception {
-        deleteEntityVer(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Cls");
+        eu.deleteEntityVer(rec);
 
     }
-
 
 
 }

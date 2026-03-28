@@ -139,7 +139,7 @@
 import {defineComponent, ref} from "vue";
 import UpdateTyp from "pages/typ/UpdateTyp.vue";
 import {date, exportFile} from "quasar";
-import {api, baseURL, tofi_dbeg, tofi_dend} from "boot/axios";
+import {api, tofi_dbeg, tofi_dend} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 
 const requestParam = {
@@ -259,7 +259,7 @@ export default defineComponent({
       const filter = requestProps.filter;
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadTypPaginate",
             params: [
               {
@@ -346,7 +346,7 @@ export default defineComponent({
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "typ/delete",
                   params: [{rec: rec}],
                 })
@@ -501,7 +501,7 @@ export default defineComponent({
     this.lang = localStorage.getItem("curLang");
     this.lang = this.lang === "en-US" ? "en" : this.lang;
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })

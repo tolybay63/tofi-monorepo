@@ -169,7 +169,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {date} from "quasar";
 import UpdateRelTypRole from "pages/reltyp/reltyprole/UpdateRelTypRole.vue";
 import UpdateRelTypRoleLifeInterval from "pages/reltyp/reltyprole/UpdateRelTypRoleLifeInterval.vue";
@@ -229,7 +229,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "reltyp/deleteRelTypRole",
                   params: [{rec: rec}],
                 })
@@ -308,7 +308,7 @@ export default {
     fetchData(reltyp) {
       this.loading = true
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/loadRelTypRole",
             params: [reltyp],
           })
@@ -355,7 +355,7 @@ export default {
           .onOk(() => {
             let index = this.rows2.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "reltyp/deleteRelTypRoleLife",
                   params: [{rec: rec}],
                 })
@@ -432,7 +432,7 @@ export default {
     fetchData2(reltyprole) {
       this.loading2 = true
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/loadRelTypRoleLife",
             params: [reltyprole],
           })

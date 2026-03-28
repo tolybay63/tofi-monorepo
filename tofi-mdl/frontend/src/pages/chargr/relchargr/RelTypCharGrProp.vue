@@ -116,7 +116,7 @@
 <script>
 import {ref} from "vue";
 import {collapsAll, expandAll, hasTarget, notifyError, pack} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import allConsts from "pages/all-consts";
 import UpdaterRelTypCharGrPropUpd from "pages/chargr/relchargr/UpdaterRelTypCharGrPropUpd.vue";
 import UpdaterRelTypCharGrProp from "pages/chargr/relchargr/UpdaterRelTypCharGrProp.vue";
@@ -205,7 +205,7 @@ export default {
 
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/loadRelTypCharGrProp",
             params: [{relTypCharGr: relTypCharGr}],
           })
@@ -375,7 +375,7 @@ export default {
 
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_StorageType"}],
         })
@@ -387,7 +387,7 @@ export default {
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "flatTable/loadTables",
           params: [{}],
         })
