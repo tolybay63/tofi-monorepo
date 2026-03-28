@@ -1,40 +1,29 @@
 package tofi.mdl.model.dao.flat.table;
 
 import jandcode.commons.UtCnv;
-import jandcode.core.App;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.store.Store;
 import tofi.mdl.consts.FD_StorageType_consts;
 import tofi.mdl.model.utils.EntityMdbUtils;
 
 import java.util.Map;
 
-public class FlatTableMdbUtils extends EntityMdbUtils {
-    Mdb mdb;
-    String tableName;
 
-    public FlatTableMdbUtils(App app, Mdb mdb, String tableName) throws Exception {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
+public class FlatTableMdbUtils extends BaseMdbUtils {
 
+    @DaoMethod
     public Store loadTables(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("FlatTable");
-        mdb.loadQuery(st, "select * from FlatTable where 0=0");
-        //mdb.outTable(st);
+        Store st = getMdb().createStore("FlatTable");
+        getMdb().loadQuery(st, "select * from FlatTable where 0=0");
+        //getMdb().outTable(st);
         return st;
     }
 
+    @DaoMethod
     public Store load() throws Exception {
-        Store st = mdb.createStore("FlatTable.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("FlatTable.full");
+        getMdb().loadQuery(st, """
                     select f.*, case when f.cls is null then rv.name else cv.name end as nameCls,
                         case when f.cls is null then r.dataBase else c.dataBase end as db,
                         case when f.cls is null then dr.name else dc.name end as nameDb
@@ -50,9 +39,10 @@ public class FlatTableMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store loadRec(long id) throws Exception {
-        Store st = mdb.createStore("FlatTable.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("FlatTable.full");
+        getMdb().loadQuery(st, """
                     select f.*, case when f.cls is null then rv.name else cv.name end as nameCls,
                         case when f.cls is null then r.dataBase else c.dataBase end as db,
                         case when f.cls is null then dr.name else dc.name end as nameDb
@@ -68,35 +58,41 @@ public class FlatTableMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store insertFlatTable(Map<String, Object> rec) throws Exception {
-        long id = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "FlatTable");
+        long id = eu.insertEntity(rec);
         //
         return loadRec(id);
     }
 
+    @DaoMethod
     public Store updateFlatTable(Map<String, Object> rec) throws Exception {
-        updateEntity(rec);
-        //mdb.updateRec("FlatTable", rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "FlatTable");
+        eu.updateEntity(rec);
+        //getMdb().updateRec("FlatTable", rec);
         //
-        Store st = mdb.createStore("FlatTable");
-        return loadRec(UtCnv.toLong(rec.get("id"))); //  mdb.loadQuery(st, "select * from FlatTable where id=:id", Map.of("id",
-        //rec.get("id")));
+        Store st = getMdb().createStore("FlatTable");
+        return loadRec(UtCnv.toLong(rec.get("id")));
+
     }
 
+    @DaoMethod
     public void deleteFlatTable(Map<String, Object> rec) throws Exception {
         String tn = UtCnv.toString(rec.get("nameTable"));
         long id = UtCnv.toLong(rec.get("id"));
 
         try {
-            mdb.execQuery("""
+            getMdb().execQuery("""
                         update TypCharGrProp set storageType=:sd, flatTable=null where flatTable=:ft;
                         update RelTypCharGrProp set storageType=:sd, flatTable=null where flatTable=:ft;
                     """, Map.of("sd", FD_StorageType_consts.std, "ft", id));
-            deleteEntity(rec);
+            EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "FlatTable");
+            eu.deleteEntity(rec);
         } finally {
             //todo Можно убрать, они в другой базе
-            mdb.execQuery("drop table if exists " + tn + " cascade");
-            mdb.execQuery("drop table if exists " + tn + "_notuniqprop cascade");
+            getMdb().execQuery("drop table if exists " + tn + " cascade");
+            getMdb().execQuery("drop table if exists " + tn + "_notuniqprop cascade");
         }
     }
 

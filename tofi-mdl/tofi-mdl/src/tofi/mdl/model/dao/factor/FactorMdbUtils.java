@@ -6,7 +6,8 @@ import jandcode.commons.error.XError;
 import jandcode.commons.variant.VariantMap;
 import jandcode.core.auth.AuthService;
 import jandcode.core.auth.AuthUser;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
@@ -23,78 +24,55 @@ import java.util.List;
 import java.util.Map;
 
 
-public class FactorMdbUtils extends EntityMdbUtils {
+public class FactorMdbUtils extends BaseMdbUtils {
 
     ApinatorApi apiUserData() {
-        return  mdb.getApp().bean(ApinatorService.class).getApi("userdata");
+        return  getMdb().getApp().bean(ApinatorService.class).getApi("userdata");
     }
     ApinatorApi apiNSIData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
+        return getMdb().getApp().bean(ApinatorService.class).getApi("nsidata");
     }
     ApinatorApi apiMonitoringData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("monitoringdata");
+        return getMdb().getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
 
-
-    Mdb mdb;
-    String tableName;
-
-    public FactorMdbUtils(Mdb mdb, String tableName) throws Exception {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
 
     /**
      * Загрузка FactorVal без пагинацией
-     *
-     * @param params
-     * @return
-     * @throws Exception
-     */
+    */
+    @DaoMethod
     public Store loadFactorVal(Map<String, Object> params) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
+        //AuthUser au = authSvc.getCurrentUser();
         //todo AuthUser
-        long al = 10; //au.getAttrs().getLong("accesslevel");
-        params.put("al", al);
-        Store st = mdb.createStore("Factor");
-        mdb.loadQuery(st, "select * from factor where parent=:factor and accessLevel<=:al order by ord", params);
-        mdb.resolveDicts(st);
+        //long al = 10; //au.getAttrs().getLong("accesslevel");
+        //params.put("al", al);
+        Store st = getMdb().createStore("Factor");
+        getMdb().loadQuery(st, "select * from factor where parent=:factor order by ord", params);
         return st;
     }
 
     /**
      * Загрузка Factor с пагинацией
-     *
-     * @param params
-     * @return
-     * @throws Exception
      */
+    @DaoMethod
     public Map<String, Object> loadFactorPaginate(Map<String, Object> params) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
-        long al = au.getAttrs().getLong("accesslevel");
-        if (al==0)
-            throw new XError("notLogined");
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
+        //AuthUser au = authSvc.getCurrentUser();
+        //long al = au.getAttrs().getLong("accesslevel");
+        //if (al==0) throw new XError("notLoginned");
 
-        String sql0 = "select * from factor where parent is null and accessLevel <= " + al + " order by ord";
-        SqlText sqlText = mdb.createSqlText(sql0);
+        String sql0 = "select * from factor where parent is null order by ord";
+        SqlText sqlText = getMdb().createSqlText(sql0);
         Map<String, Object> par = new HashMap<>();
         String filter = UtCnv.toString(params.get("filter")).trim();
 
         //count
-        String sql = "select count(*) as cnt from factor where parent is null and accessLevel <= " + al;
+        String sql = "select count(*) as cnt from factor where parent is null";
         sqlText.setSql(sql);
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%'");
-        int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
+        int total = getMdb().loadQuery(sqlText).get(0).getInt("cnt");
         int lm = UtCnv.toInt(params.get("limit")) == 0 ? total : UtCnv.toInt(params.get("limit"));
         Map<String, Object> meta = new HashMap<String, Object>();
         meta.put("total", total);
@@ -115,9 +93,9 @@ public class FactorMdbUtils extends EntityMdbUtils {
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("(cod like '%" + filter + "%' or name like '%" + filter + "%' or " +
                     "fullName like '%" + filter + "%')");
-        Store st = mdb.createStore("Factor");
-        mdb.loadQuery(st, sqlText, par);
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("Factor");
+        getMdb().loadQuery(st, sqlText, par);
+        getMdb().resolveDicts(st);
 
         return Map.of("store", st, "meta", meta);
     }
@@ -143,19 +121,21 @@ public class FactorMdbUtils extends EntityMdbUtils {
     /**
      * Delete Factor
      *
-     * @param rec record Factor
+     * @param params record Factor
      */
-    public void delete(Map<String, Object> rec) throws Exception {
+    @DaoMethod
+    public void delete(Map<String, Object> params) throws Exception {
+        Map<String, Object> rec = UtCnv.toMap(params);
         VariantMap map = new VariantMap(rec);
         if (map.getLong("parent") > 0) {
             //---< check data in other DB
-            CfgService cfgSvc = mdb.getApp().bean(CfgService.class);
+            CfgService cfgSvc = getMdb().getApp().bean(CfgService.class);
             String modelMeta = cfgSvc.getConf().getString("dbsource/default/id");
             if (modelMeta.isEmpty())
                 throw new XError("Не найден id мета модели");
 
             long fv = UtCnv.toLong(rec.get("id"));
-            Store stTmp = mdb.loadQuery("select id from PropVal where factorVal=:fv", Map.of("fv", fv));
+            Store stTmp = getMdb().loadQuery("select id from PropVal where factorVal=:fv", Map.of("fv", fv));
             if (stTmp.size() > 0) {
                 long propVal = stTmp.get(0).getLong("propVal");
                 if (propVal > 0)
@@ -164,16 +144,14 @@ public class FactorMdbUtils extends EntityMdbUtils {
             //-->
         }
 
-        deleteEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Factor");
+        eu.deleteEntity(rec);
     }
 
     /**
      * Update Factor & FactorVal
-     *
-     * @param params
-     * @return
-     * @throws Exception
      */
+    @DaoMethod
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
 
@@ -182,60 +160,61 @@ public class FactorMdbUtils extends EntityMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Factor");
+        eu.updateEntity(rec);
         //
         // Загрузка записи
-        Store st = mdb.createStore("Factor");
+        Store st = getMdb().createStore("Factor");
 
-        mdb.loadQuery(st, "select * from Factor where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-        //mdb.outTable(st);
+        getMdb().loadQuery(st, "select * from Factor where id=:id", Map.of("id", id));
+        getMdb().resolveDicts(st);
+        //getMdb().outTable(st);
         return st;
     }
 
     /**
      * Insert Factor & FactorVal
-     *
-     * @param params
-     * @return
-     * @throws Exception
      */
+    @DaoMethod
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         //
-        long id = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Factor");
+        long id = eu.insertEntity(rec);
         //add to PropVal
         long fac = UtCnv.toLong(rec.get("parent"));
         if (fac > 0) {
-            Store rTmp = mdb.loadQuery("select id, allItem from Prop where factor=:f and proptype=:pt",
+            Store rTmp = getMdb().loadQuery("select id, allItem from Prop where factor=:f and proptype=:pt",
                     Map.of("f", fac, "pt", FD_PropType_consts.factor));
             if (rTmp.size() > 0) {
                 if (rTmp.get(0).getBoolean("allItem")) {
                     long prop = rTmp.get(0).getLong("id");
-                    mdb.insertRec("PropVal", Map.of("prop", prop, "factorVal", id), true);
+                    getMdb().insertRec("PropVal", Map.of("prop", prop, "factorVal", id), true);
                 }
             }
         }
         //
 
-        Store st = mdb.createStore("Factor");
-        mdb.loadQuery(st, "select * from factor where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("Factor");
+        getMdb().loadQuery(st, "select * from factor where id=:id", Map.of("id", id));
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public StoreRecord loadRec(Map<String, Object> params) throws Exception {
         long id = UtCnv.toLong(params.get("id"));
-        StoreRecord st = mdb.createStoreRecord("Factor");
-        mdb.loadQueryRecord(st, "select * from factor where id=:id", Map.of("id", id));
-        //mdb.resolveDicts(st);
+        StoreRecord st = getMdb().createStoreRecord("Factor");
+        getMdb().loadQueryRecord(st, "select * from factor where id=:id", Map.of("id", id));
+        //getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public void changeOrdFV(Map<String, Object> params) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
-        long al = au.getAttrs().getLong("accesslevel");
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
+        //AuthUser au = authSvc.getCurrentUser();
+        //long al = au.getAttrs().getLong("accesslevel");
 
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         boolean up = UtCnv.toBoolean(params.get("up"));
@@ -245,9 +224,9 @@ public class FactorMdbUtils extends EntityMdbUtils {
         long id2;
         long ord2;
 
-        Store st = mdb.loadQuery("""
-                    select * from Factor where parent=:factor and accessLevel < :al order by ord
-                """, Map.of("factor", factor, "al", al));
+        Store st = getMdb().loadQuery("""
+                    select * from Factor where parent=:factor order by ord
+                """, Map.of("factor", factor));
         int k = 0;  //искомая позиция
         for (int i = 0; i < st.size(); i++) {
             if (st.get(i).getLong("id") == id1) {
@@ -263,16 +242,17 @@ public class FactorMdbUtils extends EntityMdbUtils {
             ord2 = st.get(k + 1).getLong("ord");
         }
         //
-        mdb.execQuery("""
+        getMdb().execQuery("""
                     update Factor set ord=:ord2 where id=:id1;
                     update Factor set ord=:ord1 where id=:id2;
                 """, Map.of("id1", id1, "id2", id2, "ord1", ord1, "ord2", ord2));
     }
 
+    @DaoMethod
     public void changeOrdF(Map<String, Object> params) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
-        long al = au.getAttrs().getLong("accesslevel");
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
+        //AuthUser au = authSvc.getCurrentUser();
+        //long al = au.getAttrs().getLong("accesslevel");
 
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         boolean up = UtCnv.toBoolean(params.get("up"));
@@ -281,9 +261,9 @@ public class FactorMdbUtils extends EntityMdbUtils {
         long id2 = 0;
         long ord2 = 0;
 
-        Store st = mdb.loadQuery("""
-                    select * from Factor where parent is null and accessLevel<=:al order by ord
-                """, Map.of("al", al));
+        Store st = getMdb().loadQuery("""
+                    select * from Factor where parent is null order by ord
+                """);
         int k = 0;  //искомая позиция
         for (int i = 0; i < st.size(); i++) {
             if (st.get(i).getLong("id") == id1) {
@@ -299,12 +279,13 @@ public class FactorMdbUtils extends EntityMdbUtils {
             ord2 = st.get(k + 1).getLong("ord");
         }
         //
-        mdb.execQuery("""
+        getMdb().execQuery("""
                     update Factor set ord=:ord2 where id=:id1;
                     update Factor set ord=:ord1 where id=:id2;
                 """, Map.of("id1", id1, "id2", id2, "ord1", ord1, "ord2", ord2));
     }
 
+    @DaoMethod
     public Store loadFactorTree(Map<String, Object> params) throws Exception {
         //
         long node = UtCnv.toLong(params.get("node"));
@@ -312,26 +293,28 @@ public class FactorMdbUtils extends EntityMdbUtils {
         if (node > 0)
             sql = "select * from factor where parent=" + node;
 
-        Store st = mdb.createStore("Factor");
-        mdb.loadQuery(st, sql);
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("Factor");
+        getMdb().loadQuery(st, sql);
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public Store loadForSelect() throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
+        //AuthUser au = authSvc.getCurrentUser();
         //todo AuthUser
-        long al = 10; //au.getAttrs().getLong("accesslevel");
+        //long al = 10; //au.getAttrs().getLong("accesslevel");
 
-        Store st = mdb.createStore("Factor.select");
-        return mdb.loadQuery(st, """
-                    select id, name from Factor where parent is null and accessLevel<=:al order by ord
-                """, Map.of("al", al));
+        Store st = getMdb().createStore("Factor.select");
+        return getMdb().loadQuery(st, """
+                    select id, name from Factor where parent is null order by ord
+                """);
     }
 
+    @DaoMethod
     public Store getFactor(long fv) throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     with f as (
                         select parent as id from Factor where id=:id
                     )
@@ -340,18 +323,19 @@ public class FactorMdbUtils extends EntityMdbUtils {
 
     }
 
+    @DaoMethod
     public Store loadFvForSelect(Map<String, Object> params) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
+        //AuthUser au = authSvc.getCurrentUser();
         //todo AuthUser
-        long al = 10; //au.getAttrs().getLong("accesslevel");
+        //long al = 10; //au.getAttrs().getLong("accesslevel");
 
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select id, name, fullName, parent,
                         case when parent is null then -id else id end as factorval,
                         case when parent is null then null else 'factorval' end as ent
-                    from Factor where accessLevel<=:al order by ord
-                """, Map.of("al", al));
+                    from Factor where 0=0 order by ord
+                """);
     }
 
 }

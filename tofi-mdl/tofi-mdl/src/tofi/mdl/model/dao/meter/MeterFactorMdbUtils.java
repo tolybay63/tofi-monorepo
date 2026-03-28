@@ -6,7 +6,7 @@ import jandcode.commons.error.XError;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
-import tofi.mdl.model.dao.factor.FactorDao;
+import tofi.mdl.model.dao.factor.FactorMdbUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -145,7 +145,7 @@ public class MeterFactorMdbUtils {
                     Map.of("factor", factor));
 
             if (fr.get(0).getLong("cnt") == fv1.get(0).getLong("cnt") * fv2.get(0).getLong("cnt")) {
-                FactorDao factorDao = mdb.createDao(FactorDao.class);
+                FactorMdbUtils factorDao = mdb.createDao(FactorMdbUtils.class);
                 StoreRecord f1 = factorDao.loadRec(Map.of("id", factorId));
                 StoreRecord f2 = factorDao.loadRec(Map.of("id", factor));
                 if (flag)

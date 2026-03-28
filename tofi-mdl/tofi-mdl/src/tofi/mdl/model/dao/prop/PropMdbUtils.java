@@ -5,8 +5,9 @@ import jandcode.commons.UtString;
 import jandcode.commons.error.XError;
 import jandcode.commons.variant.IVariantMap;
 import jandcode.commons.variant.VariantMap;
+import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.dict.DictService;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreIndex;
@@ -24,35 +25,41 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class PropMdbUtils extends EntityMdbUtils {
-    Mdb mdb;
-    String tableName;
-    ApinatorService apiSrv;
-
-    public PropMdbUtils(Mdb mdb, String tableName) throws Exception {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-        //
-        apiSrv = mdb.getApp().bean(ApinatorService.class);
-    }
-
-
+public class PropMdbUtils extends BaseMdbUtils {
 
     ApinatorApi apiUserData() {
-        return  mdb.getApp().bean(ApinatorService.class).getApi("userdata");
+        return getMdb().getApp().bean(ApinatorService.class).getApi("userdata");
     }
+
     ApinatorApi apiNSIData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
+        return getMdb().getApp().bean(ApinatorService.class).getApi("nsidata");
     }
+
     ApinatorApi apiMonitoringData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("monitoringdata");
+        return getMdb().getApp().bean(ApinatorService.class).getApi("monitoringdata");
+    }
+
+    ApinatorApi apiObjectData() {
+        return getMdb().getApp().bean(ApinatorService.class).getApi("objectdata");
+    }
+
+    ApinatorApi apiOrgStructureData() {
+        return getMdb().getApp().bean(ApinatorService.class).getApi("orgstructuredata");
+    }
+
+    ApinatorApi apiPersonnalData() {
+        return getMdb().getApp().bean(ApinatorService.class).getApi("personnaldata");
+    }
+
+    ApinatorApi apiPlanData() {
+        return getMdb().getApp().bean(ApinatorService.class).getApi("plandata");
     }
 
 
+    @DaoMethod
     public Store loadPropTree(long propGr) throws Exception {
-        Store st = mdb.createStore("Prop.rec");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Prop.rec");
+        getMdb().loadQuery(st, """
                     select p.*, a.attribvaltype, ac.entitytype, m.meterStruct
                     from Prop p
                         left join attrib a on a.id=p.attrib
@@ -63,9 +70,10 @@ public class PropMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store loadRec(long id) throws Exception {
-        Store st = mdb.createStore("Prop.rec");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Prop.rec");
+        getMdb().loadQuery(st, """
                     select coalesce (p.measure, m.measure) as measure, p.*, a.attribvaltype, ac.entitytype, m.meterStruct,
                         case when prn.proptype is null then 0 else prn.proptype end as parentPropType
                     from Prop p
@@ -76,12 +84,13 @@ public class PropMdbUtils extends EntityMdbUtils {
                     where p.id=:id
                 """, Map.of("id", id));
 
-        mdb.resolveDicts(st);
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public StoreRecord newRec(long propGroup) throws Exception {
-        Store st = mdb.createStore("Prop");
+        Store st = getMdb().createStore("Prop");
         StoreRecord r = st.add();
         r.set("propGr", propGroup);
         r.set("propType", FD_PropType_consts.factor);
@@ -93,24 +102,24 @@ public class PropMdbUtils extends EntityMdbUtils {
     }
 
     protected void allItemAdd(long id, Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore("PropVal");
+        Store st = getMdb().createStore("PropVal");
         if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.factor) {
-            Store stFV = mdb.loadQuery("select id from Factor where parent=:factor",
+            Store stFV = getMdb().loadQuery("select id from Factor where parent=:factor",
                     Map.of("factor", UtCnv.toLong(rec.get("factor"))));
             for (StoreRecord r : stFV) {
                 StoreRecord record = st.add();
                 record.set("prop", id);
                 record.set("factorVal", r.getLong("id"));
-                mdb.insertRec("PropVal", record, true);
+                getMdb().insertRec("PropVal", record, true);
             }
         } else if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.typ) {
-            Store stCls = mdb.loadQuery("select id from Cls where typ=:typ",
+            Store stCls = getMdb().loadQuery("select id from Cls where typ=:typ",
                     Map.of("typ", UtCnv.toLong(rec.get("typ"))));
             for (StoreRecord r : stCls) {
                 StoreRecord record = st.add();
                 record.set("prop", id);
                 record.set("cls", r.getLong("id"));
-                mdb.insertRec("PropVal", record, true);
+                getMdb().insertRec("PropVal", record, true);
             }
 
 /*
@@ -124,7 +133,7 @@ public class PropMdbUtils extends EntityMdbUtils {
             wheCls = wheCls.replace("[", "(").replace("]", ")");
             if (wheCls.equals("()")) wheCls = "(0)";
 
-            Store stObj = mdb.loadQuery("""
+            Store stObj = getMdb().loadQuery("""
                            select id
                            from Obj where cls in (select id from Cls where typ=:typ)
                            except
@@ -134,87 +143,88 @@ public class PropMdbUtils extends EntityMdbUtils {
                 StoreRecord record = st.add();
                 record.set("prop", id);
                 record.set("obj", r.getLong("id"));
-                mdb.insertRec("PropVal", record, true);
+                getMdb().insertRec("PropVal", record, true);
             }
 */
 
         } else if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.reltyp) {
-            Store stRelCls = mdb.loadQuery("select id from RelCls where reltyp=:reltyp",
+            Store stRelCls = getMdb().loadQuery("select id from RelCls where reltyp=:reltyp",
                     Map.of("reltyp", UtCnv.toLong(rec.get("reltyp"))));
             for (StoreRecord r : stRelCls) {
                 StoreRecord record = st.add();
                 record.set("prop", id);
                 record.set("relcls", r.getLong("id"));
-                mdb.insertRec("PropVal", record, true);
+                getMdb().insertRec("PropVal", record, true);
             }
 
 /*
-            Store stRO = mdb.loadQuery("select id from RelObj where relTyp=:rt",
+            Store stRO = getMdb().loadQuery("select id from RelObj where relTyp=:rt",
                     Map.of("rt", UtCnv.toLong(rec.get("relTyp"))));
             for (StoreRecord r : stRO) {
                 StoreRecord record = st.add();
                 record.set("prop", id);
                 record.set("relObj", r.getLong("id"));
-                mdb.insertRec("PropVal", record, true);
+                getMdb().insertRec("PropVal", record, true);
             }
 */
         }
     }
 
     protected void checkStructComplexProp(Map<String, Object> rec) throws Exception {
-        long prop = UtCnv.toLong(rec.get("parent"))>0 ? UtCnv.toLong(rec.get("parent")) : UtCnv.toLong(rec.get("id"));
+        long prop = UtCnv.toLong(rec.get("parent")) > 0 ? UtCnv.toLong(rec.get("parent")) : UtCnv.toLong(rec.get("id"));
 
         //todo Запрос ко всем сервисам данных (использовать Pulsar)
 
         //
-        CfgService cfgSvc = mdb.getApp().bean(CfgService.class);
+        CfgService cfgSvc = getMdb().getApp().bean(CfgService.class);
         String modelMeta = cfgSvc.getConf().getString("dbsource/default/id");
         if (modelMeta.isEmpty())
             throw new XError("Не найден id мета модели");
         //
-
         if (modelMeta.equalsIgnoreCase("fish")) {
             Store st = apiUserData().get(ApiUserData.class).loadSql("""
-                                select v.id from dataprop d, Datapropval v
-                                where d.id=v.dataprop and d.prop=
-                            """ + prop, "");
+                        select v.id from dataprop d, Datapropval v
+                        where d.id=v.dataprop and d.prop=
+                    """ + prop, "");
             if (st.size() > 0)
                 throw new XError("NotChangeStructComplexProp@userdata");
 
             st = apiNSIData().get(ApiNSIData.class).loadSql("""
-                            select v.id from dataprop d, Datapropval v
-                            where d.id=v.dataprop and d.prop=
-                        """ + prop, "");
+                        select v.id from dataprop d, Datapropval v
+                        where d.id=v.dataprop and d.prop=
+                    """ + prop, "");
             if (st.size() > 0)
                 throw new XError("NotChangeStructComplexProp@nsidata");
 
             st = apiMonitoringData().get(ApiMonitoringData.class).loadSql("""
-                                select v.id from dataprop d, Datapropval v
-                                where d.id=v.dataprop and d.prop=
-                            """ + prop, "");
+                        select v.id from dataprop d, Datapropval v
+                        where d.id=v.dataprop and d.prop=
+                    """ + prop, "");
             if (st.size() > 0)
                 throw new XError("NotChangeStructComplexProp@monitoringdata");
+        } else {
+            throw new XError("Unknown model meta: " + modelMeta);
         }
-
 
     }
 
     private void addToCharGr(Map<String, Object> rec) throws Exception {
-        Store stGr = mdb.loadQuery("select * from typchargrprop where prop="+rec.get("id"));
+        Store stGr = getMdb().loadQuery("select * from typchargrprop where prop=" + rec.get("id"));
         if (stGr.size() > 0) {
             StoreRecord gr = stGr.get(0);
             gr.set("prop", rec.get("parent"));
-            mdb.insertRec("TypCharGrProp", gr, true);
+            getMdb().insertRec("TypCharGrProp", gr, true);
         }
         //
-        stGr = mdb.loadQuery("select * from reltypchargrprop where prop="+rec.get("id"));
+        stGr = getMdb().loadQuery("select * from reltypchargrprop where prop=" + rec.get("id"));
         if (stGr.size() > 0) {
             StoreRecord gr = stGr.get(0);
             gr.set("prop", rec.get("parent"));
-            mdb.insertRec("RelTypCharGrProp", gr, true);
+            getMdb().insertRec("RelTypCharGrProp", gr, true);
         }
     }
 
+    @DaoMethod
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
 
@@ -222,23 +232,23 @@ public class PropMdbUtils extends EntityMdbUtils {
             checkStructComplexProp(params);
             addToCharGr(rec);
         }
-
-        long id = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Prop");
+        long id = eu.insertEntity(rec);
         //----------------------------------------------------
         if (UtCnv.toBoolean(rec.get("allItem"))) {
             allItemAdd(id, rec);
         }
 
         if (UtCnv.toBoolean(rec.get("isDependValueOnPeriod"))) {
-            mdb.insertRec("PropPeriodType", Map.of("prop", id, "periodType", FD_PeriodType_consts.year));
+            getMdb().insertRec("PropPeriodType", Map.of("prop", id, "periodType", FD_PeriodType_consts.year));
         }
 
         //----------------------------------------------------
-        Store st = mdb.createStore("Prop");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Prop");
+        getMdb().loadQuery(st, """
                     select * from Prop t where t.id=:id
                 """, Map.of("id", id));
-        mdb.resolveDicts(st);
+        getMdb().resolveDicts(st);
         return st;
     }
 
@@ -249,13 +259,13 @@ public class PropMdbUtils extends EntityMdbUtils {
         //
         long prop = UtCnv.toLong(rec.get("id"));
         if (UtCnv.toLong(rec.get("statusFactor")) == 0) {
-            Store tmp = mdb.loadQuery("select id from PropStatus where prop=:p",
+            Store tmp = getMdb().loadQuery("select id from PropStatus where prop=:p",
                     Map.of("p", prop));
             if (tmp.size() > 0)
                 throw new XError("Существует статус данных...");
         }
         if (UtCnv.toLong(rec.get("providerTyp")) == 0) {
-            Store tmp = mdb.loadQuery("select id from PropProvider where prop=:p",
+            Store tmp = getMdb().loadQuery("select id from PropProvider where prop=:p",
                     Map.of("p", prop));
             if (tmp.size() > 0)
                 throw new XError("Существует поставщик данных...");
@@ -264,13 +274,13 @@ public class PropMdbUtils extends EntityMdbUtils {
 
         //allItem true => allItem false
         if (recOld.getBoolean("allItem") && !UtCnv.toBoolean(rec.get("allItem"))) {
-            mdb.execQuery("delete from PropVal where prop=:p", Map.of("p", prop));
+            getMdb().execQuery("delete from PropVal where prop=:p", Map.of("p", prop));
         }
         //allItem false => allItem true
         if (!recOld.getBoolean("allItem") && UtCnv.toBoolean(rec.get("allItem"))) {
-            Store st = mdb.createStore("PropVal");
+            Store st = getMdb().createStore("PropVal");
             if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.factor) {
-                Store stFV = mdb.loadQuery("""
+                Store stFV = getMdb().loadQuery("""
                                 select id from Factor where parent=:factor
                                 except
                                 select factorVal as id from PropVal
@@ -280,7 +290,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                     StoreRecord record = st.add();
                     record.set("prop", prop);
                     record.set("factorVal", r.getLong("id"));
-                    mdb.insertRec("PropVal", record, true);
+                    getMdb().insertRec("PropVal", record, true);
                 }
             } else if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.typ) {
 /*                List<Map<String, Object>> lst = UtJson.fromJson(UtCnv.toString(rec.get("notCls")), List.class);
@@ -292,7 +302,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                 }
                 String wheCls = "(" + UtString.join(arr, ",") + ")";
                 if (wheCls.equals("()")) wheCls = "(0)";*/
-                Store stCls = mdb.loadQuery("""
+                Store stCls = getMdb().loadQuery("""
                             select id
                             from Cls where typ=:typ
                             except
@@ -303,10 +313,10 @@ public class PropMdbUtils extends EntityMdbUtils {
                     StoreRecord record = st.add();
                     record.set("prop", prop);
                     record.set("cls", r.getLong("id"));
-                    mdb.insertRec("PropVal", record, true);
+                    getMdb().insertRec("PropVal", record, true);
                 }
             } else if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.reltyp) {
-                Store stRC = mdb.loadQuery("""
+                Store stRC = getMdb().loadQuery("""
                                 select id from RelCls where relTyp=:rt
                                 except
                                 select relCls as id from PropVal where prop=:prop and relcls is not null
@@ -315,7 +325,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                     StoreRecord record = st.add();
                     record.set("prop", prop);
                     record.set("relCls", r.getLong("id"));
-                    mdb.insertRec("PropVal", record, true);
+                    getMdb().insertRec("PropVal", record, true);
                 }
             }
         }
@@ -324,7 +334,7 @@ public class PropMdbUtils extends EntityMdbUtils {
         /*if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.typ) {
             if (recOld.getBoolean("allItem") && UtCnv.toBoolean(rec.get("allItem"))) {
                 if (!UtCnv.toString(rec.get("notCls")).equals(UtCnv.toString(recOld.get("notCls")))) {
-                    mdb.execQuery("delete from PropVal where prop=:p", Map.of("p", prop));
+                    getMdb().execQuery("delete from PropVal where prop=:p", Map.of("p", prop));
 
                     List<Map<String, Object>> lst = UtJson.fromJson(UtCnv.toString(rec.get("notCls")), List.class);
                     List<Object> arr = new ArrayList<>();
@@ -336,14 +346,14 @@ public class PropMdbUtils extends EntityMdbUtils {
                     String wheCls = "(" + UtString.join(arr, ",") + ")";
                     if (wheCls.equals("()"))
                         wheCls = "(0)";
-                    Store stObj = mdb.loadQuery("""
+                    Store stObj = getMdb().loadQuery("""
                                 select id
                                 from Obj where cls in (select id from Cls where typ=:typ)
                                 except
                                 select id from Obj where cls in
                             """ + wheCls, Map.of("typ", UtCnv.toLong(rec.get("typ")), "prop", prop));
                     for (StoreRecord r : stObj) {
-                        mdb.insertRec("PropVal", Map.of("prop", prop, "obj", r.getLong("id")), true);
+                        getMdb().insertRec("PropVal", Map.of("prop", prop, "obj", r.getLong("id")), true);
                     }
                 }
             }
@@ -351,11 +361,11 @@ public class PropMdbUtils extends EntityMdbUtils {
 
         //isDependValueOnPeriod false => isDependValueOnPeriod true
         if (!recOld.getBoolean("isDependValueOnPeriod") && UtCnv.toBoolean(rec.get("isDependValueOnPeriod"))) {
-            mdb.insertRec("PropPeriodType", Map.of("prop", prop, "periodType", FD_PeriodType_consts.year));
+            getMdb().insertRec("PropPeriodType", Map.of("prop", prop, "periodType", FD_PeriodType_consts.year));
         }
         //isDependValueOnPeriod true => isDependValueOnPeriod false
         if (recOld.getBoolean("isDependValueOnPeriod") && !UtCnv.toBoolean(rec.get("isDependValueOnPeriod"))) {
-            mdb.execQuery("""
+            getMdb().execQuery("""
                         delete from PropPeriodType where prop=:p;
                         delete from PropNameOnPeriod where prop=:p;
                     """, Map.of("p", prop));
@@ -379,7 +389,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                 mapChanged.put("digit", UtCnv.toLong(rec.get("digit")));
             }
 
-            Store tmp = mdb.loadQuery("""
+            Store tmp = getMdb().loadQuery("""
                         WITH RECURSIVE r AS (
                             select p.id, p.parent from Prop p
                             where p.id=:prop
@@ -397,7 +407,7 @@ public class PropMdbUtils extends EntityMdbUtils {
             if (!mapChanged.isEmpty())
                 for (StoreRecord record : tmp) {
                     mapChanged.put("id", record.getLong("id"));
-                    mdb.updateRec("Prop", mapChanged);
+                    getMdb().updateRec("Prop", mapChanged);
                 }
         }
 
@@ -439,7 +449,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                 oldMap.getLong("providerTyp") != newMap.getLong("providerTyp") ||
                 (!oldMap.getBoolean("isUniq") && newMap.getBoolean("isUniq"))
         ) {
-            Store stTmp = mdb.loadQuery(sql, Map.of("prop", oldMap.getLong("id")));
+            Store stTmp = getMdb().loadQuery(sql, Map.of("prop", oldMap.getLong("id")));
             if (stTmp.size() > 0) {
                 String msg = stTmp.get(0).getString("cod") + "-" + stTmp.get(0).getString("name");
                 throw new XError("Существуют данные. Например, владелец:\n" + msg);
@@ -450,6 +460,7 @@ public class PropMdbUtils extends EntityMdbUtils {
 
     }
 
+    @DaoMethod
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
         long id = UtCnv.toLong(rec.get("id"));
@@ -472,73 +483,78 @@ public class PropMdbUtils extends EntityMdbUtils {
         if (UtCnv.toLong(rec.get("providerTyp")) == 0) rec.put("providerTyp", null);
         if (UtCnv.toLong(rec.get("visualFormat")) == 0) rec.put("visualFormat", null);
 
-
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Prop");
+        eu.updateEntity(rec);
         // Загрузка записи
-        Store st = mdb.createStore("Prop");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Prop");
+        getMdb().loadQuery(st, """
                     select * from Prop t where t.id=:id
                 """, Map.of("id", id));
-        mdb.resolveDicts(st);
+        getMdb().resolveDicts(st);
         return st;
     }
 
     protected void deleteFromCharGr(Map<String, Object> rec) throws Exception {
         if (UtCnv.toLong(rec.get("parent")) > 0) {
-            mdb.execQuery("""
-                delete from TypCharGrProp where prop=:parent;
-                delete from RelTypCharGrProp where prop=:parent;
-            """, rec);
+            getMdb().execQuery("""
+                        delete from TypCharGrProp where prop=:parent;
+                        delete from RelTypCharGrProp where prop=:parent;
+                    """, rec);
         } else {
-            mdb.execQuery("""
-                delete from TypCharGrProp where prop in (
-                    select id from Prop where parent=:id
-                );
-                delete from RelTypCharGrProp where prop in (
-                    select id from Prop where parent=:id
-                );
-            """, rec);
+            getMdb().execQuery("""
+                        delete from TypCharGrProp where prop in (
+                            select id from Prop where parent=:id
+                        );
+                        delete from RelTypCharGrProp where prop in (
+                            select id from Prop where parent=:id
+                        );
+                    """, rec);
         }
     }
 
+    @DaoMethod
     public void delete(Map<String, Object> rec) throws Exception {
-        if (UtCnv.toLong(rec.get("propType")) ==FD_PropType_consts.complex ||
+        if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.complex ||
                 UtCnv.toLong(rec.get("parent")) > 0) {
             checkStructComplexProp(rec);
             if (UtCnv.toBoolean(rec.get("isDependValueOnPeriod"))) {
-                mdb.execQuery("""
-                    delete from PropPeriodType where prop=:p;
-                    delete from PropVal where prop=:p;
-                    delete from TypCharGrProp where prop=:p;
-                    delete from TypCharGr where id in (
-                        select id from TypCharGr where 0=0
-                        except
-                        select typCharGr as id from TypCharGrProp where 0=0
-                    );
-                """, Map.of("p", UtCnv.toLong(rec.get("id"))));
+                getMdb().execQuery("""
+                            delete from PropPeriodType where prop=:p;
+                            delete from PropVal where prop=:p;
+                            delete from TypCharGrProp where prop=:p;
+                            delete from TypCharGr where id in (
+                                select id from TypCharGr where 0=0
+                                except
+                                select typCharGr as id from TypCharGrProp where 0=0
+                            );
+                        """, Map.of("p", UtCnv.toLong(rec.get("id"))));
             }
             deleteFromCharGr(rec);
         }
-        deleteEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Prop");
+        eu.deleteEntity(rec);
     }
 
+    @DaoMethod
     public boolean checkStatus(long prop) throws Exception {
-        Store st = mdb.loadQuery("""
+        Store st = getMdb().loadQuery("""
                           select id from PropStatus where prop=:p
                 """, Map.of("p", prop));
         return st.size() > 0;
     }
 
+    @DaoMethod
     public boolean checkProvider(long prop) throws Exception {
-        Store st = mdb.loadQuery("""
+        Store st = getMdb().loadQuery("""
                           select id from PropProvider where prop=:p
                 """, Map.of("p", prop));
         return st.size() > 0;
     }
 
+    @DaoMethod
     public Store loadStatus(long fk) throws Exception {
-        Store st = mdb.createStore("PropStatus.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("PropStatus.full");
+        getMdb().loadQuery(st, """
                     select p.*, f.name, f.cod
                     from PropStatus p
                         left join Factor f on f.parent is not null and p.factorval=f.id
@@ -549,9 +565,10 @@ public class PropMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store loadStatusForUpd(long prop, long factor) throws Exception {
-        Store st = mdb.createStore("PropStatus.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("PropStatus.full");
+        getMdb().loadQuery(st, """
                     select p.id, f.cod, f.name, p.prop, f.id as factorval, p.isdefault,
                         case when p.factorval is not null then 1 else null end as checked
                     from Factor f
@@ -563,10 +580,11 @@ public class PropMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public String saveStatus(long prop, List<Map<String, Object>> params) throws Exception {
         //Old values
-        Store stOld = mdb.createStore("PropStatus.full");
-        mdb.loadQuery(stOld, """
+        Store stOld = getMdb().createStore("PropStatus.full");
+        getMdb().loadQuery(stOld, """
                     select p.id, p.factorVal, f.cod from PropStatus p, Factor f
                     where p.prop=:p and p.factorVal=f.id
                 """, Map.of("p", prop));
@@ -578,7 +596,7 @@ public class PropMdbUtils extends EntityMdbUtils {
 
         //todo Запрос на другую базу
 /*
-        Store stFvsData = mdb.loadQuery("""
+        Store stFvsData = getMdb().loadQuery("""
                     select distinct
                     	fv.id, fv.cod
                     from DataProp d, DataPropVal v, PropStatus p, Factor fv
@@ -595,7 +613,7 @@ public class PropMdbUtils extends EntityMdbUtils {
 
 
         //New values
-        Store stNew = mdb.createStore("PropStatus");
+        Store stNew = getMdb().createStore("PropStatus");
         for (Map<String, Object> map : params) {
             StoreRecord r = stNew.add(map);
             r.set("prop", prop);
@@ -610,7 +628,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                     codsFvsForInfo.add(r.getString("cod"));
                 } else {
                     try {
-                        mdb.deleteRec("PropStatus", r.getLong("id"));
+                        getMdb().deleteRec("PropStatus", r.getLong("id"));
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -621,16 +639,16 @@ public class PropMdbUtils extends EntityMdbUtils {
         //Saving
         for (StoreRecord r : stNew) {
             if (!oldIds.contains(r.getLong("id"))) {
-                mdb.insertRec("PropStatus", r, true);
+                getMdb().insertRec("PropStatus", r, true);
             } else {
-                mdb.updateRec("PropStatus", r);
+                getMdb().updateRec("PropStatus", r);
             }
         }
         //for childs
 /*
-        Store stChl = mdb.createStore("PropStatus");
-        mdb.loadQuery(stChl, "select * from PropStatus where prop=:prop", Map.of("prop", prop));
-        Store tmp = mdb.loadQuery("""
+        Store stChl = getMdb().createStore("PropStatus");
+        getMdb().loadQuery(stChl, "select * from PropStatus where prop=:prop", Map.of("prop", prop));
+        Store tmp = getMdb().loadQuery("""
                     WITH RECURSIVE r AS (
                         select p.id, p.parent from Prop p
                         where p.id=:prop
@@ -645,10 +663,10 @@ public class PropMdbUtils extends EntityMdbUtils {
                     where p.id in (select id from p)
                 """, Map.of("prop", prop));
         for (StoreRecord record : tmp) {
-            mdb.execQuery("delete from PropStatus where prop=:prop", Map.of("prop", record.getLong("id")));
+            getMdb().execQuery("delete from PropStatus where prop=:prop", Map.of("prop", record.getLong("id")));
             for (StoreRecord rec : stChl) {
                 rec.set("prop", record.getLong("id"));
-                mdb.insertRec("PropStatus", rec, true);
+                getMdb().insertRec("PropStatus", rec, true);
             }
         }*/
         //
@@ -657,21 +675,22 @@ public class PropMdbUtils extends EntityMdbUtils {
     }
 
     //Provider
+    @DaoMethod
     public Store loadProvider(long prop) throws Exception {
-        Store st = mdb.createStore("PropProvider.full");
+        Store st = getMdb().createStore("PropProvider.full");
 
-        mdb.loadQuery(st, """
-            select p.*, v.name as nameCls, '' as nameObj, d.modelname
-            from PropProvider p
-                left join Cls c on p.cls=c.id
-                left join ClsVer v on c.id=v.ownerVer and v.lastVer=1
-                left join database d on c."database"=d.id
-            where prop=:p
-        """, Map.of("p", prop));
+        getMdb().loadQuery(st, """
+                    select p.*, v.name as nameCls, '' as nameObj, d.modelname
+                    from PropProvider p
+                        left join Cls c on p.cls=c.id
+                        left join ClsVer v on c.id=v.ownerVer and v.lastVer=1
+                        left join database d on c."database"=d.id
+                    where prop=:p
+                """, Map.of("p", prop));
         String model = st.get(0).getString("modelname");
         Set<Object> ids = st.getUniqueValues("obj");
-        String whe = "(0"+ UtString.join(ids, ",") + ")";
-        String sql = "select o.id, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in "+whe;
+        String whe = "(0" + UtString.join(ids, ",") + ")";
+        String sql = "select o.id, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in " + whe;
         Store stObj = sqlLoad(sql, "", model);
         StoreIndex indObj = stObj.getIndex("id");
         for (StoreRecord r : st) {
@@ -683,10 +702,12 @@ public class PropMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public void deleteProvider(long id) throws Exception {
-        mdb.deleteRec("PropProvider", id);
+        getMdb().deleteRec("PropProvider", id);
     }
 
+    @DaoMethod
     public Store loadProviderClsForSelect(long prop, long typ, String mode) throws Exception {
 
         String whe = "";
@@ -696,62 +717,66 @@ public class PropMdbUtils extends EntityMdbUtils {
 */
 
         String sql = """
-            select c.id, name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.typ=:t
-        """ + whe;
+                    select c.id, name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.typ=:t
+                """ + whe;
 
-        return mdb.loadQuery(sql, Map.of("t", typ, "p", prop));
+        return getMdb().loadQuery(sql, Map.of("t", typ, "p", prop));
     }
 
+    @DaoMethod
     public Store loadProviderObjForSelect(long cls) throws Exception {
-        String model = mdb.loadQuery("""
-                select modelname from Cls c
-                	left join database d on c."database"=d.id
-                where c.id=:cls
-        """, Map.of("cls", cls)).get(0).getString("modelname");
+        String model = getMdb().loadQuery("""
+                        select modelname from Cls c
+                        	left join database d on c."database"=d.id
+                        where c.id=:cls
+                """, Map.of("cls", cls)).get(0).getString("modelname");
 
         String sql = """
-            select o.id, v.name
-            from Obj o, ObjVer v
-            where o.id=v.ownerver and v.lastver=1 and o.cls=
-        """+cls;
+                    select o.id, v.name
+                    from Obj o, ObjVer v
+                    where o.id=v.ownerver and v.lastver=1 and o.cls=
+                """ + cls;
 
         return sqlLoad(sql, "", model);
     }
 
     protected StoreRecord loadProviderRec(long id) throws Exception {
-        StoreRecord st = mdb.createStoreRecord("PropProvider.full");
+        StoreRecord st = getMdb().createStoreRecord("PropProvider.full");
 
-        mdb.loadQueryRecord(st, """
-            select p.*, c.name as nameCls, '' as nameObj from PropProvider p
-                left join ClsVer c on p.cls=c.ownerVer and c.lastVer=1
-            where p.id=:id
-        """, Map.of("id", id));
+        getMdb().loadQueryRecord(st, """
+                    select p.*, c.name as nameCls, '' as nameObj from PropProvider p
+                        left join ClsVer c on p.cls=c.ownerVer and c.lastVer=1
+                    where p.id=:id
+                """, Map.of("id", id));
 
         //todo Запрос к Db data
 
         return st;
     }
 
+    @DaoMethod
     public StoreRecord saveProvider(Map<String, Object> rec, String mode) throws Exception {
         long id;
         if (mode.equals("ins")) {
-            id = mdb.insertRec("PropProvider", rec, true);
+            id = getMdb().insertRec("PropProvider", rec, true);
         } else {
             id = UtCnv.toLong(rec.get("id"));
-            mdb.updateRec("PropProvider", rec);
+            getMdb().updateRec("PropProvider", rec);
         }
         //
         return loadProviderRec(id);
     }
 
     // PropVal
+    @DaoMethod
     public Store loadPropPeriodType(long prop) throws Exception {
-        Store st = mdb.createStore("PropPeriodType");
-        return mdb.loadQuery(st, "select * from PropPeriodType where prop=:p", Map.of("p", prop));
+        Store st = getMdb().createStore("PropPeriodType");
+        return getMdb().loadQuery(st, "select * from PropPeriodType where prop=:p", Map.of("p", prop));
     }
 
+    @DaoMethod
     public Store loadPropPeriodTypeForUpd(long prop) throws Exception {
-        Store st = mdb.createStore("PropPeriodType.full");
+        Store st = getMdb().createStore("PropPeriodType.full");
         String sql = """
                     select p.id, p.text as name, t.id as idInTable,
                         case when t.periodType is null then false else true end as checked
@@ -760,7 +785,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                     where p.vis=1
                     order by p.ord
                 """;
-        return mdb.loadQuery(st, sql, Map.of("p", prop));
+        return getMdb().loadQuery(st, sql, Map.of("p", prop));
     }
 
     private Store sqlLoad(String sql, String domain, String model) throws Exception {
@@ -769,18 +794,14 @@ public class PropMdbUtils extends EntityMdbUtils {
         else if (model.equalsIgnoreCase("nsidata"))
             return apiNSIData().get(ApiNSIData.class).loadSql(sql, domain);
         else if (model.equalsIgnoreCase("monitoringdata"))
-        return apiMonitoringData().get(ApiMonitoringData.class).loadSql(sql, domain);
-            throw new XError("Unknown model ["+model+"]");
+            return apiMonitoringData().get(ApiMonitoringData.class).loadSql(sql, domain);
+        throw new XError("Unknown model [" + model + "]");
     }
 
     private Map<String, Object> sqlLoadForMap(String sql, String domain, String metaModel) throws Exception {
         //todo Запрос ко всем сервисам данных (использовать Pulsar)
         Map<String, Object> res = new HashMap<>();
-        if (metaModel.equalsIgnoreCase("kpi")) {
-            Store st = apiUserData().get(ApiUserData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("userdata", st.getUniqueValues("periodType"));
-        } else if (metaModel.equalsIgnoreCase("fish")) {
+        if (metaModel.equalsIgnoreCase("fish")) {
             Store st = apiUserData().get(ApiUserData.class).loadSql(sql, domain);
             if (st.size() > 0)
                 res.put("userdata", st.getUniqueValues("periodType"));
@@ -790,22 +811,25 @@ public class PropMdbUtils extends EntityMdbUtils {
             st = apiMonitoringData().get(ApiMonitoringData.class).loadSql(sql, domain);
             if (st.size() > 0)
                 res.put("monitoringdata", st.getUniqueValues("periodType"));
+        } else {
+            throw new XError("Unknown meta model [" + metaModel + "]");
         }
         //
         return res;
     }
 
+    @DaoMethod
     public String savePropPeriodType(long prop, String metaModel, List<Map<String, Object>> params) throws Exception {
         //Old Data
-        Store stOld = mdb.loadQuery("select id, periodType from PropPeriodType where prop=:p",
+        Store stOld = getMdb().loadQuery("select id, periodType from PropPeriodType where prop=:p",
                 Map.of("p", prop));
         Set<Object> idsOld = stOld.getUniqueValues("id");
         //period in data
-        Map<String, Object> mapPeriodsOldInData = sqlLoadForMap("select periodType from DataProp where prop="+prop, "", metaModel);
+        Map<String, Object> mapPeriodsOldInData = sqlLoadForMap("select periodType from DataProp where prop=" + prop, "", metaModel);
 
-        DictService dc = mdb.getModel().bean(DictService.class);
+        DictService dc = getMdb().getModel().bean(DictService.class);
         //New values
-        Store stNew = mdb.createStore("PropPeriodType");
+        Store stNew = getMdb().createStore("PropPeriodType");
         for (Map<String, Object> map : params) {
             StoreRecord r = stNew.add(map);
             r.set("prop", prop);
@@ -828,19 +852,19 @@ public class PropMdbUtils extends EntityMdbUtils {
                 }
 
                 if (!fIn) {
-                   mdb.deleteRec("PropPeriodType", r.getLong("id"));
+                    getMdb().deleteRec("PropPeriodType", r.getLong("id"));
                 }
             }
         }
         //Save
         for (StoreRecord r : stNew) {
             if (!idsOld.contains(r.getLong("id"))) {
-                mdb.insertRec("PropPeriodType", r, true);
+                getMdb().insertRec("PropPeriodType", r, true);
             }
         }
 
         //for childs
-        Store stChld = mdb.loadQuery("""
+        Store stChld = getMdb().loadQuery("""
                     WITH RECURSIVE r AS (
                         select p.id, p.parent from Prop p
                         where p.id=:prop
@@ -856,14 +880,14 @@ public class PropMdbUtils extends EntityMdbUtils {
                 """, Map.of("prop", prop));
         for (StoreRecord record : stChld) {
 
-            stOld = mdb.loadQuery("select id, periodType from PropPeriodType where prop=:p",
+            stOld = getMdb().loadQuery("select id, periodType from PropPeriodType where prop=:p",
                     Map.of("p", record.getLong("id")));
             idsOld = stOld.getUniqueValues("id");
 
 
             Set<Object> periodsOldInData = new HashSet<>();
 
-            Map<String, Object> mapTmp = sqlLoadForMap("select periodType from DataProp where prop="+prop, "", metaModel);
+            Map<String, Object> mapTmp = sqlLoadForMap("select periodType from DataProp where prop=" + prop, "", metaModel);
             for (Map.Entry<String, Object> entry : mapTmp.entrySet()) {
                 periodsOldInData.addAll((Collection<?>) entry.getValue());
             }
@@ -872,7 +896,7 @@ public class PropMdbUtils extends EntityMdbUtils {
             for (StoreRecord r : stOld) {
                 if (!idsNew.contains(r.getLong("id"))) {
                     if (!periodsOldInData.contains(r.getLong("periodType"))) {
-                        mdb.deleteRec("PropPeriodType", r.getLong("id"));
+                        getMdb().deleteRec("PropPeriodType", r.getLong("id"));
                     }
                 }
             }
@@ -880,7 +904,7 @@ public class PropMdbUtils extends EntityMdbUtils {
             for (StoreRecord r : stNew) {
                 if (!idsOld.contains(r.getLong("id"))) {
                     r.set("prop", record.getLong("id"));
-                    mdb.insertRec("PropPeriodType", r, true);
+                    getMdb().insertRec("PropPeriodType", r, true);
                 }
             }
         }
@@ -888,8 +912,9 @@ public class PropMdbUtils extends EntityMdbUtils {
         return UtString.join(codsPeriodForInfo, ",");
     }
 
+    @DaoMethod
     public Store loadPropVal(long prop, String entity) throws Exception {
-        Store st = mdb.createStore("PropVal.full");
+        Store st = getMdb().createStore("PropVal.full");
         String sql = switch (entity) {
             case "Factor" -> """
                         select p.*, f.cod, f.name, f.fullName
@@ -914,12 +939,13 @@ public class PropMdbUtils extends EntityMdbUtils {
             default -> "";
         };
 
-        mdb.loadQuery(st, sql, Map.of("p", prop));
+        getMdb().loadQuery(st, sql, Map.of("p", prop));
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
         return st;
     }
 
+    @DaoMethod
     public Store loadPropValForUpd(long prop) throws Exception {
         StoreRecord rec = loadRec(prop).get(0);
         String entity = "Factor";
@@ -935,7 +961,7 @@ public class PropMdbUtils extends EntityMdbUtils {
             entityId = 0;
         }
 
-        Store st = mdb.createStore("PropVal.full");
+        Store st = getMdb().createStore("PropVal.full");
         String sql;
         //todo left => inner
         if (entity.equals("Factor"))
@@ -960,13 +986,13 @@ public class PropMdbUtils extends EntityMdbUtils {
             if (wheCls.equals("()")) wheCls = "(0)";*/
 
             sql = """
-                    select o.id, o.cod, v.name, v.fullName,
-                        case when p.cls is null then false else true end as checked
-                    from Cls o left join ClsVer v on o.id=v.ownerVer and v.lastVer=1
-                        left join PropVal p on p.prop=:prop and p.cls=o.id
-                    where o.id in (select id from Cls where typ=:ent)
-                    order by o.ord
-            """
+                            select o.id, o.cod, v.name, v.fullName,
+                                case when p.cls is null then false else true end as checked
+                            from Cls o left join ClsVer v on o.id=v.ownerVer and v.lastVer=1
+                                left join PropVal p on p.prop=:prop and p.cls=o.id
+                            where o.id in (select id from Cls where typ=:ent)
+                            order by o.ord
+                    """
             ;
         } else if (entity.equals("RelTyp"))
             sql = """
@@ -977,7 +1003,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                         where o.id in (select id from RelCls where reltyp=:ent)
                         order by o.ord
                     """;
-        else  {        //entity.equals("Measure")
+        else {        //entity.equals("Measure")
             sql = """
                         select f.id, f.cod, f.name, f.fullName, f.parent,
                             case when p.measure is null then false else true end as checked
@@ -988,18 +1014,20 @@ public class PropMdbUtils extends EntityMdbUtils {
                     """;
         }
 
-        mdb.loadQuery(st, sql, Map.of("prop", prop, "ent", entityId));
+        getMdb().loadQuery(st, sql, Map.of("prop", prop, "ent", entityId));
         if (st.size() == 0) {
             throw new XError("notPossibleValue");
         }
         return st;
     }
 
+    @DaoMethod
     public boolean checkRefValue(long prop, String field) throws Exception {
-        Store st = mdb.loadQuery("select id from PropVal where prop=:p and "+field+" is not null", Map.of("p", prop));
+        Store st = getMdb().loadQuery("select id from PropVal where prop=:p and " + field + " is not null", Map.of("p", prop));
         return st.size() > 0;
     }
 
+    @DaoMethod
     public void savePropRefVal(long prop, List<Map<String, Object>> params) throws Exception {
         StoreRecord rec = loadRec(prop).get(0);
         String fld = "factorVal";
@@ -1015,29 +1043,30 @@ public class PropMdbUtils extends EntityMdbUtils {
         for (Map<String, Object> map : params) {
             idsNew.add(UtCnv.toLong(map.get("id")));
         }
-        Store st = mdb.loadQuery("select " + fld + " as id from PropVal where prop=:p",
+        Store st = getMdb().loadQuery("select " + fld + " as id from PropVal where prop=:p",
                 Map.of("p", prop));
         Set<Object> idsOld = st.getUniqueValues("id");
         //Deleting
         for (Object id : idsOld) {
             if (!idsNew.contains(id)) {
-                mdb.execQuery("delete from PropVal where prop=:p and " + fld + "=:ent",
+                getMdb().execQuery("delete from PropVal where prop=:p and " + fld + "=:ent",
                         Map.of("p", prop, "ent", UtCnv.toLong(id)));
             }
         }
         //Saving
         for (Object id : idsNew) {
             if (!idsOld.contains(id)) {
-                mdb.insertRec("PropVal", Map.of("prop", prop, fld, UtCnv.toLong(id)), true);
+                getMdb().insertRec("PropVal", Map.of("prop", prop, fld, UtCnv.toLong(id)), true);
             }
         }
     }
 
     //---------------------- PropMeter -------------------------------
 
+    @DaoMethod
     public Store loadPropMeter(long prop) throws Exception {
-        Store st = mdb.createStore("Prop.meter.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Prop.meter.full");
+        getMdb().loadQuery(st, """
                     WITH RECURSIVE r AS (
                         select p.* from Prop p
                         where p.id=:prop
@@ -1059,11 +1088,12 @@ public class PropMdbUtils extends EntityMdbUtils {
         flt.forEach(r -> {
             r.set("parent", null);
         });
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
 
         return st;
     }
 
+    @DaoMethod
     public Store loadPropMeterForUpd(Map<String, Object> params) throws Exception {
         long meterStruct = UtCnv.toLong(params.get("meterStruct"));
         if (meterStruct == FD_MeterStruct_consts.soft)
@@ -1079,10 +1109,10 @@ public class PropMdbUtils extends EntityMdbUtils {
         long meterRate = UtCnv.toLong(params.get("meterRate"));
         long pt = FD_PropType_consts.rate;
 
-        UtMeterSoft ut = new UtMeterSoft(mdb, meter, false);
+        UtMeterSoft ut = new UtMeterSoft(getMdb(), meter, false);
         Store stMR = ut.getMeterRatesWithParent();
         StoreIndex indStMR = stMR.getIndex("id");
-        //mdb.outTable(stMR);
+        //getMdb().outTable(stMR);
 
         String sql = """
                     WITH RECURSIVE r AS (
@@ -1110,7 +1140,7 @@ public class PropMdbUtils extends EntityMdbUtils {
 
         if (meterRate > 0) {
 
-            Store tmp = mdb.createStore(mdb.createDomain(stMR));
+            Store tmp = getMdb().createStore(getMdb().createDomain(stMR));
             subTree(stMR, meterRate, tmp);
 
             String wheMR = "(" + UtString.join(tmp.getUniqueValues("id"), ",") + ")";
@@ -1142,8 +1172,8 @@ public class PropMdbUtils extends EntityMdbUtils {
         }
 
 
-        Store stProp = mdb.createStore("Prop.meter.checked");
-        mdb.loadQuery(stProp, sql, Map.of("prop", prop, "meter", meter, "mr", meterRate, "pt", pt));
+        Store stProp = getMdb().createStore("Prop.meter.checked");
+        getMdb().loadQuery(stProp, sql, Map.of("prop", prop, "meter", meter, "mr", meterRate, "pt", pt));
 
 
         for (StoreRecord r : stProp) {
@@ -1159,8 +1189,8 @@ public class PropMdbUtils extends EntityMdbUtils {
         }
 
 
-        //mdb.outTable(stProp);
-        //mdb.outTable(stMR);
+        //getMdb().outTable(stProp);
+        //getMdb().outTable(stMR);
         return stProp;
     }
 
@@ -1168,7 +1198,7 @@ public class PropMdbUtils extends EntityMdbUtils {
         long prop = UtCnv.toLong(params.get("prop"));
         long meter = UtCnv.toLong(params.get("meter"));
         long meterRate = UtCnv.toLong(params.get("meterRate"));
-        Store st = mdb.createStore("Prop.meter.checked");
+        Store st = getMdb().createStore("Prop.meter.checked");
         long pt = FD_PropType_consts.rate;
 
         String sql = """
@@ -1194,7 +1224,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                     order by mr.ord
                 """;
         if (meterRate > 0) {
-            Store tmp = mdb.loadQuery("""
+            Store tmp = getMdb().loadQuery("""
                         WITH RECURSIVE r AS (
                             select id from meterRate m
                             where m.meter=:m and m.id=:mr
@@ -1233,13 +1263,14 @@ public class PropMdbUtils extends EntityMdbUtils {
         }
 
 
-        mdb.loadQuery(st, sql, Map.of("prop", prop, "meter", meter, "mr", meterRate, "pt", pt));
+        getMdb().loadQuery(st, sql, Map.of("prop", prop, "meter", meter, "mr", meterRate, "pt", pt));
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
         return st;
     }
 
     //-----------------
+    @DaoMethod
     public Store loadPropMeterForUpdSave(Map<String, Object> params) throws Exception {
         long meterStruct = UtCnv.toLong(params.get("meterStruct"));
         if (meterStruct == FD_MeterStruct_consts.soft)
@@ -1252,6 +1283,7 @@ public class PropMdbUtils extends EntityMdbUtils {
     protected void subTree(Store st, long rootId, Store rez) {
         Stream<StoreRecord> lr = st.getRecords().stream().filter(new Predicate<StoreRecord>() {
             @Override
+            @DaoMethod
             public boolean test(StoreRecord r) {
                 return r.getLong("parent") == rootId;
             }
@@ -1263,17 +1295,18 @@ public class PropMdbUtils extends EntityMdbUtils {
         });
     }
 
+    @DaoMethod
     public Store loadPropMeterForUpdSaveHard(Map<String, Object> params) throws Exception {
 
         long meter = UtCnv.toLong(params.get("meter"));
         List<Map<String, Object>> lstCheckeds = (List<Map<String, Object>>) params.get("checkeds");
-        UtMeterSoft utMS = new UtMeterSoft(mdb, meter);
+        UtMeterSoft utMS = new UtMeterSoft(getMdb(), meter);
         //
-        Store stPath = mdb.createStore("MeterRate.hard.path");
-        mdb.loadQuery(stPath, "select id, parent from MeterRate where meter=:m", Map.of("m", meter));
+        Store stPath = getMdb().createStore("MeterRate.hard.path");
+        getMdb().loadQuery(stPath, "select id, parent from MeterRate where meter=:m", Map.of("m", meter));
         utMS.setPath(stPath);
 
-        Store stRez = mdb.createStore("Prop.meter.full");
+        Store stRez = getMdb().createStore("Prop.meter.full");
 
         Map<Long, Long> mapIdParent = new HashMap<>();
         for (Map<String, Object> map : lstCheckeds) {
@@ -1281,11 +1314,11 @@ public class PropMdbUtils extends EntityMdbUtils {
             mapIdParent.put(UtCnv.toLong(map.get("id")), UtCnv.toLong(map.get("parent")));
         }
 
-        //mdb.outTable(stRez);
+        //getMdb().outTable(stRez);
         StoreIndex indStPath = stPath.getIndex("id");
 
         for (long id : mapIdParent.keySet()) {
-            //mdb.outTable(indStPath.get(id));
+            //getMdb().outTable(indStPath.get(id));
             StoreRecord r = indStPath.get(id);
             if (!mapIdParent.containsKey(r.getLong("parent"))) {
                 if (r.getString("path").contains(",")) {
@@ -1314,24 +1347,25 @@ public class PropMdbUtils extends EntityMdbUtils {
             r.set("parent", record.getLong("parent"));
         }
 
-        //mdb.outTable(stPath);
-        //mdb.outTable(stRez);
+        //getMdb().outTable(stPath);
+        //getMdb().outTable(stRez);
 
         return stRez;
     }
 
+    @DaoMethod
     public Store loadPropMeterForUpdSaveSoft(Map<String, Object> params) throws Exception {
         //long prop = UtCnv.toLong(params.get("prop"));
         long meter = UtCnv.toLong(params.get("meter"));
         //long meterRate = UtCnv.toLong(params.get("meterRate"));
         List<Map<String, Object>> lstCheckeds = (List<Map<String, Object>>) params.get("checkeds");
 
-        UtMeterSoft utMeterSoft = new UtMeterSoft(mdb, meter, false);
+        UtMeterSoft utMeterSoft = new UtMeterSoft(getMdb(), meter, false);
         Store stPath = utMeterSoft.getMeterRatesWithParent();
         utMeterSoft.setPath(stPath);
-        //mdb.outTable(stPath);
+        //getMdb().outTable(stPath);
 
-        Store stRez = mdb.createStore("Prop.meter.full");
+        Store stRez = getMdb().createStore("Prop.meter.full");
 
         Map<Long, Long> mapIdParent = new HashMap<>();
         for (Map<String, Object> map : lstCheckeds) {
@@ -1343,7 +1377,7 @@ public class PropMdbUtils extends EntityMdbUtils {
         StoreIndex indStPath = stPath.getIndex("id");
 
         for (long id : mapIdParent.keySet()) {
-            //mdb.outTable(indStPath.get(id));
+            //getMdb().outTable(indStPath.get(id));
             StoreRecord r = indStPath.get(id);
             if (!mapIdParent.containsKey(r.getLong("parent"))) {
                 if (r.getString("path").contains(",")) {
@@ -1372,12 +1406,13 @@ public class PropMdbUtils extends EntityMdbUtils {
             r.set("parent", record.getLong("parent"));
         }
 
-        //mdb.outTable(stRez);
+        //getMdb().outTable(stRez);
 
 
         return stRez;
     }
 
+    @DaoMethod
     public void savePropMeter(Map<String, Object> params) throws Exception {
         long meterStruct = UtCnv.toLong(params.get("meterStruct"));
         if (meterStruct == FD_MeterStruct_consts.soft)
@@ -1393,7 +1428,7 @@ public class PropMdbUtils extends EntityMdbUtils {
         //long meterRate = UtCnv.toLong(params.get("meterRate"));
         List<Map<String, Object>> lstData = (List<Map<String, Object>>) params.get("data");
 
-        Store tmp = mdb.loadQuery("""
+        Store tmp = getMdb().loadQuery("""
                     WITH RECURSIVE r AS (
                         select p.id from Prop p
                         where p.id=:prop
@@ -1422,7 +1457,7 @@ public class PropMdbUtils extends EntityMdbUtils {
         String idsPropOld = String.join(",", UtCnv.toString(mapOldMR2MP.values()))
                 .replace("[", "(").replace("]", ")");
         if (idsPropOld.equals("()")) idsPropOld = "(0)";
-        mdb.execQuery("""
+        getMdb().execQuery("""
                     update Prop set parent=null
                     where id in
                 """ + idsPropOld);
@@ -1435,7 +1470,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                         "delete from PropStatus where prop=:prop" + ";" +
                         "delete from PropProvider where prop=:prop" + ";" +
                         "delete from Prop where id=:prop" + ";";
-                mdb.execQuery(sql, Map.of("prop", mapOldMR2MP.get(key)));
+                getMdb().execQuery(sql, Map.of("prop", mapOldMR2MP.get(key)));
             } else {
                 ids.add(mapOldMR2MP.get(key));
             }
@@ -1452,23 +1487,23 @@ public class PropMdbUtils extends EntityMdbUtils {
         for (Map<String, Object> map : lstData) {
             if (!mapOldMR2MP.containsKey(UtCnv.toLong(map.get("id")))) {
 
-                mdb.outMap(map);
+                getMdb().outMap(map);
 
                 map.put("meterRate", map.get("id"));
                 map.put("id", null);
                 map.put("parent", null);
-                //long id = insertEntityWithVer(map);
-                long id = insertEntity(map);
+                EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Prop");
+                long id = eu.insertEntity(map);
                 ids.add(id);
             }
         }
         //Load
         String wheIds = String.join(",", UtCnv.toString(ids)).replace("[", "").replace("]", "");
         if (wheIds.isBlank()) wheIds = "0";
-        Store st = mdb.createStore("Prop.meter");
-        mdb.loadQuery(st, "select * from Prop p where p.id in (" + wheIds + ")");
+        Store st = getMdb().createStore("Prop.meter");
+        getMdb().loadQuery(st, "select * from Prop p where p.id in (" + wheIds + ")");
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
         //Define parent
         Map<Long, Long> mapIdParentReal = new HashMap<>();
         mapIdParentReal.put(0L, prop);
@@ -1477,14 +1512,15 @@ public class PropMdbUtils extends EntityMdbUtils {
         }
         for (StoreRecord r : st) {
             r.set("parent", mapIdParentReal.get(mapIdParent.get(r.getLong("meterRate"))));
-            mdb.updateRec("Prop", r);
+            getMdb().updateRec("Prop", r);
         }
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
 
     }
 
     //----------------------------------------------------------------------------------
+    @DaoMethod
     public Store loadPropValEntity(long prop, long entityType) throws Exception {
         if (Arrays.asList(FD_EntityType_consts.Factor, FD_EntityType_consts.Type,
                 FD_EntityType_consts.RelTyp, FD_EntityType_consts.Measure).contains(entityType)) {
@@ -1500,22 +1536,22 @@ public class PropMdbUtils extends EntityMdbUtils {
     }
 
     protected Store loadPropValEntityTreeProp(long prop) throws Exception {
-        Store st = mdb.createStore("PropVal.full.tree");
+        Store st = getMdb().createStore("PropVal.full.tree");
         String sql = """
                     select 'p_'||p.id as id, 'g_'||p.propGr as parent, p.cod, p.name, p.fullName, pv.id as propVal,
                         p.id as prop, p.propGr as propGr, pv.entityId, true as isEntity, p.propType, p.ord
                     from PropVal pv, Prop p
                     where pv.prop=:prop and pv.entityId=p.id
                 """;
-        mdb.loadQuery(st, sql, Map.of("prop", prop));
+        getMdb().loadQuery(st, sql, Map.of("prop", prop));
 
         // PropGr
-        Store stGr = mdb.createStore("Prop.propGr");
+        Store stGr = getMdb().createStore("Prop.propGr");
         String sqlGr = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr
                     from PropGr where 0=0
                 """;
-        mdb.loadQuery(stGr, sqlGr);
+        getMdb().loadQuery(stGr, sqlGr);
         StoreIndex indStGr = stGr.getIndex("id");
         //setParents for Meter, Factor... without MeterRate
         Set<Object> idsGr = new HashSet<>();
@@ -1544,17 +1580,17 @@ public class PropMdbUtils extends EntityMdbUtils {
         String whe = String.join(",", UtCnv.toString(idsGr))
                 .replace("[", "(").replace("]", ")");
         if (whe.equals("()")) whe = "(0)";
-        stGr = mdb.createStore("PropVal.full.tree");
+        stGr = getMdb().createStore("PropVal.full.tree");
         sqlGr = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr, cod, name
                     from PropGr where id in
                 """ + whe;
 
-        mdb.loadQuery(stGr, sqlGr);
+        getMdb().loadQuery(stGr, sqlGr);
         stGr.add(st);
-        //mdb.outTable(stGr);
+        //getMdb().outTable(stGr);
 
-        Store stGrAll = mdb.createStore("PropVal.full.tree");
+        Store stGrAll = getMdb().createStore("PropVal.full.tree");
         String sqlGrAll = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr,
                     null as prop, null as propType, cod, name
@@ -1566,9 +1602,9 @@ public class PropMdbUtils extends EntityMdbUtils {
                     from Prop p
                     where 0=0
                 """;
-        mdb.loadQuery(stGrAll, sqlGrAll);
+        getMdb().loadQuery(stGrAll, sqlGrAll);
         StoreIndex indStAll = stGrAll.getIndex("id");
-        //mdb.outTable(stGrAll);
+        //getMdb().outTable(stGrAll);
 
         //Analize parents
         Set<Object> ids = stGr.getUniqueValues("id");
@@ -1588,16 +1624,16 @@ public class PropMdbUtils extends EntityMdbUtils {
         String whGr = String.join(",", UtCnv.toString(setPropGr))
                 .replace("[", "(").replace("]", ")");
         if (whGr.equals("()")) whGr = "(0)";
-        Store stPath = mdb.createStore("DomainPath");
-        mdb.loadQuery(stPath, "select id, parent, '' as path from Prop where propGr in " + whGr);
-        UtMeterSoft utMeterSoft = new UtMeterSoft(mdb, 0, false);
+        Store stPath = getMdb().createStore("DomainPath");
+        getMdb().loadQuery(stPath, "select id, parent, '' as path from Prop where propGr in " + whGr);
+        UtMeterSoft utMeterSoft = new UtMeterSoft(getMdb(), 0, false);
         utMeterSoft.setPath(stPath);
-        //mdb.outTable(stPath);
+        //getMdb().outTable(stPath);
 
         StoreIndex indStProp = stPath.getIndex("id");
         StoreIndex indStGrProp = stGr.getIndex("id");
 
-        Store stGrCopy = mdb.createStore("PropVal.full.tree");
+        Store stGrCopy = getMdb().createStore("PropVal.full.tree");
         Set<Object> idsPropGrDop = new HashSet<>();
 
         for (Object it : setPropGr) {
@@ -1637,22 +1673,23 @@ public class PropMdbUtils extends EntityMdbUtils {
         whe = String.join(",", UtCnv.toString(idsPropGrDop))
                 .replace("[", "(").replace("]", ")");
         if (whe.equals("()")) whe = "(0)";
-        mdb.loadQuery(stGrCopy, sqlGr);
+        getMdb().loadQuery(stGrCopy, sqlGr);
         //
         stGr.add(stGrCopy);
 
-        //mdb.outTable(stGrCopy);
-        //mdb.outTable(stGr);
+        //getMdb().outTable(stGrCopy);
+        //getMdb().outTable(stGr);
 
         return stGr;
     }
 
+    @DaoMethod
     public Store loadPropValEntityTreePropForUpd(long prop) throws Exception {
         //old values
         Store stOld = loadPropValEntityTreeProp(prop);
         StoreIndex indStOld = stOld.getIndex("id");
 
-        Store st = mdb.createStore("PropVal.full.tree");
+        Store st = getMdb().createStore("PropVal.full.tree");
         String sql = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr,
                     null as prop, null as entityId, null as propType, cod, name, fullName, false as checked
@@ -1664,9 +1701,9 @@ public class PropMdbUtils extends EntityMdbUtils {
                     from Prop p
                     where 0=0
                 """;
-        mdb.loadQuery(st, sql);
+        getMdb().loadQuery(st, sql);
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
 
         for (StoreRecord r : st) {
             StoreRecord rec = indStOld.get(r.getString("id"));
@@ -1680,9 +1717,9 @@ public class PropMdbUtils extends EntityMdbUtils {
     }
 
 
-    ///////
+    /// ////
     protected Store loadPropValEntityTree(long prop, long entityType) throws Exception {
-        Store st = mdb.createStore("PropVal.full.tree");
+        Store st = getMdb().createStore("PropVal.full.tree");
         String sql = "";
 
         if (entityType == FD_EntityType_consts.FactorVal) {
@@ -1755,13 +1792,13 @@ public class PropMdbUtils extends EntityMdbUtils {
                     """;
         }*/
 
-        mdb.loadQuery(st, sql, Map.of("p", prop));
+        getMdb().loadQuery(st, sql, Map.of("p", prop));
         return st;
     }
 
     protected Store loadPropValEntityList(long prop, long entityType) throws Exception {
 
-        Store st = mdb.createStore("PropVal.full");
+        Store st = getMdb().createStore("PropVal.full");
         String sql = "";
         // for Factor
         if (entityType == FD_EntityType_consts.Factor) {
@@ -1790,10 +1827,11 @@ public class PropMdbUtils extends EntityMdbUtils {
                     """;
         }
 
-        mdb.loadQuery(st, sql, Map.of("p", prop));
+        getMdb().loadQuery(st, sql, Map.of("p", prop));
         return st;
     }
 
+    @DaoMethod
     public Store loadPropValEntityForUpd(long prop, long entityType) throws Exception {
         if (Arrays.asList(FD_EntityType_consts.Factor, FD_EntityType_consts.Type,
                 FD_EntityType_consts.RelTyp, FD_EntityType_consts.Measure).contains(entityType)) {
@@ -1807,7 +1845,7 @@ public class PropMdbUtils extends EntityMdbUtils {
     }
 
     protected Store loadPropValEntityTreeForUpd(long prop, long entityType) throws Exception {
-        Store st = mdb.createStore("PropVal.full.tree");
+        Store st = getMdb().createStore("PropVal.full.tree");
         String sql = "";
 
         if (entityType == FD_EntityType_consts.FactorVal) {
@@ -1869,14 +1907,14 @@ public class PropMdbUtils extends EntityMdbUtils {
                     """;
         }*/
 
-        mdb.loadQuery(st, sql, Map.of("p", prop));
-        //mdb.outTable(st);
+        getMdb().loadQuery(st, sql, Map.of("p", prop));
+        //getMdb().outTable(st);
 
         return st;
     }
 
     protected Store loadPropValEntityListForUpd(long prop, long entityType) throws Exception {
-        Store st = mdb.createStore("PropVal.full");
+        Store st = getMdb().createStore("PropVal.full");
 
         String sql = "";
         if (entityType == FD_EntityType_consts.Factor) {
@@ -1915,11 +1953,12 @@ public class PropMdbUtils extends EntityMdbUtils {
                     """;
         }
 
-        mdb.loadQuery(st, sql, Map.of("p", prop));
+        getMdb().loadQuery(st, sql, Map.of("p", prop));
         return st;
 
     }
 
+    @DaoMethod
     public void savePropEntityVal(long prop, List<Map<String, Object>> lstData) throws Exception {
         StoreRecord rec = loadRec(prop).get(0);
         long entityType = rec.getLong("entityType");
@@ -1933,25 +1972,26 @@ public class PropMdbUtils extends EntityMdbUtils {
         for (Map<String, Object> map : lstData) {
             idsNew.add(UtCnv.toLong(map.get(fldId)));
         }
-        Store st = mdb.loadQuery("select entityId as id from PropVal where prop=:p",
+        Store st = getMdb().loadQuery("select entityId as id from PropVal where prop=:p",
                 Map.of("p", prop));
         Set<Object> idsOld = st.getUniqueValues("id");
 
         //Deleting
         for (Object id : idsOld) {
             if (!idsNew.contains(id)) {
-                mdb.execQuery("delete from PropVal where prop=:p and entityId=:ent",
+                getMdb().execQuery("delete from PropVal where prop=:p and entityId=:ent",
                         Map.of("p", prop, "ent", UtCnv.toLong(id)));
             }
         }
         //Saving
         for (Object id : idsNew) {
             if (!idsOld.contains(id)) {
-                mdb.insertRec("PropVal", Map.of("prop", prop, "entityId", UtCnv.toLong(id)), true);
+                getMdb().insertRec("PropVal", Map.of("prop", prop, "entityId", UtCnv.toLong(id)), true);
             }
         }
     }
 
+    @DaoMethod
     public Store loadPropForSelect(String propField) throws Exception {
         if (propField.equals("prop")) {
             return loadAllPropForSelect();
@@ -1961,8 +2001,9 @@ public class PropMdbUtils extends EntityMdbUtils {
     }
 
     //
+    @DaoMethod
     public Store loadAllPropForSelect() throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select 'g_'||id as id, case when parent is not null then 'g_'||parent else null end as parent,
                         -id as prop, name, fullName, 0 as ent
                     from PropGr where 0=0
@@ -1973,27 +2014,30 @@ public class PropMdbUtils extends EntityMdbUtils {
                 """);
     }
 
+    @DaoMethod
     public Store loadAllMultiPropForSelect() throws Exception {
-        return mdb.loadQuery("""
-            select -id as id, parent, name, -id as prop
-            from MultiPropGr where 0=0
-            union all
-            select id, -multiPropGr as parent, name, id as prop
-            from MultiProp where 0=0
-        """);
+        return getMdb().loadQuery("""
+                    select -id as id, parent, name, -id as prop
+                    from MultiPropGr where 0=0
+                    union all
+                    select id, -multiPropGr as parent, name, id as prop
+                    from MultiProp where 0=0
+                """);
     }
 
+    @DaoMethod
     public Set<Object> propPeriodType(long prop) throws Exception {
-        Store st = mdb.loadQuery("select periodType from PropPeriodType where prop=:p", Map.of("p", prop));
+        Store st = getMdb().loadQuery("select periodType from PropPeriodType where prop=:p", Map.of("p", prop));
 
         return Collections.unmodifiableSet(st.getUniqueValues("periodType"));
     }
 
+    @DaoMethod
     public Store loadPropValEntityForSelect(long prop, long entityType) throws Exception {
-        Store st = mdb.createStore("Prop.entity.select");
+        Store st = getMdb().createStore("Prop.entity.select");
 
 /*
-        Store stEnt = mdb.loadQuery("select * from FD_EntityType where id=:id", Map.of("id", entityType));
+        Store stEnt = getMdb().loadQuery("select * from FD_EntityType where id=:id", Map.of("id", entityType));
         String tabl = stEnt.get(0).getString("tableName");
 
         if (stEnt.get(0).getString("code").equalsIgnoreCase("FactorVal")) {
@@ -2022,14 +2066,15 @@ public class PropMdbUtils extends EntityMdbUtils {
                     """ + tabl + "Ver v on t.id=v.ownerVer and v.lastVer=1 where prop=:p" + wheFV;
         }
 
-        mdb.loadQuery(st, sql, Map.of("p", prop));
+        getMdb().loadQuery(st, sql, Map.of("p", prop));
         return st;
     }
 
 
+    @DaoMethod
     public Store loadPropComplex(long prop) throws Exception {
-        Store st = mdb.createStore("Prop.rec");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Prop.rec");
+        getMdb().loadQuery(st, """
                     WITH RECURSIVE r AS (
                         select p.id, p.parent from Prop p
                         where p.id=:p
@@ -2048,13 +2093,14 @@ public class PropMdbUtils extends EntityMdbUtils {
                     where p.id in (select id from p)
                 """, Map.of("p", prop));
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
 
         return st;
     }
 
+    @DaoMethod
     public StoreRecord newRecComplex(Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore("Prop");
+        Store st = getMdb().createStore("Prop");
         StoreRecord r = st.add(rec);
         r.set("parent", rec.get("id"));
         r.set("id", null);
@@ -2069,19 +2115,21 @@ public class PropMdbUtils extends EntityMdbUtils {
         return r;
     }
 
+    @DaoMethod
     public String getParentName(long propGr, long parent) throws Exception {
         if (parent == 0) {
-            return mdb.loadQuery("select name from PropGr where id=:id",
+            return getMdb().loadQuery("select name from PropGr where id=:id",
                     Map.of("id", propGr)).get(0).getString("name");
         } else {
-            return mdb.loadQuery("select name from Prop where id=:id",
+            return getMdb().loadQuery("select name from Prop where id=:id",
                     Map.of("id", parent)).get(0).getString("name");
         }
     }
 
     //
+    @DaoMethod
     public Store loadItemsComplexProp(long prop) throws Exception {
-        Store st = mdb.createStore("Prop.rec");
+        Store st = getMdb().createStore("Prop.rec");
         String sql = """
                     select p.*, m.kFromBase as kfc,
                         case when a.id is null then fp."text" else fa."text" end namePropType
@@ -2092,7 +2140,7 @@ public class PropMdbUtils extends EntityMdbUtils {
                         left join Measure m on p.measure=m.id
                     where p.parent=:prop
                 """;
-        return mdb.loadQuery(st, sql, Map.of("prop", prop));
+        return getMdb().loadQuery(st, sql, Map.of("prop", prop));
     }
 
 }
