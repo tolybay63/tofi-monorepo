@@ -42,35 +42,12 @@ public class PropMdbUtils extends EntityMdbUtils {
     ApinatorApi apiUserData() {
         return  mdb.getApp().bean(ApinatorService.class).getApi("userdata");
     }
-    ApinatorApi apiKPIData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("kpidata");
-    }
-    ApinatorApi apiPollData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("polldata");
-    }
-    ApinatorApi apiIndicatorData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("indicatordata");
-    }
     ApinatorApi apiNSIData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
     }
     ApinatorApi apiMonitoringData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
-    ApinatorApi apiObjectData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("objectdata");
-    }
-    ApinatorApi apiOrgStructureData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("orgstructuredata");
-    }
-    ApinatorApi apiPersonnalData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("personnaldata");
-    }
-    ApinatorApi apiPlanData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("plandata");
-    }
-
-
 
 
     public Store loadPropTree(long propGr) throws Exception {
@@ -196,35 +173,6 @@ public class PropMdbUtils extends EntityMdbUtils {
             throw new XError("Не найден id мета модели");
         //
 
-        if (modelMeta.equalsIgnoreCase("kpi")) {
-            Store st = apiUserData().get(ApiUserData.class).loadSql("""
-                        select v.id from dataprop d, Datapropval v
-                        where d.id=v.dataprop and d.prop=
-                    """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@userdata");
-
-            st = apiKPIData().get(ApiKPIData.class).loadSql("""
-                        select v.id from dataprop d, Datapropval v
-                        where d.id=v.dataprop and d.prop=
-                    """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@kpidata");
-
-            st = apiPollData().get(ApiPollData.class).loadSql("""
-                        select v.id from dataprop d, Datapropval v
-                        where d.id=v.dataprop and d.prop=
-                    """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@polldata");
-            st = apiIndicatorData().get(ApiIndicatorData.class).loadSql("""
-                        select v.id from dataprop d, Datapropval v
-                        where d.id=v.dataprop and d.prop=
-                    """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@indicatordata");
-        }
-
         if (modelMeta.equalsIgnoreCase("fish")) {
             Store st = apiUserData().get(ApiUserData.class).loadSql("""
                                 select v.id from dataprop d, Datapropval v
@@ -248,49 +196,6 @@ public class PropMdbUtils extends EntityMdbUtils {
                 throw new XError("NotChangeStructComplexProp@monitoringdata");
         }
 
-        if (modelMeta.equalsIgnoreCase("dtj")) {
-            Store st = apiUserData().get(ApiUserData.class).loadSql("""
-                                select v.id from dataprop d, Datapropval v
-                                where d.id=v.dataprop and d.prop=
-                            """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@userdata");
-
-            st = apiNSIData().get(ApiNSIData.class).loadSql("""
-                            select v.id from dataprop d, Datapropval v
-                            where d.id=v.dataprop and d.prop=
-                        """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@nsidata");
-
-            st = apiObjectData().get(ApiObjectData.class).loadSql("""
-                            select v.id from dataprop d, Datapropval v
-                            where d.id=v.dataprop and d.prop=
-                        """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@objectdata");
-
-            st = apiOrgStructureData().get(ApiOrgStructureData.class).loadSql("""
-                            select v.id from dataprop d, Datapropval v
-                            where d.id=v.dataprop and d.prop=
-                        """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@orgstructuredata");
-
-            st = apiPersonnalData().get(ApiPersonnalData.class).loadSql("""
-                            select v.id from dataprop d, Datapropval v
-                            where d.id=v.dataprop and d.prop=
-                        """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@personnaldata");
-
-            st = apiPlanData().get(ApiPlanData.class).loadSql("""
-                            select v.id from dataprop d, Datapropval v
-                            where d.id=v.dataprop and d.prop=
-                        """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@plandata");
-        }
 
     }
 
@@ -861,12 +766,6 @@ public class PropMdbUtils extends EntityMdbUtils {
     private Store sqlLoad(String sql, String domain, String model) throws Exception {
         if (model.equalsIgnoreCase("userdata"))
             return apiUserData().get(ApiUserData.class).loadSql(sql, domain);
-        else if (model.equalsIgnoreCase("kpidata"))
-            return apiKPIData().get(ApiKPIData.class).loadSql(sql, domain);
-        else if (model.equalsIgnoreCase("polldata"))
-            return apiPollData().get(ApiPollData.class).loadSql(sql, domain);
-        else if (model.equalsIgnoreCase("indicatordata"))
-            return apiIndicatorData().get(ApiIndicatorData.class).loadSql(sql, domain);
         else if (model.equalsIgnoreCase("nsidata"))
             return apiNSIData().get(ApiNSIData.class).loadSql(sql, domain);
         else if (model.equalsIgnoreCase("monitoringdata"))
@@ -881,15 +780,6 @@ public class PropMdbUtils extends EntityMdbUtils {
             Store st = apiUserData().get(ApiUserData.class).loadSql(sql, domain);
             if (st.size() > 0)
                 res.put("userdata", st.getUniqueValues("periodType"));
-            st = apiKPIData().get(ApiKPIData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("kpidata", st.getUniqueValues("periodType"));
-            st = apiPollData().get(ApiPollData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("polldata", st.getUniqueValues("periodType"));
-            st = apiIndicatorData().get(ApiIndicatorData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("indicatordata", st.getUniqueValues("periodType"));
         } else if (metaModel.equalsIgnoreCase("fish")) {
             Store st = apiUserData().get(ApiUserData.class).loadSql(sql, domain);
             if (st.size() > 0)
@@ -900,26 +790,6 @@ public class PropMdbUtils extends EntityMdbUtils {
             st = apiMonitoringData().get(ApiMonitoringData.class).loadSql(sql, domain);
             if (st.size() > 0)
                 res.put("monitoringdata", st.getUniqueValues("periodType"));
-        } else if (metaModel.equalsIgnoreCase("dtj")) {
-            Store st = apiUserData().get(ApiUserData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("userdata", st.getUniqueValues("periodType"));
-            st = apiNSIData().get(ApiNSIData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("nsidata", st.getUniqueValues("periodType"));
-            st = apiObjectData().get(ApiObjectData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("objectdata", st.getUniqueValues("periodType"));
-            st = apiOrgStructureData().get(ApiOrgStructureData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("orgstructuredata", st.getUniqueValues("periodType"));
-            st = apiPersonnalData().get(ApiPersonnalData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("personnaldata", st.getUniqueValues("periodType"));
-            st = apiPlanData().get(ApiPlanData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("plandata", st.getUniqueValues("periodType"));
-
         }
         //
         return res;
