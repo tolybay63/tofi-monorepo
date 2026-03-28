@@ -14,7 +14,7 @@
             />
 
             <item name="measure"
-                  class="tofi.mdl.model.dao.measure.MeasureDao"
+                  class="tofi.mdl.model.dao.measure.MeasureMdbUtils"
                   method="*"
             />
 
@@ -24,17 +24,17 @@
             />
 
             <item name="factor"
-                  class="tofi.mdl.model.dao.factor.FactorDao"
+                  class="tofi.mdl.model.dao.factor.FactorMdbUtils"
                   method="*"
             />
 
             <item name="factorrel"
-                  class="tofi.mdl.model.dao.factor.FactorRelDao"
+                  class="tofi.mdl.model.dao.factor.FactorRelMdbUtils"
                   method="*"
             />
 
             <item name="meter"
-                  class="tofi.mdl.model.dao.meter.MeterDao"
+                  class="tofi.mdl.model.dao.meter.MeterMdbUtils"
                   method="*"
             />
             <item name="meterfactor"
@@ -65,27 +65,27 @@
             />
 
             <item name="group"
-                  class="tofi.mdl.model.dao.group.GroupDao"
+                  class="tofi.mdl.model.dao.group.GroupMdbUtils"
                   method="*"
             />
 
             <item name="prop"
-                  class="tofi.mdl.model.dao.prop.PropDao"
+                  class="tofi.mdl.model.dao.prop.PropMdbUtils"
                   method="*"
             />
 
             <item name="dimMultiProp"
-                  class="tofi.mdl.model.dao.prop.multi.dim.DimMultiPropDao"
+                  class="tofi.mdl.model.dao.prop.multi.dim.DimMultiPropMdbUtils"
                   method="*"
             />
 
             <item name="multiProp"
-                  class="tofi.mdl.model.dao.prop.multi.MultiPropDao"
+                  class="tofi.mdl.model.dao.prop.multi.MultiPropMdbUtils"
                   method="*"
             />
 
             <item name="flatTable"
-                  class="tofi.mdl.model.dao.flat.table.FlatTableDao"
+                  class="tofi.mdl.model.dao.flat.table.FlatTableMdbUtils"
                   method="*"
             />
 
@@ -98,7 +98,7 @@
                   method="*"
             />
             <item name="dimprop"
-                  class="tofi.mdl.model.dao.dimprop.DimPropDao"
+                  class="tofi.mdl.model.dao.dimprop.DimPropMdbUtils"
                   method="*"
             />
             <item name="dimobj"

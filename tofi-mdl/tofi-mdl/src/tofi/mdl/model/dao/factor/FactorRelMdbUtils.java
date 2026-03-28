@@ -2,26 +2,17 @@ package tofi.mdl.model.dao.factor;
 
 import jandcode.commons.UtCnv;
 import jandcode.commons.UtString;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreField;
 import jandcode.core.store.StoreRecord;
 
 import java.util.*;
 
-public class FactorRelMdbUtils {
-    Mdb mdb;
-
-    FactorRelMdbUtils(Mdb mdb) throws Exception {
-        this.mdb = mdb;
-    }
+public class FactorRelMdbUtils extends BaseMdbUtils {
 
     /**
      * Загрузка зависимых факторов для указанного фактора
-     *
-     * @param params factor
-     * @return
-     * @throws Exception
      */
     public Store load(Map<String, Object> params) throws Exception {
         String sql = """
@@ -40,20 +31,13 @@ public class FactorRelMdbUtils {
                     from r
                     left join factor f on r.f2=f.id
                 """;
-        Store st = mdb.createStore("Factor");
+        Store st = getMdb().createStore("Factor");
 
-        return mdb.loadQuery(st, sql, params);
+        return getMdb().loadQuery(st, sql, params);
     }
 
-    /**
-     * Выбор зависимого фактора, для комбобокса
-     *
-     * @param params
-     * @return
-     * @throws Exception
-     */
     public Store factor2(Map<String, Object> params) throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     with fvs1 as (
                         select id from factor where parent=:factor
                     ),
@@ -81,13 +65,13 @@ public class FactorRelMdbUtils {
         В базу записываются несовместные пары.
         */
 
-        Store stFv2 = mdb.loadQuery("select id, name from factor where parent=:factor2 order by ord", params);
+        Store stFv2 = getMdb().loadQuery("select id, name from factor where parent=:factor2 order by ord", params);
 
         List<Map<String, Object>> cols = new ArrayList<>();
         cols.add(Map.of("name", "name", "label", "factor1/factor2", "field", "name",
                 "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 30%"));
 
-        Store stFv1 = mdb.createStore();
+        Store stFv1 = getMdb().createStore();
         stFv1.addField("id", "long");
         stFv1.addField("name", "string", 200);
 
@@ -109,9 +93,9 @@ public class FactorRelMdbUtils {
 
         String sql = "select id, name as name" + sep + String.join(",", sel) + " from factor where parent=:factor1 order by ord";
 
-        mdb.loadQuery(stFv1, sql, params);
+        getMdb().loadQuery(stFv1, sql, params);
 
-        Store stFvRel = mdb.loadQuery("""
+        Store stFvRel = getMdb().loadQuery("""
                             select r.id,
                             case when f1.parent = :factor1 then r.factor1 else r.factor2 end as factor1,
                             case when f1.parent = :factor1 then r.factor2 else r.factor1 end as factor2,
@@ -144,10 +128,10 @@ public class FactorRelMdbUtils {
         rez.put("cmt", cmt);
 
 /*
-        mdb.outTable(stFv1);
+        getMdb().outTable(stFv1);
         for (Map m : cols)
-            mdb.outMap(m);
-        mdb.outMap(cmt);
+            getMdb().outMap(m);
+        getMdb().outMap(cmt);
 */
 
         return rez;
@@ -155,7 +139,7 @@ public class FactorRelMdbUtils {
 
     public Store saveFactorValRel(Map<String, Object> factors, Map<String, Object> data) throws Exception {
         //Deleting old values
-        Store st = mdb.loadQuery("""
+        Store st = getMdb().loadQuery("""
                     select r.id
                     from factorvalrel r, factor f1, factor f2
                     where r.factor1=f1.id and r.factor2=f2.id and (
@@ -170,14 +154,14 @@ public class FactorRelMdbUtils {
         String whe = UtString.join(ids, ",");
 
         if (!whe.isEmpty())
-            mdb.execQuery("delete from factorvalrel where id in (" + whe + ")");
+            getMdb().execQuery("delete from factorvalrel where id in (" + whe + ")");
         //
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             String[] f1f2 = UtCnv.toString(entry.getKey()).split("_");
             String cmt = UtCnv.toString(entry.getValue());
             long factor1 = UtCnv.toLong(f1f2[0]);
             long factor2 = UtCnv.toLong(f1f2[1]);
-            long id = mdb.getNextId("factorvalrel");
+            long id = getMdb().getNextId("factorvalrel");
             Map<String, Object> rec = new HashMap<>();
             rec.put("id", id);
             rec.put("factor1", factor1);
@@ -185,7 +169,7 @@ public class FactorRelMdbUtils {
             if (!cmt.isEmpty()) {
                 rec.put("cmt", cmt);
             }
-            mdb.insertRec("factorvalrel", rec, false);
+            getMdb().insertRec("factorvalrel", rec, false);
         }
         //
         String sql = """
@@ -205,12 +189,12 @@ public class FactorRelMdbUtils {
                     left join factor f on r.f2=f.id
                     where f.id=:factor2
                 """;
-        Store rez = mdb.loadQuery(sql, factors);
-        mdb.resolveDicts(rez);
+        Store rez = getMdb().loadQuery(sql, factors);
+        getMdb().resolveDicts(rez);
         if (rez.size() > 0) {
             return rez;
         } else {
-            return mdb.createStore();
+            return getMdb().createStore();
         }
     }
     //
