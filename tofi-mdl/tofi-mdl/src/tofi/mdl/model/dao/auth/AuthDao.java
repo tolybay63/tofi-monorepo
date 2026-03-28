@@ -15,7 +15,7 @@ public class AuthDao extends BaseMdbUtils {
     public Map<String, Object> getUserInfo() {
         AuthService authSvc = getMdb().getApp().bean(AuthService.class);
         AuthUser au = authSvc.getCurrentUser();
-        if (au==null) {
+        if (au == null) {
             throw new XError("notLoginned");
         }
         return au.getAttrs();
@@ -26,13 +26,13 @@ public class AuthDao extends BaseMdbUtils {
         AuthService authService = getModel().getApp().bean(AuthService.class);
         AuthUser usr = authService.getCurrentUser();
 
-        //if (getMdb().getApp().getEnv().isDev()) {
-        System.out.println("--- DEBUG ---");
-        System.out.println("Target: " + target);
-        System.out.println("User ID from Attrs: " + usr.getAttrs().getLong("id"));
-        System.out.println("User Login: " + usr.getAttrs().getString("login"));
-        System.out.println("-------------");
-        //}
+        if (getMdb().getApp().getEnv().isDev()) {
+            System.out.println("--- DEBUG ---");
+            System.out.println("Target: " + target);
+            System.out.println("User ID from Attrs: " + usr.getAttrs().getLong("id"));
+            System.out.println("User Login: " + usr.getAttrs().getString("login"));
+            System.out.println("-------------");
+        }
 
         if (usr.getAttrs().getLong("id") == 1) return;
 
@@ -40,7 +40,7 @@ public class AuthDao extends BaseMdbUtils {
             throw new XError("notLoginned");
 
         String userTargets = usr.getAttrs().getString("target", "");
-        String [] targets = userTargets.trim().split("\\s*,\\s*");
+        String[] targets = userTargets.trim().split("\\s*,\\s*");
         if (!Arrays.asList(targets).contains(target)) {
             if (target.equals("meta")) {
                 throw new XError("notAccessService");
