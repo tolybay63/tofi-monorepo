@@ -4,6 +4,8 @@ import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
 import jandcode.core.auth.AuthService;
 import jandcode.core.auth.AuthUser;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.store.Store;
@@ -13,21 +15,7 @@ import tofi.mdl.model.utils.EntityMdbUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AttribMdbUtils extends EntityMdbUtils {
-    Mdb mdb;
-    String tableName;
-
-    public AttribMdbUtils(Mdb mdb, String tableName) {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
+public class AttribMdbUtils extends BaseMdbUtils {
 
     /**
      * Загрузка Attrib с пагинацией
@@ -35,14 +23,15 @@ public class AttribMdbUtils extends EntityMdbUtils {
      * @param params Map
      * @return Map
      */
+    @DaoMethod
     public Map<String, Object> loadAttribPaginate(Map<String, Object> params) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        AuthUser au = authSvc.getCurrentUser();
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
+        //AuthUser au = authSvc.getCurrentUser();
         //todo AuthUser
-        long al = au.getAttrs().getLong("accesslevel");
+        //long al = au.getAttrs().getLong("accesslevel");
 
-        String sql = "select * from Attrib where accessLevel <= " + al + " order by id";
-        SqlText sqlText = mdb.createSqlText(sql);
+        String sql = "select * from Attrib where 0=0 order by id";
+        SqlText sqlText = getMdb().createSqlText(sql);
         Map<String, Object> par = new HashMap<>();
         int offset = (UtCnv.toInt(params.get("page")) - 1) * UtCnv.toInt(params.get("limit"));
         par.put("offset", offset);
@@ -57,17 +46,17 @@ public class AttribMdbUtils extends EntityMdbUtils {
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("(cod like '%" + filter + "%' or name like '%" + filter + "%' or " +
                     "fullName like '%" + filter + "%')");
-        Store st = mdb.createStore("Attrib");
+        Store st = getMdb().createStore("Attrib");
 
-        mdb.loadQuery(st, sqlText, par);
-        mdb.resolveDicts(st);
+        getMdb().loadQuery(st, sqlText, par);
+        getMdb().resolveDicts(st);
 
         //count
-        sql = "select count(*) as cnt from Attrib where accessLevel <= " + al;
+        sql = "select count(*) as cnt from Attrib where 0=0";
         sqlText.setSql(sql);
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%'");
-        int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
+        int total = getMdb().loadQuery(sqlText).get(0).getInt("cnt");
         Map<String, Object> meta = new HashMap<String, Object>();
         meta.put("total", total);
         meta.put("page", UtCnv.toInt(params.get("page")));
@@ -83,9 +72,11 @@ public class AttribMdbUtils extends EntityMdbUtils {
      * @param
      * @throws Exception
      */
-
-    public void delete(Map<String, Object> rec) throws Exception {
-        deleteEntity(rec);
+    @DaoMethod
+    public void delete(Map<String, Object> params) throws Exception {
+        Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Attrib");
+        eu.deleteEntity(rec);
     }
 
     /**
@@ -95,6 +86,7 @@ public class AttribMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
 
@@ -103,14 +95,13 @@ public class AttribMdbUtils extends EntityMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Attrib");
+        eu.updateEntity(rec);
         //
         // Загрузка записи
-        Store st = mdb.createStore("Attrib");
+        Store st = getMdb().createStore("Attrib");
 
-        mdb.loadQuery(st, "select * from Attrib where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
-        //mdb.outTable(st);
+        getMdb().loadQuery(st, "select * from Attrib where id=:id", Map.of("id", id));
         return st;
     }
 
@@ -121,44 +112,47 @@ public class AttribMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         //
-        long id = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Attrib");
+        long id = eu.insertEntity(rec);
         //
-        Store st = mdb.createStore("Attrib");
-        mdb.loadQuery(st, "select * from Attrib where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("Attrib");
+        getMdb().loadQuery(st, "select * from Attrib where id=:id", Map.of("id", id));
 
         return st;
     }
 
     public StoreRecord loadRec(Map<String, Object> params) throws Exception {
         long id = UtCnv.toLong(params.get("id"));
-        StoreRecord st = mdb.createStoreRecord("Attrib");
-        mdb.loadQueryRecord(st, "select * from Attrib where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        StoreRecord st = getMdb().createStoreRecord("Attrib");
+        getMdb().loadQueryRecord(st, "select * from Attrib where id=:id", Map.of("id", id));
 
         return st;
     }
 
+    @DaoMethod
     public Store loadAttribChar(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("AttribChar");
-        mdb.loadQuery(st, "select * from AttribChar where attrib=:attrib", params);
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("AttribChar");
+        getMdb().loadQuery(st, "select * from AttribChar where attrib=:attrib", params);
+
         return st;
     }
 
+    @DaoMethod
     public Store insertAttribChar(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
-        long id = mdb.insertRec("AttribChar", rec);
+        long id = getMdb().insertRec("AttribChar", rec);
         //
-        Store st = mdb.createStore("AttribChar");
-        mdb.loadQuery(st, "select * from AttribChar where id=:id", Map.of("id", id));
+        Store st = getMdb().createStore("AttribChar");
+        getMdb().loadQuery(st, "select * from AttribChar where id=:id", Map.of("id", id));
 
         return st;
     }
 
+    @DaoMethod
     public Store updateAttribChar(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
         long id = UtCnv.toLong(rec.get("id"));
@@ -166,27 +160,27 @@ public class AttribMdbUtils extends EntityMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        mdb.updateRec("AttribChar", rec);
+        getMdb().updateRec("AttribChar", rec);
         //
         // Загрузка записи
-        Store st = mdb.createStore("AttribChar");
+        Store st = getMdb().createStore("AttribChar");
 
-        mdb.loadQuery(st, "select * from AttribChar where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        getMdb().loadQuery(st, "select * from AttribChar where id=:id", Map.of("id", id));
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
         return st;
     }
 
+    @DaoMethod
     public void deleteAttribChar(Map<String, Object> rec) throws Exception {
         long id = UtCnv.toLong(rec.get("id"));
-        mdb.deleteRec("AttribChar", id);
+        getMdb().deleteRec("AttribChar", id);
     }
 
-
+    @DaoMethod
     public Store loadForSelect() throws Exception {
-        Store st = mdb.createStore("Attrib");
-        return mdb.loadQuery(st, "select * from Attrib where 0=0");
+        Store st = getMdb().createStore("Attrib");
+        return getMdb().loadQuery(st, "select * from Attrib where 0=0");
     }
 
 

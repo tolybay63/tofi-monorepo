@@ -9,7 +9,7 @@
             />
 
             <item name="database"
-                  class="tofi.mdl.model.dao.database.DataBaseDao"
+                  class="tofi.mdl.model.dao.database.DataBaseMdbUtils"
                   method="*"
             />
 
@@ -19,7 +19,7 @@
             />
 
             <item name="attrib"
-                  class="tofi.mdl.model.dao.attrib.AttribDao"
+                  class="tofi.mdl.model.dao.attrib.AttribMdbUtils"
                   method="*"
             />
 
