@@ -34,18 +34,6 @@ public class FactorMdbUtils extends EntityMdbUtils {
     ApinatorApi apiMonitoringData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
-    ApinatorApi apiObjectData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("objectdata");
-    }
-    ApinatorApi apiOrgStructureData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("orgstructuredata");
-    }
-    ApinatorApi apiPersonnalData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("personnaldata");
-    }
-    ApinatorApi apiPlanData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("plandata");
-    }
 
 
     Mdb mdb;
@@ -144,21 +132,6 @@ public class FactorMdbUtils extends EntityMdbUtils {
             if (b) lstApp.add("nsidata");
             b = apiMonitoringData().get(ApiMonitoringData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("monitoringdata");
-        }
-        //...else if (metaModel.equalsIgnoreCase("kpi"))
-        if (metaModel.equalsIgnoreCase("dtj")) {
-            boolean b = apiUserData().get(ApiUserData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
-            if (b) lstApp.add("userdata");
-            b = apiNSIData().get(ApiNSIData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
-            if (b) lstApp.add("nsidata");
-            b = apiObjectData().get(ApiObjectData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
-            if (b) lstApp.add("objectdata");
-            b = apiOrgStructureData().get(ApiOrgStructureData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
-            if (b) lstApp.add("orgstructuredata");
-            b = apiPersonnalData().get(ApiPersonnalData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
-            if (b) lstApp.add("personnaldata");
-            b = apiPlanData().get(ApiPlanData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
-            if (b) lstApp.add("plandata");
         }
 
         String msg = UtString.join(lstApp, ", ");

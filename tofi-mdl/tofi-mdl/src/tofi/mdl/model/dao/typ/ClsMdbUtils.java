@@ -251,21 +251,6 @@ public class ClsMdbUtils extends EntityMdbUtils {
             if (b) lstApp.add("monitoringdata");
         }
 
-        if (modelMeta.equalsIgnoreCase("dtj")) {
-            boolean b = apiUserData().get(ApiUserData.class).checkExistOwners(cls, true);
-            if (b) lstApp.add("userdata");
-            b = apiNSIData().get(ApiNSIData.class).checkExistOwners(cls, true);
-            if (b) lstApp.add("nsidata");
-            b = apiOrgStructureData().get(ApiOrgStructureData.class).checkExistOwners(cls, true);
-            if (b) lstApp.add("orgstructuredata");
-            b = apiObjectData().get(ApiObjectData.class).checkExistOwners(cls, true);
-            if (b) lstApp.add("objectdata");
-            b = apiPersonnalData().get(ApiPersonnalData.class).checkExistOwners(cls, true);
-            if (b) lstApp.add("personnaldata");
-            b = apiPlanData().get(ApiPlanData.class).checkExistOwners(cls, true);
-            if (b) lstApp.add("plandata");
-        }
-
         if (!lstApp.isEmpty()) {
             throw new XError("ExistObjInApp@"+UtString.join(lstApp, ", "));
         }

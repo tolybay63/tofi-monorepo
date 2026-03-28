@@ -90,7 +90,7 @@
             />
 
             <item name="dimperiod"
-                  class="tofi.mdl.model.dao.dimperiod.DimPeriodDao"
+                  class="tofi.mdl.model.dao.dimperiod.DimPeriodMdbUtils"
                   method="*"
             />
             <item name="dimperioditem"
@@ -102,7 +102,12 @@
                   method="*"
             />
             <item name="dimobj"
-                  class="tofi.mdl.model.dao.dimobj.DimObjDao"
+                  class="tofi.mdl.model.dao.dimobj.DimObjMdbUtils"
+                  method="*"
+            />
+
+            <item name="dimobjitem"
+                  class="tofi.mdl.model.dao.dimobj.DimObjItemMdbUtils"
                   method="*"
             />
 

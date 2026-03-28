@@ -39,18 +39,6 @@ public class RelClsMdbUtils extends EntityMdbUtils {
     ApinatorApi apiNSIData() {
         return mdb.getApp().bean(ApinatorService.class).getApi("nsidata");
     }
-    ApinatorApi apiObjectData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("objectdata");
-    }
-    ApinatorApi apiOrgStructureData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("orgstructuredata");
-    }
-    ApinatorApi apiPersonnalData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("personnaldata");
-    }
-    ApinatorApi apiPlanData() {
-        return mdb.getApp().bean(ApinatorService.class).getApi("plandata");
-    }
 
     //---------------------------------------------------
 
@@ -100,21 +88,6 @@ public class RelClsMdbUtils extends EntityMdbUtils {
             //3
             b = apiMonitoringData().get(ApiMonitoringData.class).checkExistOwners(relcls, false);
             if (b) lstApp.add("monitoringdata");
-        }
-
-        if (modelMeta.equalsIgnoreCase("dtj")) {
-            boolean b = apiUserData().get(ApiUserData.class).checkExistOwners(relcls, false);
-            if (b) lstApp.add("userdata");
-            b = apiNSIData().get(ApiNSIData.class).checkExistOwners(relcls, false);
-            if (b) lstApp.add("nsidata");
-            b = apiObjectData().get(ApiObjectData.class).checkExistOwners(relcls, false);
-            if (b) lstApp.add("objectdata");
-            b = apiOrgStructureData().get(ApiOrgStructureData.class).checkExistOwners(relcls, false);
-            if (b) lstApp.add("orgstructuredata");
-            b = apiPersonnalData().get(ApiPersonnalData.class).checkExistOwners(relcls, false);
-            if (b) lstApp.add("personnaldata");
-            b = apiPlanData().get(ApiPlanData.class).checkExistOwners(relcls, false);
-            if (b) lstApp.add("plandata");
         }
 
         if (!lstApp.isEmpty()) {
