@@ -20,11 +20,15 @@ if (import.meta.env.PROD) {
   authURL = "/auth";
 }
 
-const api = axios.create({ baseURL: baseURL })
+const api = axios.create({
+  baseURL: baseURL,
+  // Просим бэкенд отдавать JSON, но будем готовы к ArrayBuffer при ошибках 500
+  headers: { 'Accept': 'application/json' }
+})
 
-// Восстанавливаем токен только если это реально строка
+// Восстанавливаем токен (строгая проверка типа)
 const token = localStorage.getItem('fish_token')
-if (token && typeof token === 'string') {
+if (token && typeof token === 'string' && token !== 'null' && token !== 'undefined') {
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 }
 
@@ -38,9 +42,9 @@ api.interceptors.request.use((config) => {
 export default defineBoot(({ app, router }) => {
   const userStore = useUserStore();
 
-  // Инициализируем стор ТОЛЬКО если токен существует и он не пустой
-  // Это уберет ошибку "пришел object" (потому что null это object)
-  if (token && token !== 'undefined' && token !== 'null') {
+  // Исправление ошибки "object вместо строки" при старте:
+  // Инициализируем только если токен — это не пустая строка
+  if (token && typeof token === 'string' && token.length > 10) {
     userStore.initFromToken();
   }
 
@@ -49,36 +53,45 @@ export default defineBoot(({ app, router }) => {
       LoadingBar.stop()
       return response
     },
-    (error) => {
+    async (error) => {
       LoadingBar.stop()
       const status = error.response?.status;
       const data = error.response?.data;
-      const failingUrl = error.config?.url;
 
-      // --- УЛУЧШЕННЫЙ ПОИСК КОДА ОШИБКИ ---
       let errorCode = error.message;
 
+      // --- ДЕКОДИРОВАНИЕ ArrayBuffer И ПОИСК ОШИБКИ ---
       if (data) {
-        if (typeof data === 'object') {
-          // Ищем везде: в message, в error.message или просто в error
-          errorCode = data.error?.message || data.message || data.error || error.message;
+        let textContent = '';
+
+        if (data instanceof ArrayBuffer) {
+          // Если пришел бинарный буфер (как на скриншоте), декодируем его в текст
+          textContent = new TextDecoder().decode(data);
         } else if (typeof data === 'string') {
-          errorCode = data;
+          textContent = data;
+        } else if (typeof data === 'object') {
+          errorCode = data.error?.message || data.message || data.error || error.message;
+        }
+
+        // Ищем ключевые фразы в тексте (HTML или декодированном буфере)
+        if (textContent) {
+          if (textContent.includes('invalid_user_passwd')) {
+            errorCode = 'invalid_user_passwd';
+          } else if (textContent.includes('notLoginned')) {
+            errorCode = 'notLoginned';
+          }
         }
       }
 
       // Защита сессии
       if (status === 401 || errorCode === 'notLoginned') {
-        if (localStorage.getItem('fish_token')) {
-          console.warn('[Session Control] JWT активен, игнорируем 401');
-          return Promise.reject(error);
-        }
+        if (localStorage.getItem('fish_token')) return Promise.reject(error);
         userStore.clearUserStore();
         if (router) router.push("/");
         return Promise.reject(error);
       }
 
-      // Выводим уведомление. Если errorCode = 'invalid_user_passwd', Quasar его покажет.
+      // Теперь здесь будет 'invalid_user_passwd', и сработает ваш перевод
       Notify.create({
         type: 'negative',
         message: app.config.globalProperties.$t(errorCode) || errorCode,

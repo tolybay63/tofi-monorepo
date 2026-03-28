@@ -72,9 +72,9 @@ export const useUserStore = defineStore("user", {
         this.initFromToken();
         if (import.meta.env.DEV)
           console.log('Данные извлечены:', this.user);
-      } else {
+      } else if (Object.keys(token).length !== 0) {
         if (import.meta.env.DEV)
-          console.error('ОШИБКА: Сюда должен приходить только ТОКЕН (строка), а пришло:', typeof token);
+          console.error('ОШИБКА: Сюда должен приходить только ТОКЕН (строка), а пришло:', typeof token, token);
       }
     },
 
