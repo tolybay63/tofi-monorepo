@@ -4,7 +4,10 @@ import { LoadingBar, Notify } from 'quasar'
 import {useUserStore} from "stores/user-store.js";
 
 let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
+
+//*******************************
 const SERVICE_NAME = 'nsi';
+//*******************************
 
 const url = 'http://127.0.0.1:8080'
 let authURL = url + "/auth"
