@@ -45,7 +45,7 @@
 
 <script>
 
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import UpdaterUserRole from "pages/users/UpdaterUserRole.vue";
 import {hasTarget} from "src/utils/jsutils.js";
 
@@ -82,7 +82,7 @@ export default {
     fetchData(user) {
       this.loading = true;
       api
-        .post(baseURL, {
+        .post("", {
           method: "usr/loadUserRoles",
           params: [user],
         })

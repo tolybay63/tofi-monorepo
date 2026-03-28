@@ -15,10 +15,13 @@
     <apinator>
 
         <api name="adm" invoker="model" model="adm">
-            <item name="tofi.api.adm.ExampleApiUser"
-                  class="tofi.api.adm.impl.ExampleApiUserImpl"/>
             <item name="tofi.api.adm.ApiAdm"
                   class="tofi.api.adm.impl.ApiAdmImpl"/>
+        </api>
+
+        <api name="meta" invoker="model" model="meta">
+            <item name="tofi.api.adm.ApiMeta"
+                  class="tofi.api.adm.impl.ApiMetaImpl"/>
         </api>
 
     </apinator>

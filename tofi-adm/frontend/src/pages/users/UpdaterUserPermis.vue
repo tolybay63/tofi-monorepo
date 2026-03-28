@@ -136,7 +136,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import {ref} from "vue";
 import {collapsAll, expandAll, notifyError, pack,} from "src/utils/jsutils";
 import UpdateAccessLevel from "pages/roles/UpdateAccessLevel.vue";
@@ -241,7 +241,7 @@ export default {
       //
       if (item.checked && item.parent !== undefined) {
         api
-          .post(baseURL, {
+          .post("", {
             method: "permis/getLeaf",
             params: [item.id],
           })
@@ -257,7 +257,7 @@ export default {
     loadData() {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "usr/loadUserPermisForUpd",
           params: [this.user],
         })
@@ -328,7 +328,7 @@ export default {
       });
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "usr/saveUserPermis",
           params: [{user: this.user, data: d0}],
         })
@@ -422,7 +422,7 @@ export default {
 
     this.loading = ref(true)
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/loadDict",
         params: ["FD_AccessLevel"],
       })

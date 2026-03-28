@@ -88,7 +88,7 @@
 <script>
 import {ref} from "vue";
 import {collapsAll, expandAll, hasTarget, pack,} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import UpdaterRolePermis from "pages/roles/UpdaterRolePermis.vue";
 
 
@@ -117,7 +117,7 @@ export default {
     fetchData(role) {
       this.loading = true;
       api
-        .post(baseURL, {
+        .post("", {
           method: "role/loadRolePermis",
           params: [role],
         })
@@ -252,7 +252,7 @@ export default {
 
     this.loading = true
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/loadDict",
         params: ["FD_AccessLevel"],
       })
