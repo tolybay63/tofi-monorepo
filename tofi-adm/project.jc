@@ -13,9 +13,9 @@ class P extends ProjectScript {
     }
 
     // где находится каталог с приложением fronend
-    String frontendDir = "frontend"
+//    String frontendDir = "frontend"
     // куда собирается приложение frontend
-    String frontendDirDist = "${frontendDir}/dist/spa"
+//    String frontendDirDist = "${frontendDir}/dist/spa"
 
     void onInclude() {
         //
@@ -31,19 +31,19 @@ class P extends ProjectScript {
         }
 
         //
-        include(WebRootProject).with {
+//        include(WebRootProject).with {
             // подключаем каталог с собранным приложением frontend к проекту
             // в виртуальную папку "app", т.е. все в каталоге frontend/dist/spa
             // будет доступно в приложении по адресу http://HOST/app
-            addResourceWebroot(frontendDirDist, "")
-        }
+//            addResourceWebroot(frontendDirDist, "")
+//        }
         // добавляем шаг в процесс сборки: собираем приложение fronend
-        include(BuildProject)
-        onEvent(BuildProject.Event_Build, this.&buildHandler)
+//        include(BuildProject)
+//        onEvent(BuildProject.Event_Build, this.&buildHandler)
     }
-    void buildHandler() {
+//    void buildHandler() {
         // сборка приложения frontend, в package.json должен быть
         // скрипт "build": "quasar build"
-        ut.runcmd(cmd: "npm run build", dir: wd(frontendDir))
-    }
+        //ut.runcmd(cmd: "npm run build", dir: wd(frontendDir))
+//    }
 }
