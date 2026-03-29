@@ -245,7 +245,7 @@ const loginOnOff = () => {
               setUserStore(response.data.result.token)
               router.push('/')
             },
-            (error) => {
+            () => {
               clearUserStore()
             }
           )
