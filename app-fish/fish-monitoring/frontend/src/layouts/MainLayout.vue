@@ -82,7 +82,7 @@
 
     <q-drawer :width="230" v-model="leftDrawerOpen" show-if-above bordered elevated class="q-pa-sm">
       <h6 class="q-pa-md text-red text-bold" v-if="reqAuth()">
-        {{ $t('notLogined') }}
+        {{ $t('notLoginned') }}
       </h6>
       <h6 class="q-pa-md text-red text-bold" v-else-if="notAccess()">
         {{ $t('notAccess') }}
@@ -124,6 +124,8 @@ import {notifyError} from 'src/utils/jsutils'
 
 import {useUserStore} from 'stores/user-store'
 import {storeToRefs} from 'pinia'
+import {useRouter} from "vue-router";
+import router from "src/router/index.js";
 
 export default defineComponent({
   name: 'MainLayout',
@@ -146,12 +148,13 @@ export default defineComponent({
   created() {
     console.info('Created!')
     const store = useUserStore()
-    const { setUserStore } = store
+    const { clearUserStore } = store
     const { getUserId } = storeToRefs(store)
+    const router = useRouter()
 
-    if (!getUserId.value > 0) {
-      setUserStore({})
-      this.$router.push('/')
+    if (getUserId.value === 0) {
+      clearUserStore()
+      router.push('/')
     }
   },
 
@@ -161,7 +164,8 @@ export default defineComponent({
     const leftDrawerOpen = ref(true)
     const store = useUserStore()
     const { isSysAdmin, getUserName, getTarget } = storeToRefs(store)
-    const { setUserStore } = store
+    const { setUserStore, clearUserStore } = store
+    const router = useRouter()
 
     let getLinks = () => {
       return [
@@ -259,24 +263,20 @@ export default defineComponent({
             })
             .onOk(() => {
               api
-                .post('', {
-                  method: 'data/getCurUserInfo',
+                .post("", {
+                  method: 'auth/getUserInfo',
                   params: [],
                 })
                 .then(
                   (response) => {
-                    setUserStore(response.data.result)
+                    api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.result.token;
+                    setUserStore(response.data.result.token)
+                    router.push('/')
                   },
-                  (error) => {
-                    //console.log("error", error);
-                    setUserStore({})
-                    notifyError(error.message)
+                  () => {
+                    clearUserStore()
                   }
                 )
-                .finally(() => {
-                  this.$router.push('/')
-                  //location.reload()
-                })
             })
         } else {
           api
@@ -284,11 +284,10 @@ export default defineComponent({
               params: {},
             })
             .then(() => {
-              setUserStore({})
+              clearUserStore()
             })
             .finally(() => {
-              this.$router.push('/')
-              location.reload()
+              router.push('/')
             })
         }
       },
