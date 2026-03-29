@@ -10,8 +10,10 @@ class P extends ProjectScript {
         load("../../tofi-tbox")
     }
 
+/*
     String frontendDir = "frontend"
     String frontendDirDist = "${frontendDir}/dist/spa"
+*/
 
     void onInclude() {
         //
@@ -26,7 +28,7 @@ class P extends ProjectScript {
                     "fish-monitoring",
             )
         }
-        include(WebRootProject).with {
+/*        include(WebRootProject).with {
             addResourceWebroot(frontendDirDist, "")
         }
         //
@@ -34,11 +36,13 @@ class P extends ProjectScript {
         onEvent(BuildProject.Event_Build, this.&buildHandler)
         //
         // перекрытие для конкретного разработчика
-        ut.includeIfExists('./_project.jc')
+        ut.includeIfExists('./_project.jc')*/
     }
 
+/*
     void buildHandler() {
         ut.runcmd(cmd: "npm run build", dir: wd(frontendDir))
     }
+*/
 
 }
