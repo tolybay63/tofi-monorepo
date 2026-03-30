@@ -13,9 +13,8 @@
 
     <q-page class="flex flex-center">
 
-        <!-- for analitic -->
         <div class="row q-my-lg justify-center">
-            <!-- model-->
+
             <q-btn
               rounded
               class="bg-blue text-white text-bold q-ma-md"
@@ -25,12 +24,11 @@
               <div class="column">
                 <div>
                   <q-avatar icon="recycling" color="orange"></q-avatar>
-                  {{ $t("appModelName") }}
+                  {{ $t("appFishName") }}
                 </div>
               </div>
             </q-btn>
 
-            <!-- data -->
             <q-btn
               rounded
               class="bg-blue text-white text-bold q-ma-md"
@@ -40,7 +38,7 @@
               <div class="column">
                 <div>
                   <q-avatar icon="edit_note" color="orange"></q-avatar>
-                  {{ $t("appDataName") }}
+                  {{ $t("appDtjName") }}
                 </div>
               </div>
             </q-btn>
