@@ -16,28 +16,28 @@
         <div class="row q-my-lg justify-center">
 
             <q-btn
-              rounded
+              round
               class="bg-blue text-white text-bold q-ma-md"
-              style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
+              style="height: 350px; width: 350px; font-size: 26px; opacity: 0.7"
               @click="fnFish()"
             >
               <div class="column">
                 <div>
-                  <q-avatar icon="recycling" color="orange"></q-avatar>
+                  <q-avatar icon="set_meal" color="black"></q-avatar>
                   {{ $t("appFishName") }}
                 </div>
               </div>
             </q-btn>
 
             <q-btn
-              rounded
-              class="bg-blue text-white text-bold q-ma-md"
-              style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
+              round
+              class="bg-orange text-white text-bold q-ma-md"
+              style="height: 350px; width: 350px; font-size: 26px; opacity: 0.7"
               @click="fnDtj()"
             >
               <div class="column">
                 <div>
-                  <q-avatar icon="edit_note" color="orange"></q-avatar>
+                  <q-avatar icon="train" color="black" size="256"></q-avatar>
                   {{ $t("appDtjName") }}
                 </div>
               </div>
