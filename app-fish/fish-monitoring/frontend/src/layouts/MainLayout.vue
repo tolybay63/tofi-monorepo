@@ -261,22 +261,9 @@ export default defineComponent({
                 // ...
               },
             })
-            .onOk(() => {
-              api
-                .post("", {
-                  method: 'auth/getUserInfo',
-                  params: [],
-                })
-                .then(
-                  (response) => {
-                    api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.result.token;
-                    setUserStore(response.data.result.token)
-                    router.push('/')
-                  },
-                  () => {
-                    clearUserStore()
-                  }
-                )
+            .onOk((res) => {
+              setUserStore(res)
+              router.push('/')
             })
         } else {
           api

@@ -174,7 +174,7 @@ export default {
         .then(
           (res) => {
             const token = res.data.token;
-            localStorage.setItem('dtj_token', token);
+            localStorage.setItem('fish_token', token);
             api.defaults.headers.common['Authorization'] = 'Bearer ' + token;
             this.$emit("ok", token);
           })
