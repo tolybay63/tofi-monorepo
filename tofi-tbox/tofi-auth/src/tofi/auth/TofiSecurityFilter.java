@@ -1,6 +1,5 @@
 package tofi.auth;
 
-import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
 import jandcode.core.auth.AuthService;
 import jandcode.core.auth.AuthUser;
@@ -16,6 +15,7 @@ public class TofiSecurityFilter extends BaseFilter {
 
     @Override
     public void execFilter(FilterType type, Request request) {
+        // Выполняем проверку только ПЕРЕД выполнением действия (action)
         if (type != FilterType.beforeAction) {
             return;
         }
@@ -24,52 +24,56 @@ public class TofiSecurityFilter extends BaseFilter {
         if (path == null) path = "";
         String normPath = path.startsWith("/") ? path.substring(1) : path;
 
-        // 1. Публичные пути
+        // 1. Пропускаем публичные пути (логин, статика и т.д.)
         if (normPath.isEmpty() || normPath.startsWith("auth/login") ||
                 normPath.startsWith("auth/logout") || normPath.startsWith("data")) {
             return;
         }
 
         AuthService authService = getApp().bean(AuthService.class);
-        AuthUser user = authService.getCurrentUser();
 
-        // 2. Если движок (вес -110) уже опознал юзера — выходим успешно
-        if (user != null && user.getAttrs().getLong("id") != 0) {
-            return;
-        }
+        // 2. Пытаемся восстановить пользователя из токена для текущего запроса
+        AuthUser user = restoreUserFromToken(request);
 
-        // 3. Иначе пробуем восстановить из JWT вручную
-        user = restoreUserFromToken(request);
-        if (user != null && user.getAttrs().getLong("id") != 0) {
+        if (user != null) {
+            // Если токен валидный, сохраняем его в ThreadLocal текущего потока
+            // Теперь CheckTargets(target) найдет все права внутри этого объекта
             authService.setCurrentUser(user);
             return;
         }
 
-        // 4. Если всё еще аноним — блокируем доступ к API
+        // 3. Если пользователь не опознан и путь защищенный — блокируем доступ
         if (normPath.startsWith("api") || normPath.startsWith("meta") ||
-                normPath.startsWith("nsi") || normPath.startsWith("admin")) {
-            throw new XError("401: Unauthorized", 401);
+                normPath.startsWith("nsi") || normPath.startsWith("admin") ||
+                normPath.startsWith("report")) {
+            // Возвращаем 401 ошибку, чтобы фронтенд (Quasar) мог сделать редирект на логин
+            //throw new XError("401: Unauthorized", 401);
+            throw new XError("lifetime_expired");
         }
     }
 
+    /**
+     * Извлекает JWT из заголовка Authorization и превращает его в AuthUser
+     */
     private AuthUser restoreUserFromToken(Request request) {
         String authHeader = request.getHttpRequest().getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
 
         String token = authHeader.substring(7);
         CfgService cfgSvc = getApp().bean(CfgService.class);
-        String secret = cfgSvc.getConf().getString("auth/main/jwt", "default-secret-key");
+
+        // ВНИМАНИЕ: Ключ должен БЫТЬ ОДИНАКОВЫМ и в Processor, и тут!
+        String secret = cfgSvc.getConf().getString("auth/main/jwt", "default-key-change-me");
 
         try {
-            Map<String, Object> payload = JwtUtils.decode(token, secret);
-            if (payload == null) return null;
+            // JwtUtils.decode уже возвращает Map<String, Object> (те самые attrs)
+            Map<String, Object> userAttrs = JwtUtils.decode(token, secret);
 
-            // ПРАВКА ТУТ:
-            // Если в токене есть вложенный attrs - берем его,
-            // если нет (как на вашем скрине) - берем весь payload целиком.
-            Object attrsObj = payload.get("attrs");
-            Map<String, Object> userAttrs = (attrsObj != null) ? UtCnv.toMap(attrsObj) : payload;
+            if (userAttrs == null || userAttrs.isEmpty()) {
+                return null;
+            }
 
+            // Прямо создаем пользователя из полученных атрибутов (id, login, targets теперь тут)
             return new DefaultAuthUser(userAttrs);
         } catch (Exception e) {
             return null;

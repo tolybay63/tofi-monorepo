@@ -7,15 +7,11 @@ import jandcode.core.std.CfgService;
 import tofi.api.adm.ApiAdm;
 import tofi.apinator.ApinatorService;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
-public abstract class BaseTofiAuthProcessor extends BaseComp implements AuthProcessor {
-
-    /**
-     * Каждый сервис (nsi, plan, mdl) вернет свою строку: "nsi", "dtj", "mdl"
-     */
-    //protected abstract String getServiceTargetGroup();
+public class BaseTofiAuthProcessor extends BaseComp implements AuthProcessor {
 
     @Override
     public boolean isSupportedAuthToken(AuthToken authToken) {
@@ -25,30 +21,31 @@ public abstract class BaseTofiAuthProcessor extends BaseComp implements AuthProc
     @Override
     public AuthUser login(AuthToken authToken) throws Exception {
         UserPasswdAuthToken token = (UserPasswdAuthToken) authToken;
-        // 1. Идем в базу админки через Apinator
-        var admApi = getApp().bean(ApinatorService.class).getApi("adm");
-        // Предполагаем, что интерфейс ApiAdm доступен
-        var z = admApi.get(ApiAdm.class);
-        // 2. Получаем данные пользователя и таргеты
-        Map<String, Object> attrs = z.getUserInfo(token.getUsername(), token.getPasswd());
 
-        if (attrs == null || attrs.isEmpty()) {
-            throw new XError("invalid_user_passwd");
+        // 1. Получаем ПОЛНЫЕ данные (включая targets) из базы админки
+        var admApi = getApp().bean(ApinatorService.class).getApi("adm");
+        var z = admApi.get(ApiAdm.class);
+        Map<String, Object> fullAttrs = z.getUserInfo(token.getUsername(), token.getPasswd());
+
+        if (fullAttrs == null || fullAttrs.isEmpty()) {
+            throw new XError("msg_invalid_user_passwd");
         }
 
-        // 3. Генерируем JWT токен. Секрет берем из общего конфига
+        // 2. Генерируем JWT, упаковывая туда ВСЕ атрибуты
         CfgService cfgSvc = getApp().bean(CfgService.class);
-        String secret = cfgSvc.getConf().getString("auth/main/jwt", "default-key-change-me");
+        String secret = cfgSvc.getConf().getString("auth/main/jwt", "default-key");
+        String jwtToken = JwtUtils.createToken(fullAttrs, secret);
 
-        String jwtToken = JwtUtils.createToken(attrs, secret);
+        // 3. Устанавливаем ПОЛНОГО пользователя в ThreadLocal сервера
+        // Это нужно, чтобы CheckTargets сработал прямо сейчас, если нужно.
+        AuthUser fullUser = new DefaultAuthUser(fullAttrs);
+        getApp().bean(AuthService.class).setCurrentUser(fullUser);
 
-        // Добавляем токен в атрибуты, чтобы он ушел на фронтенд
-        attrs.put("token", jwtToken);
-
-        AuthUser usr = new DefaultAuthUser(attrs);
-        getApp().bean(AuthService.class).setCurrentUser(usr);
-
-        return usr;
+        // 4. ВОЗВРАЩАЕМ КЛИЕНТУ ТОЛЬКО ТОКЕН
+        // Создаем "легкий" объект пользователя только для ответа
+        Map<String, Object> responseAttr = new HashMap<>();
+        responseAttr.put("token", jwtToken);
+        return new DefaultAuthUser(responseAttr);
     }
 }
 

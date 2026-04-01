@@ -8,19 +8,12 @@
         />
 
         <action name="auth"
-                class="jandcode.core.apx.auth.AuthAction"/>
+                class="tofi.auth.TofiAuthAction"/>
 
         <filter name="jc-auth-engine"
                 class="jandcode.core.apx.auth.AuthFilter"
                 type="*" weight="-110"/>
     </web>
-
-    <bean name="jandcode.core.auth.AuthService"
-          class="jandcode.core.auth.impl.AuthServiceImpl">
-
-        <auth-processor name="default"
-                        class="tofi.adm.auth.AdmAuthProcessor"/>
-    </bean>
 
     <dbm>
 
