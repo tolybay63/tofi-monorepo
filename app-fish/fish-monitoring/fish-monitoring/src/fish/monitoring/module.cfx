@@ -9,7 +9,8 @@
         />
 
         <action name="auth"
-                class="jandcode.core.apx.auth.AuthAction"/>
+                class="tofi.auth.TofiAuthAction"/>
+
         <action name="download"
                 class = "fish.monitoring.action.DownloadAction"
         />
@@ -29,14 +30,7 @@
                 type="*" weight="-110"/>
     </web>
 
-    <bean name="jandcode.core.auth.AuthService"
-          class="jandcode.core.auth.impl.AuthServiceImpl">
-        <auth-processor name="default"
-                        class="fish.monitoring.auth.MonitoringAuthProcessor"/>
-    </bean>
-
     <dbm>
-
         <model name="default" instance="tofi.api.dta.model">
             <x-include path="dao/Domains.cfx"/>
         </model>
