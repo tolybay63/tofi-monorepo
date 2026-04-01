@@ -21,7 +21,7 @@ export default {
   notAccess: "You do not have the rights to perform this operation",
   notAccessService: "You do not have access rights to access this service",
   invalid_user_passwd: "The username or password is incorrect",
-
+  lifetime_expired: "The token's lifetime has expired",
   networkError: "Network Error",
 
   loginExists: "User with this login already exists",
