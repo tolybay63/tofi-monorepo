@@ -268,32 +268,9 @@ export default defineComponent({
                 // ...
               },
             })
-            .onOk(() => {
-              api
-                .post('', {
-                  method: "auth/getUserInfo",
-                  params: [],
-                })
-                .then(
-                  (response) => {
-                  // 1. Проверяем, что путь к токену существует
-                    const token = response.data?.result?.token;
-                    // 2. Проверяем, что это именно строка (JWT)
-                    if (token && typeof token === 'string') {
-                      localStorage.setItem('fish_token', token);
-                      api.defaults.headers.common['Authorization'] = 'Bearer ' + token;
-                      setUserStore(token); // Передаем только строку
-                      router.push('/');
-                    } else {
-                      console.error('Бэкенд вернул токен в неверном формате:', token);
-                      Notify.create({ type: 'negative', message: 'Ошибка формата токена' });
-                    }
-                  },
-                  (error) => {
-                    // Здесь clearUserStore() сработает, если интерцептор пробросит ошибку
-                    clearUserStore();
-                  }
-                )
+            .onOk((res) => {
+              setUserStore(res)
+              router.push('/')
             });
         } else {
           api
