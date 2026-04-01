@@ -99,7 +99,8 @@ export default defineBoot(({ app, router }) => {
         type: 'negative',
         message: app.config.globalProperties.$t(errorCode) || errorCode,
         position: 'bottom-right',
-        timeout: 5000
+        timeout: 5000,
+        actions: [{ icon: 'close', color: 'white' }]
       });
 
       return Promise.reject(error);
