@@ -20,7 +20,7 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         String p1 = UtString.md5Str(passwd)
 
         Store st = mdb.loadQuery("""
-                    select id, login, accesslevel, name, fullname, email, phone from authuser
+                    select id, login, accesslevel, fullname as name, email, phone from authuser
                     where login=:l and passwd=:p
                 """, Map.of("l", login, "p", p1))
         if (st.size() != 0) {

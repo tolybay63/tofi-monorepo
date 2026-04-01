@@ -22,7 +22,7 @@ export default {
   notLoginned: "Жүйеге кіру қажет",
   notAccess: "Сізде бұл операцияны орындау құқығы жоқ",
   notAccessService: "Сізде бұл сервиске кіру құқығы жоқ",
-
+  lifetime_expired: "Токеннің қызмет ету мерзімі аяқталды",
   networkError: "Желі қатесі",
   loginExists: "Бұл логині бар пайдаланушы бұрыннан бар",
   invalidLoginPasswd: "Пайдаланушы аты немесе құпия сөз дұрыс емес",
