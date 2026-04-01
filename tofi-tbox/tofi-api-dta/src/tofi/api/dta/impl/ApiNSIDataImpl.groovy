@@ -16,6 +16,7 @@ import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.model.consts.FD_InputType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+import tofi.auth.RestoreUserFromToken
 
 class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
 
@@ -111,10 +112,17 @@ class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
         params.put("objorrelobj", par.getLong("objorrelobj"))
         params.put("prop", map.get(propCod))
         params.put("fileVal", par.getLong("fileVal"))
+
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
-        long au = authSvc.getCurrentUser().getAttrs().getLong("id")
-        if (au == 0)
+/*
+        String token = authSvc.getCurrentUser().getAttrs().getString("token")
+        if (authSvc==null || authSvc.getCurrentUser().getAttrs().isEmpty())
             throw new XError("notLoginned")
+        Map<String, Object> attrsUser = RestoreUserFromToken.attrsUserFromToken(mdb, token)
+*/
+
+        long au = 1
+
         long id = insertRecToTable("DataProp", params, true)
 
         params.put("dataProp", id)
