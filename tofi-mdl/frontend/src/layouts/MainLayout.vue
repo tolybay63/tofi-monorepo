@@ -154,7 +154,7 @@ export default defineComponent({
   },
 
   setup() {
-    console.info("Setup")
+    //console.info("Setup")
 
     const selected = ref(null);
     const leftDrawerOpen = ref(false);
@@ -219,23 +219,9 @@ export default defineComponent({
                 // ...
               },
             })
-            .onOk(() => {
-              api
-                .post("", {
-                  method: "auth/getUserInfo",
-                  params: [],
-                })
-                .then(
-                  (response) => {
-                    localStorage.setItem('fish_token', response.data.result.token);
-                    api.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.result.token;
-                    setUserStore(response.data.result.token)
-                    router.push('/')
-                  },
-                  () => {
-                    clearUserStore()
-                  }
-                )
+            .onOk((res) => {
+              setUserStore(res)
+              router.push('/')
             });
         } else {
           api
@@ -440,7 +426,7 @@ export default defineComponent({
 
       getMsg() {
         if (userName.value !== "") return this.$t("notAccess");
-        else return this.$t("notLogined");
+        else return this.$t("notLoginned");
       },
 
       getClr() {
