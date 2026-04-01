@@ -15,8 +15,8 @@ let baseURL = url + "/api"
 // Настройка путей для PROD
 if (import.meta.env.PROD) {
   const currentPath = window.location.pathname;
-  if (currentPath.includes(`/dtj/${SERVICE_NAME}/`)) {
-    baseURL = `/dtj/${SERVICE_NAME}/api/`;
+  if (currentPath.includes(`/fish/${SERVICE_NAME}/`)) {
+    baseURL = `/fish/${SERVICE_NAME}/api/`;
   } else {
     baseURL = "/api";
   }
