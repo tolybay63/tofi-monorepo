@@ -7,6 +7,12 @@
                 type="*" weight="-100"/>
     </web>
 
+    <bean name="jandcode.core.auth.AuthService"
+          class="jandcode.core.auth.impl.AuthServiceImpl">
+        <auth-processor name="default"
+                        class="tofi.auth.TofiAuthProcessor"/>
+    </bean>
+
     <dbm>
         <model name="adm" instance="tofi.adm.model"/>
         <model name="meta" instance="tofi.mdl.model"/>
