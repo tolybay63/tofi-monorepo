@@ -251,13 +251,11 @@ export default defineComponent({
       loginOnOff() {
         //console.info("OnOff")
         if (getUserName.value === '') {
-          const lang = localStorage.getItem('curLang')
           leftDrawerOpen.value = true
           this.$q
             .dialog({
               component: LoginUser,
               componentProps: {
-                lg: lang,
                 // ...
               },
             })
