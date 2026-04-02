@@ -155,7 +155,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import {ref} from "vue";
 import allConsts from "pages/all-consts";
@@ -312,7 +312,7 @@ export default {
 
       let err = false;
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/" + method,
           params: [this.form],
         })
@@ -344,7 +344,7 @@ export default {
 
     getPeriodInfo(dt, periodType) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/getPeriodInfo",
           params: [dt, periodType],
         })
@@ -373,7 +373,7 @@ export default {
       this.getPeriodInfo(this.dt, this.form.periodType);
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadDict",
         params: ["FD_PeriodType"],
       })
@@ -383,7 +383,7 @@ export default {
 
     if (this.reqParams.providerTyp > 0) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadProvider",
           params: [this.reqParams.prop, getModel.value, getMetaModel.value],
         })
@@ -402,7 +402,7 @@ export default {
     //
     if (this.reqParams.statusFactor > 0) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadStatus",
           params: [this.reqParams.prop],
         })
@@ -419,7 +419,7 @@ export default {
     //
     if (this.reqParams.periodType > 0) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/propPeriodType",
           params: [this.reqParams.prop],
         })
@@ -451,7 +451,7 @@ export default {
 
     if (this.requestParams.attribValType === allConsts.FD_AttribValType.entity) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadPropValEntityForSelect",
           params: [this.reqParams.prop, this.reqParams.entityType],
         })
