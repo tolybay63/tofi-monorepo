@@ -1,4 +1,3 @@
-<!-- <q-inner-loading :showing="loading" color="secondary"/> -->
 
 <template>
   <q-layout view="hHh lpR fFf">
@@ -21,18 +20,18 @@
 
 
         <!-- Menu Toggle -->
-<!--        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          @click="toggleLeftDrawer"
-          :aria-label="$t('menu')"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t("menu") }}
-          </q-tooltip>
-        </q-btn>-->
+        <!--        <q-btn
+                  flat
+                  dense
+                  round
+                  icon="menu"
+                  @click="toggleLeftDrawer"
+                  :aria-label="$t('menu')"
+                >
+                  <q-tooltip transition-show="rotate" transition-hide="rotate">
+                    {{ $t("menu") }}
+                  </q-tooltip>
+                </q-btn>-->
 
         <!-- App Title -->
         <q-toolbar-title class="text-center">
@@ -40,21 +39,21 @@
         </q-toolbar-title>
 
         <!-- Home Button -->
-<!--
-        <q-btn
-          class="q-pa-md-sm"
-          rounded
-          color="primary"
-          dense
-          icon="home"
-          @click="toHome"
-          :aria-label="$t('mainPage')"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t("mainPage") }}
-          </q-tooltip>
-        </q-btn>
--->
+        <!--
+                <q-btn
+                  class="q-pa-md-sm"
+                  rounded
+                  color="primary"
+                  dense
+                  icon="home"
+                  @click="toHome"
+                  :aria-label="$t('mainPage')"
+                >
+                  <q-tooltip transition-show="rotate" transition-hide="rotate">
+                    {{ $t("mainPage") }}
+                  </q-tooltip>
+                </q-btn>
+        -->
 
         <!-- User Login/Logout -->
         <div class="q-pa-md q-gutter-sm">
@@ -109,25 +108,25 @@
     </q-footer>
 
 
-<!--
-    <q-drawer
-      :width="400"
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
-      <div class="q-pa-sm">
+    <!--
+        <q-drawer
+          :width="400"
+          v-model="leftDrawerOpen"
+          show-if-above
+          bordered
+        >
+          <div class="q-pa-sm">
 
-        <h6 class="text-red text-bold" v-if="reqAuth">
-          {{ $t("notLogined") }}
-        </h6>
-        <h6 class="text-red text-bold" v-else-if="notAccess">
-          {{ $t("notAccess") }}
-        </h6>
-      </div>
+            <h6 class="text-red text-bold" v-if="reqAuth">
+              {{ $t("notLogined") }}
+            </h6>
+            <h6 class="text-red text-bold" v-else-if="notAccess">
+              {{ $t("notAccess") }}
+            </h6>
+          </div>
 
-    </q-drawer>
--->
+        </q-drawer>
+    -->
 
     <q-page-container>
       <router-view/>
@@ -137,19 +136,18 @@
 
 <script setup>
 
-import {computed} from "vue";
+import {computed, onMounted} from "vue";
 import SetLocale from "components/SetLocale.vue";
 import {useUserStore} from "stores/user-store.js";
 import {storeToRefs} from "pinia";
-import {api, authURL, baseURL, urlMainApp} from "boot/axios.js";
-import {notifyError} from "src/utils/jsutils.js";
+import {api, authURL, urlMainApp} from "boot/axios.js";
 import LoginUser from "components/LoginUser.vue";
 import {useQuasar} from "quasar";
 import {useRouter} from "vue-router";
 
 const store = useUserStore();
 const {getUserName/*, isSysAdmin, getTarget*/} = storeToRefs(store);
-const {setUserStore} = store;
+const {setUserStore, clearUserStore} = store;
 const $q = useQuasar();
 const router = useRouter();
 
@@ -157,6 +155,13 @@ const mainApp = () => {
   open(urlMainApp, "_self");
 };
 
+onMounted(()=> {
+  console.log("App mounted.");
+  if (getUserName.value !== "") {
+    router.push('/cubes')
+  }
+
+})
 /*const toHome = function () {
   router.push("/")
 }*/
@@ -176,35 +181,21 @@ const loginOnOff = async () => {
           // ...
         },
       })
-      .onOk(() => {
-        api
-          .post(baseURL, {
-            method: "cube/getCurUserInfo",
-            params: [],
-          })
-          .then(
-            (response) => {
-              setUserStore(response.data.result);
-            },
-            (error) => {
-              //console.log("error", error);
-              setUserStore({});
-              notifyError(error.message);
-            }
-          )
-          .finally(() => {
-            router.push("/cubes");
-          });
+      .onOk((res) => {
+        setUserStore(res)
+        router.push('/cubes')
       });
   } else {
-    try {
-      await api.post(authURL + "/logout", {params: {}});
-      setUserStore({});
-      await router.push("/");
-      location.reload();
-    } catch (error) {
-      notifyError(error.message);
-    }
+    api
+      .post(authURL + '/logout', {
+        params: {},
+      })
+      .then(() => {
+        clearUserStore()
+      })
+      .finally(() => {
+        router.push('/')
+      })
   }
 }
 
