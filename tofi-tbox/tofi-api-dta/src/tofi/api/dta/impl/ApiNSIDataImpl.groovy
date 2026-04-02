@@ -16,7 +16,6 @@ import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.model.consts.FD_InputType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-import tofi.auth.RestoreUserFromToken
 
 class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
 

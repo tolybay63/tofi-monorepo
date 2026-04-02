@@ -19,7 +19,7 @@ class P extends ProjectScript {
                 depends.dev(
                         "tofi-api-mdl",
                         "tofi-api-adm",
-                        "tofi-auth"
+                        //"tofi-auth"
                 )
             }
         }
