@@ -36,7 +36,7 @@
           dense
           icon="home"
           rounded
-          @click="this.$router.push('/')"
+          @click="toHome"
         >
           <q-tooltip transition-hide="rotate" transition-show="rotate"
           >{{ $t("mainPage") }}
@@ -146,7 +146,7 @@ export default defineComponent({
     const {clearUserStore} = store;
     const {getUserId} = storeToRefs(store);
 
-    if (!getUserId.value > 0) {
+    if (getUserId.value <= 0) {
       clearUserStore()
       this.$router["push"]("/")
     }
@@ -189,6 +189,11 @@ export default defineComponent({
       userName,
       metamodel,
       selected,
+
+      toHome() {
+        router.push("/")
+      },
+
       mainApp() {
         open(urlMainApp, "_self");
       },
