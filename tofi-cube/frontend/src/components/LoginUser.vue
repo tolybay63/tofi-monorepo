@@ -96,15 +96,13 @@
 import {ref} from "vue";
 import {api, authURL} from "boot/axios.js";
 import ForgetPsw from "components/ForgetPsw.vue";
-import {notifyError} from "src/utils/jsutils.js";
 
 export default {
-  props: ["lg"],
+  props: [],
 
   data() {
     return {
       form: {login: "", email: "", psw: "", psw2: ""},
-      lang: this.lg,
       isPwd: ref(true),
       loading: false,
     };
@@ -117,91 +115,75 @@ export default {
       this.onCancelClick();
 
       this.lang = localStorage.getItem("curLang");
-      const lg = {name: this.lang};
 
       this.$q
         .dialog({
           component: ForgetPsw,
           componentProps: {
-            lg: lg,
             // ...
           },
         })
-        .onOk((r) => {
+        .onOk(() => {
           try {
-            console.log("Ok! ForgetPsw");
-            console.log("reg data", r);
+            //console.log("Ok! ForgetPsw");
+            //console.log("reg data", r);
             //code to save to DB ....
           } finally {
             setTimeout(() => {
             }, 10);
           }
         })
-        .onCancel(() => {
-          console.log("Cancel!");
-        });
     },
 
-/*    emailTest: function (v) {
-      return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
-        v
-      );
-    },*/
+    /*
+        emailTest: function (v) {
+          return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
+            v
+          );
+        },
+    */
 
     loginTest() {
       return this.form.login && this.form.login.trim() && this.form.psw && this.form.psw.trim();
     },
 
     show() {
-      this.$refs.dialog.show();
+      this.$refs.dialog["show"]();
     },
 
     hide() {
-      this.$refs.dialog.hide();
+      this.$refs.dialog["hide"]();
     },
 
     onDialogHide() {
       this.$emit("hide");
     },
 
-    /*
-params: {username: this.form.login, password: this.form.psw},
-    * */
     onOKClick: function () {
-      this.loading = ref(true);
       let err = false
-      let fd = new FormData()
-      fd.append("username", this.form.login);
-      fd.append("password", this.form.psw);
+      let params = new URLSearchParams();
+      params.append("username", this.form.login);
+      params.append("password", this.form.psw);
+
       api
-        .post(authURL + "/login", fd,{
-          responseType: "arraybuffer",
+        .post(authURL + "/login", params, {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/x-www-form-urlencoded",
           },
         })
         .then(
-          () => {
-            //const JSESSIONID = Cookies.get("JSESSIONID");
-            //console.info(JSESSIONID, JSESSIONID);
-            //console.log("loginUser: response", response);
-            this.$emit("ok", {res: true});
-          },
-          (error) => {
-            //console.log("loginUser: error", error.message)
-            //console.log("loginUser: error.response", error.response)
-            err = true
-            let msg
-            if (error.response) msg = this.$t("invalidLoginPasswd");
-            else msg = this.$t("networkError");
-
-            notifyError(msg);
-          }
-        )
+          (res) => {
+            const token = res.data.token;
+            localStorage.setItem('dtj_token', token);
+            api.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+            this.$emit("ok", token);
+          })
+        .catch(error => {
+          err = true;
+          console.log("ERROR", error.response?.data);
+        })
         .finally(() => {
-          this.loading = ref(false);
           if (!err) this.hide()
-
         });
     },
 
@@ -209,7 +191,6 @@ params: {username: this.form.login, password: this.form.psw},
       this.hide();
     },
   },
-  setup() {
-  },
+
 };
 </script>
