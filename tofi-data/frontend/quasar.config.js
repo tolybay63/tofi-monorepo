@@ -7,12 +7,12 @@
 import {defineConfig} from '#q-app/wrappers'
 import {fileURLToPath} from 'node:url'
 
-let url = 'http://localhost:8080'
-if (process.env.NODE_ENV === 'production') {
-  url = process.env.VITE_PRODUCT_URL
-}
+let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
 
 export default defineConfig((ctx) => {
+  //***********************************
+  const SERVICE_NAME = 'tofidata';
+  //***********************************
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -22,7 +22,8 @@ export default defineConfig((ctx) => {
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
       'i18n',
-      'axios'
+      'axios',
+      'auth-init'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -52,17 +53,22 @@ export default defineConfig((ctx) => {
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
-      // vueRouterBase,
+      vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? `/fish/${SERVICE_NAME}/` : '',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
-      publicPath: '',
-      extendViteConf(viteConf, { /*isServer, isClient*/ }) {
-        viteConf.base = '';
+      publicPath: ctx.modeName === 'spa' && ctx.prod ? `/fish/${SERVICE_NAME}/` : '',
+      extendViteConf(viteConf, { isServer, isClient }) {
+        if (ctx.modeName === 'spa' && ctx.prod) {
+          viteConf.base = `/fish/${SERVICE_NAME}/`;
+        } else {
+          viteConf.base = '';
+        }
       },
+
       // analyze: true,
       // env: {},
       // rawDefine: {}
@@ -141,7 +147,7 @@ export default defineConfig((ctx) => {
         "Dialog",
         "Notify",
         "Loading",
-        "LoadingBar",
+        'LoadingBar',
         "LocalStorage",
         "SessionStorage"
       ]
