@@ -80,7 +80,7 @@
 <script>
 import {ref} from "vue";
 import {collapsAll, expandAll, pack} from "src/utils/jsutils";
-import {api``} from "boot/axios";
+import {api} from "boot/axios";
 import allConsts from "pages/all-consts";
 
 export default {
