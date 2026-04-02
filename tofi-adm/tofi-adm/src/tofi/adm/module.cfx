@@ -16,7 +16,6 @@
     </web>
 
     <dbm>
-
         <model name="tofi.adm.model">
             <include name="apx.base"/>
             <include name="jandcode.core.dbm.genid"/>
