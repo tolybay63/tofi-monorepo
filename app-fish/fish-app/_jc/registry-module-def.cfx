@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <!--THIS FILE GENERATED, NOT MODIFY!-->
+    <system>
+        <module-def name="fish.app"
+                    path="file:///D:/jc-projects/tofi-monorepo/app-fish/fish-app/fish-app/src/fish/app"
+                    depends="jandcode.core,jandcode.core.apx,jandcode.core.db.postgresql">
+            <prop name="path.project"
+                  value="D:\jc-projects\tofi-monorepo\app-fish\fish-app\fish-app"/>
+            <prop name="path.src.1"
+                  value="D:\jc-projects\tofi-monorepo\app-fish\fish-app\fish-app\src"/>
+            <prop name="path.test.1"
+                  value="D:\jc-projects\tofi-monorepo\app-fish\fish-app\fish-app\test"/>
+        </module-def>
+    </system>
+</root>

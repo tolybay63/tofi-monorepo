@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.10.13
+Created-By: 17.0.17+15-LTS (BellSoft)
+Specification-Version: 0.1-SNAPSHOT-efcd7afc
+Implementation-Version: 0.1-SNAPSHOT-efcd7afc
+Jandcode-Modules: fish.app
+Jandcode-Lib-Name: fish-app
+Jandcode-Lib-Version: 0.1-SNAPSHOT-efcd7afc
+Jandcode-Lib-GroupId: fish-app
+Jandcode-Lib-Depends-prod: jandcode-core,jandcode-core-apx,jandcode-co
+ re-db-postgresql
+Jandcode-Lib-Depends-dev: jandcode-jc,junit-jupiter-api,junit-jupiter-
+ params,junit-jupiter-engine,junit-platform-launcher,apiguardian-api
+
