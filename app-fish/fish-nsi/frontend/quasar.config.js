@@ -148,15 +148,15 @@ export default defineConfig((ctx) => {
           target: url,
           changeOrigin: true,
         },
-        "/fish_upload": {
+        "/upload": {
           target: url,
           changeOrigin: true,
         },
-        "/fish_download": {
+        "/download": {
           target: url,
           changeOrigin: true,
         },
-        "/fish_loadpdf": {
+        "/loadpdf": {
           target: url,
           changeOrigin: true,
         },
