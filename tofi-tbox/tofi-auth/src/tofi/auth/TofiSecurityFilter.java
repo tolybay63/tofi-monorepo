@@ -62,18 +62,15 @@ public class TofiSecurityFilter extends BaseFilter {
         String token = authHeader.substring(7);
         CfgService cfgSvc = getApp().bean(CfgService.class);
 
-        // ВНИМАНИЕ: Ключ должен БЫТЬ ОДИНАКОВЫМ и в Processor, и тут!
         String secret = cfgSvc.getConf().getString("auth/main/jwt", "default-key-change-me");
 
         try {
-            // JwtUtils.decode уже возвращает Map<String, Object> (те самые attrs)
             Map<String, Object> userAttrs = JwtUtils.decode(token, secret);
 
             if (userAttrs == null || userAttrs.isEmpty()) {
                 return null;
             }
 
-            // Прямо создаем пользователя из полученных атрибутов (id, login, targets теперь тут)
             return new DefaultAuthUser(userAttrs);
         } catch (Exception e) {
             return null;
