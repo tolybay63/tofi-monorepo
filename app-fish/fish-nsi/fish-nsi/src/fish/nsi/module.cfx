@@ -12,17 +12,17 @@
                 class="tofi.auth.TofiAuthAction"
         />
 
-        <action name="fish_download"
+        <action name="download"
                 class = "fish.nsi.action.DownloadAction"
         />
-        <action name="fish_loadpdf"
+        <action name="loadpdf"
                 class = "fish.nsi.action.LoadpdfAction"
         />
         <action name="deletefile"
                 class = "fish.nsi.action.DeletefileAction"
         />
 
-        <action name="fish_upload"
+        <action name="upload"
                 class = "fish.nsi.action.UploadAction"
         />
         <type name="fish.nsi.action.DownFile"

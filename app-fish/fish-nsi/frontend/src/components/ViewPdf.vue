@@ -34,6 +34,7 @@
 <script>
 
 import {notifyError} from "src/utils/jsutils";
+import {api, baseURL} from "boot/axios.js";
 
 let saveTimeout = null
 
@@ -61,8 +62,8 @@ export default {
       formData.append("id", this.id);
       formData.append("model", "nsidata");
       formData.append("filename", this.fileName);
-      this.$axios
-        .post('/fish_loadpdf',
+      api
+        .post('/loadpdf',
           formData,
           {
             responseType: "blob"
@@ -139,7 +140,7 @@ export default {
 
     let formData = new FormData();
     formData.append("filename", this.fileName);
-    this.$axios
+    api
       .post('/deletefile',
         formData,
       )
