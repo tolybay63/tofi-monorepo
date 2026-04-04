@@ -115,4 +115,4 @@ export default defineBoot(({ app, router }) => {
 const tofi_dbeg = "1800-01-01";
 const tofi_dend = "3333-12-31";
 
-export { api, authURL, urlMainApp, tofi_dbeg, tofi_dend };
+export { api, authURL, baseURL, urlMainApp, tofi_dbeg, tofi_dend };

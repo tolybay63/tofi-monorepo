@@ -451,8 +451,8 @@ export default defineComponent({
 
       //console.info("formData", formData)
 
-      this.$axios
-        .post("/fish_download",
+      api
+        .post("/download",
           formData,
           {
             responseType: "arraybuffer",
