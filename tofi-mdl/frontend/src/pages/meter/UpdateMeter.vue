@@ -224,7 +224,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import {ref} from "vue";
 
@@ -354,7 +354,7 @@ export default {
 */
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "meter/" + method,
             params: [{rec: this.form}],
           })
@@ -380,7 +380,7 @@ export default {
 
     getDict(dictName) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "dict/load",
             params: [{dict: dictName}],
           })
@@ -412,7 +412,7 @@ export default {
     this.getDict("FD_MeterType");
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "measure/loadBase",
           params: [{}],
         })

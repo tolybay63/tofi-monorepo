@@ -126,7 +126,7 @@
 <script>
 import {defineComponent, ref} from "vue";
 import UpdateRelTyp from "pages/reltyp/UpdateRelTyp.vue";
-import {api, baseURL, tofi_dbeg, tofi_dend} from "boot/axios";
+import {api, tofi_dbeg, tofi_dend} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import {date} from "quasar";
 
@@ -230,7 +230,7 @@ export default defineComponent({
       const filter = requestProps.filter;
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/loadRelTypPaginate",
             params: [
               {
@@ -318,7 +318,7 @@ export default defineComponent({
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "reltyp/delete",
                   params: [{rec: rec}],
                 })
@@ -444,7 +444,7 @@ export default defineComponent({
     this.lang = localStorage.getItem("curLang");
     this.lang = this.lang === "en-US" ? "en" : this.lang;
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })

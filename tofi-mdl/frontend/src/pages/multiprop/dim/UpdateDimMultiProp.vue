@@ -98,7 +98,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import {extend} from "quasar";
 
@@ -181,7 +181,7 @@ export default {
         typeof this.dmpt === "object" ? this.dmpt.id : this.dmpt;
 
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "dimMultiProp/" + method,
             params: [{rec: this.form}],
@@ -208,7 +208,7 @@ export default {
   },
   created() {
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })
@@ -217,7 +217,7 @@ export default {
         });
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_DimMultiPropType"}],
       })
@@ -226,7 +226,7 @@ export default {
       });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dimMultiProp/loadPropForMultiPropItem",
           params: [],
         })

@@ -9,32 +9,32 @@
             />
 
             <item name="database"
-                  class="tofi.mdl.model.dao.database.DataBaseDao"
+                  class="tofi.mdl.model.dao.database.DataBaseMdbUtils"
                   method="*"
             />
 
             <item name="measure"
-                  class="tofi.mdl.model.dao.measure.MeasureDao"
+                  class="tofi.mdl.model.dao.measure.MeasureMdbUtils"
                   method="*"
             />
 
             <item name="attrib"
-                  class="tofi.mdl.model.dao.attrib.AttribDao"
+                  class="tofi.mdl.model.dao.attrib.AttribMdbUtils"
                   method="*"
             />
 
             <item name="factor"
-                  class="tofi.mdl.model.dao.factor.FactorDao"
+                  class="tofi.mdl.model.dao.factor.FactorMdbUtils"
                   method="*"
             />
 
             <item name="factorrel"
-                  class="tofi.mdl.model.dao.factor.FactorRelDao"
+                  class="tofi.mdl.model.dao.factor.FactorRelMdbUtils"
                   method="*"
             />
 
             <item name="meter"
-                  class="tofi.mdl.model.dao.meter.MeterDao"
+                  class="tofi.mdl.model.dao.meter.MeterMdbUtils"
                   method="*"
             />
             <item name="meterfactor"
@@ -49,48 +49,64 @@
                   class="tofi.mdl.model.dao.role.RoleDao"
                   method="*"
             />
+
             <item name="typ"
-                  class="tofi.mdl.model.dao.typ.TypDao"
+                  class="tofi.mdl.model.dao.typ.TypMdbUtils"
+                  method="*"
+            />
+
+            <item name="typrole"
+                  class="tofi.mdl.model.dao.typ.TypRoleMdbUtils"
                   method="*"
             />
 
             <item name="reltyp"
-                  class="tofi.mdl.model.dao.reltyp.RelTypDao"
+                  class="tofi.mdl.model.dao.reltyp.RelTypMdbUtils"
+                  method="*"
+            />
+
+            <item name="reltyprole"
+                  class="tofi.mdl.model.dao.reltyp.RelTypRoleMdbUtils"
+                  method="*"
+            />
+
+            <item name="reltypmember"
+                  class="tofi.mdl.model.dao.reltyp.RelTypMemberMdbUtils"
                   method="*"
             />
 
             <item name="relcls"
-                  class="tofi.mdl.model.dao.reltyp.relcls.RelClsDao"
+                  class="tofi.mdl.model.dao.reltyp.relcls.RelClsMdbUtils"
                   method="*"
             />
 
             <item name="group"
-                  class="tofi.mdl.model.dao.group.GroupDao"
+                  class="tofi.mdl.model.dao.group.GroupMdbUtils"
                   method="*"
             />
 
             <item name="prop"
-                  class="tofi.mdl.model.dao.prop.PropDao"
+                  class="tofi.mdl.model.dao.prop.PropMdbUtils"
                   method="*"
             />
 
             <item name="dimMultiProp"
-                  class="tofi.mdl.model.dao.prop.multi.dim.DimMultiPropDao"
+                  class="tofi.mdl.model.dao.prop.multi.dim.DimMultiPropMdbUtils"
                   method="*"
             />
 
             <item name="multiProp"
-                  class="tofi.mdl.model.dao.prop.multi.MultiPropDao"
+                  class="tofi.mdl.model.dao.prop.multi.MultiPropMdbUtils"
                   method="*"
             />
 
             <item name="flatTable"
-                  class="tofi.mdl.model.dao.flat.table.FlatTableDao"
+                  class="tofi.mdl.model.dao.flat.table.FlatTableMdbUtils"
                   method="*"
             />
 
             <item name="dimperiod"
-                  class="tofi.mdl.model.dao.dimperiod.DimPeriodDao"
+                  class="tofi.mdl.model.dao.dimperiod.DimPeriodMdbUtils"
                   method="*"
             />
             <item name="dimperioditem"
@@ -98,11 +114,16 @@
                   method="*"
             />
             <item name="dimprop"
-                  class="tofi.mdl.model.dao.dimprop.DimPropDao"
+                  class="tofi.mdl.model.dao.dimprop.DimPropMdbUtils"
                   method="*"
             />
             <item name="dimobj"
-                  class="tofi.mdl.model.dao.dimobj.DimObjDao"
+                  class="tofi.mdl.model.dao.dimobj.DimObjMdbUtils"
+                  method="*"
+            />
+
+            <item name="dimobjitem"
+                  class="tofi.mdl.model.dao.dimobj.DimObjItemMdbUtils"
                   method="*"
             />
 
@@ -124,7 +145,7 @@
 
             //-----------------
             <item name="test"
-                  class="tofi.mdl.model.dao.typ.test.TestDao"
+                  class="tofi.mdl.model.dao.typ.test.TestMdbUtils"
                   method="*"
             />
 

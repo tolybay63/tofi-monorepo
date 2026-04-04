@@ -135,7 +135,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {checkChilds, collapsAll, expandAll, notifyError, pack, uncheckChilds} from "src/utils/jsutils";
 
@@ -265,7 +265,7 @@ export default {
       });
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/savePropEntityVal",
             params: [this.prop, d0], //this.entityType,
           })
@@ -360,7 +360,7 @@ export default {
 
     this.showing = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "prop/loadPropValEntityForUpd",
           params: [this.prop, this.entityType],
         })

@@ -57,7 +57,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import {notifyError} from "src/utils/jsutils";
 import UserRole from "pages/users/UserRole.vue";
 import UserPermis from "pages/users/UserPermis.vue";
@@ -97,7 +97,7 @@ export default {
     // load user
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "usr/loadUser",
         params: [this.user_id],
       })

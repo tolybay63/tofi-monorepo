@@ -127,7 +127,7 @@
 <script>
 import treeselect from 'vue3-treeselect'
 import 'vue3-treeselect/dist/vue3-treeselect.css'
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 import {ref} from "vue";
 
@@ -235,7 +235,7 @@ export default {
       this.loading = ref(true);
       let err = false;
       api
-          .post(baseURL, {
+          .post("", {
             method: "flatTable/" + method,
             params: [this.form],
           })
@@ -265,7 +265,7 @@ export default {
   created() {
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })
@@ -279,7 +279,7 @@ export default {
 
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dimMultiProp/loadClsForSelect",
           params: [],
         })
@@ -295,7 +295,7 @@ export default {
 
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dimMultiProp/loadRelClsForSelect",
           params: [],
         })

@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios.js";
+import {api} from "boot/axios.js";
 import treeselect from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
 import {notifyError, pack} from "src/utils/jsutils.js";
@@ -117,7 +117,7 @@ export default {
     onUpdateBind() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/binding",
           params: [this.cubeS, this.propField, this.fnMapping()],
         })
@@ -163,7 +163,7 @@ export default {
     getGrid(par) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/getGrid",
           params: [this.cubeS, par],
         })
@@ -238,7 +238,7 @@ export default {
     loadDimPropItem(dimProp, index) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/loadDimPropItem",
           params: [dimProp],
         })
@@ -259,7 +259,7 @@ export default {
     loadDimPropItemFV(dimProp, index) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/loadDimPropItemFV",
           params: [dimProp],
         })
@@ -290,7 +290,7 @@ export default {
 
     this.loading = true
     api
-      .post(baseURL, {
+      .post("", {
         method: "cubes/loadDimProp",
         params: [this.cubeS],
       })

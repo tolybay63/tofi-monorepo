@@ -30,7 +30,7 @@ class DictDao extends BaseModelDao {
             AuthUser au = authSvc.getCurrentUser();
             long al = au.getAttrs().getLong("accesslevel");
             if (al==0)
-                throw new XError("notLogined")
+                throw new XError("notLoginned")
             st.clear()
             dd.data.forEach(r -> {
                 if (r.getBoolean("vis") && r.getLong("id") <= al)

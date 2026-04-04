@@ -169,7 +169,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {date} from "quasar";
 import UpdateTypRole from "pages/typ/typrole/UpdateTypRole.vue";
 import UpdateTypRoleLifeInterval from "pages/typ/typrole/UpdateTypRoleLifeInterval.vue";
@@ -227,7 +227,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "typ/deleteTypRole",
                   params: [{rec: rec}],
                 })
@@ -307,7 +307,7 @@ export default {
     fetchData(typ) {
       this.loading = true;
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadTypRole",
             params: [typ],
           })
@@ -361,7 +361,7 @@ export default {
           .onOk(() => {
             let index = this.rows2.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "typ/deleteTypRoleLife",
                   params: [{rec: rec}],
                 })
@@ -436,7 +436,7 @@ export default {
       this.loading2 = true;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadTypRoleLife",
             params: [typrole],
           })

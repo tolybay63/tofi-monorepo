@@ -111,7 +111,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import PropsOfOwner from "pages/std/PropsOfOwner.vue";
 import {notifyError} from "src/utils/jsutils";
@@ -163,7 +163,7 @@ export default {
   methods: {
     loadPropsOfProp(prop) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/propsOfProp",
           params: [prop],
         })
@@ -271,7 +271,7 @@ export default {
 
     loadPeriod(prop) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/propPeriodType",
           params: [prop, false],
         })
@@ -387,7 +387,7 @@ export default {
 
     this.loading = ref(true)
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadDict",
         params: ["FD_PeriodType"],
       })
@@ -403,7 +403,7 @@ export default {
 
     this.loading = ref(true)
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadRecObjOrRelObj",
         params: [this.owner, this.isObj, getModel.value, getMetaModel.value],
       })

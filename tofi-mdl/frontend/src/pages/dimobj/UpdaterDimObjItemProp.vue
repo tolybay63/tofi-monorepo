@@ -115,7 +115,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
@@ -193,7 +193,7 @@ export default {
       this.visible = ref(true);
       //
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimobj/loadPropStatus",
           params: [prop],
         })
@@ -216,7 +216,7 @@ export default {
       this.visible = ref(true);
       //
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimobj/loadPropProvider",
           params: [prop],
         })
@@ -273,7 +273,7 @@ export default {
       this.form.dimObjItem = this.doi;
 
       api
-        .post(baseURL, {
+        .post("", {
           id: this.form.id,
           method: "dimobj/" + method,
           params: [this.form],
@@ -302,7 +302,7 @@ export default {
   created() {
     this.visible = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{ dict: "FD_PropStatusMissing" }],
       })
@@ -314,7 +314,7 @@ export default {
       });
     this.visible = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{ dict: "FD_PropProviderMissing" }],
       })
@@ -328,7 +328,7 @@ export default {
 
     this.visible = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "dimobj/loadOptProp",
         params: [this.doi],
       })

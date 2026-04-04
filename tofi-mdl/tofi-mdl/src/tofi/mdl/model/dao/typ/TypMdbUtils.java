@@ -3,7 +3,8 @@ package tofi.mdl.model.dao.typ;
 import jandcode.commons.UtCnv;
 import jandcode.commons.UtJson;
 import jandcode.commons.error.XError;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreIndex;
@@ -17,22 +18,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 
-public class TypMdbUtils extends EntityMdbUtils {
-    Mdb mdb;
-    String tableName;
-
-    public TypMdbUtils(Mdb mdb, String tableName) throws Exception {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
-
+public class TypMdbUtils extends BaseMdbUtils {
 
     /**
      * Загрузка Typ с пагинацией
@@ -41,6 +27,7 @@ public class TypMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Map<String, Object> loadTypPaginate(Map<String, Object> params) throws Exception {
 
         String sql = """
@@ -48,7 +35,7 @@ public class TypMdbUtils extends EntityMdbUtils {
                     from Typ t, TypVer v where t.id=v.ownerVer and v.lastver=1
                     order by t.ord
                 """;
-        SqlText sqlText = mdb.createSqlText(sql);
+        SqlText sqlText = getMdb().createSqlText(sql);
         Map<String, Object> par = new HashMap<>();
         int offset = (UtCnv.toInt(params.get("page")) - 1) * UtCnv.toInt(params.get("limit"));
         par.put("offset", offset);
@@ -63,16 +50,16 @@ public class TypMdbUtils extends EntityMdbUtils {
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("(cod like '%" + filter + "%' or name like '%" + filter + "%' or " +
                     "fullName like '%" + filter + "%')");
-        Store st = mdb.createStore("Typ.full");
-        mdb.loadQuery(st, sqlText, par);
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("Typ.full");
+        getMdb().loadQuery(st, sqlText, par);
+        getMdb().resolveDicts(st);
 
         //count
         sql = "select count(*) as cnt from Typ t, TypVer v where t.id=v.ownerVer and v.lastVer=1";
         sqlText.setSql(sql);
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%'");
-        int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
+        int total = getMdb().loadQuery(sqlText).get(0).getInt("cnt");
         Map<String, Object> meta = new HashMap<String, Object>();
         meta.put("total", total);
         meta.put("page", UtCnv.toInt(params.get("page")));
@@ -88,8 +75,10 @@ public class TypMdbUtils extends EntityMdbUtils {
      * @throws Exception
      */
 
+    @DaoMethod
     public void delete(Map<String, Object> rec) throws Exception {
-        deleteEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Typ");
+        eu.deleteEntity(rec);
     }
 
     /**
@@ -99,6 +88,7 @@ public class TypMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
 
@@ -107,15 +97,16 @@ public class TypMdbUtils extends EntityMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Typ");
+        eu.updateEntity(rec);
         //
         // Загрузка записи
-        Store st = mdb.createStore("Typ.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Typ.full");
+        getMdb().loadQuery(st, """
                     select * from Typ t, TypVer v where t.id=v.ownerVer and v.lastver=1 and t.id=:id
                 """, Map.of("id", id));
-        mdb.resolveDicts(st);
-        //mdb.outTable(st);
+        getMdb().resolveDicts(st);
+        //getMdb().outTable(st);
         return st;
     }
 
@@ -126,6 +117,7 @@ public class TypMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store updateVer(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
         long id = UtCnv.toLong(rec.get("id"));
@@ -133,12 +125,13 @@ public class TypMdbUtils extends EntityMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        updateEntityVer(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Typ");
+        eu.updateEntityVer(rec);
         // Загрузка записи
-        Store st = mdb.createStore("TypVer");
-        mdb.loadQuery(st, "select * from typver where id=:id", Map.of("id", id));
+        Store st = getMdb().createStore("TypVer");
+        getMdb().loadQuery(st, "select * from typver where id=:id", Map.of("id", id));
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
         return st;
     }
 
@@ -149,16 +142,18 @@ public class TypMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         //
-        long id = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Typ");
+        long id = eu.insertEntity(rec);
         //
-        Store st = mdb.createStore("Typ.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Typ.full");
+        getMdb().loadQuery(st, """
                     select * from Typ t, TypVer v where t.id=v.ownerVer and v.lastver=1 and t.id=:id
                 """, Map.of("id", id));
-        mdb.resolveDicts(st);
+        getMdb().resolveDicts(st);
         return st;
     }
 
@@ -169,43 +164,50 @@ public class TypMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store insertVer(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         //
-        long id = insertEntityVer(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Typ");
+        long id = eu.insertEntityVer(rec);
         //
-        Store st = mdb.createStore("TypVer");
-        mdb.loadQuery(st, "select * from typver where id=:id", Map.of("id", id));
+        Store st = getMdb().createStore("TypVer");
+        getMdb().loadQuery(st, "select * from typver where id=:id", Map.of("id", id));
         //
         return st;
     }
 
+    @DaoMethod
     public void deleteVer(Map<String, Object> rec) throws Exception {
-        deleteEntityVer(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Typ");
+        eu.deleteEntityVer(rec);
     }
 
+    @DaoMethod
     public StoreRecord loadRec(long id) throws Exception {
 
-        StoreRecord st = mdb.createStoreRecord("Typ.full");
-        mdb.loadQueryRecord(st, """
+        StoreRecord st = getMdb().createStoreRecord("Typ.full");
+        getMdb().loadQueryRecord(st, """
                     select * from Typ t, TypVer v where t.id=v.ownerVer and v.lastver=1 and t.id=:id
                 """, Map.of("id", id));
-        mdb.resolveDicts(st);
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public Store loadVer(long typ) throws Exception {
-        Store st = mdb.createStore("TypVer");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("TypVer");
+        getMdb().loadQuery(st, """
                     select * from typver where ownerver=:typ order by dend desc
                 """, Map.of("typ", typ));
         return st;
     }
 
 
+    @DaoMethod
     public Store loadTypParent(Map<String, Object> params) throws Exception {
         return (
-                mdb.loadQuery("""
+                getMdb().loadQuery("""
                             select
                                 e.id, e.cod, v.name
                             from
@@ -220,9 +222,10 @@ public class TypMdbUtils extends EntityMdbUtils {
 
     //TypCharGr
 
+    @DaoMethod
     public Store loadTypCharGr() throws Exception {
-        Store st = mdb.createStore("TypCharGr.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("TypCharGr.full");
+        getMdb().loadQuery(st, """
                     select tcg.*, tv."name" as typName, fv."name" as fvName, t1.dbs, t1.dbNames
                     from typchargr tcg
                     inner join (
@@ -247,8 +250,8 @@ public class TypMdbUtils extends EntityMdbUtils {
     }
 
     protected Store loadTypCharGrRec(long id) throws Exception {
-        Store st = mdb.createStore("TypCharGr.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("TypCharGr.full");
+        getMdb().loadQuery(st, """
                     select tcg.*, tv."name" as typName, fv."name" as fvName, t1.dbs, t1.dbNames
                     from typchargr tcg
                     inner join (
@@ -272,9 +275,10 @@ public class TypMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public StoreRecord loadTypCharGrInfo(long id) throws Exception {
-        StoreRecord st = mdb.createStoreRecord("TypCharGr.info");
-        mdb.loadQueryRecord(st, """
+        StoreRecord st = getMdb().createStoreRecord("TypCharGr.info");
+        getMdb().loadQueryRecord(st, """
                     select tcg.id, tcg.cod, tcg.name as tcgName, t.modelName, t.dbs, t.dbTitle
                     from typchargr tcg
                     left join (
@@ -298,15 +302,17 @@ public class TypMdbUtils extends EntityMdbUtils {
     }
 
     //todo Delete!
-/*    public Store loadTypCharGr2(long typ) throws Exception {
-        Store st = mdb.createStore("TypCharGr");
-        mdb.loadQuery(st, "select * from TypCharGr where typ=:typ", Map.of("typ", typ));
+/*    @DaoMethod
+public Store loadTypCharGr2(long typ) throws Exception {
+        Store st = getMdb().createStore("TypCharGr");
+        getMdb().loadQuery(st, "select * from TypCharGr where typ=:typ", Map.of("typ", typ));
         return st;
     }*/
 
 
+    @DaoMethod
     public Store loadTypClustFactorVal(long typ, String mode) throws Exception {
-        Store st = mdb.createStore("Factor.cfv");
+        Store st = getMdb().createStore("Factor.cfv");
         String sql = """
                     with f as (
                         select factor as id from typclusterfactor where typ=:typ
@@ -324,9 +330,9 @@ public class TypMdbUtils extends EntityMdbUtils {
                             where id in (select id from f) or parent in (select id from f)
                     """;
         }
-        mdb.loadQuery(st, sql, Map.of("typ", typ));
-        st.forEach((r)-> {
-            if (r.getLong("parent")==0)
+        getMdb().loadQuery(st, sql, Map.of("typ", typ));
+        st.forEach((r) -> {
+            if (r.getLong("parent") == 0)
                 r.set("key", 0);
             else
                 r.set("key", r.getLong("id"));
@@ -335,29 +341,36 @@ public class TypMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store insertTypCharGr(Map<String, Object> rec) throws Exception {
-        long id = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "TypCharGr");
+        long id = eu.insertEntity(rec);
         //
         return loadTypCharGrRec(id);
     }
 
+    @DaoMethod
     public Store updateTypCharGr(Map<String, Object> rec) throws Exception {
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "TypCharGr");
+        eu.updateEntity(rec);
         //
         return loadTypCharGrRec(UtCnv.toLong(rec.get("id")));
     }
 
+    @DaoMethod
     public void deleteTypCharGr(Map<String, Object> rec) throws Exception {
-        deleteEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "TypCharGr");
+        eu.deleteEntity(rec);
     }
 
     //TypCharGrProp
+    @DaoMethod
     public Store loadTypCharGrProp(Map<String, Object> params) throws Exception {
         //TypCharGrProp
         long typCharGr = UtCnv.toLong(params.get("typCharGr"));
         long typ = UtCnv.toLong(params.get("typORrel"));
         boolean isFlat = UtCnv.toBoolean(params.get("isFlat"));
-        Store st = mdb.createStore("TypCharGrProp.prop");
+        Store st = getMdb().createStore("TypCharGrProp.prop");
         String sql = """
                     select
                         tcp.id as typCharGrProp, typCharGrProp_measure, pm.name as p_measure, propVal_measure,
@@ -390,18 +403,18 @@ public class TypMdbUtils extends EntityMdbUtils {
                 sql = sql + " and tcp.flatTable is null";
 
         }
-        mdb.loadQuery(st, sql, Map.of("tcg", typCharGr, "typ", typ));
+        getMdb().loadQuery(st, sql, Map.of("tcg", typCharGr, "typ", typ));
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
 
 
         // PropGr
-        Store stGr = mdb.createStore("TypCharGrProp.propGr");
+        Store stGr = getMdb().createStore("TypCharGrProp.propGr");
         String sqlGr = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr
                     from PropGr where 0=0
                 """;
-        mdb.loadQuery(stGr, sqlGr);
+        getMdb().loadQuery(stGr, sqlGr);
         StoreIndex indStGr = stGr.getIndex("id");
 
         //setParents for Meter, Factor... without MeterRate
@@ -430,17 +443,17 @@ public class TypMdbUtils extends EntityMdbUtils {
         String whe = String.join(",", UtCnv.toString(idsGr))
                 .replace("[", "(").replace("]", ")");
         if (whe.equals("()")) whe = "(0)";
-        stGr = mdb.createStore("TypCharGrProp.prop");
+        stGr = getMdb().createStore("TypCharGrProp.prop");
         sqlGr = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr, cod, name
                     from PropGr where id in
                 """ + whe;
 
-        mdb.loadQuery(stGr, sqlGr);
+        getMdb().loadQuery(stGr, sqlGr);
         stGr.add(st);
-        //mdb.outTable(stGr);
+        //getMdb().outTable(stGr);
 
-        Store stGrAll = mdb.createStore("TypCharGrProp.prop");
+        Store stGrAll = getMdb().createStore("TypCharGrProp.prop");
         String sqlGrAll = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr,
                     null as prop, null as propType, cod, name, false as checked
@@ -452,9 +465,9 @@ public class TypMdbUtils extends EntityMdbUtils {
                     from Prop p
                     where 0=0
                 """;
-        mdb.loadQuery(stGrAll, sqlGrAll);
+        getMdb().loadQuery(stGrAll, sqlGrAll);
         StoreIndex indStAll = stGrAll.getIndex("id");
-        //mdb.outTable(stGrAll);
+        //getMdb().outTable(stGrAll);
 
 
         //Analize parents
@@ -509,15 +522,15 @@ public class TypMdbUtils extends EntityMdbUtils {
         String whGr = String.join(",", UtCnv.toString(setPropGr))
                 .replace("[", "(").replace("]", ")");
         if (whGr.equals("()")) whGr = "(0)";
-        Store stPath = mdb.createStore("DomainPath");
-        mdb.loadQuery(stPath, "select id, parent, '' as path from Prop where propGr in " + whGr);
-        UtMeterSoft utMeterSoft = new UtMeterSoft(mdb, 0, false);
+        Store stPath = getMdb().createStore("DomainPath");
+        getMdb().loadQuery(stPath, "select id, parent, '' as path from Prop where propGr in " + whGr);
+        UtMeterSoft utMeterSoft = new UtMeterSoft(getMdb(), 0, false);
         utMeterSoft.setPath(stPath);
-        //mdb.outTable(stPath);
+        //getMdb().outTable(stPath);
         StoreIndex indStProp = stPath.getIndex("id");
         StoreIndex indStGrProp = stGr.getIndex("id");
 
-        Store stGrCopy = mdb.createStore("TypCharGrProp.prop");
+        Store stGrCopy = getMdb().createStore("TypCharGrProp.prop");
         Set<Object> idsPropGrDop = new HashSet<>();
 
         for (Object it : setPropGr) {
@@ -557,23 +570,24 @@ public class TypMdbUtils extends EntityMdbUtils {
         whe = String.join(",", UtCnv.toString(idsPropGrDop))
                 .replace("[", "(").replace("]", ")");
         if (whe.equals("()")) whe = "(0)";
-        mdb.loadQuery(stGrCopy, sqlGr);
+        getMdb().loadQuery(stGrCopy, sqlGr);
         //
         stGr.add(stGrCopy);
 
-        //mdb.outTable(stGrCopy);
-        //mdb.outTable(stGr);
+        //getMdb().outTable(stGrCopy);
+        //getMdb().outTable(stGr);
 
 
         return stGr;
     }
 
+    @DaoMethod
     public Store loadTypCharGrPropForUpd(long typCharGr) throws Exception {
         //old values
         Store stOld = loadTypCharGrProp(Map.of("typCharGr", typCharGr));
         StoreIndex indStOld = stOld.getIndex("id");
 
-        Store st = mdb.createStore("TypCharGrProp.prop.checked");
+        Store st = getMdb().createStore("TypCharGrProp.prop.checked");
         String sql = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr,
                     null as prop, null as propType, cod, name, false as checked
@@ -585,7 +599,7 @@ public class TypMdbUtils extends EntityMdbUtils {
                     from Prop p
                     where 0=0
                 """;
-        mdb.loadQuery(st, sql);
+        getMdb().loadQuery(st, sql);
         List<String> lst = new ArrayList<>();
         for (StoreRecord r : st) {
             if (r.getLong("propType") == FD_PropType_consts.complex)
@@ -629,12 +643,13 @@ public class TypMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public String saveTypCharGrProps(Map<String, Object> params) throws Exception {
         long typCharGr = UtCnv.toLong(params.get("typCharGr"));
         List<Map<String, Object>> lstData = (List<Map<String, Object>>) params.get("data");
 
         //Old Props in TypCharGrProp
-        Store stOld = mdb.loadQuery("""
+        Store stOld = getMdb().loadQuery("""
                     select c.id, c.prop, p.cod from TypCharGrProp c, Prop p
                     where c.prop=p.id and c.typCharGr=:g
                 """, Map.of("g", typCharGr));
@@ -665,7 +680,7 @@ public class TypMdbUtils extends EntityMdbUtils {
                     codsPropForInfo.add(r.getString("cod"));
                 } else {
                     try {
-                        mdb.deleteRec("TypCharGrProp", r.getLong("id"));
+                        getMdb().deleteRec("TypCharGrProp", r.getLong("id"));
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -673,7 +688,7 @@ public class TypMdbUtils extends EntityMdbUtils {
             }
         }
         // Saving
-        Store st = mdb.createStore("TypCharGrProp");
+        Store st = getMdb().createStore("TypCharGrProp");
         for (Map<String, Object> map : lstData) {
             if (!oldIds.contains(UtCnv.toLong(map.get("typCharGrProp")))) {
                 StoreRecord r = st.add(map);
@@ -681,18 +696,19 @@ public class TypMdbUtils extends EntityMdbUtils {
                 r.set("prop", UtCnv.toLong(map.get("prop")));
                 r.set("typCharGr", typCharGr);
                 r.set("storageType", FD_StorageType_consts.std);
-                mdb.insertRec("TypCharGrProp", r, true);
+                getMdb().insertRec("TypCharGrProp", r, true);
             }
         }
         return String.join(",", codsPropForInfo);
     }
 
     //TypCharGrMultiProp
+    @DaoMethod
     public Store loadTypCharGrMultiProp(Map<String, Object> params) throws Exception {
         long typCharGr = UtCnv.toLong(params.get("typCharGr"));
         long typ = UtCnv.toLong(params.get("typORrel"));
 
-        Store st = mdb.createStore("TypCharGrProp.multiProp");
+        Store st = getMdb().createStore("TypCharGrProp.multiProp");
         String sql = """
                     select tcp.id as typCharGrProp, storageType,
                     'p_'||p.id as id, 'g_'||p.multiPropGr as parent, p.id as multiProp, p.multiPropGr, p.cod, p.name
@@ -714,15 +730,15 @@ public class TypMdbUtils extends EntityMdbUtils {
                     """;
 
 
-        mdb.loadQuery(st, sql, Map.of("tcg", typCharGr, "typ", typ));
+        getMdb().loadQuery(st, sql, Map.of("tcg", typCharGr, "typ", typ));
 
         // MultiPropGr
-        Store stGr = mdb.createStore("TypCharGrProp.multiPropGr");
+        Store stGr = getMdb().createStore("TypCharGrProp.multiPropGr");
         String sqlGr = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as multiPropGr
                     from MultiPropGr where 0=0
                 """;
-        mdb.loadQuery(stGr, sqlGr);
+        getMdb().loadQuery(stGr, sqlGr);
         StoreIndex indStGr = stGr.getIndex("id");
         //setParents
         Set<Object> idsGr = new HashSet<>();
@@ -749,22 +765,23 @@ public class TypMdbUtils extends EntityMdbUtils {
         String whe = String.join(",", UtCnv.toString(idsGr))
                 .replace("[", "(").replace("]", ")");
         if (whe.equals("()")) whe = "(0)";
-        stGr = mdb.createStore("TypCharGrProp.multiProp");
+        stGr = getMdb().createStore("TypCharGrProp.multiProp");
         sqlGr = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as multiPropGr, cod, name
                     from MultiPropGr where id in
                 """ + whe;
 
-        mdb.loadQuery(stGr, sqlGr);
+        getMdb().loadQuery(stGr, sqlGr);
         stGr.add(st);
         return stGr;
     }
 
+    @DaoMethod
     public Store loadTypCharGrMultiPropForUpd(long typCharGr) throws Exception {
         //old values
         Store stOld = loadTypCharGrMultiProp(Map.of("typCharGr", typCharGr));
         StoreIndex indStOld = stOld.getIndex("id");
-        Store st = mdb.createStore("TypCharGrProp.multiProp.checked");
+        Store st = getMdb().createStore("TypCharGrProp.multiProp.checked");
         String sql = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as multiPropGr,
                     null as multiProp, cod, name, false as checked
@@ -775,7 +792,7 @@ public class TypMdbUtils extends EntityMdbUtils {
                     from MultiProp p
                     where 0=0
                 """;
-        mdb.loadQuery(st, sql);
+        getMdb().loadQuery(st, sql);
         for (StoreRecord r : st) {
             StoreRecord rec = indStOld.get(r.getString("id"));
             if (rec != null) {
@@ -785,18 +802,19 @@ public class TypMdbUtils extends EntityMdbUtils {
         }
 
         //
-        //mdb.outTable(stOld);
-        //mdb.outTable(st);
+        //getMdb().outTable(stOld);
+        //getMdb().outTable(st);
         //
         return st;
     }
 
+    @DaoMethod
     public String saveTypCharGrMultiProp(Map<String, Object> params) throws Exception {
         long typCharGr = UtCnv.toLong(params.get("typCharGr"));
         List<Map<String, Object>> lstData = (List<Map<String, Object>>) params.get("data");
 
         //Old multiProps in TypCharGrProp
-        Store stOld = mdb.loadQuery("""
+        Store stOld = getMdb().loadQuery("""
                     select c.id, c.multiProp, p.cod from TypCharGrProp c, MultiProp p
                     where c.multiProp=p.id and c.typCharGr=:g
                 """, Map.of("g", typCharGr));
@@ -824,7 +842,7 @@ public class TypMdbUtils extends EntityMdbUtils {
                     codsPropForInfo.add(r.getString("cod"));
                 } else {
                     try {
-                        mdb.deleteRec("TypCharGrProp", r.getLong("id"));
+                        getMdb().deleteRec("TypCharGrProp", r.getLong("id"));
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -832,7 +850,7 @@ public class TypMdbUtils extends EntityMdbUtils {
             }
         }
         // Saving
-        Store st = mdb.createStore("TypCharGrProp");
+        Store st = getMdb().createStore("TypCharGrProp");
         for (Map<String, Object> map : lstData) {
             if (!oldIds.contains(UtCnv.toLong(map.get("typCharGrProp")))) {
                 StoreRecord r = st.add(map);
@@ -840,18 +858,20 @@ public class TypMdbUtils extends EntityMdbUtils {
                 r.set("multiProp", UtCnv.toLong(map.get("multiProp")));
                 r.set("typCharGr", typCharGr);
                 r.set("storageType", FD_StorageType_consts.std);
-                mdb.insertRec("TypCharGrProp", r, true);
+                getMdb().insertRec("TypCharGrProp", r, true);
             }
         }
         return String.join(",", codsPropForInfo);
     }
 
+    @DaoMethod
     public void updateTypCharGrMultiProp(Map<String, Object> rec) throws Exception {
-        mdb.updateRec("TypCharGrProp", Map.of("id", UtCnv.toLong(rec.get("typCharGrProp")),
+        getMdb().updateRec("TypCharGrProp", Map.of("id", UtCnv.toLong(rec.get("typCharGrProp")),
                 "storageType", UtCnv.toLong(rec.get("storageType"))));
         //
     }
 
+    @DaoMethod
     public void updateTypCharGrProp(Map<String, Object> rec) throws Exception {
 
         Long vft = null;
@@ -868,7 +888,7 @@ public class TypMdbUtils extends EntityMdbUtils {
         if (UtCnv.toLong(rec.get("propVal_measure")) > 0)
             map.put("propVal_measure", UtCnv.toLong(rec.get("propVal_measure")));
         //
-        mdb.updateRec("TypCharGrProp", map);
+        getMdb().updateRec("TypCharGrProp", map);
 
         // if ComplexType for childs...
         if (UtCnv.toLong(rec.get("propType")) == FD_PropType_consts.complex) {
@@ -885,16 +905,17 @@ public class TypMdbUtils extends EntityMdbUtils {
                 if (UtCnv.toLong(rc.get("propVal_measure")) > 0)
                     map.put("propVal_measure", UtCnv.toLong(rc.get("propVal_measure")));
                 //
-                mdb.updateRec("TypCharGrProp", map);
+                getMdb().updateRec("TypCharGrProp", map);
             }
         }
         //
 
     }
 
+    @DaoMethod
     public Store loadPropMeasure(long typCharGr) throws Exception {
 
-        Store st = mdb.createStore("TypCharGrProp.prop");
+        Store st = getMdb().createStore("TypCharGrProp.prop");
         String sql = """
                     select tcp.id as typCharGrProp,
                     'p_'||p.id as id, case when p.parent is null then 'g_'||p.propGr else 'p_'||p.parent end as parent,
@@ -903,18 +924,18 @@ public class TypMdbUtils extends EntityMdbUtils {
                     left join prop p on p.id=tcp.prop
                     where tcp.typchargr=:tcg and tcp.prop is not null and p.proptype=:pt
                 """;
-        mdb.loadQuery(st, sql, Map.of("tcg", typCharGr, "pt", FD_PropType_consts.measure));
+        getMdb().loadQuery(st, sql, Map.of("tcg", typCharGr, "pt", FD_PropType_consts.measure));
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
 
 
         // PropGr
-        Store stGr = mdb.createStore("TypCharGrProp.propGr");
+        Store stGr = getMdb().createStore("TypCharGrProp.propGr");
         String sqlGr = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr, 0 as prop
                     from PropGr where 0=0
                 """;
-        mdb.loadQuery(stGr, sqlGr);
+        getMdb().loadQuery(stGr, sqlGr);
         StoreIndex indStGr = stGr.getIndex("id");
 
         //setParents for Meter, Factor... without MeterRate
@@ -946,22 +967,23 @@ public class TypMdbUtils extends EntityMdbUtils {
                 .replace("[", "(").replace("]", ")");
         if (whe.equals("()")) whe = "(0)";
 
-        stGr = mdb.createStore("TypCharGrProp.prop");
+        stGr = getMdb().createStore("TypCharGrProp.prop");
         sqlGr = """
                     select 'g_'||id as id, 'g_'||parent as parent, id as propGr, 0 as prop, cod, name
                     from PropGr where id in
                 """ + whe;
 
-        mdb.loadQuery(stGr, sqlGr);
+        getMdb().loadQuery(stGr, sqlGr);
         stGr.add(st);
 
-        mdb.outTable(stGr);
+        getMdb().outTable(stGr);
 
         return stGr;
     }
 
+    @DaoMethod
     public Store loadMeasure(long prop) throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select m.id, m.name, m.parent, v.id as propval from measure m, PropVal v
                     where prop=:prop and m.id=v.measure
                 """, Map.of("prop", prop));

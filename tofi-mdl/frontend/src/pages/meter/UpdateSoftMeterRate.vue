@@ -87,7 +87,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
@@ -160,7 +160,7 @@ export default {
           typeof this.al === "object" ? this.al.id : this.al;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "meterrate/" + method,
             params: [{rec: this.form}],
           })
@@ -189,7 +189,7 @@ export default {
   },
   created() {
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })

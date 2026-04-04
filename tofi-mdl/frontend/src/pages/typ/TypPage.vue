@@ -1,28 +1,27 @@
 <template>
   <q-page class="q-pa-md" style="height: 100px">
     <q-table
-      class="sticky-header-table"
-      style="height: 100%; width: 100%"
-      color="primary"
-      card-class="bg-amber-1"
-      row-key="cod"
-      :columns="cols"
-      :rows="rows"
-      :wrap-cells="true"
-      :table-colspan="4"
-      table-header-class="text-bold text-white bg-blue-grey-13"
-      separator="cell"
-      :filter="filter"
-      :loading="loading"
-      :dense="dense"
-      @update:pagination="updPagination"
-      :rows-per-page-options="[20, 25, 0]"
-      :max="pagesNumber"
-      @request="requestData"
-      selection="single"
-      v-model:pagination="pagination"
-      v-model:selected="selected"
-      @update:selected="updSelected"
+        style="height: 100%; width: 100%"
+        color="primary"
+        card-class="bg-amber-1"
+        row-key="cod"
+        :columns="cols"
+        :rows="rows"
+        :wrap-cells="true"
+        :table-colspan="4"
+        table-header-class="text-bold text-white bg-blue-grey-13"
+        separator="cell"
+        :filter="filter"
+        :loading="loading"
+        :dense="dense"
+        @update:pagination="updPagination"
+        :rows-per-page-options="[20, 25, 0]"
+        :max="pagesNumber"
+        @request="requestData"
+        selection="single"
+        v-model:pagination="pagination"
+        v-model:selected="selected"
+        @update:selected="updSelected"
     >
       <template #bottom-row>
         <q-td colspan="100%" v-if="selected.length > 0">
@@ -42,38 +41,38 @@
 
         <q-space/>
         <q-btn
-          v-if="hasTarget('mdl:mn_ds:typ:ins')"
-          :dense="dense"
-          icon="post_add"
-          color="secondary"
-          :disable="loading"
-          @click="editRow(null, 'ins')"
+            v-if="hasTarget('mdl:mn_ds:typ:ins')"
+            :dense="dense"
+            icon="post_add"
+            color="secondary"
+            :disable="loading"
+            @click="editRow(null, 'ins')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("newRecord") }}
           </q-tooltip>
         </q-btn>
         <q-btn
-          v-if="hasTarget('mdl:mn_ds:typ:upd')"
-          :dense="dense"
-          icon="edit"
-          color="secondary"
-          class="q-ml-sm"
-          :disable="loading || selected.length === 0"
-          @click="editRow(selected[0], 'upd')"
+            v-if="hasTarget('mdl:mn_ds:typ:upd')"
+            :dense="dense"
+            icon="edit"
+            color="secondary"
+            class="q-ml-sm"
+            :disable="loading || selected.length === 0"
+            @click="editRow(selected[0], 'upd')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("editRecord") }}
           </q-tooltip>
         </q-btn>
         <q-btn
-          v-if="hasTarget('mdl:mn_ds:typ:del')"
-          :dense="dense"
-          icon="delete"
-          color="secondary"
-          class="q-ml-sm"
-          :disable="loading || selected.length === 0"
-          @click="removeRow(selected[0])"
+            v-if="hasTarget('mdl:mn_ds:typ:del')"
+            :dense="dense"
+            icon="delete"
+            color="secondary"
+            class="q-ml-sm"
+            :disable="loading || selected.length === 0"
+            @click="removeRow(selected[0])"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("deletingRecord") }}
@@ -81,13 +80,13 @@
         </q-btn>
 
         <q-btn
-          v-if="hasTarget('mdl:mn_ds:typ:sel')"
-          :dense="dense"
-          icon="pan_tool_alt"
-          color="secondary"
-          class="q-ml-lg"
-          :disable="loading || selected.length === 0"
-          @click="typSelect()"
+            v-if="hasTarget('mdl:mn_ds:typ:sel')"
+            :dense="dense"
+            icon="pan_tool_alt"
+            color="secondary"
+            class="q-ml-lg"
+            :disable="loading || selected.length === 0"
+            @click="typSelect()"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("chooseRecord") }}
@@ -95,33 +94,33 @@
         </q-btn>
 
         <q-btn
-          :dense="dense"
-          class="q-ml-lg"
-          icon-right="archive"
-          color="secondary"
-          no-caps
-          @click="exportTable"
+            :dense="dense"
+            class="q-ml-lg"
+            icon-right="archive"
+            color="secondary"
+            no-caps
+            @click="exportTable"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("msgToFile") }}
           </q-tooltip>
         </q-btn>
         <q-toggle
-          style="margin-left: 10px"
-          :dense="dense"
-          v-model="dense"
-          :model-value="dense"
-          :label="$t('isDense')"
+            style="margin-left: 10px"
+            :dense="dense"
+            v-model="dense"
+            :model-value="dense"
+            :label="$t('isDense')"
         />
 
         <q-space/>
         <q-input
-          :dense="dense"
-          debounce="300"
-          color="primary"
-          :model-value="filter.value"
-          v-model="filter"
-          :label="$t('txt_filter')"
+            :dense="dense"
+            debounce="300"
+            color="primary"
+            :model-value="filter.value"
+            v-model="filter"
+            :label="$t('txt_filter')"
         >
           <template v-slot:append>
             <q-icon name="search"/>
@@ -140,7 +139,7 @@
 import {defineComponent, ref} from "vue";
 import UpdateTyp from "pages/typ/UpdateTyp.vue";
 import {date, exportFile} from "quasar";
-import {api, baseURL, tofi_dbeg, tofi_dend} from "boot/axios";
+import {api, tofi_dbeg, tofi_dend} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 
 const requestParam = {
@@ -155,7 +154,7 @@ const requestParam = {
 function wrapCsvValue(val, formatFn) {
   let formatted = formatFn !== void 0 ? formatFn(val) : val;
   formatted =
-    formatted === void 0 || formatted === null ? "" : String(formatted);
+      formatted === void 0 || formatted === null ? "" : String(formatted);
 
   formatted = formatted.split('"').join('""');
   /**
@@ -216,31 +215,31 @@ export default defineComponent({
       }
       const lg = {name: this.lang};
       this.$q
-        .dialog({
-          component: UpdateTyp,
-          componentProps: {
-            form: data,
-            mode: mode,
-            lg: lg,
-            action: "typ",
-            dense: this.dense,
-            // ...
-          },
-        })
-        .onOk((r) => {
-          //console.log("Ok! updated", r);
-          if (mode === "ins") {
-            this.rows.push(r);
-            this.selected = [];
-            this.selected.push(r);
-          } else {
-            for (let key in r) {
-              if (r.hasOwnProperty(key)) {
-                rec[key] = r[key];
+          .dialog({
+            component: UpdateTyp,
+            componentProps: {
+              form: data,
+              mode: mode,
+              lg: lg,
+              action: "typ",
+              dense: this.dense,
+              // ...
+            },
+          })
+          .onOk((r) => {
+            //console.log("Ok! updated", r);
+            if (mode === "ins") {
+              this.rows.push(r);
+              this.selected = [];
+              this.selected.push(r);
+            } else {
+              for (let key in r) {
+                if (r.hasOwnProperty(key)) {
+                  rec[key] = r[key];
+                }
               }
             }
-          }
-        })
+          })
     },
 
     pagesNumber: function () {
@@ -251,54 +250,54 @@ export default defineComponent({
       this.loading = true
 
       const page =
-        requestProps.rowsPerPage === undefined ? 1 : requestProps.page;
+          requestProps.rowsPerPage === undefined ? 1 : requestProps.page;
       const rowsPerPage =
-        requestProps.rowsPerPage === 0
-          ? this.pagination.rowsNumber
-          : requestProps.rowsPerPage;
+          requestProps.rowsPerPage === 0
+              ? this.pagination.rowsNumber
+              : requestProps.rowsPerPage;
       const orderBy = requestProps.sortBy;
       const filter = requestProps.filter;
       //
       api
-        .post(baseURL, {
-          method: "typ/loadTypPaginate",
-          params: [
-            {
-              page: page,
-              limit: rowsPerPage,
-              orderBy: orderBy,
-              filter: filter,
-            },
-          ],
-        })
-        .then(
-          (response) => {
-            this.rows = response.data.result.store.records;
-            const meta = response.data.result.meta;
-            this.pagination.page = meta.page;
-            this.pagination.rowsPerPage = meta.limit;
-            this.pagination.rowsNumber = meta.total;
-            //
-            this.selected = ref([]);
-            if (this.typId > 0) {
-              let index = this.rows.findIndex((row) => row.id === this.typId);
-              this.selected.push(this.rows[index]);
-            }
-          },
-          (error) => {
+          .post("", {
+            method: "typ/loadTypPaginate",
+            params: [
+              {
+                page: page,
+                limit: rowsPerPage,
+                orderBy: orderBy,
+                filter: filter,
+              },
+            ],
+          })
+          .then(
+              (response) => {
+                this.rows = response.data.result.store.records;
+                const meta = response.data.result.meta;
+                this.pagination.page = meta.page;
+                this.pagination.rowsPerPage = meta.limit;
+                this.pagination.rowsNumber = meta.total;
+                //
+                this.selected = ref([]);
+                if (this.typId > 0) {
+                  let index = this.rows.findIndex((row) => row.id === this.typId);
+                  this.selected.push(this.rows[index]);
+                }
+              },
+              (error) => {
 
-            let msg
-            if (error.response)
-              msg = this.$t(error.response.data.error.message);
-            else msg = error.message;
-            notifyError(msg);
-          }
-        )
-        .finally(() => {
-          //setTimeout(() => {
-          this.loading = false
-          //}, 500)
-        });
+                let msg
+                if (error.response)
+                  msg = this.$t(error.response.data.error.message);
+                else msg = error.message;
+                notifyError(msg);
+              }
+          )
+          .finally(() => {
+            //setTimeout(() => {
+            this.loading = false
+            //}, 500)
+          });
     },
 
     requestData(requestProps) {
@@ -330,45 +329,45 @@ export default defineComponent({
     removeRow(rec) {
       //console.log("Delete Row:", JSON.stringify(rec))
       this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' +
-            rec.cod +
-            ": " +
-            rec.name +
-            ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          let index = this.rows.findIndex((row) => row.id === rec.id);
-          api
-            .post(baseURL, {
-              method: "typ/delete",
-              params: [{rec: rec}],
-            })
-            .then(
-              () => {
-                //console.log("response=>>>", response.data)
-                this.rows.splice(index, 1);
-                this.selected = ref([]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                let msg
-                if (error.response) msg = error.response.data.error.message;
-                else msg = error.message;
-                notifyError(msg);
-              }
-            );
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t("canceled"));
-        });
+          .dialog({
+            title: this.$t("confirmation"),
+            message:
+                this.$t("deleteRecord") +
+                '<div style="color: plum">(' +
+                rec.cod +
+                ": " +
+                rec.name +
+                ")</div>",
+            html: true,
+            cancel: true,
+            persistent: true,
+            focus: "cancel",
+          })
+          .onOk(() => {
+            let index = this.rows.findIndex((row) => row.id === rec.id);
+            api
+                .post("", {
+                  method: "typ/delete",
+                  params: [{rec: rec}],
+                })
+                .then(
+                    () => {
+                      //console.log("response=>>>", response.data)
+                      this.rows.splice(index, 1);
+                      this.selected = ref([]);
+                      notifySuccess(this.$t("success"));
+                    },
+                    (error) => {
+                      let msg
+                      if (error.response) msg = error.response.data.error.message;
+                      else msg = error.message;
+                      notifyError(msg);
+                    }
+                );
+          })
+          .onCancel(() => {
+            notifyInfo(this.$t("canceled"));
+          });
     },
 
     getColumns() {
@@ -411,7 +410,7 @@ export default defineComponent({
           headerStyle: "font-size: 1.2em",
           style: "width: 15%",
           format: (val) =>
-            this.FD_AccessLevel ? this.FD_AccessLevel.get(val) : null,
+              this.FD_AccessLevel ? this.FD_AccessLevel.get(val) : null,
         },
         {
           name: "dbeg",
@@ -422,7 +421,7 @@ export default defineComponent({
           headerStyle: "font-size: 1.2em",
           style: "width: 10%",
           format: (val) =>
-            val <= tofi_dbeg ? "..." : date.formatDate(val, "DD.MM.YYYY"),
+              val <= tofi_dbeg ? "..." : date.formatDate(val, "DD.MM.YYYY"),
         },
         {
           name: "dend",
@@ -433,7 +432,7 @@ export default defineComponent({
           headerStyle: "font-size: 1.2em;",
           style: "width: 10%",
           format: (val) =>
-            val >= tofi_dend ? "..." : date.formatDate(val, "DD.MM.YYYY"),
+              val >= tofi_dend ? "..." : date.formatDate(val, "DD.MM.YYYY"),
         },
         {
           name: "cmt",
@@ -453,21 +452,21 @@ export default defineComponent({
       //console.info("cols", cont)
 
       const content = [this.cols.map((col) => wrapCsvValue(col.label))]
-        .concat(
-          this.rows.map((row) =>
-            this.cols
-              .map((col) =>
-                wrapCsvValue(
-                  typeof col.field === "function"
-                    ? col.field(row)
-                    : row[col.field === void 0 ? col.name : col.field],
-                  col.format
-                )
+          .concat(
+              this.rows.map((row) =>
+                  this.cols
+                      .map((col) =>
+                          wrapCsvValue(
+                              typeof col.field === "function"
+                                  ? col.field(row)
+                                  : row[col.field === void 0 ? col.name : col.field],
+                              col.format
+                          )
+                      )
+                      .join("\t")
               )
-              .join("\t")
           )
-        )
-        .join("\r\n");
+          .join("\r\n");
 
       const status = exportFile(this.$t("typs") + ".txt", content, "text/cvs");
 
@@ -502,16 +501,16 @@ export default defineComponent({
     this.lang = localStorage.getItem("curLang");
     this.lang = this.lang === "en-US" ? "en" : this.lang;
     api
-      .post(baseURL, {
-        method: "dict/load",
-        params: [{dict: "FD_AccessLevel"}],
-      })
-      .then((response) => {
-        this.FD_AccessLevel = new Map();
-        response.data.result.records.forEach((it) => {
-          this.FD_AccessLevel.set(it["id"], it["text"]);
+        .post("", {
+          method: "dict/load",
+          params: [{dict: "FD_AccessLevel"}],
+        })
+        .then((response) => {
+          this.FD_AccessLevel = new Map();
+          response.data.result.records.forEach((it) => {
+            this.FD_AccessLevel.set(it["id"], it["text"]);
+          });
         });
-      });
 
     this.cols = this.getColumns();
     this.fetchData(requestParam);
@@ -522,7 +521,7 @@ export default defineComponent({
   },
 
   setup() {
-    return {
+      return {
       infoSelected(row) {
         if (row)
           return " " + row.cod + " - " + row.name;
@@ -533,32 +532,4 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
-.sticky-header-table {
-  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
-  max-height: 100%;
-  overflow: auto;
-}
-
-.sticky-header-table table {
-  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.sticky-header-table thead th {
-  /* Делаем заголовок липким */
-  position: sticky;
-  top: 0;
-  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
-  z-index: 1;
-  /* Фон обязателен, иначе заголовок будет прозрачным */
-  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
-}
-
-/* Опционально: если у таблицы есть границы, фиксируем их отображение */
-.sticky-header-table .q-table--bordered {
-  border-top: none;
-}
-</style>
-
+<style></style>

@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import {notifyError} from "src/utils/jsutils";
 
 export default {
@@ -50,7 +50,7 @@ export default {
     let role_id = this.$route["params"].role;
     this.loading = true;
     api
-      .post(baseURL, {
+      .post("", {
         method: "role/getRolePermis",
         params: [role_id],
       })

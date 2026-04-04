@@ -540,7 +540,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import allConsts from "pages/all-consts";
@@ -1240,7 +1240,7 @@ export default {
       this.visible = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadCompFor_11",
             params: [doit, prop],
           })
@@ -1272,7 +1272,7 @@ export default {
       parent = parent ? parseInt(parent, 10) : 0;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadValueOfProp",
             params: [doit, prop, parent, linkType],
           })
@@ -1317,7 +1317,7 @@ export default {
       this.visible = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadValueOfProp_7",
             params: [doit, prop, rtmORrcm, typORrel, linkType],
           })
@@ -1348,7 +1348,7 @@ export default {
       parent = parent ? parseInt(parent, 10) : 0;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadProp_10_11",
             params: [doit, rtmORrcm, parent, linkType],
           })
@@ -1371,7 +1371,7 @@ export default {
       parent = parent ? parseInt(parent, 10) : 0;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadProp_6",
             params: [memberType, typORrel, doit, parent],
           })
@@ -1394,7 +1394,7 @@ export default {
       parent = parent ? parseInt(parent, 10) : 0;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadProp",
             params: [doit, parent, linkType],
           })
@@ -1417,7 +1417,7 @@ export default {
       parent = parent ? parseInt(parent, 10) : 0;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadTypForSelect",
             params: [relTyp, parent, doit, linkType],
           })
@@ -1438,7 +1438,7 @@ export default {
       this.visible = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadRelTypMember",
             params: [memberType, relTyp, parent, linkType],
           })
@@ -1459,7 +1459,7 @@ export default {
       this.visible = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadRelClsMember",
             params: [memberType, relclsORrelTyp, parent, linkType],
           })
@@ -1480,7 +1480,7 @@ export default {
       this.visible = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadClsForSelect",
             params: [typ],
           })
@@ -1501,7 +1501,7 @@ export default {
       this.visible = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadRelTypForSelect",
             params: [doit, parent, linkType],
           })
@@ -1522,7 +1522,7 @@ export default {
       this.visible = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadRelClsForSelect",
             params: [reltyp, doit, parent, linkType],
           })
@@ -1567,7 +1567,7 @@ export default {
       const method = this.mode === "ins" ? "insertDOI" : "updateDOI";
 
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "dimobj/" + method,
             params: [this.form],
@@ -1622,7 +1622,7 @@ export default {
 
     this.visible = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_LinkType"}],
         })
@@ -1636,7 +1636,7 @@ export default {
     //
     this.visible = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_DimObjItemType"}],
         })

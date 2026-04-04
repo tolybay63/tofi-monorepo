@@ -149,7 +149,7 @@
 import {defineComponent, ref} from "vue";
 import UpdateFactor from "pages/factor/UpdateFactor.vue";
 import {exportFile} from "quasar";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 
 const requestParam = {
@@ -179,7 +179,7 @@ export default defineComponent({
     hasTarget,
     fnUp(up) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "factor/changeOrdFV",
             params: [{rec: this.selected[0], up: up}],
           })
@@ -319,7 +319,7 @@ export default defineComponent({
       const factor = requestProps.factor;
 
       api
-          .post(baseURL, {
+          .post("", {
             id: "1",
             method: "factor/loadFactorVal",
             params: [
@@ -385,7 +385,7 @@ export default defineComponent({
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "factor/delete",
                   params: [{rec: rec}],
                 })
@@ -497,7 +497,7 @@ export default defineComponent({
     this.lang = localStorage.getItem("curLang");
     this.lang = this.lang === "en-US" ? "en" : this.lang;
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })

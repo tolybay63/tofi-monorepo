@@ -86,7 +86,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
@@ -167,7 +167,7 @@ export default {
       }
 
       api
-        .post(baseURL, {
+        .post("", {
           id: this.form.id,
           method: "dimobj/" + method,
           params: [this.form],
@@ -197,7 +197,7 @@ export default {
     if (this.pt === 11 || this.pt === 55 || this.pt === 66 || this.pt === 77) {
       this.visible = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadOptPropVal",
             params: [this.prop, this.pt, this.dimObjItemProp, this.mode],
           })

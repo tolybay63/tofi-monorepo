@@ -2,28 +2,18 @@ package tofi.mdl.model.dao.typ;
 
 import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 
 import java.util.Map;
 
-public class NotExtendedMdbUtils {
-    Mdb mdb;
+public class NotExtendedMdbUtils extends BaseMdbUtils {
 
-    public NotExtendedMdbUtils(Mdb mdb) throws Exception {
-        this.mdb = mdb;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
-
-
+    @DaoMethod
     public Store loadNotExtended(long typ) throws Exception {
-        Store st = mdb.createStore("TypParentNot.full");
+        Store st = getMdb().createStore("TypParentNot.full");
 
         String sql = """
                     select t.*, v.name as nameClass, d.modelName
@@ -34,7 +24,7 @@ public class NotExtendedMdbUtils {
                         Left Join DataBase d on d.id=c.database
                     where t.typ=:typ
                 """;
-        mdb.loadQuery(st, sql, Map.of("typ", typ));
+        getMdb().loadQuery(st, sql, Map.of("typ", typ));
         //
         //todo запрос для получения nameObj
         //
@@ -42,6 +32,7 @@ public class NotExtendedMdbUtils {
         return st;
     }
 
+    @DaoMethod
     protected void validNotExtended(StoreRecord r) throws Exception {
         long typ = r.getLong("typ");
         long cls = r.getLong("clsOrObjCls");
@@ -49,7 +40,7 @@ public class NotExtendedMdbUtils {
         String sql = "";
 
         if (obj > 0) {
-            Store st = mdb.loadQuery("""
+            Store st = getMdb().loadQuery("""
                         select id from TypParentNot where typ=:typ and clsOrObjCls=:cls and obj=:obj
                     """, Map.of("typ", typ, "cls", cls, "obj", obj));
 
@@ -57,7 +48,7 @@ public class NotExtendedMdbUtils {
                 throw new XError("Данный объект уже указан");
             }
         } else {
-            Store st = mdb.loadQuery("""
+            Store st = getMdb().loadQuery("""
                         select id from TypParentNot where typ=:typ and clsOrObjCls=:cls
                     """, Map.of("typ", typ, "cls", cls));
 
@@ -69,14 +60,15 @@ public class NotExtendedMdbUtils {
 
     }
 
+    @DaoMethod
     public Store insertNotExtended(Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore("TypParentNot");
+        Store st = getMdb().createStore("TypParentNot");
         StoreRecord r = st.add(rec);
         validNotExtended(r);
-        long id = mdb.insertRec("TypParentNot", r, true);
+        long id = getMdb().insertRec("TypParentNot", r, true);
         //
-        st = mdb.createStore("TypParentNot.full");
-        mdb.loadQuery(st, """
+        st = getMdb().createStore("TypParentNot.full");
+        getMdb().loadQuery(st, """
                     select t.*, v.name as nameClass, d.modelName
                         --, ov.name as nameObj
                     from TypParentNot t
@@ -91,15 +83,16 @@ public class NotExtendedMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store updateNotExtended(Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore("TypParentNot");
+        Store st = getMdb().createStore("TypParentNot");
         StoreRecord r = st.add(rec);
         validNotExtended(r);
         long id = r.getLong("id");
-        mdb.updateRec("TypParentNot", r);
+        getMdb().updateRec("TypParentNot", r);
         //
-        st = mdb.createStore("TypParentNot.full");
-        mdb.loadQuery(st, """
+        st = getMdb().createStore("TypParentNot.full");
+        getMdb().loadQuery(st, """
                     select t.*, v.name as nameClass, d.modelName
                         --, ov.name as nameObj
                     from TypParentNot t
@@ -114,9 +107,9 @@ public class NotExtendedMdbUtils {
         return st;
     }
 
-
+    @DaoMethod
     public void deleteNotExtended(Map<String, Object> rec) throws Exception {
         long id = UtCnv.toLong(rec.get("id"));
-        mdb.deleteRec("TypParentNot", id);
+        getMdb().deleteRec("TypParentNot", id);
     }
 }

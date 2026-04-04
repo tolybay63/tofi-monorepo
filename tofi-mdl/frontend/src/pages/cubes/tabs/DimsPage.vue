@@ -103,7 +103,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL, tofi_dbeg, tofi_dend} from "boot/axios.js";
+import {api, tofi_dbeg, tofi_dend} from "boot/axios.js";
 import {date} from "quasar";
 import UpdateDims from "pages/cubes/tabs/UpdateDims.vue";
 import {notifyError, notifySuccess} from "src/utils/jsutils.js";
@@ -144,7 +144,7 @@ export default {
         .onOk(() => {
           this.loading = true
           api
-            .post(baseURL, {
+            .post("", {
               method: "cubes/deleteProCubeProp",
               params: [this.cubeS],
             })
@@ -179,7 +179,7 @@ export default {
         .onOk(() => {
           this.loading = true
           api
-            .post(baseURL, {
+            .post("", {
               method: "cubes/deleteProCubeObj",
               params: [this.cubeS],
             })
@@ -211,7 +211,7 @@ export default {
     load(cubes) {
       this.loading = ref(true)
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/loadDims",
           params: [cubes, 0],
         })
@@ -306,7 +306,7 @@ export default {
         })
         .onOk(() => {
           api
-            .post(baseURL, {
+            .post("", {
               method: "cubes/deleteCubeDim",
               params: [row.id],
             })
@@ -384,7 +384,7 @@ export default {
 
     this.loading = true;
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_CubeSDimType"}],
       })

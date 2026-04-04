@@ -238,7 +238,7 @@
 
 import {ref} from "vue";
 import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import allConsts from "pages/all-consts";
 import UpdaterDimPropItemProp from "pages/dimprop/UpdaterDimPropItemProp.vue";
 import UpdaterDimPropItemFactor from "pages/dimprop/UpdaterDimPropItemFactor.vue";
@@ -402,7 +402,7 @@ export default {
           })
           .onOk(() => {
             api
-                .post(baseURL, {
+                .post("", {
                   method: "dimprop/deleteDPI",
                   params: [rec.id],
                 })
@@ -432,7 +432,7 @@ export default {
       this.loading = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimprop/loadDimPropItemProp",
             params: [dimprop, this.dimPropType],
           })
@@ -446,7 +446,7 @@ export default {
         .then(()=> {
           if (this.dimPropType === allConsts.FD_DimPropType.dimMultiProp) {
             api
-              .post(baseURL, {
+              .post("", {
                 method: "dimprop/getDimMultiPropType",
                 params: [dimprop],
               })
@@ -650,7 +650,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
     //
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_PropType"}],
         })
@@ -662,7 +662,7 @@ export default {
         });
     //
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{ dict: "FD_DimPropType" }],
         })
