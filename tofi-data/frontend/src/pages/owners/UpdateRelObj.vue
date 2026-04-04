@@ -111,7 +111,7 @@
 </template>
 
 <script>
-import { api, baseURL } from "boot/axios";
+import { api } from "boot/axios";
 import { notifyError, notifySuccess } from "src/utils/jsutils";
 import {useParamsStore} from "stores/params-store";
 import {storeToRefs} from "pinia";
@@ -185,7 +185,7 @@ export default {
       this.form.model = getModel.value
       this.form.metamodel = getMetaModel.value
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/createOwn",
           params: [this.form],
         })
@@ -215,7 +215,7 @@ export default {
 
   created() {
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadDict",
         params: ["FD_AccessLevel"],
       })

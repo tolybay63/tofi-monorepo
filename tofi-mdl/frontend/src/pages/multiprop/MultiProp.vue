@@ -182,7 +182,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {
   collapsAll,
   expandAll,
@@ -247,7 +247,7 @@ export default {
 
     checkCondition(prop) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/checkCondition",
             params: [prop],
           })
@@ -260,7 +260,7 @@ export default {
 
     checkStatus(prop) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/checkStatus",
             params: [prop],
           })
@@ -273,7 +273,7 @@ export default {
 
     checkProvider(prop) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/checkProvider",
             params: [prop],
           })
@@ -298,7 +298,7 @@ export default {
       this.currentNode = item.selected !== undefined ? item.selected : null;
       if (this.currentNode) {
         api
-            .post(baseURL, {
+            .post("", {
               method: "group/loadRec",
               params: [{id: this.currentNode.id, tableName: "MultiPropGr"}],
             })
@@ -317,7 +317,7 @@ export default {
       this.currentNode = null
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "group/loadGroup",
             params: [{tableName: "MultiPropGr"}],
           })
@@ -428,7 +428,7 @@ export default {
           })
           .onOk(() => {
             api
-                .post(baseURL, {
+                .post("", {
                   method: "group/delete",
                   params: [rec],
                 })
@@ -482,7 +482,7 @@ export default {
     fnIns(mode) {
       if (mode === "ins") {
         api
-            .post(baseURL, {
+            .post("", {
               method: "multiProp/newRecMultiProp",
               params: [this.currentNode.id],
             })
@@ -513,7 +513,7 @@ export default {
           })
           .onOk(() => {
             api
-                .post(baseURL, {
+                .post("", {
                   method: "multiProp/deleteMultiProp",
                   params: [{id: rec.id}],
                 })
@@ -540,7 +540,7 @@ export default {
       this.selected2 = []
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/loadMultiProp",
             params: [propGr],
           })
@@ -649,7 +649,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })

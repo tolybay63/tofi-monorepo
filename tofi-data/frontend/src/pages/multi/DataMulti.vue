@@ -87,7 +87,7 @@
 import MultiPropsOfOwner from "pages/multi/MultiPropsOfOwner.vue";
 import EmptyPage from "pages/main/EmptyPage.vue";
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError} from "src/utils/jsutils";
 import {useParamsStore} from "stores/params-store";
 import {storeToRefs} from "pinia";
@@ -127,7 +127,7 @@ export default {
   methods: {
     loadPropsOfMulti(dmp, dmpi) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/propsOfMultiProp",
           params: [dmp, dmpi],
         })
@@ -246,7 +246,7 @@ export default {
 
     loadPeriod(prop) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/propPeriodType",
           params: [prop, true],
         })
@@ -266,7 +266,7 @@ export default {
 
     loadAttribValType(multiProp) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "matrix/propAttribValType",
           params: [multiProp],
         })
@@ -359,7 +359,7 @@ export default {
     if (this.isAttrib()) {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadDict",
           params: ["FD_AttribValType"],
         })
@@ -373,7 +373,7 @@ export default {
 
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadDict",
         params: ["FD_PeriodType"],
       })
@@ -389,7 +389,7 @@ export default {
     this.loading = ref(true);
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadRecObjOrRelObj",
         params: [this.owner, this.isObj, getModel.value, getMetaModel.value],
       })

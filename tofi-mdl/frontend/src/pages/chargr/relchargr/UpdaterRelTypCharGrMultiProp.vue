@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError} from "src/utils/jsutils";
 
 export default {
@@ -105,7 +105,7 @@ export default {
 
       this.form.storageType = typeof this.st === "object" ? this.st.id : this.st;
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/updateRelTypCharGrMultiProp",
             params: [this.form],
           })
@@ -131,7 +131,7 @@ export default {
   },
   created() {
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_StorageType"}],
         })

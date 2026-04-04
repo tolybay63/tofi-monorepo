@@ -117,7 +117,7 @@
 <script>
 import {ref} from "vue";
 import {collapsAll, expandAll, hasTarget, notifyError, pack} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import allConsts from "pages/all-consts";
 
 import UpdateTypCharGrPropUpd from "pages/chargr/typchargr/UpdateTypCharGrPropUpd.vue";
@@ -205,7 +205,7 @@ export default {
       this.loading = ref(true);
       //
       api
-        .post(baseURL, {
+        .post("", {
           method: "typ/loadTypCharGrProp",
           params: [{typCharGr: typCharGr}],
         })
@@ -383,7 +383,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_StorageType"}],
       })
@@ -395,7 +395,7 @@ export default {
       });
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "flatTable/loadTables",
         params: [{}],
       })

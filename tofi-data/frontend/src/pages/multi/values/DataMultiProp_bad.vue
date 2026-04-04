@@ -167,7 +167,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifyInfo} from "src/utils/jsutils";
 //import UpdaterDataPropMatrix from "pages/matrix/values/UpdaterDataPropMatrix";
 //import DataPropMatrixVal from "pages/matrix/values/DataPropMatrixVal";
@@ -276,7 +276,7 @@ export default {
         })
         .onOk(() => {
           api
-            .post(baseURL, {
+            .post("", {
               method: "matrix/deleteDataPropMatrix",
               params: [rec.id],
             })
@@ -365,7 +365,7 @@ export default {
       if (this.reqParams.providerTyp > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "matrix/loadProvider",
             params: [this.reqParams.propMatrix],
           })
@@ -383,7 +383,7 @@ export default {
       if (this.reqParams.statusFactor > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "matrix/loadStatus",
             params: [this.reqParams.propMatrix],
           })
@@ -400,7 +400,7 @@ export default {
       //
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "matrix/loadDataMultiProp",
           params: [this.reqParams],
         })

@@ -74,7 +74,7 @@
 import treeselect from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
 
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 
 export default {
@@ -102,7 +102,7 @@ export default {
   methods: {
     fetchData(cls) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "obj/loadObjTreeSelect",
             params: [cls],
           })
@@ -166,7 +166,7 @@ export default {
           this.mode === "ins" ? "insertNotExtended" : "updateNotExtended";
       let err = false;
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/" + method,
             params: [this.form],
           })
@@ -197,7 +197,7 @@ export default {
   },
   created() {
     api
-        .post(baseURL, {
+        .post("", {
           method: "typ/loadClsTree",
           params: [{typ: this.typ}],
         })

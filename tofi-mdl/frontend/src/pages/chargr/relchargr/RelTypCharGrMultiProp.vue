@@ -108,7 +108,7 @@
 <script>
 import {ref} from "vue";
 import {collapsAll, expandAll, hasTarget, notifyError, pack} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import UpdaterRelTypCharGrMultiProp from "pages/chargr/relchargr/UpdaterRelTypCharGrMultiProp.vue";
 import UpdaterRelTypCharGrMultiPropUpd from "pages/chargr/relchargr/UpdaterRelTypCharGrMultiPropUpd.vue";
 
@@ -186,7 +186,7 @@ export default {
     loadData(relTypCharGr) {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/loadRelTypCharGrMultiProp",
             params: [{relTypCharGr: relTypCharGr}],
           })
@@ -318,7 +318,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_StorageType"}],
         })

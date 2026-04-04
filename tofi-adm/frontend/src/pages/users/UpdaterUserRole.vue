@@ -88,7 +88,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import {notifyError} from "src/utils/jsutils";
 
 export default {
@@ -167,7 +167,7 @@ export default {
       });
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "usr/saveUserRole",
           params: [this.user, dta],
         })
@@ -209,7 +209,7 @@ export default {
     this.cols = this.getColumns();
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "usr/loadUserRolesForUpd",
         params: [this.user],
       })

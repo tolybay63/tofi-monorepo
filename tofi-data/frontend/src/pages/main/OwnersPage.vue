@@ -175,7 +175,7 @@
 <script>
 import {ref} from "vue";
 import UpdateObj from "pages/owners/UpdateObj.vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {findNode, getParentNode, hasTarget, notifyError, notifyInfo} from "src/utils/jsutils";
 import {useParamsStore} from "stores/params-store";
 import UpdateRelObj from "pages/owners/UpdateRelObj.vue";
@@ -263,7 +263,7 @@ export default {
               })
               .onOk(() => {
                 api
-                  .post(baseURL, {
+                  .post("", {
                     method: "data/deleteOwnerWithProperties",
                     params: [item.node, 1, getModel.value, getMetaModel.value],
                   })
@@ -291,7 +291,7 @@ export default {
           } else {
             this.loading = true
             api
-              .post(baseURL, {
+              .post("", {
                 method: "data/getParentName",
                 params: [item.node, getModel.value, getMetaModel.value],
               })
@@ -325,7 +325,7 @@ export default {
               })
               .onOk(() => {
                 api
-                  .post(baseURL, {
+                  .post("", {
                     method: "data/deleteOwnerWithProperties",
                     params: [item.node, 0, getModel.value, getMetaModel.value],
                   })
@@ -357,7 +357,7 @@ export default {
           } else {
             this.loading = true
             api
-              .post(baseURL, {
+              .post("", {
                 method: "data/getParentNameRO",
                 params: [item.relCls],
               })
@@ -390,7 +390,7 @@ export default {
       if (mode === "upd") {
         this.loading = true
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadRecObjOrRelObj",
             params: [item.node, true, getModel.value, getMetaModel.value],
           })
@@ -484,7 +484,7 @@ export default {
       if (mode === "upd") {
         this.loading = true
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadRecObjOrRelObj",
             params: [item.node, false, getModel.value, getMetaModel.value],
           })
@@ -593,7 +593,7 @@ export default {
     loadOwners1lev() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadOwnersParent",
           params: [getStoreParams.value],
         })
@@ -703,7 +703,7 @@ export default {
         this.loading = true
         let isMultiProp = this.propName !== "prop";
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadOwners",
             params: [isMultiProp, item.id, item.cls ? item.cls : 0, item.relCls ? item.relCls : 0,
               item.isObj, getModel.value, getMetaModel.value, 0],
@@ -745,7 +745,7 @@ export default {
         this.loading = true
         let isMultiProp = this.propName !== "prop";
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadOwners",
             params: [isMultiProp, item.id, item.cls ? item.cls : 0, item.relCls ? item.relCls : 0,
               item.isObj, getModel.value, getMetaModel.value, 0],
@@ -827,7 +827,7 @@ export default {
   created() {
     this.loading = true
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadClsFromChar",
         params: [],
       })
@@ -841,7 +841,7 @@ export default {
         })
       .then(() => {
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadRelTypFromChar",
             params: [],
           })

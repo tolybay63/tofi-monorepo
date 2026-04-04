@@ -109,7 +109,7 @@
 import QTreeTable from "components/QTreeTable.vue";
 import {ref} from "vue";
 import allConsts from "pages/all-consts";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import UpdateProp from "pages/prop/UpdateProp.vue";
 import {collapsAll, expandAll, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
 
@@ -139,7 +139,7 @@ export default {
       if (this.currentNode) {
         //console.info("this.currentNode", this.currentNode)
         api
-            .post(baseURL, {
+            .post("", {
               method: "prop/loadRec",
               params: [this.currentNode.id],
             })
@@ -156,7 +156,7 @@ export default {
                   this.currentNode.propType === allConsts.FD_PropType.rate
               ) {
                 api
-                    .post(baseURL, {
+                    .post("", {
                       method: "meter/loadRec",
                       params: [{id: this.currentNode.meter}],
                     })
@@ -172,7 +172,7 @@ export default {
     fetchData(prop) {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/loadPropComplex",
             params: [prop],
           })
@@ -231,7 +231,7 @@ export default {
     fnIns(mode) {
       if (mode === "ins") {
         api
-            .post(baseURL, {
+            .post("", {
               method: "prop/newRecComplex",
               params: [this.parentNode],
             })
@@ -263,7 +263,7 @@ export default {
           .onOk(() => {
             //let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "prop/delete",
                   params: [{rec: rec}],
                 })
@@ -293,7 +293,7 @@ export default {
     checkStatus(item) {
       let prop = item.id;
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/checkStatus",
             params: [prop],
           })
@@ -307,7 +307,7 @@ export default {
     checkProvider(item) {
       let prop = item.id;
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/checkProvider",
             params: [prop],
           })
@@ -372,7 +372,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_PropType"}],
         })

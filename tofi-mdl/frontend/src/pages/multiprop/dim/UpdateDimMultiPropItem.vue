@@ -146,7 +146,7 @@
 
 <script>
 import {extend} from "quasar";
-import {api, baseURL} from "boot/axios.js";
+import {api} from "boot/axios.js";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils.js";
 import treeselect from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
@@ -254,7 +254,7 @@ export default {
       this.form.multiEntityType =
           typeof this.et === "object" ? this.et.id : this.et
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "dimMultiProp/" + method,
             params: [this.form],
@@ -284,7 +284,7 @@ export default {
   created() {
     this.visible = true
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_MultiValEntityType"}],
         })
@@ -299,7 +299,7 @@ export default {
     //
     this.visible = true
     api
-        .post(baseURL, {
+        .post("", {
           method: "dimMultiProp/loadPropForMultiPropItem",
           params: [],
         })

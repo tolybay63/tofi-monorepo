@@ -1,23 +1,13 @@
 package tofi.mdl.model.dao.typ.test
 
 import jandcode.commons.UtCnv
+import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.dbm.mdb.Mdb
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 import tofi.mdl.model.utils.EntityMdbUtils
 
-class TestMdbUtils {
-    Mdb mdb
-
-    public TestMdbUtils(Mdb mdb) throws Exception {
-        this.mdb = mdb
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
+class TestMdbUtils extends BaseMdbUtils {
 
 
     public void importObj(String path, String fn) throws Exception {

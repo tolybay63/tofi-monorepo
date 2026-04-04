@@ -163,7 +163,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import allConsts from "pages/all-consts";
 import PropPeriodType from "pages/prop/values/PropPeriodType.vue";
 import PropRefVal from "pages/prop/values/PropRefVal.vue";
@@ -352,7 +352,7 @@ export default {
     // load prop
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           id: "1",
           method: "prop/loadRec",
           params: [this.propId],

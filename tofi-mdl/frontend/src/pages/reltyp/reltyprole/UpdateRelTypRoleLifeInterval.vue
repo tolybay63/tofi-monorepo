@@ -70,7 +70,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
@@ -120,7 +120,7 @@ export default {
       const method =
           this.mode === "ins" ? "insertRelTypRoleLife" : "updateRelTypRoleLife";
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "reltyp/" + method,
             params: [{rec: this.form}],

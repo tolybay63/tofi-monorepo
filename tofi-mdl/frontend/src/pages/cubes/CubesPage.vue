@@ -195,7 +195,7 @@
 <script>
 import QTreeTable from "components/QTreeTable.vue";
 import {ref} from "vue";
-import {api, baseURL, tofi_dbeg, tofi_dend} from "boot/axios.js";
+import {api, tofi_dbeg, tofi_dend} from "boot/axios.js";
 import {
   collapsAll,
   expandAll,
@@ -312,7 +312,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "cubes/deleteCube",
               params: [rec],
             })
@@ -358,7 +358,7 @@ export default {
       this.currentNode = item.selected !== undefined ? item.selected : null;
       if (this.currentNode) {
         api
-          .post(baseURL, {
+          .post("", {
             method: "group/loadRec",
             params: [{id: this.currentNode.id, tableName: "CubeSGr"}],
           })
@@ -377,7 +377,7 @@ export default {
       this.currentNode = null
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "group/loadGroup",
           params: [{tableName: "CubeSGr"}],
         })
@@ -414,7 +414,7 @@ export default {
       //this.currentNode2 = null
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/loadCubes",
           params: [cubesGr, 0],
         })
@@ -522,7 +522,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "group/delete",
               params: [rec],
             })
@@ -665,7 +665,7 @@ export default {
 
     this.loading = true;
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_AccessLevel"}],
       })
@@ -688,7 +688,7 @@ export default {
 
     this.loading = true;
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_CubeSType"}],
       })

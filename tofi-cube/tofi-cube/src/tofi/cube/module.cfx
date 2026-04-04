@@ -9,23 +9,11 @@
         />
 
         <action name="auth"
-                class="jandcode.core.apx.auth.AuthAction"/>
-
+                class="tofi.auth.TofiAuthAction"/>
 
     </web>
 
-
-    <bean name="jandcode.core.auth.AuthService"
-          class="jandcode.core.auth.impl.AuthServiceImpl">
-
-        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
-        <auth-processor name="default"
-                        class="tofi.cube.auth.TofiAuthProcessor"/>
-
-    </bean>
-
     <dbm>
-
         <model name="tofi.cube.model">
             <include name="apx.base"/>
             <include name="jandcode.core.dbm.genid"/>

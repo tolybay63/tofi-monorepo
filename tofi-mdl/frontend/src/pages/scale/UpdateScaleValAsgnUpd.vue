@@ -112,7 +112,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import {ref} from "vue";
 import UpdateScaleValAsgn from "pages/scale/UpdateScaleValAsgn.vue";
@@ -243,7 +243,7 @@ export default {
       })
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "scale/updateScaleValAsgn",
             params: [ this.scale, this.scaleAsgn, data],
           })
@@ -274,7 +274,7 @@ export default {
     this.cols = this.getColumns()
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "scale/loadScaleValAsgnUpd",
           params: [this.scale, this.scaleAsgn, this.nmAsgn],
         })

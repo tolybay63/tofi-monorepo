@@ -129,7 +129,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {checkChilds, collapsAll, expandAll, notifyError, pack, uncheckChilds} from "src/utils/jsutils";
 
@@ -189,7 +189,7 @@ export default {
     loadData() {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadTypCharGrMultiPropForUpd",
             params: [this.typCharGr],
           })
@@ -268,7 +268,7 @@ export default {
       //console.info("d0", d0)
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/saveTypCharGrMultiProp",
             params: [{typCharGr: this.typCharGr, data: d0}],
           })

@@ -80,7 +80,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {notifyError, notifyInfo} from "src/utils/jsutils";
 
@@ -162,7 +162,7 @@ export default {
       });
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/savePropPeriodType",
             params: [this.prop, getMetaModel.value, dta],
           })
@@ -210,7 +210,7 @@ export default {
     this.cols = this.getColumns();
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "prop/loadPropPeriodTypeForUpd",
           params: [this.prop],
         })

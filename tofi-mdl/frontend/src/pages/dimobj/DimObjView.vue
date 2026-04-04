@@ -127,7 +127,7 @@
 </template>
 
 <script>
-import {api, baseURL, tofi_dbeg, tofi_dend} from "boot/axios";
+import {api, tofi_dbeg, tofi_dend} from "boot/axios";
 import {ref} from "vue";
 import {collapsAll, expandAll, pack} from "src/utils/jsutils";
 import {date} from "quasar";
@@ -197,7 +197,7 @@ export default {
     loadData(params) {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimobj/loadTreeForView",
           params: [params],
         })

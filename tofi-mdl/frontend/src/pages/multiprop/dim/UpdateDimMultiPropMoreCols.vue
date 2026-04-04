@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import {ref} from "vue";
 
@@ -109,7 +109,7 @@ export default {
       const method = this.mode === "ins" ? "insertMoreCols" : "updateMoreCols";
 
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "dimMultiProp/" + method,
             params: [this.form],

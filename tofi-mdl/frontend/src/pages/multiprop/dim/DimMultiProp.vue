@@ -300,7 +300,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {
   collapsAll,
   expandAll,
@@ -367,7 +367,7 @@ export default {
       this.currentNode = item.selected !== undefined ? item.selected : null;
       if (this.currentNode) {
         api
-          .post(baseURL, {
+          .post("", {
             method: "group/loadRec",
             params: [{id: this.currentNode.id, tableName: "DimMultiPropGr"}],
           })
@@ -386,7 +386,7 @@ export default {
       this.visible = ref(true)
       this.currentNode = null
       api
-        .post(baseURL, {
+        .post("", {
           method: "group/loadGroup",
           params: [{tableName: "DimMultiPropGr"}],
         })
@@ -498,7 +498,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "group/delete",
               params: [rec],
             })
@@ -551,7 +551,7 @@ export default {
     fnIns(mode) {
       if (mode === "ins") {
         api
-          .post(baseURL, {
+          .post("", {
             method: "dimMultiProp/newRec",
             params: [this.currentNode.id],
           })
@@ -582,7 +582,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "dimMultiProp/delete",
               params: [{rec: rec}],
             })
@@ -609,7 +609,7 @@ export default {
       this.visible = ref(true)
       this.selected2 = []
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimMultiProp/loadDimMultiProp",
           params: [propGr],
         })
@@ -643,7 +643,7 @@ export default {
 
     fnUp(up) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimMultiProp/changeOrdMoreCols",
           params: [{rec: this.selected3[0], up: up, dimMultiProp: this.selected2[0].id}],
         })
@@ -697,7 +697,7 @@ export default {
       this.loading3 = ref(true)
       this.selected3 = []
       api
-        .post(baseURL, {
+        .post("", {
           method: "dimMultiProp/loadDimMultiPropMoreCols",
           params: [dimMultiProp],
         })
@@ -736,7 +736,7 @@ export default {
         .onOk(() => {
           this.loading3 = ref(true)
           api
-            .post(baseURL, {
+            .post("", {
               method: "dimMultiProp/deleteMoreCols",
               params: [rec.id],
             })
@@ -886,7 +886,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_AccessLevel"}],
       })
@@ -898,7 +898,7 @@ export default {
       })
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_DimMultiPropType"}],
       })

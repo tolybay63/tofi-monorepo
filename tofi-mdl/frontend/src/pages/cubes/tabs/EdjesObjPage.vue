@@ -132,7 +132,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios.js";
+import {api} from "boot/axios.js";
 import {ref} from "vue";
 import EdjesProp from "pages/cubes/tabs/prop/EdjesProp.vue";
 import EdjesObj from "pages/cubes/tabs/obj/EdjesObj.vue";
@@ -213,7 +213,7 @@ export default {
       //console.log("onUpdateBind")
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/bindingDO",
           params: [this.cubeSFace, this.dimCount, this.doX, this.doY, this.doi3 ? this.doi3 : 0, this.doi4 ? this.doi4 : 0,
             this.cl3 ? this.cl3 : 0, this.cl4 ? this.cl4 : 0],
@@ -276,7 +276,7 @@ export default {
         return
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/loadGridDO",
           params: [this.cubeS, this.dimCount, this.doX, this.doY, this.cl3 ? this.cl3 : 0, this.cl4 ? this.cl4 : 0],
         })
@@ -533,7 +533,7 @@ export default {
 
     this.loading = true
     api
-      .post(baseURL, {
+      .post("", {
         method: "cubes/loadDimObjForSelect",
         params: [this.cubeS],
       })
@@ -570,7 +570,7 @@ export default {
             param.dimObj4 = this.optDimObj[3].id
           }
           api
-            .post(baseURL, {
+            .post("", {
               method: "cubes/loadAllDimObjForFixed",
               params: [param],
             })

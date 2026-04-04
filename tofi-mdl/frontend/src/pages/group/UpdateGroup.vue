@@ -117,7 +117,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 
 import treeselect from "vue3-treeselect";
@@ -216,7 +216,7 @@ export default {
           typeof this.al === "object" ? this.al.id : this.al;
 
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "group/" + method,
             params: [{rec: this.form, tableName: this.tableName}],
@@ -246,7 +246,7 @@ export default {
     console.log("CREATE DATA", this.data);
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })
@@ -255,7 +255,7 @@ export default {
         });
     //
     api
-        .post(baseURL, {
+        .post("", {
           method: "group/loadGroupForSelect",
           params: [{id: this.data.id, tableName: this.tableName}],
         })

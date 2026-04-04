@@ -198,7 +198,7 @@ class DataMultiDao extends BaseMdbUtils {
             StoreRecord recDMPC = mdb.createStoreRecord("DataMultiPropCell")
             def au = mdb.getApp().bean(AuthService.class).currentUser.attrs.getLong("id")
             if (au==0)
-                throw new XError("notLogined")
+                throw new XError("notLoginned")
             def inputType = 2L
             def measure = params.get("measure")
             recDMPC.set("dataMultiProp", idDMP)

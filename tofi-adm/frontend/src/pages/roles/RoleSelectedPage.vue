@@ -42,7 +42,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import RoleDesc from "pages/roles/RoleDesc.vue";
 import RolePermis from "pages/roles/RolePermis.vue";
 import {notifyError} from "src/utils/jsutils";
@@ -79,7 +79,7 @@ export default {
     // load role
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "role/loadRec",
         params: [this.role_id],
       })

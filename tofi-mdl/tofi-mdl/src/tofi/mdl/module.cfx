@@ -10,34 +10,15 @@
         />
 
         <action name="auth"
-                class="jandcode.core.apx.auth.AuthAction"/>
+                class="tofi.auth.TofiAuthAction"/>
 
         <action name="download"
                 class="tofi.mdl.action.DownLoadAction"/>
 
-        <x-if env.dev="true">
-            <!-- автологин подключаем только в режиме dev -->
-            <filter name="auth-autologin"
-                    class="jandcode.core.apx.auth.AuthAutoLoginFilter"
-                    type="startRequest" weight="-100"/>
-        </x-if>
-
-        <filter name="auth"
+        <filter name="jc-auth-engine"
                 class="jandcode.core.apx.auth.AuthFilter"
-                type="*" weight="-100"/>
-
+                type="*" weight="-110"/>
     </web>
-
-
-    <bean name="jandcode.core.auth.AuthService"
-          class="jandcode.core.auth.impl.AuthServiceImpl">
-
-        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
-        <auth-processor name="default"
-                        class="tofi.mdl.auth.TofiAuthProcessor"/>
-
-    </bean>
-
 
     <dbm>
 

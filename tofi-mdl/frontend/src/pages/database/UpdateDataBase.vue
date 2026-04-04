@@ -109,7 +109,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
@@ -174,7 +174,7 @@ export default {
       this.form.permis =
           typeof this.dbType === "object" ? this.dbType.id : this.dbType;
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "database/" + method,
             params: [this.form],
@@ -222,7 +222,7 @@ export default {
 
   created() {
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_DataBaseType"}],
         })

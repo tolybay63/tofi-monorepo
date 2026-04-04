@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
@@ -150,7 +150,7 @@ export default {
       let err = false;
 
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "relcls/updateRelClsMember",
             params: [this.form],
@@ -180,7 +180,7 @@ export default {
 
   created() {
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_MemberType"}],
         })
@@ -190,7 +190,7 @@ export default {
         });
     //
     api
-        .post(baseURL, {
+        .post("", {
           method: "role/loadRoles",
           params: [{}],
         })
@@ -201,7 +201,7 @@ export default {
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "typ/loadTypForSelect",
           params: [{}],
         })
@@ -211,7 +211,7 @@ export default {
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "reltyp/loadRelTypForSelect",
           params: [],
         })

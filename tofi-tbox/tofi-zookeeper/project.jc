@@ -13,7 +13,7 @@ class P extends ProjectScript {
         include(JavaProject).with {
             moduleDef("tofi.zookeeper").with {
                 depends.prod(
-                    "curator-recipes",
+                    //"curator-recipes",
                 )
                 depends.dev(
                 )

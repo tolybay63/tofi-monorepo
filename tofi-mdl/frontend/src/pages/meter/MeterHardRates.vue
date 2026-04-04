@@ -156,7 +156,7 @@
 
 <script>
 import {defineComponent, ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {collapsAll, expand, expandAll, getParentNode, hasTarget, notifyInfo, pack,} from "src/utils/jsutils";
 import UpdateHardMeterRate from "pages/meter/UpdateHardMeterRate.vue";
 
@@ -192,7 +192,7 @@ export default defineComponent({
     this.columns = this.getColumns();
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })
@@ -374,7 +374,7 @@ export default defineComponent({
           .onOk(() => {
             //let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "meterrate/deleteHardMR",
                   params: [{rec: rec}],
                 })
@@ -403,7 +403,7 @@ export default defineComponent({
     fetchData() {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "meterrate/loadHardMR",
             params: [this.meter_id],
           })

@@ -111,7 +111,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {collapsAll, expandAll, notifyError, pack} from "src/utils/jsutils";
 
@@ -173,7 +173,7 @@ export default {
     loadData() {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/loadPropMeterForUpdSave",
             params: [
               {
@@ -247,7 +247,7 @@ export default {
       });
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/savePropMeter",
             params: [
               {prop: this.prop, meterStruct: this.meterStruct, data: d0},

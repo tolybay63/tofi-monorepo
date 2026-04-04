@@ -100,7 +100,7 @@
 <script>
 import {defineComponent, ref} from "vue";
 import {useUserStore} from "stores/user-store";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateDataBase from "pages/database/UpdateDataBase.vue";
 
@@ -187,7 +187,7 @@ export default defineComponent({
     load() {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "database/load",
             params: [],
           })
@@ -216,7 +216,7 @@ export default defineComponent({
       if (mode === "ins") {
         this.loading = ref(true);
         api
-            .post(baseURL, {
+            .post("", {
               method: "database/newRec",
               params: [],
             })
@@ -292,7 +292,7 @@ export default defineComponent({
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "database/delete",
                   params: [rec],
                 })
@@ -313,7 +313,7 @@ export default defineComponent({
   created() {
     this.cols = this.getColumns();
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_DataBaseType"}],
         })
