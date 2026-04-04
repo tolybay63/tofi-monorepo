@@ -121,7 +121,7 @@
 
 <script>
 
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import {ref} from "vue";
 
@@ -176,7 +176,7 @@ export default {
     loadRelCls(relTyp) {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "reltyp/loadRelClsForSelect",
           params: [relTyp],
         })
@@ -250,7 +250,7 @@ export default {
           this.mode === "ins" ? "insertRelTypCharGr" : "updateRelTypCharGr";
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/" + method,
             params: [this.form],
           })
@@ -277,7 +277,7 @@ export default {
   created() {
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })
@@ -292,7 +292,7 @@ export default {
 
     this.loading = ref(true);
     api
-    .post(baseURL, {
+    .post("", {
       method: "reltyp/loadRelTypForSelect",//"dimMultiProp/loadRelClsForSelect",
       params: [],
     })

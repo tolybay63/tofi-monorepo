@@ -87,7 +87,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
 import UpdateMeasure from "pages/measure/UpdateMeasure.vue";
 import QTreeTable from "components/QTreeTable.vue";
@@ -121,7 +121,7 @@ export default {
     fetchData() {
       this.visible = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "measure/load",
           params: [{}],
         })
@@ -299,7 +299,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "measure/delete",
               params: [{rec: rec}],
             })
@@ -323,7 +323,7 @@ export default {
     this.cols = this.getColumns();
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_AccessLevel"}],
       })

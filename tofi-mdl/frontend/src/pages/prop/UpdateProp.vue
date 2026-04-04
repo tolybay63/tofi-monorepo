@@ -510,7 +510,7 @@
 <script>
 import treeselect from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 import {ref} from "vue";
 import allConsts from "pages/all-consts";
@@ -630,7 +630,7 @@ export default {
     loadAttrib() {
       this.visible = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "attrib/loadForSelect",
           params: [],
         })
@@ -646,7 +646,7 @@ export default {
     loadRelTyp() {
       this.visible = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "reltyp/loadRelTypForSelect",
           params: [],
         })
@@ -662,7 +662,7 @@ export default {
     loadMeter() {
       this.visible = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "meter/loadForSelect",
           params: [],
         })
@@ -682,7 +682,7 @@ export default {
         if (this.meterStruct === allConsts.FD_MeterStruct.soft)
           act = "meterrate/loadSoftMR";
         api
-          .post(baseURL, {
+          .post("", {
             method: act,
             params: [meter],
           })
@@ -708,7 +708,7 @@ export default {
         this.loadMeterRate(val.id);
 
         api
-          .post(baseURL, {
+          .post("", {
             method: "measure/load",
             params: [params],
           })
@@ -1017,7 +1017,7 @@ export default {
 
       let err = false;
       api
-        .post(baseURL, {
+        .post("", {
           method: "prop/" + method,
           params: [{rec: this.form}],
         })
@@ -1057,7 +1057,7 @@ export default {
 
     getDict(dictName) {
       api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: dictName}],
         })
@@ -1118,7 +1118,7 @@ export default {
     this.getDict("FD_VisualFormat");
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "prop/getParentName",
         params: [this.rec.propGr, !this.rec.parent ? 0 : this.rec.parent],
       })
@@ -1127,7 +1127,7 @@ export default {
       });
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "factor/loadForSelect",
         params: [],
       })
@@ -1139,7 +1139,7 @@ export default {
 
     this.visible = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "typ/loadTypForSelect",
         params: [{}],
       })
@@ -1164,7 +1164,7 @@ export default {
         this.form.propType === allConsts.FD_PropType.rate
       ) {
         api
-          .post(baseURL, {
+          .post("", {
             method: "meter/loadForSelect",
             params: [],
           })
@@ -1182,7 +1182,7 @@ export default {
               this.loadMeterRate(this.rec.meter);
             }
             api
-              .post(baseURL, {
+              .post("", {
                 method: "measure/load",
                 params: [{meter: this.form.meter}],
               })

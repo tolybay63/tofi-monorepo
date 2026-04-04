@@ -128,7 +128,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 import treeselect from "vue3-treeselect";
 import allConsts from "pages/all-consts.js";
@@ -231,7 +231,7 @@ export default {
         typeof this.dpt === "object" ? this.dpt.id : this.dpt;
 
       api
-        .post(baseURL, {
+        .post("", {
           id: this.form.id,
           method: "dimprop/" + method,
           params: [{rec: this.form}],
@@ -261,7 +261,7 @@ export default {
     console.info("UpdaterDimProp");
     this.loading = true;
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_AccessLevel"}],
       })
@@ -274,7 +274,7 @@ export default {
     //
     this.loading = true;
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_DimPropType"}],
       })
@@ -287,7 +287,7 @@ export default {
     //
     this.loading = true;
     api
-      .post(baseURL, {
+      .post("", {
         method: "dimprop/loadAllDimMultiPropForSelect",
         params: [],
       })

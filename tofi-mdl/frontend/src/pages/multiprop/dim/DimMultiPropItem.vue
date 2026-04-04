@@ -135,7 +135,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
 import QTreeTable from "components/QTreeTable.vue";
 import UpdateDimMultiPropItem from "pages/multiprop/dim/UpdateDimMultiPropItem.vue";
@@ -263,7 +263,7 @@ export default {
 
       if (mode === "ins") {
         api
-            .post(baseURL, {
+            .post("", {
               method: "dimMultiProp/newRecDimMultiPropItem",
               params: [this.dimMultiProp],
             })
@@ -311,7 +311,7 @@ export default {
           .onOk(() => {
             //let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "dimMultiProp/deleteDimItem",
                   params: [rec],
                 })
@@ -336,7 +336,7 @@ export default {
     fetchData(propDim) {
       this.visible = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimMultiProp/loadDimMultiPropItem",
             params: [propDim],
           })

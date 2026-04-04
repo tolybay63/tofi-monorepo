@@ -56,7 +56,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import TypVer from "pages/typ/ver/TypVer.vue";
 import TypRole from "pages/typ/typrole/TypRole.vue";
 import ClusterFactorPage from "pages/typ/clusterfactor/ClusterFactorPage.vue";
@@ -103,7 +103,7 @@ export default {
     onLoadTyp(typ) {
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             id: "1",
             method: "typ/loadRec",
             params: [typ],

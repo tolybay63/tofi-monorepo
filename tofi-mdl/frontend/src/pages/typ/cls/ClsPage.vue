@@ -254,7 +254,7 @@ style="height: calc(100vh - 220px); width: 100%"
 
 <script>
 import {ref} from "vue";
-import {api, baseURL, tofi_dbeg, tofi_dend} from "boot/axios";
+import {api, tofi_dbeg, tofi_dend} from "boot/axios";
 import UpdateCls from "pages/typ/cls/UpdateCls.vue";
 import {
   collapsAll,
@@ -358,7 +358,7 @@ export default {
     fetchData2(typ, cls) {
       this.loading = ref(false);
       api
-        .post(baseURL, {
+        .post("", {
           method: "typ/loadClsFV",
           params: [typ, cls],
         })
@@ -387,7 +387,7 @@ export default {
 
       this.selected = ref([])
       api
-        .post(baseURL, {
+        .post("", {
           method: "typ/loadClsTree",
           params: [{typ: typ, typNodeVisible: false}],
         })
@@ -438,7 +438,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.ent === rec.ent);
           api
-            .post(baseURL, {
+            .post("", {
               method: "typ/deleteCls",
               params: [{rec: rec}],
             })
@@ -715,7 +715,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_AccessLevel"}],
       })
@@ -727,7 +727,7 @@ export default {
       });
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "database/loadDbForSelect",
         params: [],
       })

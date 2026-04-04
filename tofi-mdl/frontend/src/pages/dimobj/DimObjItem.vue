@@ -405,7 +405,7 @@ import {
   notifyInfo,
   pack,
 } from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import allConsts from "pages/all-consts";
 import UpdaterDimObjItem from "pages/dimobj/UpdaterDimObjItem.vue";
 import DimObjView from "pages/dimobj/DimObjView.vue";
@@ -589,7 +589,7 @@ export default {
           })
           .onOk(() => {
             api
-                .post(baseURL, {
+                .post("", {
                   method: "dimobj/deleteDOIprop",
                   params: [rec.id],
                 })
@@ -707,7 +707,7 @@ export default {
           })
           .onOk(() => {
             api
-                .post(baseURL, {
+                .post("", {
                   method: "dimobj/deleteDOI",
                   params: [rec.id],
                 })
@@ -727,7 +727,7 @@ export default {
       this.loading = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadDimObjItem",
             params: [dimobj],
           })
@@ -760,7 +760,7 @@ export default {
       this.loading = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadDimObjItemProp",
             params: [dimObjItem],
           })
@@ -786,7 +786,7 @@ export default {
       this.loading3 = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadDimObjItemPropVal",
             params: [dimObjItemProp, prop, pt],
           })
@@ -1067,7 +1067,7 @@ export default {
           })
           .onOk(() => {
             api
-                .post(baseURL, {
+                .post("", {
                   method: "dimobj/deleteDOIpropValue",
                   params: [rec.id],
                 })
@@ -1086,7 +1086,7 @@ export default {
       this.loading3 = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimobj/loadOptForRefValues",
             params: [par],
           })
@@ -1117,7 +1117,7 @@ export default {
             this.loading3 = ref(true);
             //
             api
-                .post(baseURL, {
+                .post("", {
                   method: "dimobj/loadDimObjItemPropVal",
                   params: [this.selected2[0].id, this.selected2[0].prop, this.selected2[0].pt],
                 })
@@ -1178,7 +1178,7 @@ export default {
     //
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_LinkType"}],
         })
@@ -1194,7 +1194,7 @@ export default {
     //
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_DimObjItemType"}],
         })
@@ -1209,7 +1209,7 @@ export default {
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_PropType"}],
         })

@@ -110,7 +110,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError} from "src/utils/jsutils";
 import UpdaterRefValue from "pages/std/ref/UpdaterRefValue.vue";
 import allConsts from "pages/all-consts";
@@ -312,7 +312,7 @@ export default {
       if (this.periodType > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadDict",
             params: ["FD_PeriodType"],
           })
@@ -330,7 +330,7 @@ export default {
       console.info("this.requestParams", this.requestParams)
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadPropVal", // load PropVal, Status, Provider
           params: [this.requestParams.prop, this.requestParams.propType, getModel.value, getMetaModel.value],
         })
@@ -364,7 +364,7 @@ export default {
             //
             this.loading = ref(true);
             api
-              .post(baseURL, {
+              .post("", {
                 method: "data/loadData",
                 params: [params],
               })

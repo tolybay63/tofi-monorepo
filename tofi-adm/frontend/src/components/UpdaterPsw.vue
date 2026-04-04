@@ -76,7 +76,7 @@
   </q-dialog>
 </template>
 <script>
-import {api, baseURL} from "boot/axios.js";
+import {api, } from "boot/axios.js";
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils.js";
 
@@ -131,7 +131,7 @@ export default {
       let err = false;
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "auth/savePsw",
             params: [this.form],
           })

@@ -1,22 +1,12 @@
 package tofi.mdl.model.dao.typ
 
 import jandcode.commons.UtCnv
+import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.dbm.mdb.Mdb
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 
-class ClsTreeMdbUtils {
-    Mdb mdb;
-
-    public ClsTreeMdbUtils(Mdb mdb) throws Exception {
-        this.mdb = mdb
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
+class ClsTreeMdbUtils extends BaseMdbUtils {
 
 /*
 *  Возвращает дерево-классов с учетом наследования
@@ -324,7 +314,7 @@ class ClsTreeMdbUtils {
         else
             s = "0";
 
-        TypDao daoTyp = mdb.createDao(TypDao.class) as TypDao
+        TypMdbUtils daoTyp = mdb.createDao(TypMdbUtils.class)
         //StoreRecord rP = daoTyp.loadRec(Map.of("id", typ))
         StoreRecord rP = daoTyp.loadRec(typ)
         String wh;
@@ -387,7 +377,7 @@ class ClsTreeMdbUtils {
             return "0";
 
         String s = cls.toString();
-        TypDao daoTyp = mdb.createDao(TypDao.class) as TypDao
+        TypMdbUtils daoTyp = mdb.createDao(TypMdbUtils.class)
         //StoreRecord rP = daoTyp.loadRec(Map.of("id", typ))
         StoreRecord rP = daoTyp.loadRec(typ)
 

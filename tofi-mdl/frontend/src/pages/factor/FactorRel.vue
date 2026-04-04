@@ -172,7 +172,7 @@
 
 <script>
 import {defineComponent, ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError} from "src/utils/jsutils";
 import UpdateFactorValRel from "pages/factor/UpdateFactorValRel.vue";
 
@@ -210,7 +210,7 @@ export default defineComponent({
       //
       this.loading2 = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "factorrel/factorValRel",
             params: [{factor1: factor1, factor2: factor2}],
           })
@@ -310,7 +310,7 @@ export default defineComponent({
       const factor = requestProps.factor;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "factorrel/load",
             params: [
               {

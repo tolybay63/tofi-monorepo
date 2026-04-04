@@ -155,7 +155,7 @@
 import {ref} from "vue";
 import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
 import UpdaterPermis from "pages/permis/UpdaterPermis.vue";
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import {exportFile} from "quasar";
 
 export default {
@@ -337,7 +337,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "permis/delete",
               params: [{rec: rec}],
             })
@@ -359,9 +359,9 @@ export default {
     fetchData() {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "permis/load",
-          params: [{}],
+          params: [],
         })
         .then(
           (response) => {

@@ -88,7 +88,7 @@
 
 <script>
 import {defineComponent, ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import MeterFactors from "pages/meter/MeterFactors.vue";
 import MeterSoftRates from "pages/meter/MeterSoftRates.vue";
 import MeterHardRates from "pages/meter/MeterHardRates.vue";
@@ -138,7 +138,7 @@ export default defineComponent({
     // load meter
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           id: "1",
           method: "meter/loadRec",
           params: [{id: this.meter_id}],

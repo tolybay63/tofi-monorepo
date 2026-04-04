@@ -132,7 +132,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
@@ -206,7 +206,7 @@ export default {
       this.form.accessLevel =
           typeof this.al === "object" ? this.al.id : this.al;
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "reltyp/" + method,
             params: [{rec: this.form}],
@@ -236,7 +236,7 @@ export default {
 
   created() {
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })

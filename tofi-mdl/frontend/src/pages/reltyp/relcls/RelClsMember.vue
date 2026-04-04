@@ -104,7 +104,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError} from "src/utils/jsutils";
 import UpdateRelClsMember from "pages/reltyp/relcls/UpdateRelClsMember.vue";
 
@@ -199,7 +199,7 @@ export default {
       this.loading = ref(true);
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "relcls/loadRelClsMember",
             params: [relcls],
           })
@@ -279,7 +279,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_MemberType"}],
         })

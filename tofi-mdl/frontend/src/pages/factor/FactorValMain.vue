@@ -41,7 +41,7 @@
 
 <script>
 import {defineComponent, ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import FactorVal from "pages/factor/FactorVal.vue";
 import FactorRel from "pages/factor/FactorRel.vue";
 import {notifyError} from "src/utils/jsutils";
@@ -79,7 +79,7 @@ export default defineComponent({
     // load factor
     this.loading = ref(true);
     api
-        .post(baseURL, {
+        .post("", {
           id: "1",
           method: "factor/loadRec",
           params: [{id: this.factor1_id}],

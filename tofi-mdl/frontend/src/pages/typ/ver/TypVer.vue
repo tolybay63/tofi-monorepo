@@ -116,7 +116,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {date} from "quasar";
 import UpdateTypVer from "pages/typ/ver/UpdateTypVer.vue";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
@@ -173,7 +173,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "typ/deleteVer",
                   params: [{rec: rec}],
                 })
@@ -290,7 +290,7 @@ export default {
     fetchData(typ) {
       this.loading = true;
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadVer",
             params: [typ],
           })

@@ -110,7 +110,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifyInfo} from "src/utils/jsutils";
 import UpdaterMeterValue from "pages/std/meter/UpdaterMeterValue.vue";
 import {useParamsStore} from "stores/params-store";
@@ -175,7 +175,7 @@ export default {
         .onOk(() => {
 
           api
-            .post(baseURL, {
+            .post("", {
               method: "data/"+ method,
               params: params,
             })
@@ -334,7 +334,7 @@ export default {
       if (this.periodType > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadDict",
             params: ["FD_PeriodType"],
           })
@@ -352,7 +352,7 @@ export default {
       if (this.requestParams.provider > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadProvider",
             params: [this.requestParams.prop, /*getModel.value*/ this.requestParams.providerTyp , getMetaModel.value],
           })
@@ -371,7 +371,7 @@ export default {
       if (this.requestParams.status > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadStatus",
             params: [this.requestParams.prop],
           })
@@ -390,7 +390,7 @@ export default {
       //
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadData",
           params: [params],
         })

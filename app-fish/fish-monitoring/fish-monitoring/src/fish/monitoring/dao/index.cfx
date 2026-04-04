@@ -5,6 +5,9 @@
 
         <holder name="api">
 
+            <item name="auth" method="*" invoker="model:default"
+                  class="fish.monitoring.dao.AuthDao"/>
+
             <item name="data" method="*" invoker="model:default"
                   class="fish.monitoring.dao.DataDao"/>
 

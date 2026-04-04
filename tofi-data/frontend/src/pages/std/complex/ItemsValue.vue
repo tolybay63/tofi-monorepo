@@ -91,7 +91,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {date} from "quasar";
 import {notifyError, notifyInfo} from "src/utils/jsutils";
 import allConsts from "pages/all-consts";
@@ -219,7 +219,7 @@ export default {
     fnEdit(row) {
       //row.prop
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/propsOfProp",
           params: [row.prop],
         })
@@ -459,7 +459,7 @@ export default {
         })
         .onOk(() => {
           api
-            .post(baseURL, {
+            .post("", {
               method: "data/deleteItemValue",
               params: [{ /!*idDataProp: rec.dataProp, *!/ id: rec.id }],
             })
@@ -549,7 +549,7 @@ export default {
       if (this.periodType > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadDict",
             params: ["FD_PeriodType"],
           })
@@ -567,7 +567,7 @@ export default {
       if (this.requestParams.providerTyp > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadProvider",
             params: [this.requestParams.prop, getModel.value, getMetaModel.value],
           })
@@ -585,7 +585,7 @@ export default {
       if (this.requestParams.statusFactor > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadStatus",
             params: [this.requestParams.prop],
           })
@@ -604,7 +604,7 @@ export default {
       this.loading = ref(true);
       params.isComplexItem = 1;
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadData",
           params: [params],
         })

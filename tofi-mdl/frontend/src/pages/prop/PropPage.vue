@@ -174,7 +174,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {
   collapsAll,
   expandAll,
@@ -239,7 +239,7 @@ export default {
       this.currentNode = item.selected !== undefined ? item.selected : null;
       if (this.currentNode) {
         api
-            .post(baseURL, {
+            .post("", {
               method: "group/loadRec",
               params: [{id: this.currentNode.id, tableName: "PropGr"}],
             })
@@ -263,7 +263,7 @@ export default {
         //console.info("this.currentNode2", this.currentNode2)
 
         api
-            .post(baseURL, {
+            .post("", {
               method: "prop/loadRec",
               params: [this.currentNode2.id],
             })
@@ -296,7 +296,7 @@ export default {
                   this.currentNode2.propType === allConsts.FD_PropType.rate
               ) {
                 api
-                    .post(baseURL, {
+                    .post("", {
                       method: "meter/loadRec",
                       params: [{id: this.currentNode2.meter}],
                     })
@@ -312,7 +312,7 @@ export default {
 
     checkRefValue(prop, field) {
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/checkRefValue",
             params: [prop, field],
           })
@@ -326,7 +326,7 @@ export default {
     checkStatus(item) {
       let prop = item.id;
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/checkStatus",
             params: [prop],
           })
@@ -340,7 +340,7 @@ export default {
     checkProvider(item) {
       let prop = item.id;
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/checkProvider",
             params: [prop],
           })
@@ -364,7 +364,7 @@ export default {
       this.currentNode = null
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "group/loadGroup",
             params: [{tableName: "PropGr"}],
           })
@@ -474,7 +474,7 @@ export default {
           .onOk(() => {
             //let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "group/delete",
                   params: [rec],
                 })
@@ -537,7 +537,7 @@ export default {
       if (mode === "ins") {
         this.currentNode2 = null
         api
-            .post(baseURL, {
+            .post("", {
               method: "prop/newRec",
               params: [this.currentNode.id],
             })
@@ -570,7 +570,7 @@ export default {
           .onOk(() => {
             //let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "prop/delete",
                   params: [{rec: rec}],
                 })
@@ -610,7 +610,7 @@ export default {
       this.currentNode2 = null
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/loadPropTree",
             params: [propGr],
           })
@@ -719,7 +719,7 @@ export default {
     this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_PropType"}],
         })

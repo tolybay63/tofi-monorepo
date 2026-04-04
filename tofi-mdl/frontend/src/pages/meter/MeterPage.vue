@@ -136,7 +136,7 @@
 
 <script>
 import {defineComponent, ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateMeter from "pages/meter/UpdateMeter.vue";
 import {extend, exportFile} from "quasar";
@@ -182,7 +182,7 @@ export default defineComponent({
       let data = {};
       if (mode === "ins") {
         api
-          .post(baseURL, {
+          .post("", {
             method: "meter/newRec",
             params: [{}],
           })
@@ -241,7 +241,7 @@ export default defineComponent({
     fetchData(requestParam) {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           id: "1",
           method: "meter/loadMeterPaginate",
           params: [requestParam],
@@ -304,7 +304,7 @@ export default defineComponent({
         .onOk(() => {
           let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "meter/delete",
               params: [{rec: rec}],
             })
@@ -460,7 +460,7 @@ export default defineComponent({
     this.cols = this.getColumns();
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_AccessLevel"}],
       })
@@ -472,7 +472,7 @@ export default defineComponent({
       });
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_MeterStruct"}],
       })

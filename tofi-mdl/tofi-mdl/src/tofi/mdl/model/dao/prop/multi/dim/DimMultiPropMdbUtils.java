@@ -3,7 +3,8 @@ package tofi.mdl.model.dao.prop.multi.dim;
 import jandcode.commons.UtCnv;
 import jandcode.commons.UtString;
 import jandcode.commons.error.XError;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreField;
 import jandcode.core.store.StoreIndex;
@@ -17,69 +18,70 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class DimMultiPropMdbUtils extends EntityMdbUtils {
 
-    Mdb mdb;
-    String tableName;
+public class DimMultiPropMdbUtils extends BaseMdbUtils {
 
-    public DimMultiPropMdbUtils(Mdb mdb, String tableName) {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-    }
-
+    @DaoMethod
     public Store newRec(long propGr) throws Exception {
-        Store st = mdb.createStore("DimMultiProp");
+        Store st = getMdb().createStore("DimMultiProp");
         StoreRecord r = st.add();
         r.set("dimMultiPropGr", propGr);
         r.set("accessLevel", FD_AccessLevel_consts.common);
         r.set("dimMultiPropType", FD_DimMultiPropType_consts.stat);
-        mdb.resolveDicts(st);
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public Store loadDimMultiProp(long propGr) throws Exception {
 
-        Store st = mdb.createStore("DimMultiProp");
+        Store st = getMdb().createStore("DimMultiProp");
         String sql = "select * from DimMultiProp where dimMultiPropGr=:gr";
-        mdb.loadQuery(st, sql, Map.of("gr", propGr));
-        mdb.resolveDicts(st);
+        getMdb().loadQuery(st, sql, Map.of("gr", propGr));
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
-        long id = insertEntity(rec);
-        Store st = mdb.createStore("DimMultiProp");
-        mdb.loadQuery(st, "select * from DimMultiProp where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DimMultiProp");
+        long id = eu.insertEntity(rec);
+        Store st = getMdb().createStore("DimMultiProp");
+        getMdb().loadQuery(st, "select * from DimMultiProp where id=:id", Map.of("id", id));
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
         long id = UtCnv.toLong(rec.get("id"));
         if (id == 0) {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DimMultiProp");
+        eu.updateEntity(rec);
         // Загрузка записи
-        Store st = mdb.createStore("DimMultiProp");
+        Store st = getMdb().createStore("DimMultiProp");
 
-        mdb.loadQuery(st, "select * from DimMultiProp where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        getMdb().loadQuery(st, "select * from DimMultiProp where id=:id", Map.of("id", id));
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public void delete(Map<String, Object> rec) throws Exception {
-        deleteEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DimMultiProp");
+        eu.deleteEntity(rec);
     }
 
     //DimMultiPropItem
+    @DaoMethod
     public Map<String, Object> loadDimMultiPropItem(long dimMultiProp) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItem.full");
+        Store st = getMdb().createStore("DimMultiPropItem.full");
 
-        Store stTitle = mdb.loadQuery("""
+        Store stTitle = getMdb().loadQuery("""
                     select id, title from DimMultiPropName where dimMultiProp=:dmp order by ord
                 """, Map.of("dmp", dimMultiProp));
 
@@ -101,7 +103,7 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
                     end as entityType
                     from DimMultiPropItem where dimMultiProp=:dmp
                 """;
-        mdb.loadQuery(st, sql, Map.of("dmp", dimMultiProp));
+        getMdb().loadQuery(st, sql, Map.of("dmp", dimMultiProp));
 
         if (!isDopCols) {
             return Map.of("rows", st, "titles", stTitle);
@@ -109,10 +111,10 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
         //
         Set<Object> ids = st.getUniqueValues("id");
         String where = "(0" + UtString.join(ids, ",") + ")";
-        Store stDMPIN = mdb.loadQuery("""
-            select *, dimMultiPropItem || '_' || dimMultiPropName as key
-            from DimMultiPropItemName where dimMultiPropItem in
-        """+ where);
+        Store stDMPIN = getMdb().loadQuery("""
+                    select *, dimMultiPropItem || '_' || dimMultiPropName as key
+                    from DimMultiPropItemName where dimMultiPropItem in
+                """ + where);
         StoreIndex indDMPIN = stDMPIN.getIndex("key");
 
         for (Object o : ids) {
@@ -121,7 +123,7 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
                 String key = id + "_" + r.getString("id");
                 StoreRecord rec = indDMPIN.get(key);
                 if (rec == null) {  //add
-                    mdb.insertRec("DimMultiPropItemName",
+                    getMdb().insertRec("DimMultiPropItemName",
                             Map.of("dimMultiPropItem", id, "dimMultiPropName", r.getLong("id")),
                             true);
                 }
@@ -137,7 +139,7 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
             for (StoreField fld : r.getFields()) {
                 if (fld.getName().startsWith("col_")) {
                     String idDMPIN = fld.getName().split("_")[1];
-                    StoreRecord record = indDMPIN.get(r.getString("id")+"_"+idDMPIN);
+                    StoreRecord record = indDMPIN.get(r.getString("id") + "_" + idDMPIN);
                     String nm = null;
                     if (record != null) {
                         nm = record.getString("name");
@@ -152,9 +154,9 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
     }
 
     private Store loadDimMultiPropItemRec(long id, long dmp) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItem.full");
+        Store st = getMdb().createStore("DimMultiPropItem.full");
 
-        Store stTitle = mdb.loadQuery("""
+        Store stTitle = getMdb().loadQuery("""
                     select id, title from DimMultiPropName where dimMultiProp=:dmp order by ord
                 """, Map.of("dmp", dmp));
 
@@ -181,19 +183,19 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
                     end as entityType
                     from DimMultiPropItem where id=:id
                 """;
-        mdb.loadQuery(st, sql, Map.of("id", id));
+        getMdb().loadQuery(st, sql, Map.of("id", id));
         //
-        Store stDMPIN = mdb.loadQuery("""
-            select *, dimMultiPropItem || '_' || dimMultiPropName as key
-            from DimMultiPropItemName where dimMultiPropItem=:id
-        """,Map.of("id", id));
+        Store stDMPIN = getMdb().loadQuery("""
+                    select *, dimMultiPropItem || '_' || dimMultiPropName as key
+                    from DimMultiPropItemName where dimMultiPropItem=:id
+                """, Map.of("id", id));
         StoreIndex indDMPIN = stDMPIN.getIndex("key");
         //
         for (StoreRecord r : st) {
             for (StoreField fld : r.getFields()) {
                 if (fld.getName().startsWith("col_")) {
                     String idDMPIN = fld.getName().split("_")[1];
-                    StoreRecord record = indDMPIN.get(r.getString("id")+"_"+idDMPIN);
+                    StoreRecord record = indDMPIN.get(r.getString("id") + "_" + idDMPIN);
                     String nm = null;
                     if (record != null) {
                         nm = record.getString("name");
@@ -206,8 +208,9 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store newRecDimMultiPropItem(long propDim) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItem.full");
+        Store st = getMdb().createStore("DimMultiPropItem.full");
         StoreRecord r = st.add();
         r.set("dimMultiProp", propDim);
         r.set("multiEntityType", FD_MultiValEntityType_consts.meter);
@@ -215,6 +218,7 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
     }
 
 
+    @DaoMethod
     public Store insertDimItem(Map<String, Object> params) throws Exception {
         Map<Long, String> mapCols = new HashMap<>();
         for (String c : params.keySet()) {
@@ -224,20 +228,22 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
         }
 
         for (Long c : mapCols.keySet()) {
-            params.remove("col_"+c);
+            params.remove("col_" + c);
         }
         //
-        long id = insertEntity(params);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DimMultiPropItem");
+        long id = eu.insertEntity(params);
         //
         long dmp = UtCnv.toLong(params.get("dimMultiProp"));
         for (Map.Entry<Long, String> entry : mapCols.entrySet()) {
-            mdb.insertRec("DimMultiPropItemName", Map.of("dimMultiPropItem", id,
+            getMdb().insertRec("DimMultiPropItemName", Map.of("dimMultiPropItem", id,
                     "dimMultiPropName", entry.getKey(), "name", entry.getValue()), true);
         }
         //
         return loadDimMultiPropItemRec(id, dmp);
     }
 
+    @DaoMethod
     public Store updateDimItem(Map<String, Object> params) throws Exception {
         long id = UtCnv.toLong(params.get("id"));
         long dmp = UtCnv.toLong(params.get("dimMultiProp"));
@@ -249,31 +255,35 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
         }
 
         for (Long c : mapCols.keySet()) {
-            params.remove("col_"+c);
+            params.remove("col_" + c);
         }
-
-        updateEntity(params);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DimMultiPropItem");
+        eu.updateEntity(params);
         for (Map.Entry<Long, String> entry : mapCols.entrySet()) {
-            mdb.execQuery("""
-                update DimMultiPropItemName set name=:nm where dimMultiPropItem=:dmpi and dimMultiPropName=:dmpn
-            """, Map.of("nm", entry.getValue(), "dmpi", id, "dmpn", entry.getKey()));
+            getMdb().execQuery("""
+                        update DimMultiPropItemName set name=:nm where dimMultiPropItem=:dmpi and dimMultiPropName=:dmpn
+                    """, Map.of("nm", entry.getValue(), "dmpi", id, "dmpn", entry.getKey()));
         }
         return loadDimMultiPropItemRec(id, dmp);
     }
 
+    @DaoMethod
     public void deleteDimItem(Map<String, Object> params) throws Exception {
-        Store stTmp = mdb.loadQuery("select id from DimMultiPropItemMeter where dimMultiPropItem=:id",
+        Store stTmp = getMdb().loadQuery("select id from DimMultiPropItemMeter where dimMultiPropItem=:id",
                 Map.of("id", UtCnv.toLong(params.get("id"))));
         if (stTmp.size() == 0) {
-            mdb.execQuery("delete from DimMultiPropItemName where dimMultiPropItem=:id",
+            getMdb().execQuery("delete from DimMultiPropItemName where dimMultiPropItem=:id",
                     Map.of("id", UtCnv.toLong(params.get("id"))));
         }
-        deleteEntity(params);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DimMultiPropItem");
+        eu.deleteEntity(params);
     }
-    ////
 
+    /// /
+
+    @DaoMethod
     public Store loadClsForSelect() throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select 't_'||t.id as id, null as parent, v.name, v.fullname, -t.id as cls, null as ent
                     from Typ t, TypVer v
                     where t.id=v.ownerVer and v.lastVer=1
@@ -285,11 +295,12 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
 
     }
 
+    @DaoMethod
     public Store loadObjForSelect(long cls) throws Exception {
         throw new XError("Запрос на другую базу");
 
 //todo Запрос на данные
-/*        return mdb.loadQuery("""
+/*        return getMdb().loadQuery("""
             select 't_'||t.id as id, null as parent, v.name, null::bigint as obj
             from Typ t, TypVer v
             where t.id=v.ownerVer and v.lastVer=1
@@ -305,8 +316,9 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
 
     }
 
+    @DaoMethod
     public Store loadRelClsForSelect() throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select 't_'||t.id as id, null as parent, v.name, -t.id as relcls, null as ent
                     from RelTyp t, RelTypVer v
                     where t.id=v.ownerVer and v.lastVer=1
@@ -318,11 +330,12 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
     }
 
 
+    @DaoMethod
     public Store loadRelObjForSelect(long relCls) throws Exception {
         throw new XError("Запрос на другую базу");
 //todo Запрос на данные
 /*
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
             select 'r_'||r.id as id, null as parent, v.name, null as relobj
             from RelTyp r, RelTypVer v
             where r.id=v.ownerVer and v.lastVer=1
@@ -335,52 +348,58 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
 
     }
 
+    @DaoMethod
     public Store loadProp() throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select id, name from prop
                     where proptype in (1,5,6)
                 """);
     }
 
+    @DaoMethod
     public Store loadDimMultiPropItemAttrib(long dimMultiPropItem) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemAttrib");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemAttrib");
+        return getMdb().loadQuery(st, """
                     select * from DimMultiPropItemAttrib
                     where dimMultiPropItem=:id
                 """, Map.of("id", dimMultiPropItem));
     }
 
     private Store loadDimMultiPropItemAttribRec(long id) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemAttrib");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemAttrib");
+        return getMdb().loadQuery(st, """
                     select * from DimMultiPropItemAttrib
                     where id=:id
                 """, Map.of("id", id));
     }
 
+    @DaoMethod
     public Store insDimMultiPropItemAttrib(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemAttrib");
+        Store st = getMdb().createStore("DimMultiPropItemAttrib");
         StoreRecord r = st.add(params);
-        long id = mdb.insertRec("DimMultiPropItemAttrib", r, true);
+        long id = getMdb().insertRec("DimMultiPropItemAttrib", r, true);
         return loadDimMultiPropItemAttribRec(id);
     }
 
+    @DaoMethod
     public Store updDimMultiPropItemAttrib(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemAttrib");
+        Store st = getMdb().createStore("DimMultiPropItemAttrib");
         StoreRecord r = st.add(params);
         long id = r.getLong("id");
-        mdb.updateRec("DimMultiPropItemAttrib", r);
+        getMdb().updateRec("DimMultiPropItemAttrib", r);
         return loadDimMultiPropItemAttribRec(id);
     }
 
+    @DaoMethod
     public void deleteDimMultiPropItemAttrib(long id) throws Exception {
-        mdb.deleteRec("DimMultiPropItemAttrib", id);
+        getMdb().deleteRec("DimMultiPropItemAttrib", id);
     }
 
     //
+    @DaoMethod
     public Store loadDimMultiPropItemMeter(long dimMultiPropItem) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemMeter.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemMeter.full");
+        return getMdb().loadQuery(st, """
                     select d.*, mea.name as measureName
                     from DimMultiPropItemMeter d
                         left join Measure mea on d.measure=mea.id
@@ -389,45 +408,50 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
     }
 
     private Store loadDimMultiPropItemMeterRec(long id) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemMeter.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemMeter.full");
+        return getMdb().loadQuery(st, """
                     select d.*, m.name as measureName from DimMultiPropItemMeter d
                     left join Measure m on d.measure=m.id
                     where d.id=:id
                 """, Map.of("id", id));
     }
 
+    @DaoMethod
     public Store insDimMultiPropItemMeter(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemMeter");
+        Store st = getMdb().createStore("DimMultiPropItemMeter");
         StoreRecord r = st.add(params);
-        long id = mdb.insertRec("DimMultiPropItemMeter", r, true);
+        long id = getMdb().insertRec("DimMultiPropItemMeter", r, true);
         return loadDimMultiPropItemMeterRec(id);
     }
 
+    @DaoMethod
     public Store updDimMultiPropItemMeter(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemMeter");
+        Store st = getMdb().createStore("DimMultiPropItemMeter");
         StoreRecord r = st.add(params);
         long id = r.getLong("id");
-        mdb.updateRec("DimMultiPropItemMeter", r);
+        getMdb().updateRec("DimMultiPropItemMeter", r);
         return loadDimMultiPropItemMeter(id);
     }
 
+    @DaoMethod
     public void deleteDimMultiPropItemMeter(long id) throws Exception {
-        mdb.deleteRec("DimMultiPropItemMeter", id);
+        getMdb().deleteRec("DimMultiPropItemMeter", id);
     }
 
     //
+    @DaoMethod
     public Store loadMeasure() throws Exception {
-        Store st = mdb.createStore("Measure");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Measure");
+        return getMdb().loadQuery(st, """
                     select * from Measure where 0=0
                 """);
     }
 
     //Factor
+    @DaoMethod
     public Store loadDimMultiPropItemFactor(long dimMultiPropItem) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemFactor.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemFactor.full");
+        return getMdb().loadQuery(st, """
                     select d.*, f.name
                     from DimMultiPropItemFactor d
                         left join Factor f on d.factor=f.id and f.parent is null
@@ -436,8 +460,8 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
     }
 
     private Store loadDimMultiPropItemFactorRec(long id) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemFactor.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemFactor.full");
+        return getMdb().loadQuery(st, """
                     select d.*, f.name
                     from DimMultiPropItemFactor d
                         left join Factor f on d.factor=f.id and f.parent is null
@@ -445,36 +469,41 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
                 """, Map.of("id", id));
     }
 
+    @DaoMethod
     public Store insDimMultiPropItemFactor(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemFactor");
+        Store st = getMdb().createStore("DimMultiPropItemFactor");
         StoreRecord r = st.add(params);
-        long id = mdb.insertRec("DimMultiPropItemFactor", r, true);
+        long id = getMdb().insertRec("DimMultiPropItemFactor", r, true);
         return loadDimMultiPropItemFactorRec(id);
     }
 
+    @DaoMethod
     public Store updDimMultiPropItemFactor(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemFactor");
+        Store st = getMdb().createStore("DimMultiPropItemFactor");
         StoreRecord r = st.add(params);
         long id = r.getLong("id");
-        mdb.updateRec("DimMultiPropItemFactor", r);
+        getMdb().updateRec("DimMultiPropItemFactor", r);
         return loadDimMultiPropItemFactor(id);
     }
 
+    @DaoMethod
     public void deleteDimMultiPropItemFactor(long id) throws Exception {
-        mdb.deleteRec("DimMultiPropItemFactor", id);
+        getMdb().deleteRec("DimMultiPropItemFactor", id);
     }
 
+    @DaoMethod
     public Store loadFactors() throws Exception {
-        Store st = mdb.createStore("Factor.select");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("Factor.select");
+        return getMdb().loadQuery(st, """
                     select * from Factor where parent is null
                 """);
     }
 
     //Cls
+    @DaoMethod
     public Store loadDimMultiPropItemCls(long dimMultiPropItem) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemCls.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemCls.full");
+        return getMdb().loadQuery(st, """
                     select d.*, c.name
                     from DimMultiPropItemCls d
                         left join ClsVer c on d.cls=c.ownerVer and c.lastVer=1
@@ -483,8 +512,8 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
     }
 
     private Store loadDimMultiPropItemClsRec(long id) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemCls.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemCls.full");
+        return getMdb().loadQuery(st, """
                     select d.*, c.name
                     from DimMultiPropItemCls d
                         left join ClsVer c on d.cls=c.ownerVer and c.lastVer=1
@@ -492,29 +521,33 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
                 """, Map.of("id", id));
     }
 
+    @DaoMethod
     public Store insDimMultiPropItemCls(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemCls");
+        Store st = getMdb().createStore("DimMultiPropItemCls");
         StoreRecord r = st.add(params);
-        long id = mdb.insertRec("DimMultiPropItemCls", r, true);
+        long id = getMdb().insertRec("DimMultiPropItemCls", r, true);
         return loadDimMultiPropItemClsRec(id);
     }
 
+    @DaoMethod
     public Store updDimMultiPropItemCls(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemCls");
+        Store st = getMdb().createStore("DimMultiPropItemCls");
         StoreRecord r = st.add(params);
         long id = r.getLong("id");
-        mdb.updateRec("DimMultiPropItemCls", r);
+        getMdb().updateRec("DimMultiPropItemCls", r);
         return loadDimMultiPropItemCls(id);
     }
 
+    @DaoMethod
     public void deleteDimMultiPropItemCls(long id) throws Exception {
-        mdb.deleteRec("DimMultiPropItemCls", id);
+        getMdb().deleteRec("DimMultiPropItemCls", id);
     }
 
     //RelCls
+    @DaoMethod
     public Store loadDimMultiPropItemRelCls(long dimMultiPropItem) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemRelCls.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemRelCls.full");
+        return getMdb().loadQuery(st, """
                     select d.*, c.name
                     from DimMultiPropItemRelCls d
                         left join RelClsVer c on d.relCls=c.ownerVer and c.lastVer=1
@@ -523,8 +556,8 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
     }
 
     private Store loadDimMultiPropItemRelClsRec(long id) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemRelCls.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemRelCls.full");
+        return getMdb().loadQuery(st, """
                     select d.*, c.name
                     from DimMultiPropItemRelCls d
                         left join RelClsVer c on d.relCls=c.ownerVer and c.lastVer=1
@@ -532,29 +565,33 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
                 """, Map.of("id", id));
     }
 
+    @DaoMethod
     public Store insDimMultiPropItemRelCls(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemRelCls");
+        Store st = getMdb().createStore("DimMultiPropItemRelCls");
         StoreRecord r = st.add(params);
-        long id = mdb.insertRec("DimMultiPropItemRelCls", r, true);
+        long id = getMdb().insertRec("DimMultiPropItemRelCls", r, true);
         return loadDimMultiPropItemRelClsRec(id);
     }
 
+    @DaoMethod
     public Store updDimMultiPropItemRelCls(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemRelCls");
+        Store st = getMdb().createStore("DimMultiPropItemRelCls");
         StoreRecord r = st.add(params);
         long id = r.getLong("id");
-        mdb.updateRec("DimMultiPropItemRelCls", r);
+        getMdb().updateRec("DimMultiPropItemRelCls", r);
         return loadDimMultiPropItemRelClsRec(id);
     }
 
+    @DaoMethod
     public void deleteDimMultiPropItemRelCls(long id) throws Exception {
-        mdb.deleteRec("DimMultiPropItemRelCls", id);
+        getMdb().deleteRec("DimMultiPropItemRelCls", id);
     }
 
     //Measure
+    @DaoMethod
     public Store loadDimMultiPropItemMeasure(long dimMultiPropItem) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemMeasure.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemMeasure.full");
+        return getMdb().loadQuery(st, """
                     select d.*, c.name
                     from DimMultiPropItemMeasure d
                         left join Measure c on c.parent is null and d.measure=c.id
@@ -563,8 +600,8 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
     }
 
     private Store loadDimMultiPropItemMeasureRec(long id) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemMeasure.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimMultiPropItemMeasure.full");
+        return getMdb().loadQuery(st, """
                     select d.*, c.name
                     from DimMultiPropItemMeasure d
                         left join Measure c on c.parent is null and d.measure=c.id
@@ -572,60 +609,68 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
                 """, Map.of("id", id));
     }
 
+    @DaoMethod
     public Store insDimMultiPropItemMeasure(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemMeasure");
+        Store st = getMdb().createStore("DimMultiPropItemMeasure");
         StoreRecord r = st.add(params);
-        long id = mdb.insertRec("DimMultiPropItemMeasure", r, true);
+        long id = getMdb().insertRec("DimMultiPropItemMeasure", r, true);
         return loadDimMultiPropItemMeasureRec(id);
     }
 
+    @DaoMethod
     public Store updDimMultiPropItemMeasure(Map<String, Object> params) throws Exception {
-        Store st = mdb.createStore("DimMultiPropItemMeasure");
+        Store st = getMdb().createStore("DimMultiPropItemMeasure");
         StoreRecord r = st.add(params);
         long id = r.getLong("id");
-        mdb.updateRec("DimMultiPropItemMeasure", r);
+        getMdb().updateRec("DimMultiPropItemMeasure", r);
         return loadDimMultiPropItemMeasureRec(id);
     }
 
+    @DaoMethod
     public void deleteDimMultiPropItemMeasure(long id) throws Exception {
-        mdb.deleteRec("DimMultiPropItemMeasure", id);
+        getMdb().deleteRec("DimMultiPropItemMeasure", id);
     }
 
+    @DaoMethod
     public Store loadDimMultiPropMoreCols(long dimMultiProp) throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select id, title from DimMultiPropName where dimMultiProp=:dim order by ord
                 """, Map.of("dim", dimMultiProp));
     }
 
+    @DaoMethod
     public Store insertMoreCols(Map<String, Object> params) throws Exception {
-        long id = mdb.insertRec("DimMultiPropName", params, true);
-        mdb.execQuery("""
+        long id = getMdb().insertRec("DimMultiPropName", params, true);
+        getMdb().execQuery("""
                     update DimMultiPropName set ord=:id where id=:id
                 """, Map.of("id", id));
-        Store st = mdb.createStore("DimMultiPropName");
-        mdb.loadQuery(st, "select id, title from DimMultiPropName where id=:id", Map.of("id", id));
+        Store st = getMdb().createStore("DimMultiPropName");
+        getMdb().loadQuery(st, "select id, title from DimMultiPropName where id=:id", Map.of("id", id));
         return st;
     }
 
+    @DaoMethod
     public Store updateMoreCols(Map<String, Object> params) throws Exception {
         long id = UtCnv.toLong(params.get("id"));
-        mdb.updateRec("DimMultiPropName", params);
-        Store st = mdb.createStore("DimMultiPropName");
-        mdb.loadQuery(st, "select id, title from DimMultiPropName where id=:id", Map.of("id", id));
+        getMdb().updateRec("DimMultiPropName", params);
+        Store st = getMdb().createStore("DimMultiPropName");
+        getMdb().loadQuery(st, "select id, title from DimMultiPropName where id=:id", Map.of("id", id));
         return st;
     }
 
+    @DaoMethod
     public void deleteMoreCols(long id) throws Exception {
         try {
-            mdb.execQuery("""
+            getMdb().execQuery("""
                         delete from DimMultiPropItemName where dimMultiPropName=:id;
                     """, Map.of("id", id));
         } finally {
-            mdb.deleteRec("DimMultiPropName", id);
+            getMdb().deleteRec("DimMultiPropName", id);
         }
 
     }
 
+    @DaoMethod
     public void changeOrdMoreCols(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         boolean up = UtCnv.toBoolean(params.get("up"));
@@ -635,7 +680,7 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
         long id2;
         long ord2;
 
-        Store st = mdb.loadQuery("""
+        Store st = getMdb().loadQuery("""
                     select * from DimMultiPropName where dimMultiProp=:dmp order by ord
                 """, Map.of("dmp", dmp));
         int k = 0;  //искомая позиция
@@ -653,34 +698,35 @@ public class DimMultiPropMdbUtils extends EntityMdbUtils {
             ord2 = st.get(k + 1).getLong("ord");
         }
         //
-        mdb.execQuery("""
+        getMdb().execQuery("""
                     update DimMultiPropName set ord=:ord2 where id=:id1;
                     update DimMultiPropName set ord=:ord1 where id=:id2;
                 """, Map.of("id1", id1, "id2", id2, "ord1", ord1, "ord2", ord2));
     }
 
+    @DaoMethod
     public Store loadPropForMultiPropItem() throws Exception {
-        return mdb.loadQuery("""
-            select id, name, parent, 0 as prop
-            from PropGr
-            where id in (
-                select distinct propgr
-                from prop
-                where proptype in (1,5,6)
-            )
-            union all
-            select id, name, propgr as parent, id as prop
-            from Prop
-            where propGr in (
-                select id
-                from PropGr
-                where id in (
-                    select distinct propgr
-                    from prop
-                    where prop.proptype in (1,5,6)
+        return getMdb().loadQuery("""
+                    select id, name, parent, 0 as prop
+                    from PropGr
+                    where id in (
+                        select distinct propgr
+                        from prop
+                        where proptype in (1,5,6)
                     )
-            ) and proptype in (1,5,6)
-        """);
+                    union all
+                    select id, name, propgr as parent, id as prop
+                    from Prop
+                    where propGr in (
+                        select id
+                        from PropGr
+                        where id in (
+                            select distinct propgr
+                            from prop
+                            where prop.proptype in (1,5,6)
+                            )
+                    ) and proptype in (1,5,6)
+                """);
     }
 
 }

@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 
 export default {
   props: ["data", "dense"],
@@ -114,7 +114,7 @@ export default {
   created() {
     this.loading = true
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/loadDictAsStore",
         params: ["FD_AccessLevel"],
       })

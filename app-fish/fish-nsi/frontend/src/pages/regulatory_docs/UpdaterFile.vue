@@ -64,6 +64,7 @@
 <script>
 
 import {ref} from "vue";
+import {api, authURL, baseURL} from "boot/axios.js";
 
 export default {
   props: ["obj", "propCod"],
@@ -137,8 +138,8 @@ export default {
       fd.append("file", this.file)
       fd.append("params", JSON.stringify(this.form))
 
-      this.$axios
-        .post("/fish_upload", fd, {
+      api
+        .post( "/upload", fd, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -154,7 +155,6 @@ export default {
           //console.log("error.response=>>>", error.response)
           //console.log("error.response.data=>>>", error.response.data)
           //setUserStore({})
-          //notifyError(this.$t("notLogined"))
         })
         .finally(() => {
           this.loading = false

@@ -21,9 +21,6 @@ import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
-import tofi.api.dta.ApiIndicatorData
-import tofi.api.dta.ApiKPIData
-import tofi.api.dta.ApiPollData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.mdl.ApiMeta
@@ -83,7 +80,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadDict(String dictName) throws Exception{
+    Store loadDict(String dictName) throws Exception {
         return apiMeta().get(ApiMeta).loadDictAsStore(dictName)
     }
 
@@ -379,7 +376,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadProvider(long prop, /*String model,*/long providerTyp, String metamodel) {
+    Store loadProvider(long prop, /*String model,*/ long providerTyp, String metamodel) {
         String sql = """
             select p.cls as id, p.obj, v.name, p.isdefault, d.modelname
             from PropProvider p
@@ -391,7 +388,7 @@ class DataDao extends BaseMdbUtils {
         // and d.modelname='${model}'
         Store st = apiMetaData().get(ApiMetaData).loadSql(sql, "")
         //
-        if (st.size()==0)
+        if (st.size() == 0)
             throw XError("Not Found Provider")
         String model = st.get(0).getString("modelname")
 
@@ -1793,13 +1790,6 @@ class DataDao extends BaseMdbUtils {
                 return apiMonitoringData().get(ApiMonitoringData).createOwner(params)
             else
                 throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "dtj") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).createOwner(params)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).createOwner(params)
-            else
-                throw new XError("Unknown model [${model}]")
         }
         throw new XError("Unknown id metamodel")
     }
@@ -1883,31 +1873,13 @@ class DataDao extends BaseMdbUtils {
     }
 
     private updateTable(String tableName, Map<String, Object> params, String model, String metamodel) {
-        if (metamodel == "kpi") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).updateTable(tableName, params)
-            else if (model.equalsIgnoreCase("kpidata"))
-                return apiKPIData().get(ApiKPIData).updateTable(tableName, params)
-            else if (model.equalsIgnoreCase("polldata"))
-                return apiPollData().get(ApiPollData).updateTable(tableName, params)
-            else if (model.equalsIgnoreCase("indicatordata"))
-                return apiIndicatorData().get(ApiIndicatorData).updateTable(tableName, params)
-            else
-                throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "fish") {
+        if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).updateTable(tableName, params)
             else if (model.equalsIgnoreCase("nsidata"))
                 return apiNSIData().get(ApiNSIData).updateTable(tableName, params)
             else if (model.equalsIgnoreCase("monitoringdata"))
                 return apiMonitoringData().get(ApiMonitoringData).updateTable(tableName, params)
-            else
-                throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "dtj") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).updateTable(tableName, params)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).updateTable(tableName, params)
             else
                 throw new XError("Unknown model [${model}]")
         }
@@ -1947,18 +1919,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     private long insertRecToTable(String tableName, Map<String, Object> params, String model, String metamodel, boolean generateId) {
-        if (metamodel == "kpi") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("kpidata"))
-                return apiKPIData().get(ApiKPIData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("polldata"))
-                return apiPollData().get(ApiPollData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("indicatordata"))
-                return apiIndicatorData().get(ApiIndicatorData).insertRecToTable(tableName, params, generateId)
-            else
-                throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "fish") {
+        if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).insertRecToTable(tableName, params, generateId)
             else if (model.equalsIgnoreCase("nsidata"))
@@ -1967,30 +1928,14 @@ class DataDao extends BaseMdbUtils {
                 return apiMonitoringData().get(ApiMonitoringData).insertRecToTable(tableName, params, generateId)
             else
                 throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "dtj") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).insertRecToTable(tableName, params, generateId)
-            else
-                throw new XError("Unknown model [${model}]")
+        } else {
+            throw new XError("Unknown model [${model}]")
         }
-        throw new XError("Unknown id metamodel")
+
     }
 
     private long insertRecToTable2(String tableName, Map<String, Object> params, String model, String metamodel, boolean generateId) {
-        if (metamodel == "kpi") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("kpidata"))
-                return apiKPIData().get(ApiKPIData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("polldata"))
-                return apiPollData().get(ApiPollData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("indicatordata"))
-                return apiIndicatorData().get(ApiIndicatorData).insertRecToTable(tableName, params, generateId)
-            else
-                throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "fish") {
+        if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).insertRecToTable(tableName, params, generateId)
             else if (model.equalsIgnoreCase("nsidata"))
@@ -1999,15 +1944,10 @@ class DataDao extends BaseMdbUtils {
                 return apiMonitoringData().get(ApiMonitoringData).insertRecToTable(tableName, params, generateId)
             else
                 throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "dtj") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).insertRecToTable(tableName, params, generateId)
-            else
-                throw new XError("Unknown model [${model}]")
+        } else {
+            throw new XError("Unknown model [${model}]")
         }
-        throw new XError("Unknown id metamodel")
+
     }
 
     private long getUser() throws Exception {

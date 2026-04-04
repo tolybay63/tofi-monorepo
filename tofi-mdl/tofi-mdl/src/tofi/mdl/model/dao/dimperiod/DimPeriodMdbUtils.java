@@ -6,7 +6,9 @@ import jandcode.commons.datetime.XDate;
 import jandcode.commons.error.XError;
 import jandcode.core.auth.AuthService;
 import jandcode.core.auth.AuthUser;
+import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.dict.DictService;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.store.Store;
@@ -22,21 +24,7 @@ import tofi.mdl.model.utils.period.UtPeriod;
 
 import java.util.*;
 
-public class DimPeriodMdbUtils extends EntityMdbUtils {
-    Mdb mdb;
-    String tableName;
-
-    public DimPeriodMdbUtils(Mdb mdb, String tableName) throws Exception {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
+public class DimPeriodMdbUtils extends BaseMdbUtils {
 
     /**
      * Загрузка DimPeriod с пагинацией
@@ -45,14 +33,15 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Map<String, Object> loadDimPeriodPaginate(Map<String, Object> params) throws Exception {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class);
+        AuthService authSvc = getMdb().getApp().bean(AuthService.class);
         AuthUser au = authSvc.getCurrentUser();
         //todo
         long al = au.getAttrs().getLong("accesslevel");
 
         String sql = "select * from DimPeriod where accessLevel <= " + al;
-        SqlText sqlText = mdb.createSqlText(sql);
+        SqlText sqlText = getMdb().createSqlText(sql);
         Map<String, Object> par = new HashMap<>();
         int offset = (UtCnv.toInt(params.get("page")) - 1) * UtCnv.toInt(params.get("limit"));
         par.put("offset", offset);
@@ -67,15 +56,15 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("(cod like '%" + filter + "%' or name like '%" + filter + "%' or " +
                     "fullName like '%" + filter + "%')");
-        Store st = mdb.createStore("DimPeriod");
-        mdb.loadQuery(st, sqlText, par);
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("DimPeriod");
+        getMdb().loadQuery(st, sqlText, par);
+        getMdb().resolveDicts(st);
         //count
         sql = "select count(*) as cnt from DimPeriod where accessLevel <= " + al;
         sqlText.setSql(sql);
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%'");
-        int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
+        int total = getMdb().loadQuery(sqlText).get(0).getInt("cnt");
         Map<String, Object> meta = new HashMap<String, Object>();
         meta.put("total", total);
         meta.put("page", UtCnv.toInt(params.get("page")));
@@ -91,14 +80,15 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
      * @throws Exception
      */
 
+    @DaoMethod
     public StoreRecord newRec(Map<String, Object> params) throws Exception {
-        DictService dictSvc = mdb.getModel().bean(DictService.class);
-        Store st = mdb.createStore("DimPeriod");
+        DictService dictSvc = getMdb().getModel().bean(DictService.class);
+        Store st = getMdb().createStore("DimPeriod");
         StoreRecord rec = st.add();
         rec.set("accessLevel", FD_AccessLevel_consts.common);
         rec.set("periodNameTml", FD_PeriodNameTml_consts.full);
         dictSvc.resolveDicts(st);
-        //mdb.outTable(rec);
+        //getMdb().outTable(rec);
         return rec;
     }
 
@@ -109,16 +99,18 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         rec.putIfAbsent("dbeg", "1800-01-01");
         rec.putIfAbsent("dend", "3333-12-31");
         //
-        long id = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DimPeriod");
+        long id = eu.insertEntity(rec);
         //
-        Store st = mdb.createStore("DimPeriod");
-        mdb.loadQuery(st, "select * from DimPeriod where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("DimPeriod");
+        getMdb().loadQuery(st, "select * from DimPeriod where id=:id", Map.of("id", id));
+        getMdb().resolveDicts(st);
         return st;
     }
 
@@ -129,6 +121,7 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
         long id = UtCnv.toLong(rec.get("id"));
@@ -136,12 +129,13 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DimPeriod");
+        eu.updateEntity(rec);
         //
         // Загрузка записи
-        Store st = mdb.createStore("DimPeriod");
-        mdb.loadQuery(st, "select * from DimPeriod where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("DimPeriod");
+        getMdb().loadQuery(st, "select * from DimPeriod where id=:id", Map.of("id", id));
+        getMdb().resolveDicts(st);
         return st;
     }
 
@@ -151,28 +145,32 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
      * @param map
      * @throws Exception
      */
+    @DaoMethod
     public void delete(Map<String, Object> map) throws Exception {
-        deleteEntity(UtCnv.toMap(map.get("rec")));
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DimPeriod");
+        eu.deleteEntity(UtCnv.toMap(map.get("rec")));
     }
 
     //============================ DimPeriodItem ================================//
+    @DaoMethod
     public Store loadDPI(long dimperiod) throws Exception {
-        Store st = mdb.createStore("DimPeriodItem");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimPeriodItem");
+        return getMdb().loadQuery(st, """
                    select * from DimPeriodItem
                    where dimperiod=:dp
                 """, Map.of("dp", dimperiod));
     }
 
+    @DaoMethod
     public Store newRecDPI(boolean isChild, Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore("DimPeriodItem");
+        Store st = getMdb().createStore("DimPeriodItem");
         StoreRecord r = st.add();
 
         if (!isChild) {
             r.set("periodType", FD_PeriodType_consts.year);
             r.set("countPeriod", 1);
             r.set("lagCurrentDate", 0);
-            long tml = mdb.loadQuery("select periodNameTml from DimPeriod where id=:id",
+            long tml = getMdb().loadQuery("select periodNameTml from DimPeriod where id=:id",
                     Map.of("id", rec.get("dimperiod"))).get(0).getLong("periodNameTml");
             r.set("periodNameTml", tml);
         } else {
@@ -196,37 +194,41 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
             r.set("periodIncludeTag", FD_PeriodIncludeTag_consts.dbegAndDend);
             r.set("parent", UtCnv.toLong(rec.get("id")));
         }
-//mdb.outTable(st);
+//getMdb().outTable(st);
         return st;
     }
 
+    @DaoMethod
     public String getPeriodBeg(String dbeg, long periodType) throws Exception {
         UtPeriod ut = new UtPeriod();
         XDate dt = ut.calcDbeg(UtCnv.toDate(dbeg), periodType, 0);
         return UtCnv.toString(dt);
     }
 
+    @DaoMethod
     public String getPeriodEnd(String dend, long periodType) throws Exception {
         UtPeriod ut = new UtPeriod();
         XDate dt = ut.calcDend(UtCnv.toDate(dend), periodType, 0);
         return UtCnv.toString(dt);
     }
 
+    @DaoMethod
     public Store insertDPI(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         rec.putIfAbsent("dbeg", "1800-01-01");
         rec.putIfAbsent("dend", "3333-12-31");
         //
-        long id = mdb.getNextId("DimPeriodItem");
+        long id = getMdb().getNextId("DimPeriodItem");
         rec.put("ord", id);
-        mdb.insertRec("DimPeriodItem", rec, false);
+        getMdb().insertRec("DimPeriodItem", rec, false);
         //
-        Store st = mdb.createStore("DimPeriodItem");
-        mdb.loadQuery(st, "select * from DimPeriodItem where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("DimPeriodItem");
+        getMdb().loadQuery(st, "select * from DimPeriodItem where id=:id", Map.of("id", id));
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public Store updateDPI(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
         rec.putIfAbsent("dbeg", "1800-01-01");
@@ -236,33 +238,35 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        Store st = mdb.createStore("DimPeriodItem");
+        Store st = getMdb().createStore("DimPeriodItem");
         StoreRecord r = st.add(rec);
-        mdb.updateRec("DimPeriodItem", r);
+        getMdb().updateRec("DimPeriodItem", r);
         //
         // Загрузка записи
         st.cloneStore();
-        mdb.loadQuery(st, "select * from DimPeriodItem where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        getMdb().loadQuery(st, "select * from DimPeriodItem where id=:id", Map.of("id", id));
+        getMdb().resolveDicts(st);
         return st;
     }
 
+    @DaoMethod
     public void deleteDPI(Map<String, Object> rec) throws Exception {
-        Store st = mdb.createStore("DimPeriodItem");
+        Store st = getMdb().createStore("DimPeriodItem");
         StoreRecord r = st.add(rec);
-        mdb.deleteRec("DimPeriodItem", r.getLong("id"));
+        getMdb().deleteRec("DimPeriodItem", r.getLong("id"));
     }
 
     //
+    @DaoMethod
     public Store loadNotIn(long dimPeriodItem) throws Exception {
-        Store st = mdb.createStore("DimPeriodItemNotIn.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimPeriodItemNotIn.full");
+        getMdb().loadQuery(st, """
                    select * from DimPeriodItemNotIn where dimPeriodItem=:dpi
                 """, Map.of("dpi", dimPeriodItem));
         //
         for (StoreRecord r : st) {
             r.setValue("name", String.valueOf(r.getLong("numb")));
-            StoreRecord rec = mdb.loadQueryRecord("select * from DimPeriodItem where id=:id", Map.of("id", dimPeriodItem));
+            StoreRecord rec = getMdb().loadQueryRecord("select * from DimPeriodItem where id=:id", Map.of("id", dimPeriodItem));
             long periodType = rec.getLong("PeriodType");
             if (periodType == FD_PeriodType_consts.month) {
                 fillNameByMonth(st);
@@ -362,22 +366,25 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
         }
     }
 
-    ////////////////////////////////////////////////
+    /// /////////////////////////////////////////////
+    @DaoMethod
     public Store loadNotInForUpdate(long dimPeriodItem) throws Exception {
-        Store res = mdb.createStore("DimPeriodItemNotIn.edit");
+        Store res = getMdb().createStore("DimPeriodItemNotIn.edit");
 
         NotInFiller filler = new NotInFiller(res, new IPeriodItem() {
+            @DaoMethod
             public long getPeriodType(String link) throws Exception {
                 long id = Long.parseLong(link);
-                StoreRecord rec = mdb.loadQuery("""
+                StoreRecord rec = getMdb().loadQuery("""
                             select * from DimPeriodItem where id=:id
                         """, Map.of("id", id)).get(0);
                 return rec.getLong("periodType");
             }
 
+            @DaoMethod
             public List<Long> getNotInList(String link) throws Exception {
                 long id = Long.parseLong(link);
-                Store st = mdb.loadQuery("""
+                Store st = getMdb().loadQuery("""
                                     select t.* from
                                     DimPeriodItemNotIn t
                                     where t.dimperiodItem=:dimperiodItem
@@ -390,9 +397,10 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
                 return list;
             }
 
+            @DaoMethod
             public String getParentLink(String link) throws Exception {
                 long id = Long.parseLong(link);
-                StoreRecord record = mdb.loadQueryRecord("select * from DimPeriodItem where id=:id", Map.of("id", id));
+                StoreRecord record = getMdb().loadQueryRecord("select * from DimPeriodItem where id=:id", Map.of("id", id));
                 long parent = record.getLong("parent");
 
                 if (parent == 0)
@@ -405,12 +413,13 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
     }
 
     //
+    @DaoMethod
     public void updateNotIn(long dimPeriodItem, List<Map<String, Object>> data) throws Exception {
 
         boolean edited = false;
 
         //Old Ids
-        Store oldSt = mdb.loadQuery("""
+        Store oldSt = getMdb().loadQuery("""
                     select * from DimPeriodItemNotIn where dimperiodItem=:dpi
                 """, Map.of("dpi", dimPeriodItem));
 
@@ -425,7 +434,7 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
         for (Object oldId : oldIds) {
             if (!newIds.contains(oldId)) {
                 edited = true;
-                mdb.deleteRec("DimPeriodItemNotIn", UtCnv.toLong(oldId));
+                getMdb().deleteRec("DimPeriodItemNotIn", UtCnv.toLong(oldId));
             }
         }
 
@@ -433,7 +442,7 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
         for (Object newId : newIds) {
             if (!oldIds.contains(newId)) {
                 edited = true;
-                mdb.insertRec("DimPeriodItemNotIn",
+                getMdb().insertRec("DimPeriodItemNotIn",
                         Map.of("dimPeriodItem", dimPeriodItem, "numb", UtCnv.toInt(newId)), true);
             }
         }
@@ -444,9 +453,9 @@ public class DimPeriodMdbUtils extends EntityMdbUtils {
     }
 
     protected void clearChildrenNotIn(long dpi) throws Exception {
-        Store st = mdb.loadQuery("select id from DimPeriodItem where parent=:id", Map.of("dpi", dpi));
+        Store st = getMdb().loadQuery("select id from DimPeriodItem where parent=:id", Map.of("dpi", dpi));
         for (StoreRecord r : st) {
-            mdb.execQuery("delete from DimPeriodItemNotIn where dimperioditem=:id", Map.of("id", r.getLong("id")));
+            getMdb().execQuery("delete from DimPeriodItemNotIn where dimperioditem=:id", Map.of("id", r.getLong("id")));
             clearChildrenNotIn(r.getLong("id"));
         }
     }

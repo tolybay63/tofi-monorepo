@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
@@ -119,7 +119,7 @@ export default {
       const method =
           this.mode === "ins" ? "insertRelTypRole" : "updateRelTypRole";
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/" + method,
             params: [{rec: this.form}],
           })
@@ -145,7 +145,7 @@ export default {
   },
   created() {
     api
-        .post(baseURL, {
+        .post("", {
           method: "reltyp/selectRelTypRole",
           params: [this.reltyp],
         })

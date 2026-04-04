@@ -79,7 +79,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifySuccess} from "src/utils/jsutils";
 import UpdateScaleVal from "pages/scale/UpdateScaleVal.vue";
 
@@ -117,7 +117,7 @@ export default {
       this.loading = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "scale/loadScaleVal",
             params: [scale],
           })
@@ -157,7 +157,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "scale/deleteScaleVal",
                   params: [ rec ],
                 })

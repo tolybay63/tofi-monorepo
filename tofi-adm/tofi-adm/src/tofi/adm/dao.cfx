@@ -4,12 +4,12 @@
             <holder name="api" invoker="model:default">
 
                 <item name="auth"
-                      class="tofi.adm.model.dao.auth.AuthDao"
+                      class="tofi.adm.model.dao.auth.AuthMdbUtils"
                       method="*"
                 />
 
                 <item name="role"
-                      class="tofi.adm.model.dao.role.RoleDao"
+                      class="tofi.adm.model.dao.role.RoleMdbUtils"
                       method="*"
                 />
 
@@ -20,7 +20,7 @@
 
 
                 <item name="permis"
-                      class="tofi.adm.model.dao.permis.PermisDao"
+                      class="tofi.adm.model.dao.permis.PermisMdbUtils"
                       method="*"
                 />
 

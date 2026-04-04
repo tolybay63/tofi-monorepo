@@ -2,29 +2,18 @@ package tofi.mdl.model.dao.reltyp;
 
 import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 
 import java.util.Map;
 
-public class RelTypMemberMdbUtils {
-    Mdb mdb;
+public class RelTypMemberMdbUtils extends BaseMdbUtils {
 
-    public RelTypMemberMdbUtils(Mdb mdb) throws Exception {
-        this.mdb = mdb;
-        //
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
-    //
 
     public Store loadRelTypMember(long reltyp) throws Exception {
-        Store st = mdb.createStore("RelTypMember.full");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("RelTypMember.full");
+        getMdb().loadQuery(st, """
                     select m.*,
                         case when m.membertype=1 then tv.name else rv.name end as memberName
                     from RelTypMember m
@@ -39,17 +28,17 @@ public class RelTypMemberMdbUtils {
 
     public Store insertRelTypMember(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
-        Store st = mdb.createStore("RelTypMember");
+        Store st = getMdb().createStore("RelTypMember");
         StoreRecord r = st.add(rec);
         if (r.getLong("role") == 0) r.set("role", null);
         //
-        long id = mdb.getNextId("RelTypMember");
+        long id = getMdb().getNextId("RelTypMember");
         r.set("id", id);
         r.set("ord", id);
-        mdb.insertRec("RelTypMember", r, false);
+        getMdb().insertRec("RelTypMember", r, false);
         //
-        st = mdb.createStore("RelTypMember.full");
-        mdb.loadQuery(st, """
+        st = getMdb().createStore("RelTypMember.full");
+        getMdb().loadQuery(st, """
                     select m.*,
                         case when m.membertype=3 then rv.name else tv.name end as memberName
                     from RelTypMember m
@@ -63,14 +52,14 @@ public class RelTypMemberMdbUtils {
     public Store updateRelTypMember(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         long id = UtCnv.toLong(rec.get("id"));
-        Store st = mdb.createStore("RelTypMember");
+        Store st = getMdb().createStore("RelTypMember");
         StoreRecord r = st.add(rec);
         //
-        mdb.updateRec("RelTypMember", r);
+        getMdb().updateRec("RelTypMember", r);
 
         //
-        st = mdb.createStore("RelTypMember.full");
-        mdb.loadQuery(st, """
+        st = getMdb().createStore("RelTypMember.full");
+        getMdb().loadQuery(st, """
                     select m.*,
                         case when m.membertype=3 then rv.name else tv.name end as memberName
                     from RelTypMember m
@@ -86,11 +75,11 @@ public class RelTypMemberMdbUtils {
         //
         validate(UtCnv.toLong(rec.get("relTyp")), "del");
         //
-        mdb.deleteRec("RelTypMember", id);
+        getMdb().deleteRec("RelTypMember", id);
     }
 
     protected void validate(long reltyp, String flag) throws Exception {
-        Store st = mdb.loadQuery("""
+        Store st = getMdb().loadQuery("""
                     select rc.id
                     from RelCls rc
                     inner join RelClsMember m on rc.id=m.relcls
@@ -119,7 +108,7 @@ public class RelTypMemberMdbUtils {
         //
         validate(reltyp, "ord");
         //
-        Store st = mdb.loadQuery("""
+        Store st = getMdb().loadQuery("""
                     select * from RelTypMember where reltyp=:rt order by ord
                 """, Map.of("rt", reltyp));
         int k = 0;  //искомая позиция
@@ -137,7 +126,7 @@ public class RelTypMemberMdbUtils {
             ord2 = st.get(k + 1).getLong("ord");
         }
         //
-        mdb.execQuery("""
+        getMdb().execQuery("""
                     update RelTypMember set ord=:ord2 where id=:id1;
                     update RelTypMember set ord=:ord1 where id=:id2;
                 """, Map.of("id1", id1, "id2", id2, "ord1", ord1, "ord2", ord2));
@@ -146,13 +135,13 @@ public class RelTypMemberMdbUtils {
 
     //todo
     public Store loadRelTypForSelect() throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select t.id, v.name from RelTyp t, RelTypVer v where t.id=v.ownerVer and v.lastVer=1
                 """);
     }
 
     public Store loadTypForSelect(Map<String, Object> params) throws Exception {
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select t.id, v.name from Typ t, TypVer v where t.id=v.ownerVer and v.lastVer=1
                 """);
     }

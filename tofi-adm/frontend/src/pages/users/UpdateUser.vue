@@ -166,7 +166,7 @@
 <script>
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 
 export default {
   props: ["rec", "mode", "dense"],
@@ -241,7 +241,7 @@ export default {
       let method = this.mode === "ins" ? "insert" : "update";
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "usr/" + method,
           params: [this.form],
         })
@@ -270,7 +270,7 @@ export default {
 
     this.loading = true
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/loadDictAsStore",
         params: ["FD_AccessLevel"],
       })

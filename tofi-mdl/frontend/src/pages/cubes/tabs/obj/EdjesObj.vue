@@ -1,5 +1,5 @@
 <script>
-import {api, baseURL} from "boot/axios.js";
+import {api} from "boot/axios.js";
 import {notifyError, notifySuccess} from "src/utils/jsutils.js";
 
 export default {
@@ -61,7 +61,7 @@ export default {
           this.doi3 ? this.doi3 : 0, this.cl3 ? this.cl3 : 0, this.doi4 ? this.doi4 : 0, this.cl4 ? this.cl4 : 0]
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/saveCubesFace",
           params: params,
         })
@@ -114,7 +114,7 @@ export default {
 
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "cubes/unbindingDO",
           params: [this.cubeSFace, this.do1, this.do2, this.cl3 ? this.cl3 : 0, this.cl4 ? this.cl4 : 0],
         })

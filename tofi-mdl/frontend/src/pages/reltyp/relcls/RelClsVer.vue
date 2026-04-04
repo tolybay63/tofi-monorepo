@@ -115,7 +115,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {date} from "quasar";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateRelClsVer from "pages/reltyp/relcls/UpdateRelClsVer.vue";
@@ -172,7 +172,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "relcls/deleteVer",
                   params: [rec],
                 })
@@ -282,7 +282,7 @@ export default {
     fetchData(relcls) {
       this.loading = false;
       api
-          .post(baseURL, {
+          .post("", {
             method: "relcls/loadVer",
             params: [relcls],
           })

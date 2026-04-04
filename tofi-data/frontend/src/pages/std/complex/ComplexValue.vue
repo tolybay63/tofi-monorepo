@@ -152,7 +152,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifyInfo} from "src/utils/jsutils";
 import allConsts from "pages/all-consts";
 import UpdaterComplexValue from "pages/std/complex/UpdaterComplexValue.vue";
@@ -242,7 +242,7 @@ export default {
         })
         .onOk(() => {
           api
-            .post(baseURL, {
+            .post("", {
               method: "data/deleteComplexValue",
               params: [rec.id, getModel.value ],
             })
@@ -457,7 +457,7 @@ export default {
       if (this.requestParams.providerTyp > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadProvider",
             params: [this.requestParams.prop, getModel.value, getMetaModel.value],
           })
@@ -475,7 +475,7 @@ export default {
       if (this.requestParams.statusFactor > 0) {
         this.loading = ref(true);
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadStatus",
             params: [this.requestParams.prop],
           })
@@ -493,7 +493,7 @@ export default {
       //
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadDict",
           params: ["FD_AttribValType"],
         })
@@ -511,7 +511,7 @@ export default {
       this.loading = ref(true);
       params.isComplexItem = 0;
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadData",
           params: [params],
         })

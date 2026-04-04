@@ -103,7 +103,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 import treeselect from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
@@ -202,7 +202,7 @@ export default {
       const method = this.mode === "ins" ? "insertDPI" : "updateDPI";
 
       api
-          .post(baseURL, {
+          .post("", {
             id: this.form.id,
             method: "dimprop/" + method,
             params: [this.form],
@@ -232,7 +232,7 @@ export default {
     console.info("UpdaterDimPropItem DimMultiProp");
       this.visible = true;
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimprop/loadDimMultiPropItemForSelect",
             params: [this.dimMultiProp],
           })

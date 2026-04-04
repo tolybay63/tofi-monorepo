@@ -99,7 +99,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifySuccess} from "src/utils/jsutils";
 import UpdateScale from "pages/scale/UpdateScale.vue";
 
@@ -138,7 +138,7 @@ export default {
       this.loading = ref(true);
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "scale/load",
             params: [reqParams],
           })
@@ -208,7 +208,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "scale/delete",
                   params: [ rec ],
                 })
@@ -352,7 +352,7 @@ export default {
     this.cols = this.getColumns()
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_AccessLevel"}],
         })
@@ -364,7 +364,7 @@ export default {
         });
 
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_ScaleType"}],
         })
