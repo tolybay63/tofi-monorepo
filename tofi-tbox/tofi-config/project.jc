@@ -14,7 +14,7 @@ class P extends ProjectScript {
             moduleDef("tofi.config").with {
                 depends.prod(
                         "jandcode.core.apx",
-                        "tofi-zookeeper",
+                        //"tofi-zookeeper",
                 )
                 depends.dev(
                 )

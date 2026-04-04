@@ -1,37 +1,21 @@
-/* eslint-env node */
-
-// Configuration for your app
-// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
-
-
 import {defineConfig} from '#q-app/wrappers'
 import {fileURLToPath} from 'node:url'
 
-let url = 'http://localhost:8080'
-if (process.env.NODE_ENV === 'production') {
-  url = process.env.VITE_PRODUCT_URL
-}
+let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
 
 export default defineConfig((ctx) => {
+  const SERVICE_NAME = 'meta';
   return {
-    // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
-    // preFetch: true,
-
-    // app boot file (/src/boot)
-    // --> boot files are part of "main.js"
-    // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
       'i18n',
       'axios',
-      //'quasar-lang-pack'
+      'auth-init'
     ],
 
-    // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: [
       'app.scss'
     ],
 
-    // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
       // 'ionicons-v4',
       // 'mdi-v7',
@@ -53,17 +37,22 @@ export default defineConfig((ctx) => {
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
-      // vueRouterBase,
+      vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? `/fish/${SERVICE_NAME}/` : '',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
-      publicPath: '',
+      publicPath: ctx.modeName === 'spa' && ctx.prod ? `/fish/${SERVICE_NAME}/` : '',
       extendViteConf(viteConf, { isServer, isClient }) {
-        viteConf.base = '';
+        if (ctx.modeName === 'spa' && ctx.prod) {
+          viteConf.base = `/fish/${SERVICE_NAME}/`;
+        } else {
+          viteConf.base = '';
+        }
       },
+
       // analyze: true,
       // env: {},
       // rawDefine: {}
@@ -132,9 +121,8 @@ export default defineConfig((ctx) => {
       plugins: [
         "Dialog",
         "Notify",
-        "Loading",
         "LocalStorage",
-        "SessionStorage"
+        'LoadingBar'
       ]
     },
 

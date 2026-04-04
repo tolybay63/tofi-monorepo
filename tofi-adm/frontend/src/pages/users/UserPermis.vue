@@ -95,7 +95,7 @@
 <script>
 import {ref} from "vue";
 import {collapsAll, expandAll, hasTarget, pack,} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 import UpdaterUserPermis from "pages/users/UpdaterUserPermis.vue";
 
 export default {
@@ -123,7 +123,7 @@ export default {
     fetchData(user) {
       this.loading = true;
       api
-        .post(baseURL, {
+        .post("", {
           method: "usr/loadUserPermis",
           params: [user],
         })
@@ -139,7 +139,7 @@ export default {
     loadUser(user) {
       this.loading = true;
       api
-        .post(baseURL, {
+        .post("", {
           method: "usr/loadUser",
           params: [user],
         })
@@ -279,7 +279,7 @@ export default {
     this.loading = true
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/loadDict",
         params: ["FD_AccessLevel"],
       })

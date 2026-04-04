@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import {ref} from "vue";
 
@@ -128,7 +128,7 @@ export default {
       this.form.attribValType =
         typeof this.avt === "object" ? this.avt.id : this.avt;
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimMultiProp/" + method,
             params: [this.form],
           })
@@ -155,7 +155,7 @@ export default {
   created() {
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_AttribValType"}],
       })

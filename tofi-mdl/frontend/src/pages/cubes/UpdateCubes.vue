@@ -107,7 +107,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
@@ -184,7 +184,7 @@ export default {
       this.form.cubeSType =
         typeof this.ct === "object" ? this.ct.id : this.ct;
       api
-        .post(baseURL, {
+        .post("", {
           id: this.form.id,
           method: "cubes/" + method,
           params: [this.form],
@@ -210,7 +210,7 @@ export default {
   },
   created() {
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_AccessLevel"}],
       })
@@ -219,7 +219,7 @@ export default {
       });
 
     api
-      .post(baseURL, {
+      .post("", {
         method: "dict/load",
         params: [{dict: "FD_CubeSType"}],
       })

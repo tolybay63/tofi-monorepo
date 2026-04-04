@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {hasTarget, notifyError, notifyInfo} from "src/utils/jsutils";
 import allConsts from "pages/all-consts";
@@ -84,7 +84,7 @@ export default {
       if (this.propType === allConsts.FD_PropType.typ) ent = "Typ";
       else if (this.propType === allConsts.FD_PropType.reltyp) ent = "RelTyp";
       api
-          .post(baseURL, {
+          .post("", {
             method: "prop/loadPropVal",
             params: [prop, ent],
           })

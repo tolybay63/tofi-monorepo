@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdaterMultiPropCond from "pages/multiprop/UpdaterMultiPropCond.vue";
@@ -99,7 +99,7 @@ export default {
 
       this.loading = ref(true);
       api
-          .post(baseURL, {
+          .post("", {
             method: "multiProp/loadMultiPropCond",
             params: [multiProp],
           })
@@ -173,7 +173,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "multiProp/deleteMultiPropCond",
                   params: [rec.id],
                 })

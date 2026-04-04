@@ -145,7 +145,7 @@
 <script>
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api, } from "boot/axios";
 
 export default {
   props: ["lg"],
@@ -216,7 +216,7 @@ export default {
       this.loading = true;
 
       api
-          .post(baseURL, {
+          .post("", {
             method: "auth/regUser",
             params: [this.form],
           })

@@ -178,7 +178,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {date} from "quasar";
 import {notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import allConsts from "pages/all-consts";
@@ -326,7 +326,7 @@ export default {
       //console.info("rec", rec)
 
       api
-        .post(baseURL, {
+        .post("", {
           method: "dataStd/downloadMinio",
           params: [rec],
         })
@@ -408,7 +408,7 @@ export default {
         })
         .onOk(() => {
           api
-            .post(baseURL, {
+            .post("", {
               method: method,
               params: [params],
             })
@@ -840,7 +840,7 @@ export default {
       if (this.requestParams.providerTyp > 0) {
         this.loading = ref(true)
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadProvider",
             params: [this.requestParams.prop, getModel.value, getMetaModel.value],
           })
@@ -858,7 +858,7 @@ export default {
       if (this.requestParams.statusFactor > 0) {
         this.loading = ref(true)
         api
-          .post(baseURL, {
+          .post("", {
             method: "data/loadStatus",
             params: [this.requestParams.prop]
           })
@@ -876,7 +876,7 @@ export default {
       //
       this.loading = ref(true)
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadDict",
           params: ["FD_AttribValType"]
         })
@@ -897,7 +897,7 @@ export default {
       params.model = getModel.value
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadData",
           params: [params],
         })

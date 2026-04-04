@@ -154,7 +154,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import { notifyError, notifySuccess, pack } from "src/utils/jsutils";
 import {useParamsStore} from "stores/params-store";
 import {storeToRefs} from "pinia";
@@ -195,7 +195,7 @@ export default {
     fetchDataObj(typ, cls, obj) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadObjTreeParent",
           params: [typ, cls, obj, getModel.value, getMetaModel.value],
         })
@@ -282,7 +282,7 @@ export default {
       this.form.typ = this.typ
       let err = false
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/createOwn",
           params: [this.form],
         })
@@ -312,7 +312,7 @@ export default {
 
     this.loading = +true
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadDict",
         params: ["FD_AccessLevel"],
       })
@@ -327,7 +327,7 @@ export default {
       })
     //
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadClsTree",
         params: [{typOrCls: this.typOrCls, level: this.level, typNodeVisible: false}],
       })

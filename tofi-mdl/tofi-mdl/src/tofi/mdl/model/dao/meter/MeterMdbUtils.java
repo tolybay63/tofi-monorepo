@@ -2,8 +2,9 @@ package tofi.mdl.model.dao.meter;
 
 import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
+import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.dict.DictService;
-import jandcode.core.dbm.mdb.Mdb;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
@@ -14,17 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class MeterMdbUtils extends EntityMdbUtils {
-    Mdb mdb;
-    String tableName;
-
-
-    public MeterMdbUtils(Mdb mdb, String tableName) throws Exception {
-        super(mdb, tableName);
-        this.mdb = mdb;
-        this.tableName = tableName;
-    }
-
+public class MeterMdbUtils extends BaseMdbUtils {
 
     /**
      * Загрузка Meter с пагинацией
@@ -33,9 +24,10 @@ public class MeterMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Map<String, Object> loadMeterPaginate(Map<String, Object> params) throws Exception {
         String sql0 = "select f.* from Meter f where 0=0 order by f.id";
-        SqlText sqlText = mdb.createSqlText(sql0);
+        SqlText sqlText = getMdb().createSqlText(sql0);
         String filter = UtCnv.toString(params.get("filter")).trim();
 
         //count
@@ -43,7 +35,7 @@ public class MeterMdbUtils extends EntityMdbUtils {
         sqlText.setSql(sql);
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%'");
-        int total = mdb.loadQuery(sqlText).get(0).getInt("cnt");
+        int total = getMdb().loadQuery(sqlText).get(0).getInt("cnt");
         int lm = UtCnv.toInt(params.get("rowsPerPage")) == 0 ? total : UtCnv.toInt(params.get("rowsPerPage"));
         Map<String, Object> meta = new HashMap<String, Object>();
         meta.put("total", total);
@@ -68,9 +60,8 @@ public class MeterMdbUtils extends EntityMdbUtils {
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("(cod like '%" + filter + "%' or f.name like '%" + filter + "%' or " +
                     "f.fullName like '%" + filter + "%')");
-        Store st = mdb.createStore("Meter");
-        mdb.loadQuery(st, sqlText, par);
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("Meter");
+        getMdb().loadQuery(st, sqlText, par);
 
         return Map.of("store", st, "meta", meta);
     }
@@ -82,8 +73,10 @@ public class MeterMdbUtils extends EntityMdbUtils {
      * @throws Exception
      */
 
+    @DaoMethod
     public void delete(Map<String, Object> rec) throws Exception {
-        deleteEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Meter");
+        eu.deleteEntity(rec);
     }
 
     /**
@@ -93,6 +86,7 @@ public class MeterMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
 
@@ -101,14 +95,14 @@ public class MeterMdbUtils extends EntityMdbUtils {
             throw new XError("Поле id должно иметь не нулевое значение");
         }
         //
-        updateEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Meter");
+        eu.updateEntity(rec);
         //
         // Загрузка записи
-        Store st = mdb.createStore("Meter");
-        mdb.loadQuery(st, "select * from Meter where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        Store st = getMdb().createStore("Meter");
+        getMdb().loadQuery(st, "select * from Meter where id=:id", Map.of("id", id));
 
-        //mdb.outTable(st);
+        //getMdb().outTable(st);
         return st;
     }
 
@@ -119,29 +113,32 @@ public class MeterMdbUtils extends EntityMdbUtils {
      * @return
      * @throws Exception
      */
+    @DaoMethod
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         //
-        long id = insertEntity(rec);
+        EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "Meter");
+        long id = eu.insertEntity(rec);
         //
-        Store st = mdb.createStore("Meter");
+        Store st = getMdb().createStore("Meter");
 
-        mdb.loadQuery(st, "select * from Meter where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        getMdb().loadQuery(st, "select * from Meter where id=:id", Map.of("id", id));
+
         return st;
     }
 
+    @DaoMethod
     public StoreRecord loadRec(Map<String, Object> params) throws Exception {
         long id = UtCnv.toLong(params.get("id"));
-        StoreRecord st = mdb.createStoreRecord("Meter");
-        mdb.loadQueryRecord(st, "select * from Meter where id=:id", Map.of("id", id));
-        mdb.resolveDicts(st);
+        StoreRecord st = getMdb().createStoreRecord("Meter");
+        getMdb().loadQueryRecord(st, "select * from Meter where id=:id", Map.of("id", id));
         return st;
     }
 
+    @DaoMethod
     public StoreRecord newRec(Map<String, Object> params) throws Exception {
-        DictService dictSvc = mdb.getModel().bean(DictService.class);
-        Store st = mdb.createStore("Meter");
+        DictService dictSvc = getMdb().getModel().bean(DictService.class);
+        Store st = getMdb().createStore("Meter");
         StoreRecord rec = st.add();
         rec.set("accessLevel", FD_AccessLevel_consts.common);
         rec.set("meterStruct", FD_MeterStruct_consts.soft);
@@ -151,13 +148,14 @@ public class MeterMdbUtils extends EntityMdbUtils {
         rec.set("meterTypeByPeriod", FD_MeterType_consts.integral);
         rec.set("meterTypeByMember", FD_MeterType_consts.integral);
         rec.set("meterBehavior", FD_MeterBehavior_consts.positive);
-        dictSvc.resolveDicts(st);
+
         return rec;
     }
 
+    @DaoMethod
     public Store loadForSelect() throws Exception {
-        Store st = mdb.createStore("Meter.select");
-        return mdb.loadQuery(st, "select id, name, meterStruct, measure from Meter where 0=0");
+        Store st = getMdb().createStore("Meter.select");
+        return getMdb().loadQuery(st, "select id, name, meterStruct, measure from Meter where 0=0");
     }
 
 

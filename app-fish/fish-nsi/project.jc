@@ -10,8 +10,8 @@ class P extends ProjectScript {
         load("../../tofi-tbox")
     }
 
-    String frontendDir = "frontend"
-    String frontendDirDist = "${frontendDir}/dist/spa"
+    //String frontendDir = "frontend"
+    //String frontendDirDist = "${frontendDir}/dist/spa"
 
     void onInclude() {
         //
@@ -26,19 +26,19 @@ class P extends ProjectScript {
                     "fish-nsi",
             )
         }
-        include(WebRootProject).with {
-            addResourceWebroot(frontendDirDist, "")
-        }
+//        include(WebRootProject).with {
+//            addResourceWebroot(frontendDirDist, "")
+//        }
         //
-        include(BuildProject)
-        onEvent(BuildProject.Event_Build, this.&buildHandler)
+        //include(BuildProject)
+        //onEvent(BuildProject.Event_Build, this.&buildHandler)
         //
         // перекрытие для конкретного разработчика
-        ut.includeIfExists('./_project.jc')
+        //ut.includeIfExists('./_project.jc')
     }
 
-    void buildHandler() {
-        ut.runcmd(cmd: "npm run build", dir: wd(frontendDir))
-    }
+//    void buildHandler() {
+//        ut.runcmd(cmd: "npm run build", dir: wd(frontendDir))
+//    }
 
 }

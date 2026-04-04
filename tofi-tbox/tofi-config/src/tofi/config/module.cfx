@@ -8,7 +8,7 @@
 
         <!-- настройка модуля tofi-config -->
         <tofi-config
-                zookeeperEnable="true"
+                zookeeperEnable="false"
         >
         </tofi-config>
 

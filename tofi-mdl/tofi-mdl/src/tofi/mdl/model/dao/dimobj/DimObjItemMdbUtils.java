@@ -2,6 +2,8 @@ package tofi.mdl.model.dao.dimobj;
 
 import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
+import jandcode.core.dao.DaoMethod;
+import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
@@ -14,23 +16,12 @@ import tofi.mdl.model.utils.tree.ITreeNodeVisitor;
 
 import java.util.Map;
 
-public class DimObjItemMdbUtils {
-    Mdb mdb;
+public class DimObjItemMdbUtils extends BaseMdbUtils {
 
-    public DimObjItemMdbUtils(Mdb mdb) {
-        this.mdb = mdb;
-        //
-
-/*
-        if (!mdb.getApp().getEnv().isTest())
-            if (!UtCnv.toBoolean(mdb.createDao(AuthDao.class).isLogined().get("success")))
-                throw new XError("notLogined");
-*/
-    }
-
+    @DaoMethod
     public Store loadDimObjItem(long dimobj) throws Exception {
-        Store st = mdb.createStore("DimObjItem.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimObjItem.full");
+        return getMdb().loadQuery(st, """
                     select d.*,
                         case
                         	when d.dimObjItemtype=1 then t.name
@@ -56,8 +47,8 @@ public class DimObjItemMdbUtils {
     }
 
     protected StoreRecord loadDimObjItemRec(long id) throws Exception {
-        StoreRecord st = mdb.createStoreRecord("DimObjItem.full");
-        return mdb.loadQueryRecord(st, """
+        StoreRecord st = getMdb().createStoreRecord("DimObjItem.full");
+        return getMdb().loadQueryRecord(st, """
                     select d.*,
                         case
                         	when d.dimObjItemtype=1 then t.name
@@ -81,21 +72,22 @@ public class DimObjItemMdbUtils {
     }
 
     protected StoreRecord loadRec(long id) throws Exception {
-        Store st = mdb.createStore("DimObjItem");
+        Store st = getMdb().createStore("DimObjItem");
         StoreRecord rec = st.add();
-        return mdb.loadQueryRecord(rec, """
+        return getMdb().loadQueryRecord(rec, """
                     select * from DimObjItem where id=:id
                 """, Map.of("id", id));
     }
 
+    @DaoMethod
     public Store loadTypForSelect(long relTyp, long parent, long doit, long linkType) throws Exception {
-        //AuthService authSvc = mdb.getApp().bean(AuthService.class);
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
         //AuthUser au = authSvc.getCurrentUser();
-        long al = 10; //au.getAttrs().getLong("accesslevel");
+        //long al = au.getAttrs().getLong("accesslevel");
         if (parent == 0 || linkType == 1) {
             String sql = """
                             select t.id, v.name from Typ t, TypVer v
-                            where t.id=v.ownerVer and v.lastVer=1 and t.accessLevel <= :al
+                            where t.id=v.ownerVer and v.lastVer=1
                     """;
             if (doit == FD_DimObjItemType_consts.utyp) {
                 sql = """
@@ -104,7 +96,7 @@ public class DimObjItemMdbUtils {
                             order by ord
                         """;
             }
-            return mdb.loadQuery(sql, Map.of("al", al, "rt", relTyp));
+            return getMdb().loadQuery(sql, Map.of("rt", relTyp));
 
         } else {
             StoreRecord recParent = loadRec(parent);
@@ -132,10 +124,9 @@ public class DimObjItemMdbUtils {
                             """;
                 }
 
-                return mdb.loadQuery(sql, Map.of("al", al, "tr", typORrel));
+                return getMdb().loadQuery(sql, Map.of("tr", typORrel));
             }
         }
-
 
         return null;
     }
@@ -208,17 +199,19 @@ public class DimObjItemMdbUtils {
 */
 
 
+    @DaoMethod
     public Store loadClsForSelect(long typ) throws Exception {
-        // AuthService authSvc = mdb.getApp().bean(AuthService.class);
-        // AuthUser au = authSvc.getCurrentUser();
-        long al = 10; //au.getAttrs().getLong("accesslevel");
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
+        //AuthUser au = authSvc.getCurrentUser();
+        //long al = au.getAttrs().getLong("accesslevel");
 
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select t.id, v.name from Cls t, ClsVer v
-                    where t.id=v.ownerVer and v.lastVer=1 and t.accessLevel <= :al and t.typ=:t
-                """, Map.of("al", al, "t", typ));
+                    where t.id=v.ownerVer and v.lastVer=1 and t.typ=:t
+                """, Map.of("t", typ));
     }
 
+    @DaoMethod
     public Store loadRelTypMember(long memberType, long relTyp,
                                   long parent, long linkType) throws Exception {
         String sql = "";
@@ -305,7 +298,7 @@ public class DimObjItemMdbUtils {
                         reltypParent = recParent.getLong("relTyp");
                     else {
                         long rtm = recParent.getLong("reltypMember");
-                        reltypParent = mdb.loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
+                        reltypParent = getMdb().loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
                                 Map.of("id", rtm)).getLong("reltypmemb");
                     }
                     sql = """
@@ -319,7 +312,7 @@ public class DimObjItemMdbUtils {
                         reltypParent = recParent.getLong("relTyp");
                     else {
                         long rtm = recParent.getLong("reltypMember");
-                        reltypParent = mdb.loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
+                        reltypParent = getMdb().loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
                                 Map.of("id", rtm)).getLong("reltypmemb");
                     }
 
@@ -341,11 +334,11 @@ public class DimObjItemMdbUtils {
         //
 
 
-        return mdb.loadQuery(sql, Map.of("mt", memberType, "rt", relTyp,
+        return getMdb().loadQuery(sql, Map.of("mt", memberType, "rt", relTyp,
                 "rtmParent", reltypMemberParent, "tORr", typORrel, "rtParent", reltypParent));
     }
 
-
+    @DaoMethod
     public Store loadRelClsMember(long memberType, long relclsORreltyp, long parent, long linkType) throws Exception {
         String sql = "";
 
@@ -357,7 +350,7 @@ public class DimObjItemMdbUtils {
                         order by id
                     """;
 
-            return mdb.loadQuery(sql, Map.of("mt", memberType, "rc", relclsORreltyp));
+            return getMdb().loadQuery(sql, Map.of("mt", memberType, "rc", relclsORreltyp));
 
         } else {
 
@@ -436,7 +429,7 @@ public class DimObjItemMdbUtils {
                         relclsMemberParent = recParent.getLong("relcls");
                     else {
                         long rtm = recParent.getLong("relclsMember");
-                        relclsMemberParent = mdb.loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
+                        relclsMemberParent = getMdb().loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
                                 Map.of("id", rtm)).getLong("relclsmemb");
                     }
                     sql = """
@@ -450,7 +443,7 @@ public class DimObjItemMdbUtils {
                         relclsMemberParent = recParent.getLong("relCls");
                     else {
                         long rtm = recParent.getLong("relclsMember");
-                        relclsMemberParent = mdb.loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
+                        relclsMemberParent = getMdb().loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
                                 Map.of("id", rtm)).getLong("relclsmemb");
                     }
 
@@ -469,21 +462,21 @@ public class DimObjItemMdbUtils {
 
             }
 
-            return mdb.loadQuery(sql, Map.of("mt", memberType, "rc", relclsORreltyp, "rcmParent", relclsMemberParent, "cORr", clsORrel));
+            return getMdb().loadQuery(sql, Map.of("mt", memberType, "rc", relclsORreltyp, "rcmParent", relclsMemberParent, "cORr", clsORrel));
         }
 
     }
 
-
+    @DaoMethod
     public Store loadRelTypForSelect(long doit, long parent, long linkType) throws Exception {
-        //AuthService authSvc = mdb.getApp().bean(AuthService.class);
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
         //AuthUser au = authSvc.getCurrentUser();
-        long al = 10; //au.getAttrs().getLong("accesslevel");
+        //long al = au.getAttrs().getLong("accesslevel");
         String sql = "";
         if (parent == 0 || linkType == 1) {
             sql = """
                     select t.id, v.name from RelTyp t, RelTypVer v
-                    where t.id=v.ownerVer and v.lastVer=1 and t.accessLevel <= :al
+                    where t.id=v.ownerVer and v.lastVer=1
                 """;
             //
             if (doit == FD_DimObjItemType_consts.utyp || doit == FD_DimObjItemType_consts.ureltyp) {
@@ -491,7 +484,7 @@ public class DimObjItemMdbUtils {
                 sql = """
                             select t.id, v.name
                             from reltyp t, reltypver v
-                            where t.accessLevel <= :al and t.id=v.ownerver and v.lastver=1
+                            where t.id=v.ownerver and v.lastver=1
                                 and t.id in (select reltyp from reltypmember where memberType=
                         """ + memberType + ");";
             }
@@ -500,10 +493,10 @@ public class DimObjItemMdbUtils {
                 //long memberType = doit == FD_DimObjItemType_consts.ucls ? 3 : 4;
                 sql = """
                             select t.id, v.name from reltyp t, RelTypVer v
-                            where t.accessLevel <= :al and t.id=v.ownerver and v.lastver=1
+                            where t.id=v.ownerver and v.lastver=1
                         """;
             }
-            return mdb.loadQuery(sql, Map.of("al", al));
+            return getMdb().loadQuery(sql);
         }
 
         //2) родительский и дочерний компоненты - участники отношения между типами объектов;
@@ -520,7 +513,7 @@ public class DimObjItemMdbUtils {
                     sql = """
                                 select t.id, v.name
                                 from reltyp t, reltypver v
-                                where t.accessLevel <= :al and t.id=v.ownerver and v.lastver=1
+                                where t.id=v.ownerver and v.lastver=1
                                     and t.id in (select reltyp from reltypmember where typ=:typParent)
                             """;
                 } else if (parentDOIT == FD_DimObjItemType_consts.reltyp) {
@@ -528,7 +521,7 @@ public class DimObjItemMdbUtils {
                     sql = """
                                 select t.id, v.name
                                 from reltyp t, reltypver v
-                                where t.accessLevel <= :al and t.id=v.ownerver and v.lastver=1
+                                where t.id=v.ownerver and v.lastver=1
                                     and t.id in (select reltyp from reltypmember where reltypmemb=:reltypParent)
                             """;
                 } else if (parentDOIT == FD_DimObjItemType_consts.utyp || parentDOIT == FD_DimObjItemType_consts.ureltyp) {
@@ -541,7 +534,7 @@ public class DimObjItemMdbUtils {
                             """;
                 }
             }
-            return mdb.loadQuery(sql, Map.of("al", al, "typParent", typParent, "reltypParent", reltypParent, "rtmParent", reltypMemberParent));
+            return getMdb().loadQuery(sql, Map.of("typParent", typParent, "reltypParent", reltypParent, "rtmParent", reltypMemberParent));
         }
 
         //todo Дочерний компонент - участник родительского компонента (id=3)
@@ -559,7 +552,7 @@ public class DimObjItemMdbUtils {
                     typParent = recParent.getLong("typ");
                 } else {
                     long rtm = recParent.getLong("reltypMember");
-                    typParent = mdb.loadQueryRecord("select typ from RelTypMember where id=:id", Map.of("id", rtm))
+                    typParent = getMdb().loadQueryRecord("select typ from RelTypMember where id=:id", Map.of("id", rtm))
                             .getLong("typ");
                 }
 
@@ -577,7 +570,7 @@ public class DimObjItemMdbUtils {
                     reltypParent = recParent.getLong("reltyp");
                 } else {
                     long rtm = recParent.getLong("reltypMember");
-                    reltypParent = mdb.loadQueryRecord("select reltypmemb from RelTypMember where id=:id", Map.of("id", rtm))
+                    reltypParent = getMdb().loadQueryRecord("select reltypmemb from RelTypMember where id=:id", Map.of("id", rtm))
                             .getLong("reltypmemb");
                 }
 
@@ -591,11 +584,11 @@ public class DimObjItemMdbUtils {
             }
 
 
-            return mdb.loadQuery(sql, Map.of("al", al, "typ", typParent, "reltyp", reltypParent));
+            return getMdb().loadQuery(sql, Map.of("typ", typParent, "reltyp", reltypParent));
         }
 
         if (linkType == 10) {
-            return mdb.loadQuery("""
+            return getMdb().loadQuery("""
                         select t.id, v.name
                         from RelTyp t, RelTypVer v
                         where t.id=v.ownerver and v.lastver=1
@@ -606,6 +599,7 @@ public class DimObjItemMdbUtils {
         return null;
     }
 
+    @DaoMethod
     public Store loadRelClsForSelect(long relTyp, long doit, long parent, long linkType) throws Exception {
         String sql = "";
         if (linkType == FD_LinkType_consts.none) {
@@ -616,7 +610,7 @@ public class DimObjItemMdbUtils {
                         order by c.ord
                     """;
 
-            return mdb.loadQuery(sql, Map.of("rt", relTyp));
+            return getMdb().loadQuery(sql, Map.of("rt", relTyp));
         } else {
 
             StoreRecord recParent = loadRec(parent);
@@ -663,7 +657,7 @@ public class DimObjItemMdbUtils {
                         clsParent = recParent.getLong("cls");
                     } else {
                         long rtm = recParent.getLong("relclsMember");
-                        clsParent = mdb.loadQueryRecord("select cls from RelClsMember where id=:id", Map.of("id", rtm))
+                        clsParent = getMdb().loadQueryRecord("select cls from RelClsMember where id=:id", Map.of("id", rtm))
                                 .getLong("cls");
                     }
 
@@ -681,7 +675,7 @@ public class DimObjItemMdbUtils {
                         relclsParent = recParent.getLong("relcls");
                     } else {
                         long rtm = recParent.getLong("relclsMember");
-                        relclsParent = mdb.loadQueryRecord("select relclsmemb from RelClsMember where id=:id", Map.of("id", rtm))
+                        relclsParent = getMdb().loadQueryRecord("select relclsmemb from RelClsMember where id=:id", Map.of("id", rtm))
                                 .getLong("relclsmemb");
                     }
 
@@ -703,34 +697,38 @@ public class DimObjItemMdbUtils {
             }
 
 
-            return mdb.loadQuery(sql, Map.of("clsParent", clsParent, "relclsParent", relclsParent,
+            return getMdb().loadQuery(sql, Map.of("clsParent", clsParent, "relclsParent", relclsParent,
                     "rcmParent", relclsMemberParent, "relTyp", relTyp));
         }
 
 
     }
 
+    @DaoMethod
     public StoreRecord insertDOI(Map<String, Object> params) throws Exception {
-        StoreRecord r = mdb.createStoreRecord("DimObjItem", params);
-        long id = mdb.insertRec("DimObjItem", r, true);
+        StoreRecord r = getMdb().createStoreRecord("DimObjItem", params);
+        long id = getMdb().insertRec("DimObjItem", r, true);
         return loadDimObjItemRec(id);
     }
 
+    @DaoMethod
     public StoreRecord updateDOI(Map<String, Object> params) throws Exception {
-        StoreRecord r = mdb.createStoreRecord("DimObjItem", params);
+        StoreRecord r = getMdb().createStoreRecord("DimObjItem", params);
         long id = r.getLong("id");
-        mdb.updateRec("DimObjItem", r);
+        getMdb().updateRec("DimObjItem", r);
         return loadDimObjItemRec(id);
     }
 
+    @DaoMethod
     public void deleteDOI(long id) throws Exception {
-        mdb.deleteRec("DimObjItem", id);
+        getMdb().deleteRec("DimObjItem", id);
     }
 
     //-----------------------------------
+    @DaoMethod
     public Store loadDimObjItemProp(long dimObjItem) throws Exception {
-        Store st = mdb.createStore("DimObjItemProp.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimObjItemProp.full");
+        return getMdb().loadQuery(st, """
                     select d.*, p.name, f.name as nameStatus, c.name as nameProvider, p.propType, m.kfrombase, m.name as nameMeasure,
                         case when a.attribvaltype is null then 10*p.propType+p.propType else 10*p.propType+a.attribvaltype end as pt
                     from DimObjItemProp d
@@ -745,12 +743,13 @@ public class DimObjItemMdbUtils {
                 """, Map.of("doi", dimObjItem));
     }
 
+    @DaoMethod
     public Store loadPropStatus(long doi, long prop, String mode) throws Exception {
         String wh = " order by f.ord";
         if (mode.equals("ins"))
             wh = " and p.id not in (select coalesce(propStatus,0) from DimObjItemProp where dimObjItem=:doi) order by f.ord";
 
-        return mdb.loadQuery("""
+        return getMdb().loadQuery("""
                     select p.id, f.name
                     from PropStatus p
                         left join Factor f on f.parent is not null and p.factorval=f.id
@@ -759,9 +758,10 @@ public class DimObjItemMdbUtils {
     }
 
     //Bad!!!
+    @DaoMethod
     public Store loadPropProvider(long prop) throws Exception {
-        Store st = mdb.createStore("DimObjItem.status.provider");
-        mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimObjItem.status.provider");
+        getMdb().loadQuery(st, """
                     select distinct
                         p.id,
                         case
@@ -779,10 +779,11 @@ public class DimObjItemMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store loadOptProp(long doi) throws Exception {
-        //AuthService authSvc = mdb.getApp().bean(AuthService.class);
+        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
         //AuthUser au = authSvc.getCurrentUser();
-        long al = 10; //au.getAttrs().getLong("accesslevel");
+        //long al = au.getAttrs().getLong("accesslevel");
 
         StoreRecord recParent = null;
         StoreRecord recDOI = loadRec(doi);
@@ -845,7 +846,7 @@ public class DimObjItemMdbUtils {
                         """ + whe;
             } else if (doitType == FD_DimObjItemType_consts.utyp) {
                 long rtm = recDOI.getLong("relTypMember");
-                typ = mdb.loadQuery("select typ from reltypmember where id=:id",
+                typ = getMdb().loadQuery("select typ from reltypmember where id=:id",
                         Map.of("id", rtm)).get(0).getLong("typ");
 
                 sql = """
@@ -865,7 +866,7 @@ public class DimObjItemMdbUtils {
             } else if (doitType == FD_DimObjItemType_consts.ureltyp) {
                 long rtm = recDOI.getLong("relTypMember");
                 //reltyp
-                typ = mdb.loadQuery("select reltypmemb from reltypmember where id=:id",
+                typ = getMdb().loadQuery("select reltypmemb from reltypmember where id=:id",
                         Map.of("id", rtm)).get(0).getLong("reltypmemb");
                 sql = """
                             select p.id, p.name, p.statusfactor, p.providertyp, p.propType, a.attribvaltype\s
@@ -883,7 +884,7 @@ public class DimObjItemMdbUtils {
                         """;
             } else if (doitType == FD_DimObjItemType_consts.ucls) {
                 long rcm = recDOI.getLong("relClsMember");
-                cls = mdb.loadQuery("select cls from relclsmember where id=:id",
+                cls = getMdb().loadQuery("select cls from relclsmember where id=:id",
                         Map.of("id", rcm)).get(0).getLong("cls");
 
                 sql = """
@@ -902,7 +903,7 @@ public class DimObjItemMdbUtils {
                         """;
             } else if (doitType == FD_DimObjItemType_consts.urelcls) {
                 long rcm = recDOI.getLong("relClsMember");
-                cls = mdb.loadQuery("select relclsmemb from relclsmember where id=:id",
+                cls = getMdb().loadQuery("select relclsmemb from relclsmember where id=:id",
                         Map.of("id", rcm)).get(0).getLong("relclsmemb");
                 sql = """
                             select p.id, p.name, p.statusfactor, p.providertyp, p.propType, a.attribvaltype\s
@@ -919,7 +920,7 @@ public class DimObjItemMdbUtils {
                             order by ord;
                         """;
             }
-            return mdb.loadQuery(sql, Map.of("typ", typ, "cls", cls));
+            return getMdb().loadQuery(sql, Map.of("typ", typ, "cls", cls));
         }
 
 
@@ -938,7 +939,7 @@ public class DimObjItemMdbUtils {
                                     where c.typ=:rt and (p.typ is not null or p.reltyp is not null)
                                 )
                                 select id, name from Prop
-                                where id in (select id from pp) and accessLevel <= :al
+                                where id in (select id from pp)
                             """ + whe;
                 } else {
                     typORrel = recDOI.getLong("reltyp");
@@ -951,7 +952,7 @@ public class DimObjItemMdbUtils {
                                     where c.reltyp=:rt and (p.typ is not null or p.reltyp is not null)
                                 )
                                 select id, name from Prop
-                                where id in (select id from pp) and accessLevel <= :al
+                                where id in (select id from pp)
                             """ + whe;
                 }
             } else if (linkType == 9) {
@@ -966,7 +967,7 @@ public class DimObjItemMdbUtils {
                                     and d.isobj=1 and d."owner"=o.id and o.cls=c.id
                                 )
                                 select id, name from Prop
-                                where id in (select prop from pp) and accessLevel <= :al
+                                where id in (select prop from pp)
                             """ + whe;
                 } else {
                     typORrel = recDOI.getLong("reltyp");
@@ -979,7 +980,7 @@ public class DimObjItemMdbUtils {
                                     and d.isobj=0 and d."owner"=o.id
                                 )
                                 select id, name from Prop
-                                where id in (select prop from pp) and accessLevel <= :al
+                                where id in (select prop from pp)
                             """ + whe;
                 }
             } else if (linkType == 6) {
@@ -1002,17 +1003,17 @@ public class DimObjItemMdbUtils {
                                     and d.isobj=1 and d."owner"=o.id and o.cls=c.id and d.prop=mm.prop
                             )
                             select id, name, pp.rtm from Prop, pp
-                            where id=pp.prop and  accessLevel <= :al
+                            where id=pp.prop
                         """ + whe;
             }
         }
         //
-        return mdb.loadQuery(sql, Map.of("rt", typORrel, "al", al, "doi", doi, "parentRel", parentRel));
+        return getMdb().loadQuery(sql, Map.of("rt", typORrel, "doi", doi, "parentRel", parentRel));
     }
 
     public Store loadDimObjItemPropRec(long id) throws Exception {
-        Store st = mdb.createStore("DimObjItemProp.full");
-        return mdb.loadQuery(st, """
+        Store st = getMdb().createStore("DimObjItemProp.full");
+        return getMdb().loadQuery(st, """
                     select d.*, p.name, f.name as nameStatus, c.name as nameProvider, p.propType, m.kfrombase, m.name as nameMeasure,
                         case when a.attribvaltype is null then 10*p.propType+p.propType else 10*p.propType+a.attribvaltype end as pt
                     from DimObjItemProp d
@@ -1027,36 +1028,39 @@ public class DimObjItemMdbUtils {
                 """, Map.of("id", id));
     }
 
-
+    @DaoMethod
     public Store insertDOIprop(Map<String, Object> params) throws Exception {
-        StoreRecord r = mdb.createStoreRecord("DimObjItemProp", params);
-        long id = mdb.insertRec("DimObjItemProp", r, true);
+        StoreRecord r = getMdb().createStoreRecord("DimObjItemProp", params);
+        long id = getMdb().insertRec("DimObjItemProp", r, true);
         //
         return loadDimObjItemPropRec(id);
     }
 
+    @DaoMethod
     public Store updateDOIprop(Map<String, Object> params) throws Exception {
-        StoreRecord r = mdb.createStoreRecord("DimObjItemProp", params);
-        mdb.updateRec("DimObjItemProp", r);
+        StoreRecord r = getMdb().createStoreRecord("DimObjItemProp", params);
+        getMdb().updateRec("DimObjItemProp", r);
         //
         return loadDimObjItemPropRec(r.getLong("id"));
     }
 
+    @DaoMethod
     public void deleteDOIprop(long id) throws Exception {
-        mdb.deleteRec("DimObjItemProp", id);
+        getMdb().deleteRec("DimObjItemProp", id);
     }
 
+    @DaoMethod
     public Store loadDimObjItemPropVal(long dimObjItemProp, long prop, long pt) throws Exception {
-        Store st = mdb.createStore("DimObjItemPropVal");
+        Store st = getMdb().createStore("DimObjItemPropVal");
 
-        mdb.loadQuery(st, """
+        getMdb().loadQuery(st, """
                     select * from DimObjItemPropVal where dimObjItemProp=:doip
                 """, Map.of("doip", dimObjItemProp));
 
         if (st.size() > 0) {
             if (pt == 22 || pt == 23) {
                 long ptt = pt == 22 ? 2 : 3;
-                Store stMea = mdb.loadQuery("""
+                Store stMea = getMdb().loadQuery("""
                             select m.kfrombase
                             from Prop p, Measure m
                             where p.id=:p and p.propType=:pt and p.measure=m.id
@@ -1071,6 +1075,7 @@ public class DimObjItemMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store loadOptPropVal(long prop, long pt, long doip, String mode) throws Exception {
         String whe = "";
         if (mode.equals("ins")) {
@@ -1102,9 +1107,10 @@ public class DimObjItemMdbUtils {
                     """ + whe;
         }
 
-        return mdb.loadQuery(sql, Map.of("prop", prop, "doip", doip));
+        return getMdb().loadQuery(sql, Map.of("prop", prop, "doip", doip));
     }
 
+    @DaoMethod
     public Store loadOptForRefValues(String ent) throws Exception {
         String sql = "";
         if (ent.equals("fv")) {
@@ -1133,23 +1139,27 @@ public class DimObjItemMdbUtils {
                     """;
         }
         //
-        return mdb.loadQuery(sql);
+        return getMdb().loadQuery(sql);
     }
 
+    @DaoMethod
     public void insertDOIpropValue(Map<String, Object> rec) throws Exception {
-        StoreRecord r = mdb.createStoreRecord("DimObjItemPropVal", rec);
-        mdb.insertRec("DimObjItemPropVal", r, true);
+        StoreRecord r = getMdb().createStoreRecord("DimObjItemPropVal", rec);
+        getMdb().insertRec("DimObjItemPropVal", r, true);
     }
 
+    @DaoMethod
     public void updateDOIpropValue(Map<String, Object> rec) throws Exception {
-        StoreRecord r = mdb.createStoreRecord("DimObjItemPropVal", rec);
-        mdb.updateRec("DimObjItemPropVal", r);
+        StoreRecord r = getMdb().createStoreRecord("DimObjItemPropVal", rec);
+        getMdb().updateRec("DimObjItemPropVal", r);
     }
 
+    @DaoMethod
     public void deleteDOIpropValue(long id) throws Exception {
-        mdb.deleteRec("DimObjItemPropVal", id);
+        getMdb().deleteRec("DimObjItemPropVal", id);
     }
 
+    @DaoMethod
     public Store loadProp_10_11(long doit, long rtmORrcm, long parent, long linkType) throws Exception {
         StoreRecord recParent = loadRec(parent);
         long parentDOIT = recParent.getLong("dimObjItemType");
@@ -1165,11 +1175,11 @@ public class DimObjItemMdbUtils {
                 parentTyp = recParent.getLong("typ");
             else {
                 long rtm = recParent.getLong("reltypMember");
-                parentTyp = mdb.loadQueryRecord("select typ from RelTypMember where id=:id",
+                parentTyp = getMdb().loadQueryRecord("select typ from RelTypMember where id=:id",
                         Map.of("id", rtm)).getLong("typ");
             }
             if (doit==FD_DimObjItemType_consts.reltyp) {
-                StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
+                StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
                         Map.of("id", rtmORrcm));
 
                 if (rtmORrcmRecord.getLong("reltypmemb") == 0) {
@@ -1192,7 +1202,7 @@ public class DimObjItemMdbUtils {
                             """;
                 }
             } else if (doit==FD_DimObjItemType_consts.relcls) {
-                StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
+                StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
                         Map.of("id", rtmORrcm));
                 if (rtmORrcmRecord.getLong("relclsmemb") == 0) {
                     clsORrel = rtmORrcmRecord.getLong("cls");
@@ -1221,11 +1231,11 @@ public class DimObjItemMdbUtils {
                 parentCls = recParent.getLong("cls");
             else {
                 long rtm = recParent.getLong("relclsMember");
-                parentCls = mdb.loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
+                parentCls = getMdb().loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
                         Map.of("id", rtm)).getLong("relclsmemb");
             }
             if (doit==FD_DimObjItemType_consts.reltyp) {
-                StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
+                StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
                         Map.of("id", rtmORrcm));
 
                 if (rtmORrcmRecord.getLong("reltypmemb") == 0) {
@@ -1250,7 +1260,7 @@ public class DimObjItemMdbUtils {
                     """;
                 }
             } else if (doit==FD_DimObjItemType_consts.relcls) {
-                StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
+                StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
                         Map.of("id", rtmORrcm));
                 if (rtmORrcmRecord.getLong("relclsmemb") == 0) {
                     clsORrel = rtmORrcmRecord.getLong("cls");
@@ -1281,13 +1291,13 @@ public class DimObjItemMdbUtils {
                 parentRelTyp = recParent.getLong("reltyp");
             else {
                 long rtm = recParent.getLong("reltypMember");
-                parentRelTyp = mdb.loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
+                parentRelTyp = getMdb().loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
                         Map.of("id", rtm)).getLong("reltypmemb");
             }
 
             if (linkType == 10) {
                 if (doit == FD_DimObjItemType_consts.reltyp) {
-                    StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
+                    StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
                             Map.of("id", rtmORrcm));
 
 
@@ -1311,7 +1321,7 @@ public class DimObjItemMdbUtils {
                                 """;
                     }
                 } else if (doit == FD_DimObjItemType_consts.relcls) {
-                    StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
+                    StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
                             Map.of("id", rtmORrcm));
                     if (rtmORrcmRecord.getLong("relclsmemb") == 0) {
                         clsORrel = rtmORrcmRecord.getLong("cls");
@@ -1337,7 +1347,7 @@ public class DimObjItemMdbUtils {
             }
 
             if (linkType==11) {
-                StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
+                StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
                         Map.of("id", rtmORrcm));
 
                 if (doit == FD_DimObjItemType_consts.typ || doit == FD_DimObjItemType_consts.cls) {
@@ -1380,13 +1390,13 @@ public class DimObjItemMdbUtils {
                 parentRelCls = recParent.getLong("relcls");
             else {
                 long rtm = recParent.getLong("relclsMember");
-                parentRelCls = mdb.loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
+                parentRelCls = getMdb().loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
                         Map.of("id", rtm)).getLong("relclsmemb");
             }
 
             if (linkType==10) {
                 if (doit == FD_DimObjItemType_consts.reltyp) {
-                    StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
+                    StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select typ, reltypmemb from RelTypMember where id=:id",
                             Map.of("id", rtmORrcm));
 
                     if (rtmORrcmRecord.getLong("reltypmemb") == 0) {
@@ -1411,7 +1421,7 @@ public class DimObjItemMdbUtils {
                                 """;
                     }
                 } else if (doit == FD_DimObjItemType_consts.relcls) {
-                    StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
+                    StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
                             Map.of("id", rtmORrcm));
                     if (rtmORrcmRecord.getLong("relclsmemb") == 0) {
                         clsORrel = rtmORrcmRecord.getLong("cls");
@@ -1437,7 +1447,7 @@ public class DimObjItemMdbUtils {
             }
 
             if (linkType==11) {
-                StoreRecord rtmORrcmRecord = mdb.loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
+                StoreRecord rtmORrcmRecord = getMdb().loadQueryRecord("select cls, relclsmemb from RelClsMember where id=:id",
                         Map.of("id", rtmORrcm));
 
                 if (doit == FD_DimObjItemType_consts.typ || doit == FD_DimObjItemType_consts.cls) {
@@ -1480,10 +1490,11 @@ public class DimObjItemMdbUtils {
 
 
 
-        return mdb.loadQuery(sql, Map.of("parentTyp", parentTyp,"parentCls", parentCls, "parentRelTyp", parentRelTyp, "parentRelCls", parentRelCls,
+        return getMdb().loadQuery(sql, Map.of("parentTyp", parentTyp,"parentCls", parentCls, "parentRelTyp", parentRelTyp, "parentRelCls", parentRelCls,
                 "typORrel", typORrel, "clsORrel", clsORrel));
     }
 
+    @DaoMethod
     public Store loadCompFor_11(long doit, long prop) throws Exception {
         String sql = "";
         if (doit==FD_DimObjItemType_consts.typ) {
@@ -1528,9 +1539,10 @@ public class DimObjItemMdbUtils {
                     )
             """;
         }
-        return mdb.loadQuery(sql, Map.of("prop", prop));
+        return getMdb().loadQuery(sql, Map.of("prop", prop));
     }
 
+    @DaoMethod
     public Store loadProp_6(long memberType, long typORrel, long doit, long parent) throws Exception {
         String sql = "";
         long pt = 0;
@@ -1543,7 +1555,7 @@ public class DimObjItemMdbUtils {
                     typORrel = recParent.getLong("reltyp");
                 else {
                     long rtm = recParent.getLong("reltypMember");
-                    typORrel = mdb.loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
+                    typORrel = getMdb().loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
                             Map.of("id", rtm)).getLong("reltypmemb");
                 }
 
@@ -1554,7 +1566,7 @@ public class DimObjItemMdbUtils {
                     typORrel = recParent.getLong("reltyp");
                 else {
                     long rtm = recParent.getLong("reltypMember");
-                    typORrel = mdb.loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
+                    typORrel = getMdb().loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
                             Map.of("id", rtm)).getLong("reltypmemb");
                 }
 
@@ -1587,9 +1599,10 @@ public class DimObjItemMdbUtils {
         }
 
 
-        return mdb.loadQuery(sql, Map.of("typORrel", typORrel, "pt", pt));
+        return getMdb().loadQuery(sql, Map.of("typORrel", typORrel, "pt", pt));
     }
 
+    @DaoMethod
     public Store loadProp(long doit, long parent, long linkType) throws Exception {
         StoreRecord recParent = loadRec(parent);
         long parentDOIT = recParent.getLong("dimObjItemType");
@@ -1608,7 +1621,7 @@ public class DimObjItemMdbUtils {
                     typ = recParent.getLong("typ");
                 else {
                     long rtm = recParent.getLong("reltypMember");
-                    typ = mdb.loadQueryRecord("select typ from RelTypMember where id=:id",
+                    typ = getMdb().loadQueryRecord("select typ from RelTypMember where id=:id",
                             Map.of("id", rtm)).getLong("typ");
                 }
                 //doit:
@@ -1630,7 +1643,7 @@ public class DimObjItemMdbUtils {
                     cls = recParent.getLong("cls");
                 else {
                     long rtm = recParent.getLong("relclsMember");
-                    cls = mdb.loadQueryRecord("select cls from RelClsMember where id=:id",
+                    cls = getMdb().loadQueryRecord("select cls from RelClsMember where id=:id",
                             Map.of("id", rtm)).getLong("cls");
                 }
                 //doit:
@@ -1654,7 +1667,7 @@ public class DimObjItemMdbUtils {
                     reltyp = recParent.getLong("reltyp");
                 else {
                     long rtm = recParent.getLong("reltypMember");
-                    reltyp = mdb.loadQueryRecord("select reltypmember from RelTypMember where id=:id",
+                    reltyp = getMdb().loadQueryRecord("select reltypmember from RelTypMember where id=:id",
                             Map.of("id", rtm)).getLong("reltypmember");
                 }
                 //doit:
@@ -1677,7 +1690,7 @@ public class DimObjItemMdbUtils {
                     relcls = recParent.getLong("relcls");
                 else {
                     long rtm = recParent.getLong("relclsMember");
-                    relcls = mdb.loadQueryRecord("select relclsmember from RelClsMember where id=:id",
+                    relcls = getMdb().loadQueryRecord("select relclsmember from RelClsMember where id=:id",
                             Map.of("id", rtm)).getLong("relclsmember");
                 }
                 //doit:
@@ -1700,7 +1713,7 @@ public class DimObjItemMdbUtils {
                     typ = recParent.getLong("typ");
                 else {
                     long rtm = recParent.getLong("reltypMember");
-                    typ = mdb.loadQueryRecord("select typ from RelTypMember where id=:id",
+                    typ = getMdb().loadQueryRecord("select typ from RelTypMember where id=:id",
                             Map.of("id", rtm)).getLong("typ");
                 }
 
@@ -1719,7 +1732,7 @@ public class DimObjItemMdbUtils {
                     cls = recParent.getLong("cls");
                 else {
                     long rtm = recParent.getLong("relclsMember");
-                    cls = mdb.loadQueryRecord("select cls from RelClsMember where id=:id",
+                    cls = getMdb().loadQueryRecord("select cls from RelClsMember where id=:id",
                             Map.of("id", rtm)).getLong("cls");
                 }
 
@@ -1739,7 +1752,7 @@ public class DimObjItemMdbUtils {
                     reltyp = recParent.getLong("reltyp");
                 else {
                     long rtm = recParent.getLong("reltypMember");
-                    reltyp = mdb.loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
+                    reltyp = getMdb().loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
                             Map.of("id", rtm)).getLong("reltypmemb");
                 }
 
@@ -1757,7 +1770,7 @@ public class DimObjItemMdbUtils {
                     relcls = recParent.getLong("relcls");
                 else {
                     long rtm = recParent.getLong("relclsMember");
-                    relcls = mdb.loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
+                    relcls = getMdb().loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
                             Map.of("id", rtm)).getLong("relclsmemb");
                 }
 
@@ -1777,7 +1790,7 @@ public class DimObjItemMdbUtils {
                     typ = recParent.getLong("typ");
                 else {
                     long rtm = recParent.getLong("reltypMember");
-                    typ = mdb.loadQueryRecord("select typ from RelTypMember where id=:id",
+                    typ = getMdb().loadQueryRecord("select typ from RelTypMember where id=:id",
                             Map.of("id", rtm)).getLong("typ");
                 }
                 sql = """
@@ -1790,7 +1803,7 @@ public class DimObjItemMdbUtils {
                     cls = recParent.getLong("cls");
                 else {
                     long rtm = recParent.getLong("relclsMember");
-                    cls = mdb.loadQueryRecord("select cls from RelClsMember where id=:id",
+                    cls = getMdb().loadQueryRecord("select cls from RelClsMember where id=:id",
                             Map.of("id", rtm)).getLong("cls");
                 }
                 sql = """
@@ -1803,7 +1816,7 @@ public class DimObjItemMdbUtils {
                     reltyp = recParent.getLong("reltyp");
                 else {
                     long rtm = recParent.getLong("reltypMember");
-                    reltyp = mdb.loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
+                    reltyp = getMdb().loadQueryRecord("select reltypmemb from RelTypMember where id=:id",
                             Map.of("id", rtm)).getLong("reltypmemb");
                 }
                 sql = """
@@ -1816,7 +1829,7 @@ public class DimObjItemMdbUtils {
                     relcls = recParent.getLong("relcls");
                 else {
                     long rtm = recParent.getLong("relclsMember");
-                    relcls = mdb.loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
+                    relcls = getMdb().loadQueryRecord("select relclsmemb from RelClsMember where id=:id",
                             Map.of("id", rtm)).getLong("relclsmemb");
                 }
                 sql = """
@@ -1827,11 +1840,11 @@ public class DimObjItemMdbUtils {
         }
 
 
-        return mdb.loadQuery(sql, Map.of("typ", typ, "cls", cls,
+        return getMdb().loadQuery(sql, Map.of("typ", typ, "cls", cls,
                 "reltyp", reltyp, "relcls", relcls, "pt", pt));
     }
 
-
+    @DaoMethod
     public Store loadValueOfProp(long doit, long prop, long parent, long linkType) throws Exception {
         StoreRecord recParent = loadRec(parent);
         long parentDOIT = recParent.getLong("dimObjItemType");
@@ -1958,25 +1971,26 @@ public class DimObjItemMdbUtils {
         }
 
 
-        return mdb.loadQuery(sql, Map.of("prop", prop));
+        return getMdb().loadQuery(sql, Map.of("prop", prop));
 
     }
 
+    @DaoMethod
     public Store loadValueOfProp_7(long doit, long prop, long rtmORrcm, long typORrel, long linkType) throws Exception {
         //StoreRecord recParent = loadRec(parent);
         //long parentDOIT = recParent.getLong("dimObjItemType");
 
-        long propType = mdb.loadQuery("select propType from Prop where id=:p", Map.of("p", prop))
+        long propType = getMdb().loadQuery("select propType from Prop where id=:p", Map.of("p", prop))
                 .get(0).getLong("propType");
 
         if (typORrel == 0) {
             if (doit == FD_DimObjItemType_consts.reltyp) {
-                StoreRecord recRTM = mdb.loadQuery("select typ, reltypmemb from RelTypMember where id=:id",
+                StoreRecord recRTM = getMdb().loadQuery("select typ, reltypmemb from RelTypMember where id=:id",
                         Map.of("id", rtmORrcm)).get(0);
                 typORrel = recRTM.getLong("typ") == 0 ? recRTM.getLong("reltypmemb") : recRTM.getLong("typ");
             }
             if (doit == FD_DimObjItemType_consts.relcls) {
-                StoreRecord recRCM = mdb.loadQuery("""
+                StoreRecord recRCM = getMdb().loadQuery("""
                             select cls, relclsmemb, c.typ, rc.reltyp
                             from RelClsMember rcm
                                 left join Cls c on rcm.cls=c.id
@@ -2038,7 +2052,7 @@ public class DimObjItemMdbUtils {
         }
 
 
-        return mdb.loadQuery(sql, Map.of("typORrel", typORrel));
+        return getMdb().loadQuery(sql, Map.of("typORrel", typORrel));
 
     }
 
@@ -2057,7 +2071,7 @@ public class DimObjItemMdbUtils {
         if (linkType == 1) {
             if (lev == 0) {
                 if (r.getLong("cls") > 0) {
-                    mdb.loadQuery(st, """
+                    getMdb().loadQuery(st, """
                                select o.cod as id,
                                case when v.objparent is null then :cod else o2.cod end as parent,
                                v.name, o.cod, v.dbeg, v.dend
@@ -2067,7 +2081,7 @@ public class DimObjItemMdbUtils {
                                where o.cls=:cls and :dt between v.dbeg and v.dend
                             """, Map.of("cls", r.getLong("cls"), "cod", codParentItem, "dt", dt));
                 } else {
-                    mdb.loadQuery(st, """
+                    getMdb().loadQuery(st, """
                                select o.cod as id,
                                case when v.objparent is null then :cod else o2.cod end as parent,
                                v.name, o.cod, v.dbeg, v.dend
@@ -2079,14 +2093,14 @@ public class DimObjItemMdbUtils {
                 }
             } else if (lev == 1) {
                 if (r.getLong("cls") > 0) {
-                    mdb.loadQuery(st, """
+                    getMdb().loadQuery(st, """
                                select o.cod as id, :cod as parent, v.name, o.cod, v.dbeg, v.dend
                                from Obj o
                                 left join ObjVer v on o.id=v.ownerver
                                where o.cls=:cls and :dt between v.dbeg and v.dend and v.objParent is null
                             """, Map.of("cls", r.getLong("cls"), "cod", codParentItem, "dt", dt));
                 } else {
-                    mdb.loadQuery(st, """
+                    getMdb().loadQuery(st, """
                                select o.cod as id, :cod as parent, v.name, o.cod, v.dbeg, v.dend
                                from Obj o
                                 left join ObjVer v on o.id=v.ownerver
@@ -2096,7 +2110,7 @@ public class DimObjItemMdbUtils {
                 }
             } else if (lev == 2) {
                 if (r.getLong("cls") > 0) {
-                    mdb.loadQuery(st, """
+                    getMdb().loadQuery(st, """
                                with t as (
                                    select o.id
                                    from Obj o
@@ -2109,7 +2123,7 @@ public class DimObjItemMdbUtils {
                                where o.cls=:cls and :dt between v.dbeg and v.dend and v.objParent in (select id from t)
                             """, Map.of("cls", r.getLong("cls"), "cod", codParentItem, "dt", dt));
                 } else {
-                    mdb.loadQuery(st, """
+                    getMdb().loadQuery(st, """
                                with t as (
                                    select o.id
                                    from Obj o
@@ -2126,16 +2140,16 @@ public class DimObjItemMdbUtils {
                 }
 
             } else {
-                Store stTmp = mdb.createStore("DimObj.comp");
+                Store stTmp = getMdb().createStore("DimObj.comp");
                 if (r.getLong("cls") > 0) {
-                    mdb.loadQuery(stTmp, """
+                    getMdb().loadQuery(stTmp, """
                                select o.cod as id, :cod as parent, v.name, o.cod, v.dbeg, v.dend
                                from Obj o
                                 left join ObjVer v on o.id=v.ownerver
                                where o.cls=:cls and :dt between v.dbeg and v.dend
                             """, Map.of("cls", r.getLong("cls"), "cod", codParentItem, "dt", dt));
                 } else {
-                    mdb.loadQuery(stTmp, """
+                    getMdb().loadQuery(stTmp, """
                                select o.cod as id, :cod as parent, v.name, o.cod, v.dbeg, v.dend
                                from Obj o
                                 left join ObjVer v on o.id=v.ownerver
@@ -2158,8 +2172,8 @@ public class DimObjItemMdbUtils {
             }
 
         } else {
-            Store stProps = mdb.createStore("DimObjItemProp.source");
-            mdb.loadQuery(stProps, """
+            Store stProps = getMdb().createStore("DimObjItemProp.source");
+            getMdb().loadQuery(stProps, """
                         select d.*, f.id as idFlatTable, f.nameTable as nameFlatTable,
                             p.statusFactor, p.providerTyp, ps.factorVal as defaultStatus, pp.obj as defaultProvider
                         from DimObjItemProp d
@@ -2183,7 +2197,7 @@ public class DimObjItemMdbUtils {
                 for (StoreRecord rec : stProps) {
                     if (rec.getLong("idFlatTable") == 0) {    // from DataPropVal
                         /// Продолжение здесь!!!!!
-                        Store stVal = mdb.loadQuery("""
+                        Store stVal = getMdb().loadQuery("""
                                     select d.*, pv.obj from DataProp d, DataPropVal v, PropVal pv
                                     where d.id=v.dataProp and v.propval=pv.id and d.isObj=:isObj and d.own=:own
                                         and d.prop=:prop and :dt between v.dbeg and v.dend
@@ -2223,7 +2237,7 @@ public class DimObjItemMdbUtils {
 
     }
 
-
+    @DaoMethod
     public Store loadTreeForView(Map<String, Object> params) throws Exception {
         String dt = UtCnv.toString(params.get("currDate"));
         long dimobj = UtCnv.toLong(params.get("dimObj"));
@@ -2237,14 +2251,14 @@ public class DimObjItemMdbUtils {
         if (params.containsKey("id")) {
             codParentItem = UtCnv.toString(params.get("id"));   //cod Obj or cod RelObj
 
-            Store st = mdb.loadQuery("select * from syscod where cod like :cod", Map.of("cod", codParentItem));
+            Store st = getMdb().loadQuery("select * from syscod where cod like :cod", Map.of("cod", codParentItem));
             if (st.size() == 0) {
                 throw new XError("Экземпляр сущности удален");
             } else {
                 idParentItem = st.get(0).getLong("linkid");
                 if (st.get(0).getLong("linktype") == 10) {
                     isRelParentItem = 0;
-                    Store stTmp = mdb.loadQuery("""
+                    Store stTmp = getMdb().loadQuery("""
                                 select o.cls, c.typ from Obj o left join Cls c on o.cls=c.id
                                 where o.id=:id
                             """, Map.of("id", idParentItem));
@@ -2252,7 +2266,7 @@ public class DimObjItemMdbUtils {
                     clsParentItem = stTmp.get(0).getLong("cls");
                 } else {
                     isRelParentItem = 1;
-                    Store stTmp = mdb.loadQuery("""
+                    Store stTmp = getMdb().loadQuery("""
                                 select reltyp from RelObj where id=:id
                             """, Map.of("id", idParentItem));
                     reltypParentItem = stTmp.get(0).getLong("reltyp");
@@ -2263,23 +2277,23 @@ public class DimObjItemMdbUtils {
         long dimObjItem = UtCnv.toLong(params.get("dimObjItem"));
 
 
-        Store stRes = mdb.createStore("DimObj.comp");
-        Store stTmp = mdb.createStore("DimObjItem");
+        Store stRes = getMdb().createStore("DimObj.comp");
+        Store stTmp = getMdb().createStore("DimObjItem");
 
         if (dimObjItem == 0) {    // 1 level
-            mdb.loadQuery(stTmp, """
+            getMdb().loadQuery(stTmp, """
                         select * from DimObjItem where dimObj=:do and parent is null
                     """, Map.of("do", dimobj));
 
         } else { // child level
-            mdb.loadQuery(stTmp, """
+            getMdb().loadQuery(stTmp, """
                         select * from DimObjItem where dimObj=:do and parent = :doi
                     """, Map.of("do", dimobj, "doi", dimObjItem));
 
         }
 
         for (StoreRecord r : stTmp) {
-            Store resTmp = mdb.createStore("DimObj.comp");
+            Store resTmp = getMdb().createStore("DimObj.comp");
             if (r.getLong("dimObjItemType") == FD_DimObjItemType_consts.typ ||
                     r.getLong("dimObjItemType") == FD_DimObjItemType_consts.cls) {
                 getStoreForTyp(resTmp, r, codParentItem, isRelParentItem, idParentItem, typParentItem, clsParentItem, dt);
@@ -2306,7 +2320,7 @@ public class DimObjItemMdbUtils {
             @Override
             public void visitNode(DataTreeNode node) {
                 System.out.println("level: "+node.getLevel());
-                mdb.outTable(node.getRecord());
+                getMdb().outTable(node.getRecord());
             }
         });
 */

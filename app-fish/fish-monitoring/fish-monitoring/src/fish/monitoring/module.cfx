@@ -9,7 +9,8 @@
         />
 
         <action name="auth"
-                class="jandcode.core.apx.auth.AuthAction"/>
+                class="tofi.auth.TofiAuthAction"/>
+
         <action name="download"
                 class = "fish.monitoring.action.DownloadAction"
         />
@@ -24,19 +25,12 @@
                 class = "fish.monitoring.action.FillDataAction"
         />
 
+        <filter name="jc-auth-engine"
+                class="jandcode.core.apx.auth.AuthFilter"
+                type="*" weight="-110"/>
     </web>
 
-    <bean name="jandcode.core.auth.AuthService"
-          class="jandcode.core.auth.impl.AuthServiceImpl">
-
-        <!-- AuthProcessor. По умолчанию - заглушка для admin/111, user1/111 -->
-        <auth-processor name="default"
-                        class="fish.monitoring.auth.TofiAuthProcessor"/>
-
-    </bean>
-
     <dbm>
-
         <model name="default" instance="tofi.api.dta.model">
             <x-include path="dao/Domains.cfx"/>
         </model>

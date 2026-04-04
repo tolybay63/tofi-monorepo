@@ -123,7 +123,7 @@
 
 <script>
 import {defineComponent, ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateTypCharGr from "pages/chargr/typchargr/UpdateTypCharGr.vue";
 
@@ -232,7 +232,7 @@ export default defineComponent({
       this.selected = [];
       //
       api
-          .post(baseURL, {
+          .post("", {
             method: "typ/loadTypCharGr",
             params: [],
           })
@@ -280,7 +280,7 @@ export default defineComponent({
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "typ/deleteTypCharGr",
                   params: [rec],
                 })

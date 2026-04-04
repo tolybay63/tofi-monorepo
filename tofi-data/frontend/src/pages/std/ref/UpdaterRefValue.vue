@@ -123,7 +123,7 @@
 </template>
 
 <script>
-import {api, baseURL, tofi_dbeg, tofi_dend} from "boot/axios";
+import {api, tofi_dbeg, tofi_dend} from "boot/axios";
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils";
 import {date, extend} from "quasar";
@@ -370,7 +370,7 @@ export default {
 
       let err = false;
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/saveRefValue",
           params: [{ reqParams: this.reqParams, st: dta }],
         })
@@ -424,7 +424,7 @@ export default {
     if (this.reqParams.providerTyp > 0) {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadProvider",
           params: [this.reqParams.prop, getModel.value, getMetaModel.value],
         })
@@ -439,7 +439,7 @@ export default {
     if (this.reqParams.statusFactor > 0) {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadStatus",
           params: [this.reqParams.prop],
         })
@@ -453,7 +453,7 @@ export default {
     //
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadRefValueForUpd",
         params: [{ rec: this.rec, reqParams: this.requestParams }],
       })

@@ -81,7 +81,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 import {ref} from "vue";
 
@@ -172,7 +172,7 @@ export default {
       this.form.visualFormat =
         typeof this.vf === "object" ? this.vf.id : this.vf;
       api
-          .post(baseURL, {
+          .post("", {
             method: "dimMultiProp/" + method,
             params: [this.form],
           })
@@ -200,7 +200,7 @@ export default {
 
     this.visible = ref(true)
     api
-      .post(baseURL, {
+      .post("", {
         method: "dimMultiProp/loadFactors",
         params: [],
       })
@@ -215,7 +215,7 @@ export default {
 
     this.visible = ref(true)
     api
-        .post(baseURL, {
+        .post("", {
           method: "dict/load",
           params: [{dict: "FD_VisualFormat"}],
         })

@@ -118,17 +118,19 @@
 
 <script>
 import {defineComponent, ref} from "vue";
+import {useRouter} from 'vue-router'
 import LoginUser from "components/LoginUser.vue";
 import SetLocale from "components/SetLocale.vue";
-import {api, authURL, baseURL, urlMainApp} from "boot/axios";
+import {api, authURL, urlMainApp} from "boot/axios";
 import {notifyError } from "src/utils/jsutils";
 import {useUserStore} from "stores/user-store";
 import {useParamsStore} from "stores/params-store";
 import {storeToRefs} from "pinia";
 
+const router = useRouter()
 const store = useUserStore()
 const { isSysAdmin, getUserName, getTarget } = storeToRefs(store)
-const { setUserName, setUserStore } = store
+const { clearUserStore, setUserStore } = store
 const storeParams = useParamsStore()
 const { setStoreParams } = storeParams
 
@@ -211,47 +213,22 @@ export default defineComponent({
               // ...
             },
           })
-          .onOk((r) => {
-            api
-              .post(baseURL, {
-                method: "data/getCurUserInfo",
-                params: [],
-              })
-              .then(
-                (response) => {
-                  setUserStore(response.data.result)
-                  setStoreParams(this.params)
-                  this.toMainPage()
-                },
-                (error) => {
-                  console.log("error", error);
-                  setUserStore({});
-                  notifyError(error.message);
-                }
-              )
-              .finally(() => {
-                //this.$router.push("/");
-                //location.reload()
-              });
+          .onOk((res) => {
+            setUserStore(res)
+            router.push('/')
           });
       } else {
         api
-          .post(authURL + "/logout", {
+          .post(authURL + '/logout', {
             params: {},
           })
-          .then((response) => {
-            setUserName("")
-            setUserStore({})
-            setStoreParams({})
-            this.$router.push("/")
+          .then(() => {
+            router.push('/')
+            clearUserStore()
           })
           .finally(() => {
-            //location.reload()
-            setTimeout(()=> {
-              this.$router.push("/")
-            }, 30)
-
-          });
+            router.push('/')
+          })
       }
     },
 
@@ -279,7 +256,7 @@ export default defineComponent({
     }
 
       this.loading = ref(true)
-      api.post(baseURL, {
+      api.post("", {
         method: "data/loadDataBase",
         params: [],
       })

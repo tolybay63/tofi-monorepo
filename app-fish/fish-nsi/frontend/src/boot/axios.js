@@ -1,40 +1,117 @@
-import {defineBoot} from '#q-app/wrappers'
+import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
+import { LoadingBar, Notify } from 'quasar'
+import { useUserStore } from "stores/user-store.js"
 
-
-// Be careful when using SSR for cross-request state pollution
-// due to creating a Singleton instance here;
-// If any client changes this (global) instance, it might be a
-// good idea to move this instance creation inside of the
-// "export default () => {}" function below (which runs individually
-// for each client)
-//const api = axios.create({ baseURL: 'https://api.example.com' })
-
-
+// 1. Константы и базовые настройки
 let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
-
-let url = 'http://localhost:8080'
-if (import.meta.env.PROD) {
-  url = process.env.VITE_PRODUCT_URL
-}
-
-const authURL = url + "/auth"
+//*******************************//
+const SERVICE_NAME = 'nsi';
+//*******************************//
+const url = 'http://127.0.0.1:8080'
+let authURL = url + "/auth"
 let baseURL = url + "/api"
 
-const api = axios.create({ baseURL: baseURL })
+// Настройка путей для PROD
+if (import.meta.env.PROD) {
+  const currentPath = window.location.pathname;
+  if (currentPath.includes(`/fish/${SERVICE_NAME}/`)) {
+    baseURL = `/fish/${SERVICE_NAME}/api/`;
+  } else {
+    baseURL = "/api";
+  }
+  authURL = "/auth";
+}
 
-export default defineBoot(({ app }) => {
-  // for use inside Vue files (Options API) through api and this.$api
-
-  app.config.globalProperties.$axios = axios
-  // ^ ^ ^ this will allow you to use api (for Vue Options API form)
-  //       so you won't necessarily have to import axios in each vue file
-
-  app.config.globalProperties.$api = api
-  // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
-  //       so you can easily perform requests against your app's API
+// 2. Создание экземпляра API
+const api = axios.create({
+  baseURL: baseURL,
+  headers: { 'Accept': 'application/json' }
 })
 
+// 3. Красивый оранжевый LoadingBar
+LoadingBar.setDefaults({color: 'amber-14',size: '10px',position: 'top'})
+
+// 4. Глобальный заголовок авторизации (ТЕПЕРЬ fish_token)
+const token = localStorage.getItem('fish_token')
+if (token && typeof token === 'string' && token !== 'null') {
+  api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+}
+
+// 5. ИНТЕРЦЕПТОР ЗАПРОСА (Запуск полоски)
+api.interceptors.request.use((config) => {
+  LoadingBar.start()
+  return config
+})
+
+export default defineBoot(({ app, router }) => {
+  const userStore = useUserStore();
+
+  // Инициализация данных пользователя из JWT при старте приложения
+  if (token && token.length > 10) {
+    userStore.initFromToken();
+  }
+
+  // 6. ИНТЕРЦЕПТОР ОТВЕТА (Остановка полоски и обработка ошибок)
+  api.interceptors.response.use(
+    (response) => {
+      LoadingBar.stop()
+      return response
+    },
+    async (error) => {
+      LoadingBar.stop()
+
+      const status = error.response?.status;
+      const data = error.response?.data;
+      let errorCode = error.message;
+
+      if (errorCode.includes("Network Error")) errorCode = "networkError"
+
+      // --- ПОИСК ТЕХНИЧЕСКОГО КЛЮЧА ОШИБКИ (для i18n) ---
+      if (data) {
+        let textContent = '';
+        if (data instanceof ArrayBuffer) {
+          textContent = new TextDecoder().decode(data);
+        } else if (typeof data === 'string') {
+          textContent = data;
+        }
+
+        // Ищем в ответе (даже в HTML) ключ 'invalid_user_passwd'
+        if (textContent && textContent.includes('invalid_user_passwd')) {
+          errorCode = 'invalid_user_passwd';
+        }
+        if (textContent && textContent.includes('lifetime_expired')) {
+          errorCode = 'lifetime_expired';
+          userStore.clearUserStore();
+          if (router) router.push("/");
+        }
+      }
+
+      // Если сессия протухла
+      if (status === 401 || errorCode === 'notLoginned') {
+        userStore.clearUserStore();
+        if (router) router.push("/");
+        return Promise.reject(error);
+      }
+
+      // Вывод уведомления Notify
+      Notify.create({
+        type: 'negative',
+        message: app.config.globalProperties.$t(errorCode) || errorCode,
+        position: 'bottom-right',
+        timeout: 5000,
+        actions: [{ icon: 'close', color: 'white' }]
+      });
+
+      return Promise.reject(error);
+    }
+  );
+
+  app.config.globalProperties.$axios = axios
+  app.config.globalProperties.$api = api
+})
+
+// 7. Константы дат и экспорт
 const tofi_dbeg = "1800-01-01";
 const tofi_dend = "3333-12-31";
 

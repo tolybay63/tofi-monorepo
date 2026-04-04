@@ -115,7 +115,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {date} from "quasar";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateRelTypVer from "pages/reltyp/UpdateRelTypVer.vue";
@@ -174,7 +174,7 @@ export default {
           .onOk(() => {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
-                .post(baseURL, {
+                .post("", {
                   method: "reltyp/deleteVer",
                   params: [{rec: rec}],
                 })
@@ -288,7 +288,7 @@ export default {
     fetchData(reltyp) {
       this.loading = false;
       api
-          .post(baseURL, {
+          .post("", {
             method: "reltyp/loadVer",
             params: [reltyp],
           })
