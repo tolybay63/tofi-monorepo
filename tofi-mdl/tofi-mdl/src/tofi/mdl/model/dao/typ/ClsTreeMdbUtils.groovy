@@ -1,6 +1,7 @@
 package tofi.mdl.model.dao.typ
 
 import jandcode.commons.UtCnv
+import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.dbm.mdb.Mdb
 import jandcode.core.store.Store
@@ -17,7 +18,8 @@ class ClsTreeMdbUtils extends BaseMdbUtils {
 *
 * */
 
-    public Store loadClsTree(Map<String, Object> params) throws Exception {
+    @DaoMethod
+    Store loadClsTree(Map<String, Object> params) throws Exception {
         boolean typNodeVisible = true
         long typId = UtCnv.toLong(params["typ"])
         if (params["typNodeVisible"] != null)
@@ -303,7 +305,7 @@ class ClsTreeMdbUtils extends BaseMdbUtils {
         Возвращает список дочерних классов класса cls, если curCls = true, то включается cls
     */
 
-    public String listIdChilds(long typ, long cls, boolean curCls) {
+    String listIdChilds(long typ, long cls, boolean curCls) {
 
         if (cls == 0 || typ == 0)
             return "0";
@@ -371,7 +373,7 @@ class ClsTreeMdbUtils extends BaseMdbUtils {
      *
  `  */
 
-    public String ListClsParents(long typ, long cls) {
+    String ListClsParents(long typ, long cls) {
 
         if (cls == 0 || typ == 0)
             return "0";

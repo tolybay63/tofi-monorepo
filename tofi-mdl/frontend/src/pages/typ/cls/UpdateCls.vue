@@ -499,7 +499,7 @@ export default {
     fetchData(typ, cls) {
       api
           .post("", {
-            method: "typ/loadClsFVforUpd",
+            method: "cls/loadClsFVforUpd",
             params: [typ, cls],
           })
           .then((response) => {
@@ -544,7 +544,7 @@ export default {
       let err = false;
       api
           .post("", {
-            method: "typ/" + method,
+            method: "cls/" + method,
             params: [{rec: this.form, ids: ids}],
           })
           .then(

@@ -161,7 +161,7 @@ export default {
       api
           .post("", {
             id: this.myData.id,
-            method: "typ/" + method,
+            method: "cls/" + method,
             params: [this.myData],
           })
           .then(

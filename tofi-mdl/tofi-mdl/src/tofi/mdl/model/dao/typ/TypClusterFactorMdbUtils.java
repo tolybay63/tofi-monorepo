@@ -1,6 +1,7 @@
 package tofi.mdl.model.dao.typ;
 
 import jandcode.commons.UtCnv;
+import jandcode.commons.error.XError;
 import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.store.Store;
@@ -66,6 +67,21 @@ public class TypClusterFactorMdbUtils extends BaseMdbUtils {
     @DaoMethod
     public void deleteTypClusterFactor(Map<String, Object> rec) throws Exception {
         long id = UtCnv.toLong(rec.get("id"));
+        Store stTmp = getMdb().loadQuery("""
+            select t.id,
+            STRING_AGG (cast(v.name as varchar(1000)), ', ' order by v.id) as nms
+            from cls c
+            left join clsver v on c.id=v.ownerver and v.lastver=1
+            left join typclusterfactor t on t.typ=c.typ
+            where t.id=:id
+            group by t.id
+        """,  Map.of("id", id));
+        if (stTmp.size() > 0) {
+            throw new XError("clsExists");
+            //throw new XError("Существует(ют) класс(ы) {0}", stTmp.get(0).getString("nms"));
+        }
+
+
         getMdb().deleteRec("TypClusterFactor", id);
     }
 
