@@ -117,7 +117,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, baseURL} from "boot/axios.js";
+import {api} from "boot/axios.js";
 import {notifyError} from "src/utils/jsutils.js";
 import {useUserStore} from "stores/user-store.js";
 import {storeToRefs} from "pinia";
@@ -177,7 +177,7 @@ export default {
 
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "entity/updateProfile",
           params: [this.form],
         })
@@ -210,7 +210,7 @@ export default {
     loadData() {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadProfile",
           params: [getUserId.value],
         })
@@ -238,7 +238,7 @@ export default {
   created() {
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "meta/loadFactorSexValues",
         params: [],
       })

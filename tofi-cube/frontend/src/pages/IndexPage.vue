@@ -40,7 +40,7 @@ export default defineComponent({
     const { getUserId } = storeToRefs(store);
 
     if (!getUserId.value > 0) {
-      notifyError(this.$t("notLogined"))
+      notifyError(this.$t("notLoginned"))
     }
   }
 
