@@ -5,6 +5,10 @@
 
         <holder name="api">
 
+            <item name="auth" method="*" invoker="model:default"
+                  class="tofi.cube.dao.AuthDao"/>
+
+
             <item name="cube" method="*" invoker="model:default"
                   class="tofi.cube.dao.CubeDao"/>
 

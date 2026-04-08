@@ -113,7 +113,7 @@
 <script>
 
 
-import {api, baseURL} from "boot/axios";
+import {api } from "boot/axios";
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils";
 import {useUserStore} from "stores/user-store";
@@ -180,7 +180,7 @@ export default {
 
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "entity/updateProfile",
           params: [this.form],
         })
@@ -210,7 +210,7 @@ export default {
   created() {
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "data/loadProfile",
         params: [this.userId],
       })
@@ -234,7 +234,7 @@ export default {
     //
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "meta/loadFactorSexValues",
         params: [],
       })

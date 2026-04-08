@@ -172,12 +172,10 @@ let nameIcon = computed(() => getUserName.value === "" ? "login" : "logout");
 
 const loginOnOff = async () => {
   if (getUserName.value === "") {
-    const lang = localStorage.getItem("curLang");
     $q
       .dialog({
         component: LoginUser,
         componentProps: {
-          lg: lang,
           // ...
         },
       })

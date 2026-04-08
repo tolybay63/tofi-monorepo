@@ -124,14 +124,18 @@
 </template>
 
 <script>
-import {defineComponent, ref} from "vue";
+import {defineComponent} from "vue";
 import SetLocale from "components/SetLocale.vue";
-import {api, authURL, baseURL, urlMainApp} from "boot/axios";
+import {api, authURL, urlMainApp} from "boot/axios";
 import {useUserStore} from "stores/user-store";
 import {storeToRefs} from "pinia";
 import {QSpinnerFacebook, useQuasar} from "quasar";
 import {notifyError} from "src/utils/jsutils.js";
-const store = useUserStore();
+import {useRouter} from "vue-router";
+
+
+const router = useRouter();
+
 
 export default defineComponent({
   name: "MainLayout",
@@ -150,7 +154,7 @@ export default defineComponent({
     })
 
     api
-      .post(baseURL, {
+      .post('', {
         method: "data/analizeFlatTable",
         params: ["DB_UserData"],
       })
@@ -177,7 +181,7 @@ export default defineComponent({
     const store = useUserStore();
     const {isSysAdmin, getUserName, getTarget} =
       storeToRefs(store);
-    const {setUserStore, setUserName } = store;
+    const {clearUserStore} = store;
 
     return {
       getUserName,
@@ -201,22 +205,18 @@ export default defineComponent({
           this.$router.push("/")
           setTimeout(()=>{
             this.$router.push("/auth");
-          }, 200)
-
+          }, 100)
         } else {
           api
             .post(authURL + "/logout", {
               params: {},
             })
             .then(() => {
-              setUserStore({})
-              setUserName("")
+              clearUserStore()
             })
             .finally(() => {
-              this.$router.push("/auth");
-              //this.$router.push("/");
-              //location.reload()
-            });
+              router.push('/')
+            })
         }
       },
     };

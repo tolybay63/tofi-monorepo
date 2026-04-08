@@ -11,9 +11,7 @@
 <script>
 import {useUserStore} from "stores/user-store";
 import ProfileUser from "components/ProfileUser.vue";
-import {storeToRefs} from "pinia";
 import {ref} from "vue";
-import {baseURL} from "boot/axios.js";
 import {notifyError} from "src/utils/jsutils.js";
 
 export default {
@@ -59,7 +57,7 @@ export default {
 
     this.loading = ref(true);
     this.$axios
-      .post(baseURL, {
+      .post("", {
         method: "data/existsProfile",
         params: [this.au],
       })

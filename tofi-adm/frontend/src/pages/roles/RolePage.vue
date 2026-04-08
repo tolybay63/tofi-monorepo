@@ -66,8 +66,8 @@
           </q-tooltip>
         </q-btn>
 
+<!--    v-if="hasTarget('adm:role:del')"    -->
         <q-btn
-          v-if="hasTarget('adm:role:del')"
           :dense="dense"
           icon="delete"
           color="secondary"
@@ -193,12 +193,12 @@ export default {
                 this.selected = ref([]);
                 notifySuccess(this.$t("success"));
               },
-              (error) => {
+/*              (error) => {
                 let msg = error.message;
                 if (error.response) msg = error.response.data.error.message;
 
                 notifyError(msg);
-              }
+              }*/
             );
         })
         .onCancel(() => {

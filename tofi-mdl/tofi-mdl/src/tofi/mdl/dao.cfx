@@ -55,10 +55,26 @@
                   method="*"
             />
 
+            <item name="cls"
+                  class="tofi.mdl.model.dao.typ.ClsMdbUtils"
+                  method="*"
+            />
+
+            <item name="clstree"
+                  class="tofi.mdl.model.dao.typ.ClsTreeMdbUtils"
+                  method="*"
+            />
+
             <item name="typrole"
                   class="tofi.mdl.model.dao.typ.TypRoleMdbUtils"
                   method="*"
             />
+
+            <item name="cluster"
+                  class="tofi.mdl.model.dao.typ.TypClusterFactorMdbUtils"
+                  method="*"
+            />
+
 
             <item name="reltyp"
                   class="tofi.mdl.model.dao.reltyp.RelTypMdbUtils"
