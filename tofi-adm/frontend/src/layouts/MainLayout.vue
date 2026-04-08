@@ -127,7 +127,7 @@
         {{ $t("notLoginned") }}
       </h6>
       <h6 v-else-if="notAccess" class="q-pa-md text-red text-bold">
-        {{ $t("notAccess") }}
+        {{ $t("notAccessService") }}
       </h6>
 
       <q-list v-for="link in essentialLinks" :key="link.title">
@@ -182,7 +182,7 @@ const {setUserStore, clearUserStore} = store
 const leftDrawerOpen = ref(true)
 // Computed properties
 const reqAuth = computed(() => getUserName.value === '')
-const notAccess = computed(() => getTarget.value.length === 0 && !isSysAdmin.value)
+const notAccess = computed(() => !getTarget.value.includes("adm") && !isSysAdmin.value)
 const nameIcon = computed(() => getUserName.value === '' ? 'login' : 'logout')
 
 // Essential links
@@ -236,6 +236,11 @@ const loginOnOff = () => {
       .onOk((res) => {
         setUserStore(res)
         router.push('/')
+        api
+          .post("", {
+            method: "auth/checkTarget",
+            params: ["adm"],
+          })
       })
   } else {
     api
@@ -280,7 +285,7 @@ const profileUser = () => {
 // Lifecycle hooks
 onMounted(() => {
   if (!getUserId.value > 0) {
-    setUserStore({})
+    clearUserStore()
     router.push('/')
   }
 })
