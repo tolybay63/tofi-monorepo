@@ -187,7 +187,7 @@
 
 import {ref} from "vue";
 import {hasTarget, notifyError, pack} from "src/utils/jsutils.js";
-import {api, baseURL} from "boot/axios.js";
+import {api} from "boot/axios.js";
 import {QSpinnerCube, useQuasar} from "quasar";
 
 export default {
@@ -218,7 +218,7 @@ export default {
     loadAllCubes() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "cube/loadAllCubes",
           params: [],
         })
@@ -242,7 +242,7 @@ export default {
       this.errorCube = false
       this.rows3 = []
       api
-        .post(baseURL, {
+        .post("", {
           method: "cube/loadCubeDb",
           params: [cube],
         })
@@ -265,7 +265,7 @@ export default {
     loadCubeInfo(cube) {
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "cube/loadDataCubeInfo",
           params: [cube],
         })
@@ -516,7 +516,7 @@ export default {
     fnForm() {
       this.loaderShow("Проверка...")
       api
-        .post(baseURL, {
+        .post("", {
           method: "cube/checkCreateCube",
           params: [this.selected[0].id],
         })
@@ -525,7 +525,7 @@ export default {
           //this.loaderHide()
           this.loaderShow("Измерение периодов...")
           api
-            .post(baseURL, {
+            .post("", {
               method: "cube/createDimPeriod",
               params: [this.selected[0].id, this.dimsCube["dimPeriod"]],
             })
@@ -540,7 +540,7 @@ export default {
                 }
               }
               api
-                .post(baseURL, {
+                .post("", {
                   method: "cube/createDimProp",
                   params: [this.selected[0].id, mapParam],
                 })
@@ -548,7 +548,7 @@ export default {
                   //this.loaderHide()
                   this.loaderShow("Измерение объектов...")
                   api
-                    .post(baseURL, {
+                    .post("", {
                       method: "cube/createDimObj",
                       params: [this.selected[0].id, this.dimsCube],
                     })
@@ -556,7 +556,7 @@ export default {
                       //this.loaderHide()
                       this.loaderShow("Таблица фактов...")
                       api
-                        .post(baseURL, {
+                        .post("", {
                           method: "cube/createFactTable",
                           params: [this.selected[0].id, this.dimsCube],
                         })

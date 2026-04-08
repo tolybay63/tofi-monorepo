@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import {api, baseURL} from "boot/axios.js";
+import {api} from "boot/axios.js";
 import {notifyError} from "src/utils/jsutils.js";
 
 export default {
@@ -94,7 +94,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "data/deleteOwnerWithProperties",
               params: [row.id, 1],
             })
@@ -113,7 +113,7 @@ export default {
     loadUsers() {
       this.loading = true
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadUsers",
           params: ["Typ_Users"],
         })
