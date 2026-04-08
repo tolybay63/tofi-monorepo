@@ -205,7 +205,7 @@ export default {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
                 .post("", {
-                  method: "typ/deleteClsVer",
+                  method: "cls/deleteClsVer",
                   params: [rec],
                 })
                 .then(
@@ -314,7 +314,7 @@ export default {
       this.loading = ref(true);
       api
           .post("", {
-            method: "typ/loadClsVer",
+            method: "cls/loadClsVer",
             params: [cls],
           })
           .then(
@@ -379,7 +379,7 @@ export default {
       this.loading = ref(true);
       api
           .post("", {
-            method: "typ/loadRecCls",
+            method: "cls/loadRecCls",
             params: [cls],
           })
           .then((response) => {

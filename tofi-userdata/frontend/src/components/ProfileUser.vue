@@ -190,7 +190,7 @@
 import Treeselect from "vue3-treeselect"
 import 'vue3-treeselect/dist/vue3-treeselect.css'
 
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {ref} from "vue";
 import {notifyError, pack} from "src/utils/jsutils";
 import {useUserStore} from "stores/user-store";
@@ -326,7 +326,7 @@ export default {
 
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "entity/saveProfile",
           params: [this.form],
         })
@@ -356,7 +356,7 @@ export default {
   created() {
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "adm/loadAuthUser",
         params: [this.userId],
       })
@@ -384,7 +384,7 @@ export default {
 
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "meta/loadClsTree",
         params: [{typCod: "Typ_Users", typNodeVisible: false}],
       })
@@ -413,7 +413,7 @@ export default {
     //
     this.loading = ref(true);
     api
-      .post(baseURL, {
+      .post("", {
         method: "meta/loadFactorSexValues",
         params: [],
       })

@@ -1,37 +1,37 @@
 <template>
   <div class="no-padding no-margin">
     <q-table
-        style="height: calc(100vh - 220px); width: 100%"
-        color="primary"
-        card-class="bg-amber-1"
-        table-class="text-grey-8"
-        row-key="id"
-        :columns="cols"
-        :rows="rows"
-        :wrap-cells="true"
-        :table-colspan="4"
-        table-header-class="text-bold text-white bg-blue-grey-13"
-        :separator="separator"
-        :filter="filter"
-        :loading="loading"
-        :dense="dense"
-        :rows-per-page-options="[0]"
-        selection="single"
-        v-model:selected="selected"
+      style="height: calc(100vh - 220px); width: 100%"
+      color="primary"
+      card-class="bg-amber-1"
+      table-class="text-grey-8"
+      row-key="id"
+      :columns="cols"
+      :rows="rows"
+      :wrap-cells="true"
+      :table-colspan="4"
+      table-header-class="text-bold text-white bg-blue-grey-13"
+      :separator="separator"
+      :filter="filter"
+      :loading="loading"
+      :dense="dense"
+      :rows-per-page-options="[0]"
+      selection="single"
+      v-model:selected="selected"
     >
       <template v-slot:body="props">
         <q-tr :props="props">
           <q-td style="width: 5px">
             <q-btn
-                dense
-                flat
-                color="blue"
-                :icon="
+              dense
+              flat
+              color="blue"
+              :icon="
                 selected.length === 1 && selected[0].id === props.row.id
                   ? 'check_box'
                   : 'check_box_outline_blank'
               "
-                @click="selectedRow(props.row)"
+              @click="selectedRow(props.row)"
             >
             </q-btn>
           </q-td>
@@ -66,38 +66,38 @@
 
         <q-space/>
         <q-btn
-            v-if="hasTarget('mdl:mn_ds:typ:sel:fac:ins')"
-            :dense="dense"
-            icon="post_add"
-            color="secondary"
-            :disable="loading"
-            @click="editRow(null, 'ins')"
+          v-if="hasTarget('mdl:mn_ds:typ:sel:fac:ins')"
+          :dense="dense"
+          icon="post_add"
+          color="secondary"
+          :disable="loading"
+          @click="editRow(null, 'ins')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("newRecord") }}
           </q-tooltip>
         </q-btn>
         <q-btn
-            v-if="hasTarget('mdl:mn_ds:typ:sel:fac:upd')"
-            :dense="dense"
-            icon="edit"
-            color="secondary"
-            class="q-ml-sm"
-            :disable="loading || selected.length === 0"
-            @click="editRow(selected[0], 'upd')"
+          v-if="hasTarget('mdl:mn_ds:typ:sel:fac:upd')"
+          :dense="dense"
+          icon="edit"
+          color="secondary"
+          class="q-ml-sm"
+          :disable="loading || selected.length === 0"
+          @click="editRow(selected[0], 'upd')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("editRecord") }}
           </q-tooltip>
         </q-btn>
         <q-btn
-            v-if="hasTarget('mdl:mn_ds:typ:sel:fac:del')"
-            :dense="dense"
-            icon="delete"
-            color="secondary"
-            class="q-ml-sm"
-            :disable="loading || selected.length === 0"
-            @click="removeRow(selected[0])"
+          v-if="hasTarget('mdl:mn_ds:typ:sel:fac:del')"
+          :dense="dense"
+          icon="delete"
+          color="secondary"
+          class="q-ml-sm"
+          :disable="loading || selected.length === 0"
+          @click="removeRow(selected[0])"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("deletingRecord") }}
@@ -105,20 +105,20 @@
         </q-btn>
 
         <q-toggle
-            style="margin-left: 10px"
-            :dense="dense"
-            v-model="dense"
-            :label="$t('isDense')"
+          style="margin-left: 10px"
+          :dense="dense"
+          v-model="dense"
+          :label="$t('isDense')"
         />
 
         <q-space/>
         <q-input
-            :dense="dense"
-            debounce="300"
-            color="primary"
-            :model-value="filter.value"
-            v-model="filter"
-            :label="$t('txt_filter')"
+          :dense="dense"
+          debounce="300"
+          color="primary"
+          :model-value="filter.value"
+          v-model="filter"
+          :label="$t('txt_filter')"
         >
           <template v-slot:append>
             <q-icon name="search"/>
@@ -191,101 +191,95 @@ export default defineComponent({
       const lg = {name: this.lang};
 
       this.$q
-          .dialog({
-            component: UpdateClusterFactor,
-            componentProps: {
-              data: data,
-              mode: mode,
-              lg: lg,
-              dense: this.dense,
-              // ...
-            },
-          })
-          .onOk((r) => {
-            //console.log("Ok! updated", r);
-            if (mode === "ins") {
-              this.rows.push(r);
-              this.selected = [];
-              this.selected.push(r);
-            } else {
-              for (let key in r) {
-                if (r.hasOwnProperty(key)) {
-                  rec[key] = r[key];
-                }
+        .dialog({
+          component: UpdateClusterFactor,
+          componentProps: {
+            data: data,
+            mode: mode,
+            lg: lg,
+            dense: this.dense,
+            // ...
+          },
+        })
+        .onOk((r) => {
+          //console.log("Ok! updated", r);
+          if (mode === "ins") {
+            this.rows.push(r);
+            this.selected = [];
+            this.selected.push(r);
+          } else {
+            for (let key in r) {
+              if (r.hasOwnProperty(key)) {
+                rec[key] = r[key];
               }
             }
-          })
-          .onCancel(() => {
-            //console.log('Cancel!')
-          });
+          }
+        })
+        .onCancel(() => {
+          //console.log('Cancel!')
+        });
     },
 
     fetchData(typ) {
       this.loading = ref(true);
       //
       api
-          .post("", {
-            method: "typ/loadTypClusterFactor",
-            params: [typ],
-          })
-          .then((response) => {
-            this.rows = response.data.result.records;
-            this.selected = ref([]);
-          })
-          .catch((error) => {
-            let msg = error.message;
-            if (error.response) msg = error.response.data.error.message;
+        .post("", {
+          method: "cluster/loadTypClusterFactor",
+          params: [typ],
+        })
+        .then((response) => {
+          this.rows = response.data.result.records;
+          this.selected = ref([]);
+        })
+        .catch((error) => {
+          let msg = error.message;
+          if (error.response) msg = error.response.data.error.message;
 
-            notifyError(msg);
-            //
-          })
-          .finally(() => {
-            //setTimeout(() => {
-            this.loading = ref(false);
-            //}, 500)
-          });
+          notifyError(msg);
+          //
+        })
+        .finally(() => {
+          //setTimeout(() => {
+          this.loading = ref(false);
+          //}, 500)
+        });
     },
 
     removeRow(rec) {
       //console.log("Delete Row:", JSON.stringify(rec))
       this.$q
-          .dialog({
-            title: this.$t("confirmation"),
-            message:
-                this.$t("deleteRecord") +
-                '<div style="color: plum">(' +
-                rec.name +
-                ")</div>",
-            html: true,
-            cancel: true,
-            persistent: true,
-            focus: "cancel",
-          })
-          .onOk(() => {
-            let index = this.rows.findIndex((row) => row.id === rec.id);
-            api
-                .post("", {
-                  method: "typ/deleteTypClusterFactor",
-                  params: [{rec: rec}],
-                })
-                .then(
-                    () => {
-                      //console.log("response=>>>", response.data)
-                      this.rows.splice(index, 1);
-                      this.selected = ref([]);
-                      notifySuccess(this.$t("success"));
-                    },
-                    (error) => {
-                      let msg
-                      if (error.response) msg = error.response.data.error.message;
-                      else msg = error.message;
-                      notifyError(msg);
-                    }
-                );
-          })
-          .onCancel(() => {
-            notifyInfo(this.$t("canceled"));
-          });
+        .dialog({
+          title: this.$t("confirmation"),
+          message:
+            this.$t("deleteRecord") +
+            '<div style="color: plum">(' +
+            rec.name +
+            ")</div>",
+          html: true,
+          cancel: true,
+          persistent: true,
+          focus: "cancel",
+        })
+        .onOk(() => {
+          let index = this.rows.findIndex((row) => row.id === rec.id);
+          api
+            .post("", {
+              method: "cluster/deleteTypClusterFactor",
+              params: [rec],
+            })
+            .then(
+              () => {
+                //console.log("response=>>>", response.data)
+                this.rows.splice(index, 1);
+                this.selected = ref([]);
+                notifySuccess(this.$t("success"));
+              }
+            );
+        })
+        .onCancel(() => {
+          notifyInfo(this.$t("canceled"));
+        });
     },
 
     getColumns() {

@@ -23,8 +23,10 @@ export default {
 
   browserDenied: "Браузер файлды жүктеп алудан бас тартты...",
 
-  notLogined: "Жүйеге кіру қажет",
-  notAccess: "Сізде кіру құқығы жоқ",
+  invalid_user_passwd: "Пайдаланушы аты немесе құпия сөз дұрыс емес",
+  notLoginned: "Жүйеге кіру қажет",
+  notAccess: "Сізде бұл операцияны орындау құқығы жоқ",
+  notAccessService: "Сізде бұл сервиске кіру құқығы жоқ",
 
   networkError: "Желі қатесі",
 

@@ -130,7 +130,7 @@ export default {
               : "updateTypClusterFactor";
       api
           .post("", {
-            method: "typ/" + method,
+            method: "cluster/" + method,
             params: [{rec: this.form}],
           })
           .then(
@@ -158,7 +158,7 @@ export default {
   created() {
     api
         .post("", {
-          method: "typ/loadFactors",
+          method: "cluster/loadFactors",
           params: [this.form.typ, this.mode],
         })
         .then((response) => {

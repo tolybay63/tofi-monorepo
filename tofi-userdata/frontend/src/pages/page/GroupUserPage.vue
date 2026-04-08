@@ -165,7 +165,7 @@
 <script>
 import {ref} from "vue";
 import {collapsAll, expandAll, getParentNode, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
-import {api, baseURL} from "boot/axios";
+import {api} from "boot/axios";
 import {useUserStore} from "stores/user-store";
 import {storeToRefs} from "pinia";
 import UpdaterGroupUserPage from "pages/page/UpdaterGroupUserPage.vue";
@@ -379,7 +379,7 @@ export default {
         .onOk(() => {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
-            .post(baseURL, {
+            .post("", {
               method: "entity/deleteGroup",
               params: [rec.id],
             })
@@ -405,7 +405,7 @@ export default {
     fetchData() {
       this.loading = ref(true);
       api
-        .post(baseURL, {
+        .post("", {
           method: "data/loadGroupUsers",
           params: [],
         })

@@ -506,9 +506,9 @@ export default {
   needDeleteProcubeObj: "Неоходимо удалть прокуб объектов",
   needDeleteProcubeProp: "Неоходимо удалть прокуб свойств",
 
+  clsExists: "Существуют классы",
+
   fish_model: "Модель оценки запаса рыбных ресурсов",
-
-
   nothing_here: "Упс. Здесь ничего...",
   home: "Домой",
 

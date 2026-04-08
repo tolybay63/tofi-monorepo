@@ -5,7 +5,7 @@ import {storeToRefs} from 'pinia';
 
 // Константы для уведомлений
 const NOTIFICATION_DEFAULTS = {
-  POSITION: 'top-left',
+  POSITION: 'bottom-right',
   TIMEOUTS: {
     SUCCESS: 500,
     ERROR: 3000,

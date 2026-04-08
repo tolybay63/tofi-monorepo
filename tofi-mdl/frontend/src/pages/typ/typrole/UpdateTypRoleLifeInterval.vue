@@ -123,7 +123,7 @@ export default {
       api
           .post("", {
             id: this.form.id,
-            method: "typ/" + method,
+            method: "typrole/" + method,
             params: [{rec: this.form}],
           })
           .then(
