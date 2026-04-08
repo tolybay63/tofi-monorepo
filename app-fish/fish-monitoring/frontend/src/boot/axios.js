@@ -75,7 +75,7 @@ export default defineBoot(({ app, router }) => {
         } else if (typeof data === 'string') {
           textContent = data;
         }
-
+        errorCode = data.error?.message
         // Ищем в ответе (даже в HTML) ключ 'invalid_user_passwd'
         if (textContent && textContent.includes('invalid_user_passwd')) {
           errorCode = 'invalid_user_passwd';
