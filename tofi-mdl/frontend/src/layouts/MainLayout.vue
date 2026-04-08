@@ -134,6 +134,7 @@ import {useUserStore} from "stores/user-store";
 import {storeToRefs} from "pinia";
 import {useRouter} from "vue-router";
 import {extend, useQuasar} from "quasar";
+import {hasTarget} from "src/utils/jsutils.js";
 
 export default defineComponent({
   components: {
@@ -146,7 +147,7 @@ export default defineComponent({
     const {clearUserStore} = store;
     const {getUserId} = storeToRefs(store);
 
-    if (getUserId.value <= 0) {
+    if (getUserId.value < 1) {
       clearUserStore()
       this.$router["push"]("/")
     }
@@ -214,19 +215,22 @@ export default defineComponent({
       loginOnOff() {
         //console.info("OnOff")
         if (userName.value === "") {
-          const lang = localStorage.getItem("curLang");
           leftDrawerOpen.value = true;
           $q
             .dialog({
               component: LoginUser,
               componentProps: {
-                lg: lang,
                 // ...
               },
             })
             .onOk((res) => {
               setUserStore(res)
               router.push('/')
+              api
+                .post("", {
+                  method: "auth/checkTarget",
+                  params: ["meta"],
+                })
             });
         } else {
           api
@@ -430,8 +434,10 @@ export default defineComponent({
       },
 
       getMsg() {
-        if (userName.value !== "") return this.$t("notAccess");
-        else return this.$t("notLoginned");
+        if (userName.value !== "" && !hasTarget("meta"))
+          return this.$t("notAccessService");
+        if (userName.value === "")
+          return this.$t("notLoginned");
       },
 
       getClr() {
