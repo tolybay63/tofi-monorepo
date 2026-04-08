@@ -501,6 +501,8 @@ export default {
   needDeleteProcubeObj: "Need to delete objects procube",
   needDeleteProcubeProp: "Need to delete properties procube",
 
+  clsExists: "There are classes",
+
   fish_model: "Fisheries stock assessment model",
 
   nothing_here: "Oops. Nothing Here...",

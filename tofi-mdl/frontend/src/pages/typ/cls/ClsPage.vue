@@ -359,7 +359,7 @@ export default {
       this.loading = ref(false);
       api
         .post("", {
-          method: "typ/loadClsFV",
+          method: "cls/loadClsFV",
           params: [typ, cls],
         })
         .then((response) => {
@@ -388,7 +388,7 @@ export default {
       this.selected = ref([])
       api
         .post("", {
-          method: "typ/loadClsTree",
+          method: "clstree/loadClsTree",
           params: [{typ: typ, typNodeVisible: false}],
         })
         .then((response) => {
@@ -439,7 +439,7 @@ export default {
           //let index = this.rows.findIndex((row) => row.ent === rec.ent);
           api
             .post("", {
-              method: "typ/deleteCls",
+              method: "cls/deleteCls",
               params: [{rec: rec}],
             })
             .then(

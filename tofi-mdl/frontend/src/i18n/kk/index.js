@@ -499,6 +499,8 @@ export default {
   needDeleteProcubeObj: "Нысандардың прокубасын жою қажет",
   needDeleteProcubeProp: "Сипаттар прокубасын жою қажет",
 
+  clsExists: "Класстар бар",
+
   fish_model: "Балық шаруашылығы қорын бағалау моделі",
 
   nothing_here: "Ойбай. Мұнда ештеңе жоқ...",
