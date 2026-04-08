@@ -7,21 +7,18 @@ import jandcode.core.auth.AuthService;
 import jandcode.core.auth.AuthUser;
 import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.mdb.BaseMdbUtils;
-import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class AuthMdbUtils extends BaseMdbUtils {
     @DaoMethod
     public Map<String, Object> getUserInfo() {
         AuthService authSvc = getMdb().getApp().bean(AuthService.class);
         AuthUser au = authSvc.getCurrentUser();
-        if (au==null) {
+        if (au == null) {
             throw new XError("notLoginned");
         }
         return au.getAttrs();
@@ -83,13 +80,13 @@ public class AuthMdbUtils extends BaseMdbUtils {
         AuthService authService = getModel().getApp().bean(AuthService.class);
         AuthUser usr = authService.getCurrentUser();
 
-        //if (getMdb().getApp().getEnv().isDev()) {
-        System.out.println("--- DEBUG ---");
-        System.out.println("Target: " + target);
-        System.out.println("User ID from Attrs: " + usr.getAttrs().getLong("id"));
-        System.out.println("User Login: " + usr.getAttrs().getString("login"));
-        System.out.println("-------------");
-        //}
+        if (getMdb().getApp().getEnv().isDev()) {
+            System.out.println("--- DEBUG ---");
+            System.out.println("Target: " + target);
+            System.out.println("User ID from Attrs: " + usr.getAttrs().getLong("id"));
+            System.out.println("User Login: " + usr.getAttrs().getString("login"));
+            System.out.println("-------------");
+        }
 
         if (usr.getAttrs().getLong("id") == 1) return;
 
@@ -97,7 +94,7 @@ public class AuthMdbUtils extends BaseMdbUtils {
             throw new XError("notLoginned");
 
         String userTargets = usr.getAttrs().getString("target", "");
-        String [] targets = userTargets.trim().split("\\s*,\\s*");
+        String[] targets = userTargets.trim().split("\\s*,\\s*");
         if (!Arrays.asList(targets).contains(target)) {
             if (target.equals("adm")) {
                 throw new XError("notAccessService");
