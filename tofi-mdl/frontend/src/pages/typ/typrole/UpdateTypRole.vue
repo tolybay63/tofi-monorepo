@@ -120,7 +120,7 @@ export default {
       const method = this.mode === "ins" ? "insertTypRole" : "updateTypRole";
       api
           .post("", {
-            method: "typ/" + method,
+            method: "typrole/" + method,
             params: [{rec: this.form}],
           })
           .then(
@@ -148,7 +148,7 @@ export default {
   created() {
     api
         .post("", {
-          method: "typ/selectTypRole",
+          method: "typrole/selectTypRole",
           params: [this.typ],
         })
         .then((response) => {

@@ -228,7 +228,7 @@ export default {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
                 .post("", {
-                  method: "typ/deleteTypRole",
+                  method: "typrole/deleteTypRole",
                   params: [{rec: rec}],
                 })
                 .then(
@@ -308,7 +308,7 @@ export default {
       this.loading = true;
       api
           .post("", {
-            method: "typ/loadTypRole",
+            method: "typrole/loadTypRole",
             params: [typ],
           })
           .then(
@@ -362,7 +362,7 @@ export default {
             let index = this.rows2.findIndex((row) => row.id === rec.id);
             api
                 .post("", {
-                  method: "typ/deleteTypRoleLife",
+                  method: "typrole/deleteTypRoleLife",
                   params: [{rec: rec}],
                 })
                 .then(
@@ -437,7 +437,7 @@ export default {
 
       api
           .post("", {
-            method: "typ/loadTypRoleLife",
+            method: "typrole/loadTypRoleLife",
             params: [typrole],
           })
           .then(

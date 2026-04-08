@@ -225,7 +225,7 @@ export default defineComponent({
       //
       api
           .post("", {
-            method: "typ/loadTypClusterFactor",
+            method: "cluster/loadTypClusterFactor",
             params: [typ],
           })
           .then((response) => {
@@ -265,7 +265,7 @@ export default defineComponent({
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
                 .post("", {
-                  method: "typ/deleteTypClusterFactor",
+                  method: "cluster/deleteTypClusterFactor",
                   params: [{rec: rec}],
                 })
                 .then(
