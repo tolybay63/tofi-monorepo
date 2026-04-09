@@ -25,59 +25,28 @@ import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.ApiMetaData
-import tofi.api.mdl.utils.ClsTreeUtils
+import tofi.api.mdl.model.consts.FD_AttribValType_consts
+import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_MultiValEntityType_consts
+import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-import tofi.api.mdl.model.consts.*
 
 import java.math.RoundingMode
 
 class DataDao extends BaseMdbUtils {
 
-    ApinatorApi apiMeta() {
-        return app.bean(ApinatorService).getApi("meta")
-    }
+    ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
 
-    ApinatorApi apiMetaData() {
-        return app.bean(ApinatorService).getApi("meta")
-    }
+    ApinatorApi apiMetaData() { return app.bean(ApinatorService).getApi("meta") }
 
-    ApinatorApi apiUserData() {
-        return app.bean(ApinatorService).getApi("userdata")
-    }
+    ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
 
-    ApinatorApi apiKPIData() {
-        return app.bean(ApinatorService).getApi("kpidata")
-    }
+    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
 
-    ApinatorApi apiPollData() {
-        return app.bean(ApinatorService).getApi("polldata")
-    }
+    ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
 
-    ApinatorApi apiIndicatorData() {
-        return app.bean(ApinatorService).getApi("indicatordata")
-    }
-    //
-    ApinatorApi apiNSIData() {
-        return app.bean(ApinatorService).getApi("nsidata")
-    }
-
-    ApinatorApi apiMonitoringData() {
-        return app.bean(ApinatorService).getApi("monitoringdata")
-    }
-
-
-    @DaoMethod
-    Map<String, Object>
-    getCurUserInfo() {
-        AuthService authSvc = mdb.getApp().bean(AuthService.class)
-        AuthUser au = authSvc.getCurrentUser()
-        if (au == null) {
-            throw new XError("notLogined")
-        }
-        return au.getAttrs()
-    }
 
     @DaoMethod
     Store loadDict(String dictName) throws Exception {
@@ -1770,18 +1739,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     private long createOwner(Map<String, Object> params, String model, String metamodel) {
-        if (metamodel == "kpi") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).createOwner(params)
-            else if (model.equalsIgnoreCase("kpidata"))
-                return apiKPIData().get(ApiKPIData).createOwner(params)
-            else if (model.equalsIgnoreCase("polldata"))
-                return apiPollData().get(ApiPollData).createOwner(params)
-            else if (model.equalsIgnoreCase("indicatordata"))
-                return apiIndicatorData().get(ApiIndicatorData).createOwner(params)
-            else
-                throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "fish") {
+        if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).createOwner(params)
             else if (model.equalsIgnoreCase("nsidata"))
@@ -1882,23 +1840,12 @@ class DataDao extends BaseMdbUtils {
                 return apiMonitoringData().get(ApiMonitoringData).updateTable(tableName, params)
             else
                 throw new XError("Unknown model [${model}]")
-        }
-        throw new XError("Unknown id metamodel")
+        } else
+            throw new XError("Unknown id metamodel")
     }
 
     private deleteTable(String tableName, long id, String model, String metamodel) {
-        if (metamodel == "kpi") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).deleteTable(tableName, id)
-            else if (model.equalsIgnoreCase("kpidata"))
-                return apiKPIData().get(ApiKPIData).deleteTable(tableName, id)
-            else if (model.equalsIgnoreCase("polldata"))
-                return apiPollData().get(ApiPollData).deleteTable(tableName, id)
-            else if (model.equalsIgnoreCase("indicatordata"))
-                return apiIndicatorData().get(ApiIndicatorData).deleteTable(tableName, id)
-            else
-                throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "fish") {
+        if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).deleteTable(tableName, id)
             else if (model.equalsIgnoreCase("nsidata"))
@@ -1907,15 +1854,8 @@ class DataDao extends BaseMdbUtils {
                 return apiMonitoringData().get(ApiMonitoringData).deleteTable(tableName, id)
             else
                 throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "dtj") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).deleteTable(tableName, id)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).deleteTable(tableName, id)
-            else
-                throw new XError("Unknown model [${model}]")
-        }
-        throw new XError("Unknown id metamodel")
+        } else
+            throw new XError("Unknown id metamodel")
     }
 
     private long insertRecToTable(String tableName, Map<String, Object> params, String model, String metamodel, boolean generateId) {
@@ -1968,12 +1908,6 @@ class DataDao extends BaseMdbUtils {
     private void execSql(String sql, String model) {
         if (model.equalsIgnoreCase("userdata"))
             apiUserData().get(ApiUserData).execSql(sql)
-        else if (model.equalsIgnoreCase("kpidata"))
-            apiKPIData().get(ApiKPIData).execSql(sql)
-        else if (model.equalsIgnoreCase("polldata"))
-            apiPollData().get(ApiPollData).execSql(sql)
-        else if (model.equalsIgnoreCase("indicatordata"))
-            apiIndicatorData().get(ApiIndicatorData).execSql(sql)
         else if (model.equalsIgnoreCase("nsidata"))
             apiNSIData().get(ApiNSIData).execSql(sql)
         else if (model.equalsIgnoreCase("monitoringdata"))
@@ -1987,18 +1921,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     private Store loadSql(String sql, String domain, String model, String metamodel) {
-        if (metamodel == "kpi") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).loadSql(sql, domain)
-            else if (model.equalsIgnoreCase("kpidata"))
-                return apiKPIData().get(ApiKPIData).loadSql(sql, domain)
-            else if (model.equalsIgnoreCase("polldata"))
-                return apiPollData().get(ApiPollData).loadSql(sql, domain)
-            else if (model.equalsIgnoreCase("indicatordata"))
-                return apiIndicatorData().get(ApiIndicatorData).loadSql(sql, domain)
-            else
-                throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "fish") {
+        if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).loadSql(sql, domain)
             else if (model.equalsIgnoreCase("nsidata"))
@@ -2007,30 +1930,12 @@ class DataDao extends BaseMdbUtils {
                 return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
             else
                 throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "dtj") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).loadSql(sql, domain)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
-            else
-                throw new XError("Unknown model [${model}]")
-        }
-        throw new XError("Unknown id metamodel")
+        } else
+            throw new XError("Unknown id metamodel")
     }
 
     private Store loadSqlWithParams(String sql, String domain, Map<String, Object> params, String model, String metamodel) {
-        if (metamodel == "kpi") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).loadSqlWithParams(sql, params, domain)
-            else if (model.equalsIgnoreCase("kpidata"))
-                return apiKPIData().get(ApiKPIData).loadSqlWithParams(sql, params, domain)
-            else if (model.equalsIgnoreCase("polldata"))
-                return apiPollData().get(ApiPollData).loadSqlWithParams(sql, params, domain)
-            else if (model.equalsIgnoreCase("indicatordata"))
-                return apiIndicatorData().get(ApiIndicatorData).loadSqlWithParams(sql, params, domain)
-            else
-                throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "fish") {
+        if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).loadSqlWithParams(sql, params, domain)
             else if (model.equalsIgnoreCase("nsidata"))
@@ -2039,16 +1944,36 @@ class DataDao extends BaseMdbUtils {
                 return apiMonitoringData().get(ApiMonitoringData).loadSqlWithParams(sql, params, domain)
             else
                 throw new XError("Unknown model [${model}]")
-        } else if (metamodel == "dtj") {
-            if (model.equalsIgnoreCase("userdata"))
-                return apiUserData().get(ApiUserData).loadSqlWithParams(sql, params, domain)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).loadSqlWithParams(sql, params, domain)
-            else
-                throw new XError("Unknown model [${model}]")
-        }
-        throw new XError("Unknown id metamodel")
+        } else
+            throw new XError("Unknown id metamodel")
     }
 
+    @DaoMethod
+    void checkTarget(String target) {
+        AuthService authService = getModel().getApp().bean(AuthService.class);
+        AuthUser usr = authService.getCurrentUser();
+
+        if (getMdb().getApp().getEnv().isDev()) {
+            System.out.println("--- DEBUG ---");
+            System.out.println("Target: " + target);
+            System.out.println("User ID from Attrs: " + usr.getAttrs().getLong("id"));
+            System.out.println("User Login: " + usr.getAttrs().getString("login"));
+            System.out.println("-------------");
+        }
+
+        if (usr.getAttrs().getLong("id") == 1) return;
+
+        if (usr.getAttrs().getLong("id") == 0)
+            throw new XError("notLoginned");
+
+        String userTargets = usr.getAttrs().getString("target", "");
+        String [] targets = userTargets.trim().split("\\s*,\\s*");
+        if (!Arrays.asList(targets).contains(target)) {
+            if (target == "tofidata") {
+                throw new XError("notAccessService");
+            }
+            throw new XError("notAccess");
+        }
+    }
 
 }
