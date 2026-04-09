@@ -37,6 +37,7 @@ export default {
         .onOk((r) => {
           setUserStore(r)
           router.push('/')
+
         });
 
     }
