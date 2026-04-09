@@ -8,11 +8,6 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 
 class ClsTreeMdbUtils extends BaseMdbUtils {
-    Mdb mdb;
-
-    ClsTreeMdbUtils(Mdb mdb) {
-        this.mdb = mdb
-    }
 
 /*
 *  Возвращает дерево-классов с учетом наследования
