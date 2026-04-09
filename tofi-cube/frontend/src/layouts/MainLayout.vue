@@ -146,7 +146,7 @@ import {useQuasar} from "quasar";
 import {useRouter} from "vue-router";
 
 const store = useUserStore();
-const {getUserName/*, isSysAdmin, getTarget*/} = storeToRefs(store);
+const {getUserName} = storeToRefs(store);
 const {setUserStore, clearUserStore} = store;
 const $q = useQuasar();
 const router = useRouter();
@@ -181,7 +181,14 @@ const loginOnOff = async () => {
       })
       .onOk((res) => {
         setUserStore(res)
-        router.push('/cubes')
+        api
+          .post("", {
+            method: "cube/checkTarget",
+            params: ["cube"],
+          })
+          .then(() => {
+            router.push('/cubes')
+          })
       });
   } else {
     api
