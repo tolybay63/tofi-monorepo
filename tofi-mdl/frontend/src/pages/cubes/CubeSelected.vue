@@ -96,7 +96,6 @@ import EdjesPropFltPage from "pages/cubes/tabs/EdjesPropFltPage.vue";
 import EdjesObjPage from "pages/cubes/tabs/EdjesObjPage.vue";
 import DependObjPage from "pages/cubes/tabs/DependObjPage.vue";
 import AlgPage from "pages/cubes/tabs/AlgPage.vue";
-import {notifyError} from "src/utils/jsutils.js";
 
 export default {
   name: "CubeSelected",
@@ -142,7 +141,7 @@ export default {
         .then(() => {
         })
         .catch((error) => {
-          notifyError(this.$t(error.response.data.error.message));
+          //notifyError(this.$t(error.response.data.error.message));
           this.tab = ref("dims");
         })
         .finally(() => {
@@ -160,7 +159,7 @@ export default {
         .then(() => {
         })
         .catch((error) => {
-          notifyError(this.$t(error.response.data.error.message));
+          //notifyError(this.$t(error.response.data.error.message));
           this.tab = ref("dims");
         })
         .finally(() => {
