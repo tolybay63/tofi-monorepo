@@ -1141,7 +1141,7 @@ export default {
     api
       .post("", {
         method: "typ/loadTypForSelect",
-        params: [{}],
+        params: [],
       })
       .then((response) => {
         this.optionsProviderOrg = response.data.result.records;

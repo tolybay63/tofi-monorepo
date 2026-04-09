@@ -49,7 +49,7 @@ public class GroupMdbUtils extends BaseMdbUtils {
     @DaoMethod
     public Store insert(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
-        String tableName = UtCnv.toString(rec.get("tableName"));
+        String tableName = UtCnv.toString(params.get("tableName"));
         EntityMdbUtils eu = new EntityMdbUtils(getMdb(), tableName);
         long id = eu.insertEntity(rec);
         Store st = getMdb().createStore(tableName);
