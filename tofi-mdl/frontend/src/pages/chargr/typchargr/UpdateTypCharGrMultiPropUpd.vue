@@ -98,7 +98,7 @@
                         flat
                         :color="item.children.length > 0 ? 'gray' : 'blue'"
                         :icon="
-                        item.checked === 1
+                        item.checked
                           ? 'check_box'
                           : 'check_box_outline_blank'
                       "
@@ -161,7 +161,7 @@ export default {
       cols: [],
       rows: [],
       separator: ref("cell"),
-      loading: ref(false),
+      loading: false,
       //
       isExpanded: true,
       currentNode: null,
@@ -187,7 +187,7 @@ export default {
     },
 
     loadData() {
-      this.loading = ref(true);
+      this.loading = true;
       api
           .post("", {
             method: "typ/loadTypCharGrMultiPropForUpd",
@@ -199,7 +199,7 @@ export default {
             expandAll(this.rows);
           })
           .finally(() => {
-            this.loading = ref(false);
+            this.loading = false;
           });
     },
 
@@ -235,7 +235,7 @@ export default {
     },
 
     onOKClick() {
-      this.loading = ref(true)
+      this.loading = true
       let err = false
       let dta = [];
       const tt = (node, chks) => {
@@ -286,7 +286,7 @@ export default {
               }
           )
           .finally(() => {
-            this.loading = ref(false);
+            this.loading = false;
             if (!err)
               this.hide();
           });

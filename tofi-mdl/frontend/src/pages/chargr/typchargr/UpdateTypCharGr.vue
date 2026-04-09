@@ -1,7 +1,7 @@
 <template>
   <q-dialog
     ref="dialog"
-    @show="onDialogShow"
+
     @hide="onDialogHide"
     persistent
     transition-show="slide-up"
@@ -21,7 +21,7 @@
         <q-input
           :dense="dense"
           v-model="form.name"
-
+          autofocus
           @blur="onBlurName"
           :label="$t('fldName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
@@ -39,16 +39,17 @@
 
         <!-- typ -->
         <q-select
-          v-model="form.typ"  :options="optTyp"
+          :disable="mode === 'upd'"
+          :dense="dense"
+          :options-dense="dense"
+          v-model="typ"
+          :model-value="typ"
+          :options="optTyp"
+          :label="$t('typ')"
           option-value="id"
           option-label="name"
-          emit-value
           map-options
-          :dense="dense"
-          :disabled="mode === 'upd'"
           @update:model-value="fnSelectTyp"
-          :options-dense="dense"
-          :label="$t('typ')"
         />
 
         <!-- Cluster FV-->
@@ -61,46 +62,23 @@
         </q-item-label
         >
 
-        <div v-if="isReady && optionsCFV && optionsCFV.length > 0"
-             style="width: 100%; min-height: 50px;"
-             :key="form.typ"
-        >
+        <div style="width: 100%; min-height: 50px;">
+
           <treeselect
+            :disabled="mode === 'upd'"
             :options="optionsCFV"
             v-model="form.factorVal"
+            :default-expand-level="1"
+            max-height="600"
             :normalizer="normalizer"
             :placeholder="$t('select')"
-            max-height="300"
-            :default-expand-level="1"
+            :noChildrenText="$t('noChilds')"
+            :noResultsText="$t('noResult')"
+            :noOptionsText="$t('noResult')"
             @select="fnSelectCFV"
-            :key="form.typ"
           />
         </div>
-        <q-item-label v-else-if="isReady && optionsCFV === null" class="text-grey-5">
-          {{ $t('loading') }}...
-        </q-item-label>
 
-
-        <!--
-
-                <div v-if="isRendered && optionsCFV" style="width: 100%; min-height: 50px;">
-                  <treeselect
-                    :append-to-body="true"
-                    :disabled="mode === 'upd'"
-                    :options="optionsCFV"
-                    v-model="form.factorVal"
-                    :default-expand-level="1"
-                    max-height="800"
-                    :normalizer="normalizer"
-                    :placeholder="$t('select')"
-                    :noChildrenText="$t('noChilds')"
-                    :noResultsText="$t('noResult')"
-                    :noOptionsText="$t('noResult')"
-                    @select="fnSelectCFV"
-                  />
-                </div>
-
-        -->
         <q-item-label v-if="form.factorVal===0"
                       class="text-red-10" style="font-size: 0.8em"
         >
@@ -173,36 +151,14 @@ export default {
   props: ["data", "mode", "dense"],
 
   data() {
-// Создаем полную независимую копию данных
-    const formCopy = JSON.parse(JSON.stringify(this.data));
-    if (!formCopy.factorVal || formCopy.factorVal === 0) formCopy.factorVal = null;
-
     return {
-      form: formCopy,
-      isReady: false,     // Флаг полной готовности диалога
-      optionsAL: [],
-      optionsCFV: null,   // null — значит данных еще нет
-      optTyp: [],
-    };
-
-/*
-
-    const formData = JSON.parse(JSON.stringify(this.data));
-    // Treeselect НЕ ЛЮБИТ 0. Если там 0, ставим null
-    if (!formData.factorVal || formData.factorVal === 0) {
-      formData.factorVal = null;
-    }
-    return {
-      form: formData,
+      form: this.data,
       al: this.data.accessLevel,
       optionsAL: [],
       optionsCFV: [],
       optTyp: [],
       typ: this.data.typ,
-      isRendered: false,
-
     };
-*/
   },
 
   emits: [
@@ -213,18 +169,10 @@ export default {
 
   methods: {
     fnSelectTyp(val) {
-      // val теперь — это сразу ID благодаря emit-value в q-select
-      this.optionsCFV = null;
-      this.form.factorVal = null;
-      this.loadclustFactorVal(val, this.mode);
-
-/*
-
       this.form.typ = this.typ.id
       this.optionsCFV = []
       this.form.factorVal = null;
       this.loadclustFactorVal(this.form.typ, this.mode)
-*/
     },
 
     fnSelectCFV(v) {
@@ -232,11 +180,9 @@ export default {
     },
 
     normalizer(node) {
-      // Проверяем все возможные варианты ID, чтобы не вернуть undefined
-      const id = node.key || node.id || node.ID;
       return {
-        id: id,
-        label: node.name || '---', // Защита от пустых имен
+        id: node.key,
+        label: node.name,
       };
     },
 
@@ -268,12 +214,12 @@ export default {
       this.$refs.dialog.show();
     },
 
-    onDialogShow() {
+/*    onDialogShow() {
       // Даем Quasar один тик на завершение всех внутренних процессов
       setTimeout(() => {
         this.isReady = true;
       }, 300);
-    },
+    },*/
 
     // following method is REQUIRED
     // (don't change its name --> "hide")
