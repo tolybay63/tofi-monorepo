@@ -76,10 +76,10 @@ export default {
   data() {
     return {
       lang: this.lg,
-      loading: ref(false),
+      loading: false,
       cols: [],
       rows: [],
-      selected: ref([])
+      selected: []
     };
   },
 
@@ -118,7 +118,7 @@ export default {
       // emit "ok" event (with optional payload)
       // before hiding the QDialog
 
-      this.loading = ref(true);
+      this.loading = true;
       let err = false
 
 
@@ -140,7 +140,7 @@ export default {
               }
           )
           .finally(() => {
-            this.loading = ref(false);
+            this.loading = false;
             if (!err) this.hide();
           });
     },
@@ -181,7 +181,7 @@ export default {
 
     loadData() {
 
-      this.loading = ref(true);
+      this.loading = true;
 
       api
           .post("", {
@@ -200,7 +200,7 @@ export default {
             notifyError(msg);
           })
           .finally(() => {
-            this.loading = ref(false);
+            this.loading = false;
           });
 
 

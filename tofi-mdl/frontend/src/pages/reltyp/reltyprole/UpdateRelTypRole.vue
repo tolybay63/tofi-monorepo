@@ -120,7 +120,7 @@ export default {
           this.mode === "ins" ? "insertRelTypRole" : "updateRelTypRole";
       api
           .post("", {
-            method: "reltyp/" + method,
+            method: "reltyprole/" + method,
             params: [{rec: this.form}],
           })
           .then(
@@ -146,7 +146,7 @@ export default {
   created() {
     api
         .post("", {
-          method: "reltyp/selectRelTypRole",
+          method: "reltyprole/selectRelTypRole",
           params: [this.reltyp],
         })
         .then((response) => {

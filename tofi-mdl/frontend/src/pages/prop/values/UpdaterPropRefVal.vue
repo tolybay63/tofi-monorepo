@@ -95,7 +95,7 @@
                         flat
                         color="blue"
                         :icon="
-                        props.row.checked === 1
+                        props.row.checked
                           ? 'check_box'
                           : 'check_box_outline_blank'
                       "

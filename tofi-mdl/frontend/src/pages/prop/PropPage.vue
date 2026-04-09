@@ -572,7 +572,7 @@ export default {
             api
                 .post("", {
                   method: "prop/delete",
-                  params: [{rec: rec}],
+                  params: [rec],
                 })
                 .then(
                     () => {

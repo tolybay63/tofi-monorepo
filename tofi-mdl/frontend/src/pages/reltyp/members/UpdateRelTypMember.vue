@@ -147,7 +147,7 @@ import allConsts from "pages/all-consts.js";
 import {notifyError, notifySuccess} from "src/utils/jsutils";
 
 export default {
-  props: ["data", "mode", "lg", "dense"],
+  props: ["data", "mode", "dense"],
 
   data() {
     return {
@@ -251,7 +251,7 @@ export default {
       api
           .post("", {
             id: this.form.id,
-            method: "reltyp/" + method,
+            method: "reltypmember/" + method,
             params: [{rec: this.form}],
           })
           .then(
@@ -302,7 +302,7 @@ export default {
     api
         .post("", {
           method: "typ/loadTypForSelect",
-          params: [{}],
+          params: [],
         })
         .then((response) => {
           this.optTyp = response.data.result.records;

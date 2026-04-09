@@ -219,7 +219,7 @@ export default {
     fnUp(up) {
       api
           .post("", {
-            method: "reltyp/changeOrdMember",
+            method: "reltypmember/changeOrdMember",
             params: [{rec: this.selected[0], up: up}],
           })
           .then(
@@ -282,7 +282,7 @@ export default {
             let index = this.rows.findIndex((row) => row.id === rec.id);
             api
                 .post("", {
-                  method: "reltyp/deleteRelTypMember",
+                  method: "reltypmember/deleteRelTypMember",
                   params: [{rec: rec}],
                 })
                 .then(
@@ -333,10 +333,6 @@ export default {
           cmt: rec.cmt,
         };
       }
-      //const upd = {isIns: ins};
-      const lg = {name: this.lang};
-
-      //console.log("data",data)
 
       this.$q
           .dialog({
@@ -344,7 +340,6 @@ export default {
             componentProps: {
               data: data,
               mode: mode,
-              lg: lg,
               dense: true,
               // ...
             },
@@ -370,7 +365,7 @@ export default {
 
       api
           .post("", {
-            method: "reltyp/loadRelTypMember",
+            method: "reltypmember/loadRelTypMember",
             params: [reltyp],
           })
           .then((response) => {
@@ -456,9 +451,6 @@ export default {
   },
 
   created() {
-    //console.log("create")
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
 
     api
         .post("", {

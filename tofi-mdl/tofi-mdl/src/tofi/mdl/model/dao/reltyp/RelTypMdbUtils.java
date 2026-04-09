@@ -881,5 +881,11 @@ public class RelTypMdbUtils extends BaseMdbUtils {
                 """, Map.of("prop", prop));
     }
 
+    @DaoMethod
+    public Store loadRelTypForSelect() throws Exception {
+        return getMdb().loadQuery("""
+                    select t.id, v.name from RelTyp t, RelTypVer v where t.id=v.ownerVer and v.lastVer=1
+                """);
+    }
 
 }

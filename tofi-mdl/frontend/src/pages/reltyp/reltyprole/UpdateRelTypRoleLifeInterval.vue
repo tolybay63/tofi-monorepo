@@ -122,7 +122,7 @@ export default {
       api
           .post("", {
             id: this.form.id,
-            method: "reltyp/" + method,
+            method: "reltyprole/" + method,
             params: [{rec: this.form}],
           })
           .then(
