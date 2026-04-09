@@ -990,4 +990,11 @@ public Store loadTypCharGr2(long typ) throws Exception {
     }
 
 
+    @DaoMethod
+    public Store loadTypForSelect() throws Exception {
+        return getMdb().loadQuery("""
+            select t.id, v.name from Typ t, TypVer v where t.id=v.ownerVer and v.lastVer=1
+        """);
+    }
+
 }

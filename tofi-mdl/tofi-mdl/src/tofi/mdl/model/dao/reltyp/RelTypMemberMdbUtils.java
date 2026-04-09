@@ -140,10 +140,6 @@ public class RelTypMemberMdbUtils extends BaseMdbUtils {
                 """);
     }
 
-    public Store loadTypForSelect(Map<String, Object> params) throws Exception {
-        return getMdb().loadQuery("""
-                    select t.id, v.name from Typ t, TypVer v where t.id=v.ownerVer and v.lastVer=1
-                """);
-    }
+
 
 }
