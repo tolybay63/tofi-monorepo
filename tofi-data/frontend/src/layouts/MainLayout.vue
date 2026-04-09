@@ -197,66 +197,9 @@ export default defineComponent({
     },
 
     toMainPage() {
-      //console.info("toMainPage", this.params, this.dataType)
-      this.$router["push"]("/"+this.dataType.id)
-    },
+      //this.$router["push"]("/"+this.dataType.id)
 
-    loginOnOff() {
-      //console.info("OnOff")
-      if (getUserName.value === "") {
-        const lang = localStorage.getItem("curLang");
-        this.$q
-          .dialog({
-            component: LoginUser,
-            componentProps: {
-              lg: lang,
-              // ...
-            },
-          })
-          .onOk((res) => {
-            setUserStore(res)
-            router.push('/')
-          });
-      } else {
-        api
-          .post(authURL + '/logout', {
-            params: {},
-          })
-          .then(() => {
-            router.push('/')
-            clearUserStore()
-          })
-          .finally(() => {
-            router.push('/')
-          })
-      }
-    },
-
-    nameIcon() {
-      if (getUserName.value === "") return "login";
-      else return "logout";
-    },
-
-    notAccess() {
-      return getTarget.value.length === 0 && !isSysAdmin.value;
-    },
-
-    hasTarget(tg) {
-      if (isSysAdmin.value) return true;
-      if (getTarget.value.length === 0) return false;
-      return getTarget.value.includes(tg);
-    },
-
-  },
-
-  created() {
-    if (getUserName.value === "") {
-      notifyError(this.$t("notLogined"))
-      this.$router.push("/")
-    }
-
-      this.loading = ref(true)
-      api.post("", {
+      api.post('', {
         method: "data/loadDataBase",
         params: [],
       })
@@ -267,18 +210,64 @@ export default defineComponent({
           this.params.model = this.dataBaseOpt[0].modelname
           this.params.metamodel = response.data.result.metamodel
           setStoreParams(this.params)
-
-          //console.info("dataBaseOpt", this.dataBaseOpt)
-          //console.info("params", this.params)
         })
-        .catch(error => {
-          notifyError(error.message)
+        .then(()=> {
+          this.$router["push"]("/" + this.dataType.id)
         })
         .finally(() => {
-          this.loading = false
         })
 
+    },
+
+    loginOnOff() {
+      //console.info("OnOff")
+      if (getUserName.value === "") {
+        this.$q
+          .dialog({
+            component: LoginUser,
+            componentProps: {
+              // ...
+            },
+          })
+          .onOk((res) => {
+            setUserStore(res)
+            api
+              .post("", {
+                method: "data/checkTarget",
+                params: ["tofidata"],
+              })
+              .then(() => {
+                setTimeout(()=> {
+                  this.toMainPage()
+                }, 100)
+              })
+              .catch(()=> {
+                clearUserStore()
+              })
+
+          });
+      } else {
+        api
+          .post(authURL + '/logout', {
+            params: [],
+          })
+          .then(() => {
+            clearUserStore()
+          })
+          .finally(() => {
+            this.$router.push('/')
+          })
+      }
+    },
+
+    nameIcon() {
+      if (getUserName.value === "") return "login";
+      else return "logout";
+    },
+
   },
+
+  created() {},
 
 })
 </script>

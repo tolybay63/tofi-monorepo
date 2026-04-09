@@ -6,22 +6,10 @@ import tofi.apinator.ApinatorService
 
 class DataStdDao extends BaseMdbUtils {
 
-    ApinatorApi apiMeta() {
-        return app.bean(ApinatorService).getApi("meta")
-    }
+    ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
 
-    ApinatorApi apiUserData() {
-        return app.bean(ApinatorService).getApi("userdata")
-    }
-
-    ApinatorApi apiPollData() {
-        return app.bean(ApinatorService).getApi("polldata")
-    }
+    ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
     //
-
-
-
-
 
 
 }
