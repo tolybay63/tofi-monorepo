@@ -80,6 +80,12 @@ export default defineBoot(({ app, router }) => {
         if (textContent && textContent.includes('invalid_user_passwd')) {
           errorCode = 'invalid_user_passwd';
         }
+        //on table \"propperiodtype\"
+        if (textContent && textContent.includes('propperiodtype')) {
+          errorCode = 'dependOnPeriod';
+        }
+
+
         if (textContent && textContent.includes('lifetime_expired')) {
           errorCode = 'lifetime_expired';
           userStore.clearUserStore();

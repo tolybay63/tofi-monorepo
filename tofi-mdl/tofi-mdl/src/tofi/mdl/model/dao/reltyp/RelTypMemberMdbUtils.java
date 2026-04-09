@@ -2,6 +2,7 @@ package tofi.mdl.model.dao.reltyp;
 
 import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
+import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
@@ -11,6 +12,7 @@ import java.util.Map;
 public class RelTypMemberMdbUtils extends BaseMdbUtils {
 
 
+    @DaoMethod
     public Store loadRelTypMember(long reltyp) throws Exception {
         Store st = getMdb().createStore("RelTypMember.full");
         getMdb().loadQuery(st, """
@@ -25,7 +27,7 @@ public class RelTypMemberMdbUtils extends BaseMdbUtils {
         return st;
     }
 
-
+    @DaoMethod
     public Store insertRelTypMember(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         Store st = getMdb().createStore("RelTypMember");
@@ -49,6 +51,7 @@ public class RelTypMemberMdbUtils extends BaseMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public Store updateRelTypMember(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         long id = UtCnv.toLong(rec.get("id"));
@@ -70,6 +73,7 @@ public class RelTypMemberMdbUtils extends BaseMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public void deleteRelTypMember(Map<String, Object> rec) throws Exception {
         long id = UtCnv.toLong(rec.get("id"));
         //
@@ -97,6 +101,7 @@ public class RelTypMemberMdbUtils extends BaseMdbUtils {
         }
     }
 
+    @DaoMethod
     public void changeOrdMember(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         boolean up = UtCnv.toBoolean(params.get("up"));
@@ -131,15 +136,6 @@ public class RelTypMemberMdbUtils extends BaseMdbUtils {
                     update RelTypMember set ord=:ord1 where id=:id2;
                 """, Map.of("id1", id1, "id2", id2, "ord1", ord1, "ord2", ord2));
     }
-
-
-    //todo
-    public Store loadRelTypForSelect() throws Exception {
-        return getMdb().loadQuery("""
-                    select t.id, v.name from RelTyp t, RelTypVer v where t.id=v.ownerVer and v.lastVer=1
-                """);
-    }
-
 
 
 }

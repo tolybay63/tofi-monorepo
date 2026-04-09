@@ -389,6 +389,7 @@ export default {
   dependNameOnPeriod: "Зависимость наименования свойства от типа периода",
   allItem: "Включить все элементы",
   propTag: "Тэг свойства",
+  dependOnPeriod: "Зависит от периода",
 
 
   digit: "Точность значения",

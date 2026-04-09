@@ -39,7 +39,6 @@
         >
         </q-input>
 
-
         <!-- typ -->
         <q-select
             :disabled="mode === 'upd'"
@@ -55,33 +54,34 @@
             @update:model-value="fnSelectTyp()"
         />
 
-        <!-- Clust FV-->
+        <!-- Cluster FV-->
         <q-item-label
-            :class="form.factorVal===0 ? 'text-red-10' : 'text-grey-7'"
-            style="font-size: 0.8em; margin-top: 10px" class="row"
+          :class="form.factorVal===0 ? 'text-red-10' : 'text-grey-7'"
+          style="font-size: 0.8em; margin-top: 10px" class="row"
         >{{ $t("factorVal") }}
           <q-space/>
           <q-icon name="error" v-if="form.factorVal===0" color="red-10" size="24px"></q-icon>
         </q-item-label
         >
         <treeselect
-            :disabled="mode === 'upd'"
-            :options="optionsCFV"
-            v-model="form.factorVal"
-            :default-expand-level="1"
-            max-heigth="600"
-            :normalizer="normalizer"
-            :placeholder="$t('select')"
-            :noChildrenText="$t('noChilds')"
-            :noResultsText="$t('noResult')"
-            :noOptionsText="$t('noResult')"
-            @select="fnSelectCFV"
-        />
+          :disabled="mode === 'upd'"
+          :options="optionsCFV"
+          v-model="form.factorVal"
+          :default-expand-level="1"
+          max-heigth="800"
+          :normalizer="normalizer"
+          :placeholder="$t('select')"
+          :noChildrenText="$t('noChilds')"
+          :noResultsText="$t('noResult')"
+          :noOptionsText="$t('noResult')"
+          @select="fnSelectCFV"
+        ></treeselect>
         <q-item-label v-if="form.factorVal===0"
                       class="text-red-10" style="font-size: 0.8em"
         >
           {{ $t('chooseFV') }}
         </q-item-label>
+
 
         <!-- cod -->
         <q-input
@@ -148,12 +148,11 @@ import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 export default {
   components: {treeselect},
 
-  props: ["data", "mode", "lg", "dense"],
+  props: ["data", "mode", "dense"],
 
   data() {
     return {
       form: this.data,
-      lang: this.lg,
       al: this.data.accessLevel,
       optionsAL: [],
       optionsCFV: [],
@@ -293,7 +292,7 @@ export default {
     api
         .post("", {
           method: "typ/loadTypForSelect",
-          params: [{}],
+          params: [],
         })
         .then((response) => {
           this.optTyp = response.data.result.records;

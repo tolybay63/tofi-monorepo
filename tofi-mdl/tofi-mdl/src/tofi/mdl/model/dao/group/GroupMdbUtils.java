@@ -61,7 +61,7 @@ public class GroupMdbUtils extends BaseMdbUtils {
     @DaoMethod
     public Store update(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = (UtCnv.toMap(params.get("rec")));
-        String tableName = UtCnv.toString(rec.get("tableName"));
+        String tableName = UtCnv.toString(params.get("tableName"));
         long id = UtCnv.toLong(rec.get("id"));
         if (id == 0) {
             throw new XError("Поле id должно иметь не нулевое значение");

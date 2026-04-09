@@ -198,7 +198,6 @@ export default defineComponent({
           cmt: rec.cmt,
         };
       }
-      const lg = {name: this.lang};
 
       this.$q
           .dialog({
@@ -206,7 +205,6 @@ export default defineComponent({
             componentProps: {
               data: data,
               mode: mode,
-              lg: lg,
               dense: this.dense,
               // ...
             },
