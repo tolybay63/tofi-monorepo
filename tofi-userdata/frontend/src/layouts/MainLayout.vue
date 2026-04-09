@@ -190,9 +190,9 @@ export default defineComponent({
         open(urlMainApp, "_self");
       },
 
-      notAccess() {
+/*      notAccess() {
         return getTarget.value.length === 0 && !isSysAdmin.value;
-      },
+      },*/
 
       nameIcon() {
         if (getUserName.value === "") return "login";
@@ -200,6 +200,7 @@ export default defineComponent({
       },
 
       loginOnOff() {
+        //console.info("OnOff")
         //console.info("OnOff")
         if (getUserName.value === "") {
           this.$router.push("/")
@@ -215,7 +216,7 @@ export default defineComponent({
               clearUserStore()
             })
             .finally(() => {
-              router.push('/')
+              router["push"]('/')
             })
         }
       },

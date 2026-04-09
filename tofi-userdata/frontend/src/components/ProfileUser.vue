@@ -200,7 +200,7 @@ const {setUserName} = store;
 
 
 export default {
-  props: ["lg", "userId"],
+  props: ["userId"],
   components: {Treeselect},
 
   data() {
