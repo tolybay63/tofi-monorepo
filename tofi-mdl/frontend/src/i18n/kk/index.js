@@ -500,6 +500,12 @@ export default {
   needDeleteProcubeProp: "Сипаттар прокубасын жою қажет",
 
   clsExists: "Класстар бар",
+  dependOnPeriod: "Зависит от периода",
+  dependOnStatus: "Зависит от статуса",
+  dependOnProvider: "Зависит от провайдера",
+
+
+  fkError: "Жазбаға сілтеме бар",
 
   fish_model: "Балық шаруашылығы қорын бағалау моделі",
 
