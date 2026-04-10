@@ -389,9 +389,6 @@ export default {
   dependNameOnPeriod: "Зависимость наименования свойства от типа периода",
   allItem: "Включить все элементы",
   propTag: "Тэг свойства",
-  dependOnPeriod: "Зависит от периода",
-
-
   digit: "Точность значения",
 
   mainProp: "Основные свойства",
@@ -508,6 +505,11 @@ export default {
   needDeleteProcubeProp: "Неоходимо удалть прокуб свойств",
 
   clsExists: "Существуют классы",
+  dependOnPeriod: "Зависит от периода",
+  dependOnStatus: "Зависит от статуса",
+  dependOnProvider: "Зависит от провайдера",
+
+  fkError: "Существует ссылка на запись",
 
   fish_model: "Модель оценки запаса рыбных ресурсов",
   nothing_here: "Упс. Здесь ничего...",

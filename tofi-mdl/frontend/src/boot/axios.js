@@ -76,6 +76,17 @@ export default defineBoot(({ app, router }) => {
           textContent = data;
         }
         errorCode = data.error?.message
+        //
+
+        if (errorCode.includes('propperiodtype'))
+          errorCode = "dependOnPeriod"
+        else if (errorCode.includes('propstatus'))
+          errorCode = "dependOnStatus"
+        else if (errorCode.includes('proppovider'))
+          errorCode = "dependOnProvider"
+
+        //
+
         // Ищем в ответе (даже в HTML) ключ 'invalid_user_passwd'
         if (textContent && textContent.includes('invalid_user_passwd')) {
           errorCode = 'invalid_user_passwd';

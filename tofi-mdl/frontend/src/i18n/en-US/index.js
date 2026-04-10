@@ -503,6 +503,12 @@ export default {
 
   clsExists: "There are classes",
 
+  dependOnPeriod: "Зависит от периода",
+  dependOnStatus: "Зависит от статуса",
+  dependOnProvider: "Зависит от провайдера",
+
+  fkError: "There is a link to the recording",
+
   fish_model: "Fisheries stock assessment model",
 
   nothing_here: "Oops. Nothing Here...",
