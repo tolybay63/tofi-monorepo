@@ -500,9 +500,10 @@ export default {
   needDeleteProcubeProp: "Сипаттар прокубасын жою қажет",
 
   clsExists: "Класстар бар",
-  dependOnPeriod: "Зависит от периода",
-  dependOnStatus: "Зависит от статуса",
-  dependOnProvider: "Зависит от провайдера",
+  dependOnPeriod: "Кезеңге байланысты",
+  dependOnStatus: "Мәртебеге байланысты",
+  dependOnProvider: "Қызмет көрсетушіге байланысты",
+  existsValue: "Мәндер бар",
 
 
   fkError: "Жазбаға сілтеме бар",

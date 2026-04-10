@@ -508,6 +508,7 @@ export default {
   dependOnPeriod: "Зависит от периода",
   dependOnStatus: "Зависит от статуса",
   dependOnProvider: "Зависит от провайдера",
+  existsValue: "Существует значения",
 
   fkError: "Существует ссылка на запись",
 

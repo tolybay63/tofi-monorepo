@@ -84,8 +84,9 @@ export default defineBoot(({ app, router }) => {
           errorCode = "dependOnStatus"
         else if (errorCode.includes('proppovider'))
           errorCode = "dependOnProvider"
+        else if (errorCode.includes('fk_propval_prop'))
+          errorCode = "existsValue"
 
-        //
 
         // Ищем в ответе (даже в HTML) ключ 'invalid_user_passwd'
         if (textContent && textContent.includes('invalid_user_passwd')) {

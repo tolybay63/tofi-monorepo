@@ -503,9 +503,10 @@ export default {
 
   clsExists: "There are classes",
 
-  dependOnPeriod: "Зависит от периода",
-  dependOnStatus: "Зависит от статуса",
-  dependOnProvider: "Зависит от провайдера",
+  dependOnPeriod: "Depends on the period",
+  dependOnStatus: "Depends on the status",
+  dependOnProvider: "Depends on the provider",
+  existsValue: "There are values",
 
   fkError: "There is a link to the recording",
 
