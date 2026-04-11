@@ -11,6 +11,13 @@
       <span class="bg-item circle small"></span>
     </div>
 
+    <div class="q-pa-lg bg-elements">
+      <img
+        alt="Fish logo"
+        src="~assets/fish.png"
+        style="width: 200px; height: 150px"
+      />
+    </div>
 
     <q-page class="flex flex-center">
 
@@ -266,14 +273,4 @@ export default defineComponent({
   100% { transform: translate(0, 0) rotate(0deg); }
 }
 
-/* Анимация логотипа */
-@keyframes sway {
-  to { transform: rotate(30deg); }
-}
-
-.balance {
-  transform-origin: center;
-  transform: rotate(-30deg);
-  animation: sway 2.2s infinite alternate ease-in-out;
-}
 </style>
