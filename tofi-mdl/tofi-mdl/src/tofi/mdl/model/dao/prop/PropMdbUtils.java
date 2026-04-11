@@ -1236,8 +1236,8 @@ public class PropMdbUtils extends BaseMdbUtils {
                         SELECT id FROM r where r.id <> :mr;
                     """, Map.of("m", meter, "mr", meterRate));
 
-            String wheMR = String.join(",", UtCnv.toString(tmp.getUniqueValues("id")));
-            wheMR = wheMR.replace("[", "(").replace("]", ")");
+            String wheMR = UtString.join(tmp.getUniqueValues("id"), ",");
+            wheMR = wheMR.isEmpty() ? "(0)" : "(" + wheMR + ")";
 
             sql = """
                         WITH RECURSIVE r AS (

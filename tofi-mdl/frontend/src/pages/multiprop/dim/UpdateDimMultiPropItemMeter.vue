@@ -91,12 +91,12 @@
 <script>
 import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
-import treeselect from "vue3-treeselect";
+import {Treeselect} from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
 
 export default {
-  components: {treeselect},
-  props: ["data", "mode", "lg"],
+  components: {treeselect: Treeselect},
+  props: ["data", "mode"],
 
   data() {
     return {
@@ -181,6 +181,7 @@ export default {
     },
   },
   created() {
+    console.log("UpdateDimMultiPropItemMeter");
     api
       .post("", {
         method: "dimMultiProp/loadMeasure",

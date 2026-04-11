@@ -99,7 +99,7 @@
                         flat
                         :color="item.children.length > 0 ? 'gray' : 'blue'"
                         :icon="
-                        item.checked === 1
+                        item.checked
                           ? 'check_box'
                           : 'check_box_outline_blank'
                       "

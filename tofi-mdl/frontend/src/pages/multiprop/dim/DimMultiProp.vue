@@ -2,7 +2,6 @@
   <div class="q-pa-md">
     <q-splitter
       v-model="splitterModel"
-      :model-value="splitterModel"
       :limits="[0, 100]"
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
@@ -95,7 +94,6 @@
         <q-splitter
           horizontal
           v-model="splitterModel2"
-          :model-value="splitterModel2"
           before-class="overflow-hidden q-mr-sm"
           after-class="overflow-hidden q-ml-sm"
           separator-class="bg-red"
@@ -186,9 +184,9 @@
               <template #bottom-row>
                 <q-td colspan="100%" v-if="selected2.length > 0">
                   <span class="text-blue"> {{ $t("selectedRow") }}: </span>
-                  <span class="text-bold"> {{ this.infoSelected(selected2[0]) }} </span>
+                  <span class="text-bold"> {{ infoSelected(selected2[0]) }} </span>
                 </q-td>
-                <q-td colspan="100%" v-else-if="this.rows2.length > 0" class="text-bold">
+                <q-td colspan="100%" v-else-if="rows2.length > 0" class="text-bold">
                   {{ $t("infoRow") }}
                 </q-td>
               </template>
@@ -335,16 +333,16 @@ export default {
       rows2: [],
       FD_AccessLevel: null,
       FD_DimMultiPropType: null,
-      loading2: ref(false),
-      selected2: ref([]),
+      loading2: false,
+      selected2: [],
       dmpGr: 0,
       dmp: 0,
       //
 
       cols3: [],
       rows3: [],
-      loading3: ref(false),
-      selected3: ref([]),
+      loading3: false,
+      selected3: [],
       maxLen: 0,
     };
   },
@@ -694,7 +692,7 @@ export default {
     },
 
     loadDimMultiPropMoreCols(dimMultiProp) {
-      this.loading3 = ref(true)
+      this.loading3 = true
       this.selected3 = []
       api
         .post("", {
@@ -713,7 +711,7 @@ export default {
           notifyError(msg);
         })
         .finally(() => {
-          this.loading3 = ref(false);
+          this.loading3 = false;
         })
 
     },
@@ -734,7 +732,7 @@ export default {
           focus: "cancel",
         })
         .onOk(() => {
-          this.loading3 = ref(true)
+          this.loading3 = true
           api
             .post("", {
               method: "dimMultiProp/deleteMoreCols",
@@ -750,7 +748,7 @@ export default {
               }
             )
             .finally(()=> {
-              this.loading3 = ref(false)
+              this.loading3 = false
             })
         })
 

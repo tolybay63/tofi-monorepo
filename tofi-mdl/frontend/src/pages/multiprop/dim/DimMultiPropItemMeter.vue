@@ -203,7 +203,7 @@ export default {
     },
 
     loadDimMultiPropItemMeter (dmpi) {
-      this.loading = ref(true);
+      this.loading = true;
       axios
         .post("", {
           method: "dimMultiProp/loadDimMultiPropItemMeter",
@@ -213,19 +213,20 @@ export default {
           this.rows = response.data.result.records
         })
         .catch((error) => {
-          this.$router["push"]("/");
+          //this.$router["push"]("/");
           let msg = error.message;
           if (error.response) msg = this.$t(error.response.data.error.message);
           notifyError(msg);
         })
         .finally(() => {
-          this.loading = ref(false);
+          this.loading = false;
         })
     },
 
   },
 
   created() {
+    console.log("DimMultiPropItemMeter");
     this.cols = this.getColumns()
     this.loadDimMultiPropItemMeter(this.dimMultiPropItem)
 

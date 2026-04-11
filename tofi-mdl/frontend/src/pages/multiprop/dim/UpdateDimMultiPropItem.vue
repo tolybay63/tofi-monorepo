@@ -282,6 +282,8 @@ export default {
   },
 
   created() {
+    console.log("UpdateDimMultiPropItem");
+
     this.visible = true
     api
         .post("", {

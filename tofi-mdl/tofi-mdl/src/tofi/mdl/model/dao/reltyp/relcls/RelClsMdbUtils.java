@@ -175,7 +175,7 @@ public class RelClsMdbUtils extends BaseMdbUtils {
         long reltyp = UtCnv.toLong(params.get("relTyp"));
 
         Store stRes = getMdb().createStore("RelClsMember.all");
-        ClsTreeMdbUtils utCls = new ClsTreeMdbUtils();
+        ClsTreeMdbUtils utCls = new ClsTreeMdbUtils(getMdb());
 
         Store stRTM = getMdb().loadQuery("""
                     select id, reltyp, card, membertype,

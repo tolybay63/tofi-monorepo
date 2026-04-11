@@ -301,7 +301,7 @@ export default {
           api
             .post("", {
               method: "measure/delete",
-              params: [{rec: rec}],
+              params: [rec],
             })
             .then(
               () => {
