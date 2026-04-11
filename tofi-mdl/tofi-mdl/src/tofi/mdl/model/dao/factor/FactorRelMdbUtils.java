@@ -2,6 +2,7 @@ package tofi.mdl.model.dao.factor;
 
 import jandcode.commons.UtCnv;
 import jandcode.commons.UtString;
+import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreField;
@@ -14,6 +15,7 @@ public class FactorRelMdbUtils extends BaseMdbUtils {
     /**
      * Загрузка зависимых факторов для указанного фактора
      */
+    @DaoMethod
     public Store load(Map<String, Object> params) throws Exception {
         String sql = """
                     with fvs1 as (
@@ -36,6 +38,7 @@ public class FactorRelMdbUtils extends BaseMdbUtils {
         return getMdb().loadQuery(st, sql, params);
     }
 
+    @DaoMethod
     public Store factor2(Map<String, Object> params) throws Exception {
         return getMdb().loadQuery("""
                     with fvs1 as (
@@ -59,6 +62,7 @@ public class FactorRelMdbUtils extends BaseMdbUtils {
                 """, params);
     }
 
+    @DaoMethod
     public Map<String, Object> factorValRel(Map<String, Object> params) throws Exception {
         /*
         Установка зависимости двух факторов factor1 и factor2. В начале все пары значений не совместные.
@@ -137,6 +141,7 @@ public class FactorRelMdbUtils extends BaseMdbUtils {
         return rez;
     }
 
+    @DaoMethod
     public Store saveFactorValRel(Map<String, Object> factors, Map<String, Object> data) throws Exception {
         //Deleting old values
         Store st = getMdb().loadQuery("""

@@ -36,7 +36,7 @@
                     flat
                     color="blue"
                     :icon="
-                    props.row.checked === 1
+                    props.row.checked
                       ? 'check_box'
                       : 'check_box_outline_blank'
                   "
@@ -59,7 +59,7 @@
                     flat
                     color="blue"
                     :icon="
-                    props.row.isFilled === 1
+                    props.row.isFilled
                       ? 'check_box'
                       : 'check_box_outline_blank'
                   "
@@ -70,6 +70,7 @@
 
               <q-td key="dimNumber" :props="props">
                 <q-input
+                  :disable="!props.row.isFilled"
                   :dense="dense" flat color="blue"
                   type="number"
                   v-model="props.row.dimNumber"
@@ -123,7 +124,7 @@ export default {
     return {
       cols: [],
       rows: [],
-      loading: ref(false),
+      loading: false,
     };
   },
 
@@ -136,14 +137,16 @@ export default {
   methods: {
 
     updDimNumber(r) {
+
+      console.info("updDimNumber", r)
       if (!r.checked) {
-        console.info("updDimNumber", r)
+        console.info("updDimNumber No", r)
         r.dimNumber = null
         console.info("updDimNumber 2", r.dimNumber)
       } else {
         console.info("updDimNumber", r)
         if (r.dimNumber < 1) r.dimNumber = 1
-        console.info("updDimNumber 2", r.dimNumber)
+        console.info("updDimNumber Yes", r.dimNumber)
       }
 
     },
@@ -153,8 +156,11 @@ export default {
     },
 
     checkFilled(row) {
+      console.info("checkFilled", row);
       if (!row.checked) return;
       row.isFilled = !row.isFilled;
+      if (!row.isFilled)
+        row.dimNumber = null;
     },
 
     validSave() {
@@ -203,7 +209,7 @@ export default {
     },
 
     onOKClick() {
-      this.loading = ref(true);
+      this.loading = true;
       let dta = [];
 
       this.rows.forEach((r) => {
@@ -235,7 +241,7 @@ export default {
               }
           )
           .finally(() => {
-            this.loading = ref(false);
+            this.loading = false;
             this.hide();
           });
     },

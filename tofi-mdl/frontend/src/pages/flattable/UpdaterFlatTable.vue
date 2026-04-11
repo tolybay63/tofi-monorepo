@@ -125,21 +125,20 @@
 </template>
 
 <script>
-import treeselect from 'vue3-treeselect'
+import {Treeselect} from 'vue3-treeselect'
 import 'vue3-treeselect/dist/vue3-treeselect.css'
 import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
-import {ref} from "vue";
 
 export default {
-  components: {treeselect},
+  components: {treeselect: Treeselect},
 
   props: ["rec", "mode", "lg"],
 
   data() {
     return {
       form: this.rec,
-      loading: ref(false),
+      loading: false,
 
       optAL: [],
       al: this.rec.accessLevel,
@@ -232,7 +231,7 @@ export default {
       const method =
           this.mode === "ins" ? "insertFlatTable" : "updateFlatTable";
 
-      this.loading = ref(true);
+      this.loading = true;
       let err = false;
       api
           .post("", {
@@ -252,7 +251,7 @@ export default {
               }
           )
           .finally(() => {
-            this.loading = ref(false);
+            this.loading = false;
             if (!err) this.hide();
           });
     },
@@ -263,7 +262,7 @@ export default {
     },
   },
   created() {
-    this.loading = ref(true);
+    this.loading = true;
     api
         .post("", {
           method: "dict/load",
@@ -273,11 +272,11 @@ export default {
           this.optAL = response.data.result.records;
         })
         .finally(() => {
-          this.loading = ref(false)
+          this.loading = false
         });
 
 
-    this.loading = ref(true);
+    this.loading = true;
     api
         .post("", {
           method: "dimMultiProp/loadClsForSelect",
@@ -290,10 +289,10 @@ export default {
               notifyError("class" + error.message)
             })
         .finally(() => {
-          this.loading = ref(false)
+          this.loading = false
         });
 
-    this.loading = ref(true);
+    this.loading = true;
     api
         .post("", {
           method: "dimMultiProp/loadRelClsForSelect",
@@ -306,7 +305,7 @@ export default {
               notifyError(error.message)
             })
         .finally(() => {
-          this.loading = ref(false);
+          this.loading = false;
         });
 
 

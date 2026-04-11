@@ -7,7 +7,11 @@ import jandcode.core.dbm.mdb.Mdb
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
 
-class ClsTreeMdbUtils extends BaseMdbUtils {
+class ClsTreeMdbUtils {
+    Mdb mdb
+    ClsTreeMdbUtils(Mdb mdb) {
+        this.mdb = mdb
+    }
 
 /*
 *  Возвращает дерево-классов с учетом наследования
@@ -18,7 +22,6 @@ class ClsTreeMdbUtils extends BaseMdbUtils {
 *
 * */
 
-    @DaoMethod
     Store loadClsTree(Map<String, Object> params) throws Exception {
         boolean typNodeVisible = true
         long typId = UtCnv.toLong(params["typ"])
@@ -372,7 +375,6 @@ class ClsTreeMdbUtils extends BaseMdbUtils {
      *   исключая дочерних классов класса cls
      *
  `  */
-
     String ListClsParents(long typ, long cls) {
 
         if (cls == 0 || typ == 0)

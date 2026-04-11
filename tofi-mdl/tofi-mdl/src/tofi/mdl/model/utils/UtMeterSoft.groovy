@@ -94,7 +94,7 @@ class UtMeterSoft {
     //
 
     Store generateAllMeterRates() throws Exception {
-        MeterMdbUtils mdbUtils = new MeterMdbUtils(mdb, "Meter")
+        MeterMdbUtils mdbUtils = mdb.createDao(MeterMdbUtils.class)
         StoreRecord rM = mdbUtils.loadRec(Map.of("id", meter))
         if (rM.getLong("meterstruct") != FD_MeterStruct_consts.soft) {
             throw new XError(MessageFormat.format(UtLang.t("Измеритель с кодом [{0}] не является мягкой"), rM.getString("cod")))

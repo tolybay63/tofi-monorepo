@@ -117,7 +117,7 @@
                 :rows="propFactors.rows"
                 table-header-class="text-bold text-white bg-blue-grey-13"
                 separator="cell"
-                :loading="loading2.value"
+                :loading="loading2"
                 :rows-per-page-options="[0]"
             >
               <template #body-cell="props">
@@ -208,7 +208,7 @@ export default defineComponent({
       const factor1 = this.factor1_id;
       const factor2 = par.rows[0].id;
       //
-      this.loading2 = ref(true);
+      this.loading2 = true;
       api
           .post("", {
             method: "factorrel/factorValRel",
@@ -240,7 +240,7 @@ export default defineComponent({
             notifyError(error.message);
           })
           .finally(() => {
-            this.loading2 = ref(false);
+            this.loading2 = false;
           });
     },
 
@@ -273,7 +273,7 @@ export default defineComponent({
             if (mode === "ins") {
               if (rec !== undefined) {
                 this.factorrels.push(rec);
-                this.selected = ref([]);
+                this.selected = [];
                 this.selected.push(rec);
                 let par = {rows: [{id: this.selected[0].id}]};
                 this.fnSelection(par);
@@ -302,7 +302,7 @@ export default defineComponent({
     },
 
     fetchData(requestProps) {
-      this.loading = ref(true);
+      this.loading = true;
       //console.log("<<<<<    fetchData")
       //console.log("requestProps", requestProps)
       const orderBy = requestProps.sortBy;
@@ -323,7 +323,7 @@ export default defineComponent({
           .then((response) => {
             //console.log("fvs", response.data.result.records);
             this.factorrels = response.data.result.records;
-            this.selected = ref([]);
+            this.selected = [];
           })
           .catch((error) => {
             console.log(error);
@@ -331,7 +331,7 @@ export default defineComponent({
           })
           .finally(() => {
             //setTimeout(() => {
-            this.loading = ref(false);
+            this.loading = false;
             //}, 500)
           });
     },
@@ -404,15 +404,13 @@ export default defineComponent({
       splitterModel: ref(40),
       cols: [],
       factorrels: [],
-      filter: ref(""),
-      loading: ref(false),
-      separator: ref("cell"),
-      selected: ref([]),
+      filter: "",
+      loading: false,
+      selected: [],
       factor1_id: null,
       factor: {},
       //
-      loading2: ref(false),
-      separator2: ref("cell"),
+      loading2: false,
       propFactors: {
         rows: [],
         cols: [],
