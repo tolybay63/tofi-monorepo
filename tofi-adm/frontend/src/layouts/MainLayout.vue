@@ -116,9 +116,9 @@
 
     <q-drawer
       v-model="leftDrawerOpen"
-      :width="230"
+      :width="250"
       bordered
-      class="q-pa-sm"
+      class="q-pa-sm bg-blue-1"
       elevated
       show-if-above
       style="font-size: 16px"
@@ -129,25 +129,25 @@
       <h6 v-else-if="notAccess" class="q-pa-md text-red text-bold">
         {{ $t("notAccessService") }}
       </h6>
-
-      <q-list v-for="link in essentialLinks" :key="link.title">
+      <q-list v-for="item in essentialLinks" :key="item.title" v-else>
         <q-item
-          v-if="hasTarget(link.target)"
-          :to="link.link"
-          active-class="text-bold text-blue"
-          class="q-table--bordered bg-blue-1"
+          v-if="hasTarget(item.target)"
+          :active="isActive(item.to)"
+          :to="item.to"
+          active-class="text-bold text-blue bg-blue-2"
+          class="q-pl-xl q-table--bordered"
           clickable
-          tag="a"
         >
-          <q-item-section v-if="link.icon" avatar>
-            <q-icon :name="link.icon"/>
+          <q-item-section v-if="item.icon" avatar>
+            <q-icon :name="item.icon"/>
           </q-item-section>
 
           <q-item-section>
-            <q-item-label>{{ link.title }}</q-item-label>
+            <q-item-label>{{ item.title }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-list>
+
     </q-drawer>
 
     <q-page-container>
@@ -190,19 +190,19 @@ const essentialLinks = computed(() => [
   {
     title: t('roles2'),
     icon: 'manage_accounts',
-    link: '/roles/0',
+    to: '/roles/0',
     target: 'adm:role'
   },
   {
     title: t('users'),
     icon: 'supervisor_account',
-    link: '/users/0/0',
+    to: '/users/0/0',
     target: 'adm:usr'
   },
   {
     title: t('tml_permis'),
     icon: 'code',
-    link: '/permis',
+    to: '/permis',
     target: 'adm:tml'
   }
 ])
@@ -210,6 +210,15 @@ const essentialLinks = computed(() => [
 // Methods
 const mainApp = () => {
   window.open(urlMainApp, '_self')
+}
+
+const isActive = (menuTo) => {
+  if (!menuTo || !router.currentRoute.value.path) {
+    return false;
+  }
+  const menuBase = menuTo.split('/')[1];
+  const currentBase = router.currentRoute.value.path.split('/')[1];
+  return menuBase === currentBase;
 }
 
 const toggleLeftDrawer = () => {
