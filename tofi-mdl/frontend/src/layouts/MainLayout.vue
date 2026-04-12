@@ -100,23 +100,50 @@
       elevated
       show-if-above
     >
-      <div class="q-pa-md">
-        <q-tree
-          v-model:selected="selected"
-          :color="getClr()"
-          :duration="500"
-          :no-nodes-label="getMsg()"
-          :nodes="getMenu()"
-          :style="getStyle()"
-          accordion
-          control-color="red"
-          label-key="label"
-          no-selection-unset
-          node-key="id"
-          selected-color="blue"
-          @update:selected="updateSelected"
-        />
-      </div>
+
+      <h6 v-if="notAccess" class="q-pa-md text-red text-bold">
+        {{ $t("notAccessService") }}
+      </h6>
+      <h6 v-else-if="reqAuth" class="q-pa-md text-red text-bold">
+        {{ $t("notLoginned") }}
+      </h6>
+
+      <q-list v-else>
+        <template v-for="item in linksList()" :key="item.label">
+          <q-expansion-item v-if="item.children && hasTarget(item.target)"
+                            :icon="item.icon" :label="item.label"
+          >
+            <q-item
+              v-for="subItem in item.children"
+              :key="subItem.label"
+              v-ripple
+              :active="isActive(subItem.to)"
+              :to="subItem.to"
+              active-class="text-bold text-blue bg-blue-2"
+              class="q-pl-xl q-table--bordered"
+              clickable
+            >
+              <q-item-section avatar>
+                <q-icon :name="subItem.icon"/>
+              </q-item-section>
+              <q-item-section>{{ subItem.label }}</q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <q-item v-else v-if="hasTarget(item.target)"
+                  v-ripple
+                  :active="isActive(item.to)"
+                  :to="item.to"
+                  active-class="text-bold text-blue bg-blue-2"
+                  clickable>
+            <q-item-section avatar>
+              <q-icon :name="item.icon"/>
+            </q-item-section>
+            <q-item-section>{{ item.label }}</q-item-section>
+          </q-item>
+        </template>
+      </q-list>
+
     </q-drawer>
 
     <q-page-container>
@@ -138,17 +165,15 @@ import {hasTarget} from "src/utils/jsutils.js";
 import * as http from "node:http";
 
 export default defineComponent({
-  computed: {
-    http() {
-      return http
-    }
-  },
   components: {
     SetLocale,
   },
 
+  methods: {
+  hasTarget
+  },
+
   created() {
-    console.info("Created!");
     const store = useUserStore();
     const {clearUserStore} = store;
     const {getUserId} = storeToRefs(store);
@@ -167,32 +192,21 @@ export default defineComponent({
     const leftDrawerOpen = ref(false);
 
     const store = useUserStore();
-    const {isSysAdmin, getUserName, getTarget } = storeToRefs(store);
+    const { getUserName, getUserId, getTarget } = storeToRefs(store);
     const {setUserStore, clearUserStore} = store;
     const router = useRouter();
     const $q = useQuasar();
 
     const userName = computed(() => getUserName.value);
 
-    const setMenu = (parent, chlds) => {
-      const res = {};
-      if (
-        isSysAdmin.value ||
-        (getTarget.value.includes(parent.target) && chlds.length > 0)
-      )
-        extend(true, res, parent);
-      const chs = [];
-      chlds.forEach((ch) => {
-        if (isSysAdmin.value || getTarget.value.includes(ch.target)) {
-          chs.push(ch);
-        }
-      });
-      extend(true, res, {children: chs});
-      return res;
-    };
+    const reqAuth = computed(() => getUserName.value === '')
+    const notAccess = computed(() => !getTarget.value["includes"]("meta") && getUserId.value > 1)
+
 
     return {
       userName,
+      reqAuth,
+      notAccess,
       selected,
 
       toHome() {
@@ -201,6 +215,13 @@ export default defineComponent({
 
       mainApp() {
         open(urlMainApp, "_self");
+      },
+
+      isActive(menuTo) {
+        if (!menuTo || !this.$route.path) return false;
+        const menuBase = menuTo.split('/')[1];
+        const currentBase = this.$route.path.split('/')[1];
+        return menuBase === currentBase;
       },
 
       site_url() {
@@ -212,9 +233,6 @@ export default defineComponent({
         else return "logout";
       },
 
-      updateSelected() {
-        router.push(selected.value);
-      },
 
       loginOnOff() {
         //console.info("OnOff")
@@ -250,208 +268,165 @@ export default defineComponent({
         }
       },
 
-      getMenu() {
-        let menu = [];
+      linksList() {
+        return [
+          {
+            to: '/database',
+            label: this.$t('database'),
+            icon: 'storage',
+            target: 'meta:db',
+          },
+          //Настройка данных
+          {
+            to: '/dataSetting',
+            label: this.$t('dataSetting'),
+            icon: 'folder_open',
+            target: 'meta:mn_ds',
+            children: [
+              {
+                to: '/measure',
+                label: this.$t('measures'),
+                icon: 'square_foot',
+                target: 'meta:mn_ds:mea',
+              },
+              {
+                to: '/attrib',
+                label: this.$t('attributs'),
+                icon: 'format_shapes',
+                target: 'meta:mn_ds:attr',
+              },
+              {
+                to: '/factor/0',
+                label: this.$t('factors'),
+                icon: 'account_tree',
+                target: 'meta:mn_ds:fac',
+              },
+              {
+                to: '/meter/0',
+                label: this.$t('meters'),
+                icon: 'scale',
+                target: 'meta:mn_ds:meter',
+              },
+              {
+                to: '/role',
+                label: this.$t('roles'),
+                icon: 'perm_contact_calendar',
+                target: 'meta:mn_ds:role',
+              },
+              {
+                to: '/typ/0',
+                label: this.$t('typs'),
+                icon: 'view_quilt',
+                target: 'meta:mn_ds:typ',
+              },
+              {
+                to: '/reltyp/0',
+                label: this.$t('reltyps'),
+                icon: 'view_column',
+                target: 'meta:mn_ds:reltyp',
+              },
+              {
+                to: '/props/0/0',
+                label: this.$t('props'),
+                icon: 'app_registration',
+                target: 'meta:mn_ds:prop',
+              },
+              {
+                to: '/dimMultiProp/0/0',
+                label: this.$t('dimMultiProp'),
+                icon: 'type_specimen',
+                target: 'meta:mn_ds:pmdim',
+              },
+              {
+                to: '/multiProp/0/0',
+                label: this.$t('multiProp'),
+                icon: 'view_in_ar',
+                target: 'meta:mn_ds:pm',
+              },
+              {
+                to: '/flatTable',
+                label: this.$t('flatTable'),
+                icon: 'table_rows',
+                target: 'meta:mn_ds:ft',
+              },
+              {
+                to: '/chargr/0/typchargr',
+                label: this.$t('charprop'),
+                icon: 'table_chart',
+                target: 'meta:mn_ds:cgp',
+              },
+            ],
+          },
+          //Настройка обработки данных
+          {
+            to: '/dataProcessing',
+            label: this.$t('dataProcessing'),
+            icon: 'folder_open',
+            target: 'meta:mn_dp',
+            children: [
+              {
+                to: '/dimsperiod/0',
+                label: this.$t('dimsPeriod'),
+                icon: 'pending_actions',
+                target: 'meta:mn_dp:dmper',
+              },
+              {
+                to: '/dimsprop/0/0',
+                label: this.$t('dimsProp'),
+                icon: 'credit_score',
+                target: 'meta:mn_dp:dmprop',
+              },
+              {
+                to: '/dimsobj/0/0',
+                label: this.$t('dimsObj'),
+                icon: 'pattern',
+                target: 'meta:mn_dp:dmobj',
+              },
+              {
+                to: '/cubes/0/0',
+                label: this.$t('cubes'),
+                icon: 'view_in_ar',
+                target: 'meta:mn_dp:cube',
+              },
+            ],
+          },
+          //Вспомогательные сущности
+          {
+            to: '/dopEntities',
+            label: this.$t('dopEntities'),
+            icon: 'folder_open',
+            target: 'meta:mn_dop_entity',
+            children: [
+              {
+                to: '/stocks/0/0',
+                label: this.$t('stocks'),
+                icon: 'devices',
+                target: 'meta:mn_dop:stocks',
+              },
 
-        //todo Добавлен 07.02.24, permis не настроен...
-        const mn_as = [
-          {
-            id: "/database",
-            label: this.$t("database"),
-            icon: "storage",
-            target: "mdl:mn_as:database",
+              {
+                to: '/syscoding',
+                label: this.$t('syscoding'),
+                icon: 'pin',
+                target: 'meta:mn_dop:syscoding',
+              },
+              {
+                to: '/scale/0',
+                label: this.$t('scales'),
+                icon: 'device_thermostat',
+                target: 'meta:mn_dop:scale',
+              },
+            ],
           },
-        ];
-
-        const mn_ds = [
+          //Инструменты аналитика
           {
-            id: "/measure",
-            label: this.$t("measures"),
-            icon: "square_foot",
-            target: "mdl:mn_ds:mea",
+            to: '/toolsAnalitic',
+            label: this.$t('toolsAnalitic'),
+            icon: 'folder_open',
+            target: 'meta:mn_tool',
+            children: [],
           },
-          {
-            id: "/attrib",
-            label: this.$t("attributs"),
-            icon: "format_shapes",
-            target: "mdl:mn_ds:attr",
-          },
-          {
-            id: "/factor/0",
-            label: this.$t("factors"),
-            icon: "account_tree",
-            target: "mdl:mn_ds:fac",
-          },
-          {
-            id: "/meter/0",
-            label: this.$t("meters"),
-            icon: "scale",
-            target: "mdl:mn_ds:meter",
-          },
-          {
-            id: "/role",
-            label: this.$t("roles"),
-            icon: "perm_contact_calendar",
-            target: "mdl:mn_ds:role",
-          },
-          {
-            id: "/typ/0",
-            label: this.$t("typs"),
-            icon: "view_quilt",
-            target: "mdl:mn_ds:typ",
-          },
-          {
-            id: "/reltyp/0",
-            label: this.$t("reltyps"),
-            icon: "view_column",
-            target: "mdl:mn_ds:reltyp",
-          },
-          {
-            id: "/props/0/0",
-            label: this.$t("props"),
-            icon: "app_registration",
-            target: "mdl:mn_ds:prop",
-          },
-          {
-            id: "/dimMultiProp/0/0",
-            label: this.$t("dimMultiProp"),
-            icon: "type_specimen",
-            target: "mdl:mn_ds:pmdim",
-          },
-          {
-            id: "/multiProp/0/0",
-            label: this.$t("multiProp"),
-            icon: "view_in_ar",
-            target: "mdl:mn_ds:pm",
-          },
-          {
-            id: "/flatTable",
-            label: this.$t("flatTable"),
-            icon: "table_rows",
-            target: "mdl:mn_ds:ft",
-          },
-          {
-            id: "/chargr/0/typchargr",
-            label: this.$t("charprop"),
-            icon: "table_chart",
-            target: "mdl:mn_ds:cgp",
-          },
-        ];
-        const mn_dp = [
-          {
-            id: "/scale/0",
-            label: this.$t("scales"),
-            icon: "device_thermostat",
-            target: null,
-          },
-
-          {
-            id: "/dimsperiod/0",
-            label: this.$t("dimsPeriod"),
-            icon: "pending_actions",
-            target: "mdl:mn_dp:dmper",
-          },
-          {
-            id: "/dimsprop/0/0",
-            label: this.$t("dimsProp"),
-            icon: "credit_score",
-            target: "mdl:mn_dp:dmprop",
-          },
-          {
-            id: "/dimsobj/0/0",
-            label: this.$t("dimsObj"),
-            icon: "pattern",
-            target: "mdl:mn_dp:dmobj",
-          },
-          {
-            id: "/cubes/0/0",
-            label: this.$t("cubes"),
-            icon: "view_in_ar",
-            target: "mdl:mn_dp:cube",
-          },
-        ];
-        const mn_tool = [
-          /*          {
-                      id: "/impObj",
-                      label: "Импорт объектов с текстового файла",
-                      icon: "cloud_download",
-                      target: "mdl:mn_tool:impobj",
-                    },
-                    {
-                      id: "/impFile",
-                      label: "Скачать файл...",
-                      icon: "cloud_download",
-                      target: "mdl:mn_tool:impfile",
-                    },*/
-        ];
-
-
-        if (userName.value === "" || (!isSysAdmin.value && !getTarget.value.includes("mdl")))
-          return [];
-
-        const el0 = setMenu(
-          {
-            id: "/dbSetting",
-            label: this.$t("dbSetting"),
-            icon: "settings",
-            target: "mdl:mn_as",
-          },
-          mn_as
-        );
-        menu.push(el0);
-        //
-
-        const el1 = setMenu(
-          {
-            id: "/dataSetting",
-            label: this.$t("dataSetting"),
-            icon: "settings",
-            target: "mdl:mn_ds",
-          },
-          mn_ds
-        );
-        menu.push(el1);
-        //
-        const el2 = setMenu(
-          {
-            id: "/dataProcessing",
-            label: this.$t("dataProcessing"),
-            icon: "settings",
-            target: "mdl:mn_dp",
-          },
-          mn_dp
-        );
-        menu.push(el2);
-        //
-        const el4 = setMenu(
-          {
-            id: "/toolsAnalitic",
-            label: this.$t("toolsAnalitic"),
-            icon: "settings",
-            target: "mdl:mn_tool",
-          },
-          mn_tool
-        );
-        menu.push(el4);
-        //
-        return menu;
-      },
-
-      getMsg() {
-        if (userName.value !== "" && !hasTarget("meta"))
-          return this.$t("notAccessService");
-        if (userName.value === "")
-          return this.$t("notLoginned");
-      },
-
-      getClr() {
-        if (this.getMenu().length > 0) return "black";
-        else return "red";
-      },
-
-      getStyle() {
-        if (this.getMenu().length > 0) return "font-size: 16px";
-        else return "font-size: 24px; text-align: center";
+        ]
       },
 
       leftDrawerOpen,
