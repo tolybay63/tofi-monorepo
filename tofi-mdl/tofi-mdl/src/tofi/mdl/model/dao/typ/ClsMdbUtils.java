@@ -29,6 +29,11 @@ public class ClsMdbUtils extends BaseMdbUtils {
         return getMdb().getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
 
+    @DaoMethod
+    public Store loadClsTree(Map<String, Object> params) throws Exception {
+        ClsTreeMdbUtils utCls = new ClsTreeMdbUtils(getMdb());
+        return utCls.loadClsTree(params);
+    }
 
     @DaoMethod
     public Store loadCls(long typ) throws Exception {
