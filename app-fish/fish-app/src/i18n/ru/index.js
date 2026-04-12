@@ -24,6 +24,7 @@ export default {
   appBIName: "Аналитический сервер (BI)",
   appEventsName: "Мероприятия",
 
+  fish_model: "Модель оценки запаса рыбных ресурсов",
   //
   company: 'ТОО "Компания системных исследований "Фактор"',
   chooseLanguage: "Выбор языка",

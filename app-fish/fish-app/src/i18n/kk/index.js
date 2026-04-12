@@ -24,6 +24,7 @@ export default {
   appBIName: "Аналитикалық сервер (BI)",
   appEventsName: "Іс-шаралар",
 
+  fish_model: "Балық шаруашылығы қорын бағалау моделі",
   //
   company: 'ЖШС "Фактор" жүйелі зерттеулер компаниясы"',
   chooseLanguage: "Тіл таңдау",

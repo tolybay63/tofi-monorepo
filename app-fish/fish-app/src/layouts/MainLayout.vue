@@ -17,6 +17,10 @@
             <img src="../assets/factor.png" alt="Logo" />
           </q-icon>
           {{ $t("company") }}
+          <span class="absolute-right q-pt-sm">
+          <a :href="site_url()" class="q-pr-md text-white" style="font-size: 12px"
+             target="_blank"> {{ $t("fish_model") }} </a>
+          </span>
         </q-toolbar-title>
       </q-toolbar>
     </q-footer>
@@ -35,6 +39,11 @@ export default defineComponent({
   name: "MainLayout",
   components: { SetLocale },
 
-  setup() {},
+  methods: {
+    site_url() {
+      return process.env.SITE_URL
+    },
+  },
+
 });
 </script>

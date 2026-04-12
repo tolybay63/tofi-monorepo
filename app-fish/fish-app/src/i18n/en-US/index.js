@@ -23,6 +23,7 @@ export default {
   appBIName: "Analytics Server (BI)",
   appEventsName: "Events",
 
+  fish_model: "Fisheries stock assessment model",
   //
   company: 'LLP "Systems research company "Factor"',
   chooseLanguage: "Language selection",
