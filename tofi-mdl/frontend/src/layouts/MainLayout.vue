@@ -84,7 +84,7 @@
           </q-icon>
           {{ $t("company") }}
 
-          <span v-if="metamodel==='fish'" class="absolute-right q-pt-sm">
+          <span class="absolute-right q-pt-sm">
           <a :href="site_url()" class="q-pr-md text-white" style="font-size: 12px"
              target="_blank"> {{ $t("fish_model") }} </a>
           </span>
@@ -135,8 +135,14 @@ import {storeToRefs} from "pinia";
 import {useRouter} from "vue-router";
 import {extend, useQuasar} from "quasar";
 import {hasTarget} from "src/utils/jsutils.js";
+import * as http from "node:http";
 
 export default defineComponent({
+  computed: {
+    http() {
+      return http
+    }
+  },
   components: {
     SetLocale,
   },
@@ -161,13 +167,12 @@ export default defineComponent({
     const leftDrawerOpen = ref(false);
 
     const store = useUserStore();
-    const {isSysAdmin, getUserName, getTarget, metamodel} = storeToRefs(store);
+    const {isSysAdmin, getUserName, getTarget } = storeToRefs(store);
     const {setUserStore, clearUserStore} = store;
     const router = useRouter();
     const $q = useQuasar();
 
     const userName = computed(() => getUserName.value);
-    //console.info("target", getTarget.value)
 
     const setMenu = (parent, chlds) => {
       const res = {};
@@ -188,7 +193,6 @@ export default defineComponent({
 
     return {
       userName,
-      metamodel,
       selected,
 
       toHome() {
