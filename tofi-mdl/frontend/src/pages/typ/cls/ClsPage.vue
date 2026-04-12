@@ -388,7 +388,7 @@ export default {
       this.selected = ref([])
       api
         .post("", {
-          method: "clstree/loadClsTree",
+          method: "cls/loadClsTree",
           params: [{typ: typ, typNodeVisible: false}],
         })
         .then((response) => {
