@@ -15,26 +15,26 @@
     "postinstall": "quasar prepare"
   },
   "dependencies": {
-    "@quasar/extras": "^1.17.0",
-    "axios": "^1.14.0",
+    "@quasar/extras": "^1.18.0",
+    "axios": "^1.15.0",
     "pinia": "^3.0.4",
-    "quasar": "^2.19.2",
-    "vue": "^3.5.31",
-    "vue-i18n": "^11.3.0",
-    "vue-router": "^4.6.4",
+    "quasar": "^2.19.3",
+    "vue": "^3.5.32",
+    "vue-i18n": "^11.3.2",
+    "vue-router": "^5.0.4",
     "vue3-treeselect": "^0.1.10"
   },
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^11.0.7",
-    "@quasar/app-vite": "^2.5.4",
+    "@quasar/app-vite": "^2.6.0",
     "quasar-app-extension-qpdfviewervue3": "^1.0.3",
     "autoprefixer": "^10.4.27",
-    "eslint": "^9.39.4",
+    "eslint": "^10.2.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vue": "^10.8.0",
-    "postcss": "^8.5.8",
-    "prettier": "^3.8.1",
-    "vite": "^8.0.3"
+    "postcss": "^8.5.9",
+    "prettier": "^3.8.2",
+    "vite": "^8.0.8"
   },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
