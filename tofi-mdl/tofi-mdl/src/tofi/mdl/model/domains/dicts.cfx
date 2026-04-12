@@ -494,6 +494,41 @@
           handler="tofi.mdl.model.utils.DictHandler"/>
 
 
+    <!--
+        Тип системы кодирования.
+        Возможные значения:
+        1) Регистрационная система;
+        2) Иерархическая система;
+        3) Фасетная система.
+    -->
+
+    <domain name="FD_SysCodingType" parent="dict.tofi" tag.db="true" title="Тип системы кодирования"/>
+    <dict name="FD_SysCodingType" parent="base" domain="FD_SysCodingType"
+          handler="tofi.mdl.model.utils.DictHandler"/>
+
+    <!--
+        Формат данных, в котором принимаются или отправляются данные
+        Возможные значения:
+            1) txt;
+            2) xml;
+            3) json;
+            4) csv;
+            5) xls;
+            6) dbf;
+            7) mdb (access);
+            8) map;
+            9) doc.
+    -->
+
+    <domain name="FD_DataFormatType" parent="dict.tofi" tag.db="true" title="Тип системы кодирования"/>
+    <dict name="FD_DataFormatType" parent="base" domain="FD_DataFormatType"
+          handler="tofi.mdl.model.utils.DictHandler"/>
+
+
+
+
+
+
     <!--******************************************************************-->
     <!--Fill Dicts-->
     <ddl name="dbdata.system"

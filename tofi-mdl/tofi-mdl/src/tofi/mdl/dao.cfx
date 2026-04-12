@@ -158,6 +158,16 @@
                   method="*"
             />
 
+            <item name="stock"
+                  class="tofi.mdl.model.dao.stock.StockMdbUtils"
+                  method="*"
+            />
+
+            <item name="syscoding"
+                  class="tofi.mdl.model.dao.syscoding.SysCodingMdbUtils"
+                  method="*"
+            />
+
 
             //-----------------
             <item name="test"
