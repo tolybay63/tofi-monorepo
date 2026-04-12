@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",
-    "axios": "^1.14.0",
+    "axios": "^1.15.0",
     "pinia": "^3.0.4",
     "quasar": "^2.19.2",
     "quasar-app-extension-qpdfviewervue3": "^1.0.3",
@@ -33,7 +33,7 @@
     "eslint-plugin-vue": "^10.8.0",
     "postcss": "^8.5.8",
     "prettier": "^3.8.1",
-    "vite": "^8.0.3"
+    "vite": "^8.0.8"
   },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
