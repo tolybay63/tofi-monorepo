@@ -4,8 +4,6 @@
       @hide="onDialogHide"
       persistent
       autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -120,11 +118,11 @@
 import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 
-import treeselect from "vue3-treeselect";
+import { Treeselect } from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
 
 export default {
-  components: {treeselect},
+  components: {treeselect: Treeselect},
 
   props: ["data", "mode", "lg", "isChild", "parentName", "tableName", "dense"],
 

@@ -273,8 +273,12 @@ export default {
   dataFlat: "Тегіс деректерді енгізу",
   toolsAnalitic: "Сарапшы құралдары",
   dopEntities: "Көмекші нысандар",
+
   stocks: "Деректер көздері мен жинақтары",
   syscoding: "Кодтау жүйелері",
+  stocksGr: "Дереккөз топтары",
+  stockType: "Деректер көзінің түрі",
+  sysCodingType: "Кодтау жүйесінің түрі",
 
   dimsPeriod: "Мерзім өлшемдері",
   dimsProp: "Қасиеттер өлшемдері",

@@ -171,10 +171,7 @@
           </template>
         </q-table>
 
-
-
       </template>
-
 
     </q-splitter>
 
@@ -217,8 +214,6 @@ export default {
       cols2: [],
       rows2: [],
       selected: [],
-
-
     }
   },
 

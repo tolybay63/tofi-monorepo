@@ -341,8 +341,13 @@ export default {
   dataFlat: "Ввод плоских данных",
   toolsAnalitic: "Инструменты аналитика",
   dopEntities: "Вспомогательные сущности",
+
   stocks: "Источники и стоки данных",
   syscoding: "Системы кодирования",
+  stocksGr: "Группы источников",
+  stockType: "Тип источника данных",
+  sysCodingType: "Тип системы кодирования",
+
   dimsPeriod: "Измерения периодов",
   dimsProp: "Измерения свойств",
   dimsPropItem: "Элементы измерения свойств",
