@@ -316,7 +316,7 @@ export default defineComponent({
   -webkit-mask-size: 100% 300%;
   mask-size: 100% 300%;
 
-  animation: dissolve-vertical 6s ease-in-out infinite;
+  animation: dissolve-vertical 4s ease-in-out infinite;
 }
 
 @keyframes dissolve-vertical {
