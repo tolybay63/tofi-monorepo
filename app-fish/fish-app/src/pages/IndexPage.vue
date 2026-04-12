@@ -13,6 +13,7 @@
 
     <div class="q-pa-lg bg-elements">
       <img
+        class="fish-phantom"
         alt="Fish logo"
         src="~assets/fish.png"
         style="width: 200px; height: 150px"
@@ -272,5 +273,43 @@ export default defineComponent({
   66% { transform: translate(-20px, 20px) rotate(-10deg); }
   100% { transform: translate(0, 0) rotate(0deg); }
 }
+
+.fish-phantom {
+  /* Создаем маску: переход от прозрачного к черному */
+  /* Предполагаем, что голова слева, хвост справа */
+  -webkit-mask-image: linear-gradient(to right, black 33%, transparent 66%);
+  mask-image: linear-gradient(to right, black 33%, transparent 66%);
+
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+
+  /* Запускаем анимацию */
+  animation: dissolve-logic 6s ease-in-out infinite;
+}
+
+@keyframes dissolve-logic {
+  0% {
+    /* Рыба полностью видна */
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+  40% {
+    /* Исчезает: хвост уходит первым (сдвигаем прозрачную часть на рыбу) */
+    -webkit-mask-position: 70% 0;
+    mask-position: 70% 0;
+  }
+  50%, 60% {
+    /* Полностью растворилась (пауза в небытии) */
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  100% {
+    /* Появляется: голова выходит первой из тумана */
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+}
+
+
 
 </style>
