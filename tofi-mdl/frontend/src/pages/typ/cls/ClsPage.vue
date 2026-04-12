@@ -277,11 +277,10 @@ export default {
 
       cols: [],
       rows: [],
-      FD_AccessLevel: null,
+      FD_AccessLevel: new Map(),
       dataBase: null,
-      loading: ref(false),
-      separator: ref("cell"),
-      selected: ref([]),
+      loading: false,
+      selected: [],
       isExpanded: true,
       selectedRowID: {},
       currentNode: null,
@@ -356,7 +355,7 @@ export default {
     },
 
     fetchData2(typ, cls) {
-      this.loading = ref(false);
+      this.loading = false;
       api
         .post("", {
           method: "cls/loadClsFV",
@@ -377,15 +376,15 @@ export default {
         })
         .finally(() => {
           //setTimeout(() => {
-          this.loading = ref(false);
+          this.loading = false;
           //}, 500)
         });
     },
 
     fetchData(typ) {
-      this.loading = ref(true)
+      this.loading = true
 
-      this.selected = ref([])
+      this.selected = []
       api
         .post("", {
           method: "cls/loadClsTree",
@@ -413,7 +412,7 @@ export default {
         })
         .finally(() => {
           //setTimeout(() => {
-          this.loading = ref(false);
+          this.loading =false;
           //}, 500)
         });
     },
@@ -720,7 +719,6 @@ export default {
         params: [{dict: "FD_AccessLevel"}],
       })
       .then((response) => {
-        this.FD_AccessLevel = new Map();
         response.data.result.records.forEach((it) => {
           this.FD_AccessLevel.set(it["id"], it["text"]);
         });
