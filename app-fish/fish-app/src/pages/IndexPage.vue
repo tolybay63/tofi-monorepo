@@ -13,9 +13,8 @@
 
     <div class="q-pa-lg bg-elements">
       <img
-        class="fish-phantom-vertical"
         alt="Fish logo"
-        src="~assets/fish.png"
+        src="~assets/fish.webp"
         style="width: 200px; height: 150px"
       />
     </div>
@@ -307,12 +306,14 @@ export default defineComponent({
 }
 */
 
+/*
+
 .fish-phantom-vertical {
-  /* Градиент сверху вниз: черная область (видимость) сверху */
+  !* Градиент сверху вниз: черная область (видимость) сверху *!
   -webkit-mask-image: linear-gradient(to bottom, black 33%, transparent 66%);
   mask-image: linear-gradient(to bottom, black 33%, transparent 66%);
 
-  /* Делаем маску высокой (100% ширина, 300% высота) */
+  !* Делаем маску высокой (100% ширина, 300% высота) *!
   -webkit-mask-size: 100% 300%;
   mask-size: 100% 300%;
 
@@ -321,26 +322,27 @@ export default defineComponent({
 
 @keyframes dissolve-vertical {
   0% {
-    /* Рыба полностью видна (черная часть маски наверху) */
+    !* Рыба полностью видна (черная часть маски наверху) *!
     -webkit-mask-position: 0 0%;
     mask-position: 0 0%;
   }
   40% {
-    /* Растворяется снизу вверх: сдвигаем прозрачную часть вверх */
+    !* Растворяется снизу вверх: сдвигаем прозрачную часть вверх *!
     -webkit-mask-position: 0 70%;
     mask-position: 0 70%;
   }
   50%, 60% {
-    /* Полное исчезновение */
+    !* Полное исчезновение *!
     -webkit-mask-position: 0 100%;
     mask-position: 0 100%;
   }
   100% {
-    /* Появляется сверху вниз: черная часть возвращается на место */
+    !* Появляется сверху вниз: черная часть возвращается на место *!
     -webkit-mask-position: 0 0%;
     mask-position: 0 0%;
   }
 }
+*/
 
 
 
