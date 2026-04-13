@@ -728,7 +728,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadDimObjItem",
+            method: "dimobjitem/loadDimObjItem",
             params: [dimobj],
           })
           .then((response) => {
@@ -761,7 +761,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadDimObjItemProp",
+            method: "dimobjitem/loadDimObjItemProp",
             params: [dimObjItem],
           })
           .then((response) => {
@@ -787,7 +787,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadDimObjItemPropVal",
+            method: "dimobjitem/loadDimObjItemPropVal",
             params: [dimObjItemProp, prop, pt],
           })
           .then((response) => {
@@ -1068,7 +1068,7 @@ export default {
           .onOk(() => {
             api
                 .post("", {
-                  method: "dimobj/deleteDOIpropValue",
+                  method: "dimobjitem/deleteDOIpropValue",
                   params: [rec.id],
                 })
                 .then(
@@ -1087,7 +1087,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadOptForRefValues",
+            method: "dimobjitem/loadOptForRefValues",
             params: [par],
           })
           .then((response) => {
@@ -1118,7 +1118,7 @@ export default {
             //
             api
                 .post("", {
-                  method: "dimobj/loadDimObjItemPropVal",
+                  method: "dimobjitem/loadDimObjItemPropVal",
                   params: [this.selected2[0].id, this.selected2[0].prop, this.selected2[0].pt],
                 })
                 .then((response) => {
@@ -1253,7 +1253,6 @@ export default {
 
 .img-vert {
   -moz-transform: scaleY(-1);
-  -o-transform: scaleY(-1);
   -webkit-transform: scaleY(-1);
   transform: scaleY(-1);
   -ms-filter: "FlipV";

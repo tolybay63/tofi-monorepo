@@ -35,7 +35,8 @@ public class DimPropMdbUtils extends BaseMdbUtils {
                 """, Map.of("g", dimPropGr));
     }
 
-    Map<String, Long> getDimMultiPropType(long dimProp) throws Exception {
+    @DaoMethod
+    public Map<String, Long> getDimMultiPropType(long dimProp) throws Exception {
         StoreRecord rec = getMdb().loadQuery("""
                         select dmp.id as dmp, dmp.dimmultiproptype as dmpt
                         from DimProp dp

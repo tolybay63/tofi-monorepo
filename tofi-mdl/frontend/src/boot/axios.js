@@ -93,9 +93,11 @@ export default defineBoot(({ app, router }) => {
           errorCode = 'invalid_user_passwd';
         }
         //on table \"propperiodtype\"
+/*
         if (textContent && textContent.includes('propperiodtype')) {
           errorCode = 'dependOnPeriod';
         }
+*/
 
 
         if (textContent && textContent.includes('lifetime_expired')) {
