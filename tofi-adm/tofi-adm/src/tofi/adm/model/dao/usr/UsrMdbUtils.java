@@ -136,6 +136,7 @@ public class UsrMdbUtils extends BaseMdbUtils {
         return st;
     }
 
+    @DaoMethod
     public void deleteGr(long gr) throws Exception {
         getMdb().deleteRec("AuthUserGr", gr);
     }
@@ -155,12 +156,6 @@ public class UsrMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public Store update(Map<String, Object> rec) throws Exception {
-
-/*
-         Sleep sss = new Sleep();
-         sss.doSleep(3000);
-*/
-
         Store st = getMdb().createStore("AuthUser");
         StoreRecord record = st.add(rec);
         long id = UtCnv.toLong(rec.get("id"));

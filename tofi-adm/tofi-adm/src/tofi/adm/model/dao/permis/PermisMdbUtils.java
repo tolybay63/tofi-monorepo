@@ -50,12 +50,21 @@ public class PermisMdbUtils extends BaseMdbUtils {
         if (stTmp.size() > 0) {
             throw new XError("Используется в привилегии пользователя [{0}]", stTmp.get(0).getString("fullname"));
         }
+
+        stTmp = getMdb().loadQuery("""
+            select *
+            from Permis
+            where parent =:id
+        """, Map.of("id", id));
+        if (stTmp.size() > 0) {
+            throw new XError("hasChild");
+        }
+
     }
 
     @DaoMethod
-    public void delete(Map<String, Object> params) throws Exception {
+    public void delete(Map<String, Object> rec) throws Exception {
         checkTarget("adm:tml:del");
-        Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         validateRec(UtCnv.toString(rec.get("id")));
         String sql = """
             delete from Permis where id=:id;

@@ -516,6 +516,7 @@ export default {
   existsValue: "There are values",
 
   fkError: "There is a link to the recording",
+  refTable: "Refers to a table",
 
   fish_model: "Fisheries stock assessment model",
 

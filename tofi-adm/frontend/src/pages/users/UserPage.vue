@@ -65,7 +65,7 @@
                 v-if="hasTarget('adm:usr:gr:del')"
                 dense
                 icon="delete"
-                color="secondary"
+                color="red"
                 class="q-ml-sm"
                 @click="fnDelGr(currentNode)"
                 :disable="currentNode == null"
@@ -130,7 +130,7 @@
               v-if="hasTarget('adm:usr:gr:usr:del')"
               dense
               icon="delete"
-              color="secondary"
+              color="red"
               class="q-ml-sm"
               @click="fnDel(selected2[0])"
               :disable="
@@ -386,14 +386,7 @@ export default {
               () => {
                 this.fetchDataGr();
                 this.$refs.childComp.currentNode = null;
-              },
-              (error) => {
-                let msg = error.message;
-                if (error.response)
-                  msg = error.response.data.error.message;
-                notifyError(msg);
-              }
-            );
+              })
         })
         .onCancel(() => {
           notifyInfo(this.$t("canceled"));

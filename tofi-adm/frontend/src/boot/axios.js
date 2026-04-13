@@ -68,6 +68,7 @@ export default defineBoot(({ app, router }) => {
       if (errorCode.includes("Network Error")) errorCode = "networkError"
 
       // --- ПОИСК ТЕХНИЧЕСКОГО КЛЮЧА ОШИБКИ (для i18n) ---
+      let table = ""
       if (data) {
         let textContent = '';
         if (data instanceof ArrayBuffer) {
@@ -76,6 +77,21 @@ export default defineBoot(({ app, router }) => {
           textContent = data;
         }
         errorCode = data.error?.message
+        //
+        let fk = findForeignKey(errorCode)
+        if (fk) {
+          if (fk.split('_')[2] === "parent") {
+            errorCode = "hasChild"
+          } else {
+            errorCode = "refTable"
+            table = ": ["+ fk.split('_')[1] + "]"
+          }
+        }
+        if (errorCode.includes("@")) {
+          table = ": ["+ errorCode.split('@')[1] + "]"
+          errorCode = errorCode.split("@")[0]
+        }
+
         // Ищем в ответе (даже в HTML) ключ 'invalid_user_passwd'
         if (textContent && textContent.includes('invalid_user_passwd')) {
           errorCode = 'invalid_user_passwd';
@@ -95,9 +111,11 @@ export default defineBoot(({ app, router }) => {
       }
 
       // Вывод уведомления Notify
+      const msg = app.config.globalProperties.$t(errorCode) || errorCode
+      const msg_tr = msg + table
       Notify.create({
         type: 'negative',
-        message: app.config.globalProperties.$t(errorCode) || errorCode,
+        message: msg_tr,
         position: 'bottom-right',
         timeout: 5000,
         actions: [{ icon: 'close', color: 'white' }]
@@ -110,6 +128,12 @@ export default defineBoot(({ app, router }) => {
   app.config.globalProperties.$axios = axios
   app.config.globalProperties.$api = api
 })
+
+function findForeignKey(str) {
+  // \bfk_\w+ ищет слово, начинающееся на fk_, за которым следуют буквы, цифры или подчеркивания
+  const match = str.match(/\bfk_\w+/);
+  return match ? match[0] : null;
+}
 
 // 7. Константы дат и экспорт
 const tofi_dbeg = "1800-01-01";
