@@ -4,10 +4,12 @@ const routes = [
     component: () => import("layouts/MainLayout.vue"),
     children: [
       {path: "", component: () => import("pages/IndexPage.vue")},
-      {path: "/dbSetting", component: () => import("pages/IndexPage.vue")},
+
+      /*{path: "/dbSetting", component: () => import("pages/IndexPage.vue")},*/
+
       {path: "/database", component: () => import("pages/database/DataBasePage.vue")},
 
-      {path: "/dataSetting", component: () => import("pages/IndexPage.vue")},
+      /*{path: "/dataSetting", component: () => import("pages/IndexPage.vue")},*/
       {
         path: "/measure",
         component: () => import("pages/measure/MeasurePage.vue"),
@@ -127,10 +129,7 @@ const routes = [
         component: () => import("pages/flattable/FlatTable.vue"),
       },
 
-      {
-        path: "/dataProcessing",
-        component: () => import("pages/IndexPage.vue"),
-      },
+      /*{ path: "/dataProcessing", component: () => import("pages/IndexPage.vue"), },*/
 
       {
         path: "/scale/:scale",
@@ -189,10 +188,7 @@ const routes = [
         component: () => import("pages/cubes/CubeSelected.vue"),
       },
 
-      {
-        path: "/toolsAnalitic",
-        component: () => import("pages/IndexPage.vue"),
-      },
+      /*{ path: "/toolsAnalitic", component: () => import("pages/IndexPage.vue"), },*/
 
       {
         path: "/stocks/:stockGr/:stock",
@@ -212,8 +208,6 @@ const routes = [
 
 
       /*
-
-
             {
               path: "/impObj",
               component: () => import("pages/instruments/import/obj/ImportObj.vue"),
