@@ -87,7 +87,11 @@ export default defineBoot(({ app, router }) => {
             table = ": ["+ fk.split('_')[1] + "]"
           }
         }
-        //console.log("_fk_", fk)
+
+        if (errorCode.includes("@")) {
+          table = ": ["+ errorCode.split('@')[1] + "]"
+          errorCode = errorCode.split("@")[0]
+        }
 
 /*
         if (errorCode.includes('propperiodtype'))

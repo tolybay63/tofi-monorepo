@@ -203,7 +203,7 @@ export default {
     api
         .post("", {
           method: "typ/loadTypForSelect",
-          params: [{}],
+          params: [],
         })
         .then((response) => {
           this.optTyp = response.data.result.records;

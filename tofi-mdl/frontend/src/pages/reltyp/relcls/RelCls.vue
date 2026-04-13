@@ -3,7 +3,6 @@
   <div class="no-padding no-margin">
     <q-splitter
         v-model="splitterModel"
-        :model-value="splitterModel"
         class="no-padding no-margin"
         horizontal
         style="height: calc(100vh - 300px); width: 100%"
@@ -152,10 +151,9 @@ export default {
       splitterModel: ref(70),
       cols: [],
       rows: [],
-      loading: ref(false),
-      //separator: ref("cell"),
-      selected: ref([]),
-      FD_AccessLevel: null,
+      loading: false,
+      selected: [],
+      FD_AccessLevel: new Map(),
       dataBase: null,
       reltypId: 0,
       relclsId: 0,
@@ -223,7 +221,7 @@ export default {
           .onOk((r) => {
             //console.log("Ok! updated", r);
             this.fetchData(this.reltypId);
-            this.selected = ref([]);
+            this.selected = [];
             this.updSelected(this.selected)
 
             if (r !== "") {
@@ -314,22 +312,15 @@ export default {
                     () => {
                       //console.log("response=>>>", response.data)
                       this.rows.splice(index, 1);
-                      this.selected = ref([]);
+                      this.selected = [];
                       this.updSelected(this.selected)
                       notifySuccess(this.$t("success"));
-                    },
-                    (error) => {
-                      let msg = error.message;
-                      if (error.response) msg = error.response.data.error.message;
-
-                      notifyError(msg);
-                    }
-                );
+                    });
           })
     },
 
     fetchData(reltyp) {
-      this.loading = ref(true);
+      this.loading = true;
 
       api
           .post("", {
@@ -356,7 +347,7 @@ export default {
             notifyError(msg);
           })
           .finally(() => {
-            this.loading = ref(false);
+            this.loading = false;
           });
     },
 
@@ -433,7 +424,6 @@ export default {
           params: [{dict: "FD_AccessLevel"}],
         })
         .then((response) => {
-          this.FD_AccessLevel = new Map();
           response.data.result.records.forEach((it) => {
             this.FD_AccessLevel.set(it["id"], it["text"]);
           });
