@@ -63,7 +63,7 @@
                   v-if="hasTarget('mdl:mn_ds:prop:delgr')"
                   dense
                   icon="delete"
-                  color="secondary"
+                  color="red"
                   class="q-ml-sm"
                   @click="fnDelGr(currentNode)"
                   :disable="currentNode == null"
@@ -128,7 +128,7 @@
                 v-if="hasTarget('mdl:mn_ds:prop:del')"
                 dense
                 icon="delete"
-                color="secondary"
+                color="red"
                 class="q-ml-sm"
                 @click="fnDel(currentNode2)"
                 :disable="currentNode2 == null"

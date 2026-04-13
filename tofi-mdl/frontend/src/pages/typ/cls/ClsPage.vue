@@ -71,7 +71,7 @@ style="height: calc(100vh - 220px); width: 100%"
               v-if="hasTarget('mdl:mn_ds:typ:sel:cls:del')"
               dense
               icon="delete"
-              color="secondary"
+              color="red"
               class="q-ml-sm"
               @click="removeRow(selected[0])"
               :disable="currentNode == null"

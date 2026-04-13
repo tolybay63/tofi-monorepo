@@ -68,7 +68,7 @@
             v-if="hasTarget('mdl:mn_ds:reltyp:del')"
             :dense="dense"
             icon="delete"
-            color="secondary"
+            color="red"
             class="q-ml-sm"
             :disable="loading || selected.length === 0"
             @click="removeRow(selected[0])"
@@ -320,21 +320,14 @@ export default defineComponent({
             api
                 .post("", {
                   method: "reltyp/delete",
-                  params: [{rec: rec}],
+                  params: [rec],
                 })
                 .then(
                     () => {
                       this.rows.splice(index, 1);
                       this.selected = ref([]);
                       notifySuccess(this.$t("success"));
-                    },
-                    (error) => {
-                      let msg = error.message;
-                      if (error.response) msg = error.response.data.error.message;
-
-                      notifyError(msg);
-                    }
-                );
+                    })
           })
           .onCancel(() => {
             notifyInfo(this.$t("canceled"));

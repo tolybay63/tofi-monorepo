@@ -78,7 +78,7 @@
                 v-if="hasTarget('mdl:mn_ds:pmdim:sel:del')"
                 dense
                 icon="delete"
-                color="secondary"
+                color="red"
                 class="q-ml-sm"
                 @click="fnDel(currentNode)"
                 :disable="currentNode == null"

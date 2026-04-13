@@ -64,7 +64,7 @@
                 v-if="hasTarget('mdl:mn_ds:prop:delgr')"
                 dense
                 icon="delete"
-                color="secondary"
+                color="red"
                 class="q-ml-sm"
                 @click="fnDelGr(currentNode)"
                 :disable="currentNode == null"
@@ -144,7 +144,7 @@
             <q-btn
               v-if="hasTarget('mdl:mn_ds:attr:del')"
               dense icon="delete"
-              color="secondary"
+              color="red"
               class="q-ml-sm"
               :disable="loading || selected2.length === 0"
               @click="removeRow(selected2[0])"

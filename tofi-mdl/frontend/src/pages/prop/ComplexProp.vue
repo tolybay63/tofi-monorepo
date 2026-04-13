@@ -35,7 +35,7 @@
           v-if="hasTarget('mdl:mn_ds:prop:complex:del')"
           dense
           icon="delete"
-          color="secondary"
+          color="red"
           class="q-ml-sm"
           @click="fnDel(currentNode)"
           :disable="currentNode == null || currentNode.parent == null"
