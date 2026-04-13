@@ -82,7 +82,7 @@
           v-if="hasTarget('adm:tml:del')"
           :disable="currentNode == null"
           class="q-ml-sm"
-          color="secondary"
+          color="red"
           dense
           icon="delete"
           @click="fnDel(currentNode)"
@@ -339,17 +339,13 @@ export default {
           api
             .post("", {
               method: "permis/delete",
-              params: [{rec: rec}],
+              params: [rec],
             })
             .then(
               () => {
                 this.fetchData();
                 this.currentNode = null;
-              },
-              () => {
-                notifyInfo(this.$t("hasChild"));
-              }
-            );
+              })
         })
         .onCancel(() => {
           notifyInfo(this.$t("canceled"));

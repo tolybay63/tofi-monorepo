@@ -373,6 +373,9 @@ export default {
   failed: "Сәтсіз аяқталды",
   success: "Жетiстiк",
 
+  fkError: "Жазбаға сілтеме бар",
+  refTable: "Кестеге сілтеме жасайды",
+
   nothing_here: "Ойбай. Мұнда ештеңе жоқ...",
   home: "Үйге",
 };

@@ -367,6 +367,9 @@ export default {
   failed: "Action failed",
   success: "Action was successful",
 
+  fkError: "There is a link to the recording",
+  refTable: "Refers to a table",
+
   nothing_here: "Oops. Nothing Here...",
   home: "Home",
 };
