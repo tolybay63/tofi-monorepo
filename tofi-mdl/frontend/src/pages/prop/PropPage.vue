@@ -2,7 +2,6 @@
   <div class="q-pa-md">
     <q-splitter
         v-model="splitterModel"
-        :model-value="splitterModel"
         :limits="[0, 100]"
         before-class="overflow-hidden q-mr-sm"
         after-class="overflow-hidden q-ml-sm"

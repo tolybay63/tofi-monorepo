@@ -2,11 +2,11 @@
   <div class="q-pa-md">
     <q-splitter
       v-model="splitterModel"
-      :model-value ="splitterModel"
       :limits="[0, 100]"
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
       separator-class="bg-red"
+      style="height: calc(100vh - 150px); width: 100%"
     >
       <template v-slot:before>
         <div class="q-pa-sm-sm">
@@ -151,7 +151,7 @@
             :wrap-cells="true"
             table-header-class="text-bold text-white bg-blue-grey-13"
             separator="cell"
-            :loading="loading2.value"
+            :loading="loading2"
             :rows-per-page-options="[0]"
           >
           </q-table>
@@ -177,7 +177,7 @@ export default {
   data() {
     return {
       splitterModel: 70,
-      FD_PeriodType: null,
+      FD_PeriodType: new Map(),
       cols: [],
       rows: [],
       currentNode: null,
@@ -482,7 +482,6 @@ export default {
         params: [{ dict: "FD_PeriodType" }],
       })
       .then((response) => {
-        this.FD_PeriodType = new Map();
         response.data.result.records.forEach((it) => {
           this.FD_PeriodType.set(it["id"], it["text"]);
         });

@@ -3,12 +3,12 @@
   <div class="q-pa-md">
     <q-splitter
       v-model="splitterModel"
-      :model-value="splitterModel"
       :limits="[0, 100]"
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
       separator-class="bg-red"
       class="bg-amber-1"
+      style="height: calc(100vh - 150px); width: 100%"
     >
 
       <template v-slot:before>
@@ -183,7 +183,6 @@
         </q-table>
 
       </template>
-
 
     </q-splitter>
 
