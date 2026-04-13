@@ -4,11 +4,11 @@
     <q-splitter
       v-model="splitterModel"
       :limits="[0, 100]"
-      :model-value="splitterModel"
       after-class="overflow-hidden q-ml-sm"
       before-class="overflow-hidden q-mr-sm"
       class="bg-amber-1"
       separator-class="bg-red"
+      style="height: calc(100vh - 150px); width: 100%"
     >
 
       <template v-slot:before>

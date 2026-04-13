@@ -2,12 +2,12 @@
   <div class="q-pa-md">
     <q-splitter
         v-model="splitterModel"
-        :model-value="splitterModel"
         :limits="[0, 100]"
         before-class="overflow-hidden q-mr-sm"
         after-class="overflow-hidden q-ml-sm"
         separator-class="bg-red"
         class="bg-amber-1"
+        style="height: calc(100vh - 150px); width: 100%"
     >
       <template v-slot:before>
         <div class="q-pa-sm-sm">
@@ -154,7 +154,7 @@
             :rows="rows2"
             table-header-class="text-bold text-white bg-blue-grey-13"
             separator="cell"
-            :loading="loading2.value"
+            :loading="loading2"
             selection="single"
             @update:selected="onUpdateSelect2"
             v-model:selected="selected2"
@@ -208,14 +208,14 @@ export default {
       cols: [],
       rows: [],
       currentNode: null,
-      visible: ref(false),
+      visible: false,
       dense: true,
       //
       cols2: [],
       rows2: [],
-      FD_AccessLevel: null,
-      loading2: ref(false),
-      selected2: ref([]),
+      FD_AccessLevel: new Map(),
+      loading2: false,
+      selected2: [],
       //
       mpGr: 0,
       mp: 0,
@@ -313,7 +313,7 @@ export default {
     },
 
     fetchDataGr() {
-      this.visible = ref(true);
+      this.visible = true;
       this.currentNode = null
 
       api
@@ -346,7 +346,7 @@ export default {
             }
           })
           .finally(() => {
-            this.visible = ref(false);
+            this.visible = false;
           });
     },
 
@@ -536,7 +536,7 @@ export default {
     },
 
     fetchData(propGr) {
-      this.visible = ref(true)
+      this.visible = true
       this.selected2 = []
 
       api
@@ -561,7 +561,7 @@ export default {
             }
           })
           .finally(() => {
-            this.visible = ref(false);
+            this.visible = false;
           });
     },
 
@@ -654,7 +654,6 @@ export default {
           params: [{dict: "FD_AccessLevel"}],
         })
         .then((response) => {
-          this.FD_AccessLevel = new Map();
           response.data.result.records.forEach((it) => {
             this.FD_AccessLevel.set(it["id"], it["text"]);
           });
