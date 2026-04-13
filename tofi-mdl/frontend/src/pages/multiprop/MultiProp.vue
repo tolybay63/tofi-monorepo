@@ -61,7 +61,7 @@
                   v-if="hasTarget('mdl:mn_ds:pm:delgr')"
                   dense
                   icon="delete"
-                  color="secondary"
+                  color="red"
                   class="q-ml-sm"
                   @click="fnDelGr(currentNode)"
                   :disable="currentNode == null"
@@ -117,7 +117,7 @@
 
             <q-btn
                 v-if="hasTarget('mdl:mn_ds:pm:del')"
-                dense icon="delete" color="secondary" class="q-ml-sm" @click="fnDel(selected2[0])"
+                dense icon="delete" color="red" class="q-ml-sm" @click="fnDel(selected2[0])"
                 :disable="loading2 || selected2.length === 0"
             >
               <q-tooltip transition-show="rotate" transition-hide="rotate">

@@ -91,7 +91,7 @@
                 v-if="hasTarget('mdl:mn_ds:reltyp:memb:del')"
                 dense
                 icon="delete"
-                color="secondary"
+                color="red"
                 class="q-ml-sm"
                 :disable="loading || selected.length === 0"
                 @click="removeRow(selected[0])"

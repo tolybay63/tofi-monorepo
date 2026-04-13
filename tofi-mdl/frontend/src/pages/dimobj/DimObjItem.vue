@@ -265,7 +265,7 @@
                     v-if="hasTarget('mdl:mn_ds:reltyp:sel:memb:notcls:del')"
                     dense
                     icon="delete"
-                    color="secondary"
+                    color="red"
                     class="q-ml-sm"
                     :disable="loading2 || selected2.length === 0"
                     @click="removeRow2()"
@@ -367,7 +367,7 @@
                 </q-btn>
                 <q-btn
                     v-if="hasTarget('mdl:mn_ds:reltyp:sel:memb:notcls:del')"
-                    dense icon="delete" color="secondary" class="q-ml-sm"
+                    dense icon="delete" color="red" class="q-ml-sm"
                     :disable="loading3 || selected3.length === 0"
                     @click="removeRow3()"
                 >

@@ -66,7 +66,7 @@
                 v-if="hasTarget('mdl:mn_ds:reltyp:sel:role:del')"
                 :dense="dense"
                 icon="delete"
-                color="secondary"
+                color="red"
                 class="q-ml-sm"
                 :disable="loading || selected.length === 0"
                 @click="removeRow(selected[0])"
@@ -147,9 +147,9 @@
                 v-if="hasTarget('mdl:mn_ds:reltyp:sel:role:life:del')"
                 :dense="dense"
                 icon="delete"
-                color="secondary"
+                color="red"
                 class="q-ml-sm"
-                :disable="loading2.value || selected2.length === 0"
+                :disable="loading2 || selected2.length === 0"
                 @click="removeRow2(selected2[0])"
             >
               <q-tooltip transition-show="rotate" transition-hide="rotate">
@@ -159,7 +159,7 @@
           </template>
 
           <template #loading>
-            <q-inner-loading :showing="loading2.value" color="secondary"></q-inner-loading>
+            <q-inner-loading :showing="loading2" color="secondary"></q-inner-loading>
           </template>
         </q-table>
       </template>
@@ -270,10 +270,6 @@ export default {
         };
       }
 
-      const lg = {name: this.lang};
-
-      //      console.log("data",data)
-
       this.$q
           .dialog({
             component: UpdateRelTypRole,
@@ -281,7 +277,6 @@ export default {
               data: data,
               reltyp: this.reltypId,
               mode: mode,
-              lg: lg,
               dense: true,
               // ...
             },
@@ -540,8 +535,6 @@ export default {
 
   created() {
     //console.log("create")
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.cols = this.getColumns();
     this.cols2 = this.getColumns2();
   },

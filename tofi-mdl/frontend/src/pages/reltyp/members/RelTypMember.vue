@@ -108,7 +108,7 @@
             v-if="hasTarget('mdl:mn_ds:reltyp:memb:del')"
             :dense="dense"
             icon="delete"
-            color="secondary"
+            color="red"
             class="q-ml-sm"
             :disable="loading || selected.length === 0"
             @click="removeRow(selected[0])"
@@ -283,7 +283,7 @@ export default {
             api
                 .post("", {
                   method: "reltypmember/deleteRelTypMember",
-                  params: [{rec: rec}],
+                  params: [rec],
                 })
                 .then(
                     () => {
@@ -291,13 +291,13 @@ export default {
                       this.rows.splice(index, 1);
                       this.selected = ref([]);
                       notifySuccess(this.$t("success"));
-                    },
+                    }/*,
                     (error) => {
                       let msg = error.message;
                       if (error.response) msg = error.response.data.error.message;
 
                       notifyError(msg);
-                    }
+                    }*/
                 );
           })
           .onCancel(() => {

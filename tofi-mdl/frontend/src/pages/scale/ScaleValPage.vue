@@ -58,7 +58,7 @@
         </q-btn>
         <q-btn
             v-if="hasTarget('mdl:mn_ds:fac:del')"
-            dense icon="delete" color="secondary" class="q-ml-sm"
+            dense icon="delete" color="red" class="q-ml-sm"
             :disable="loading || selected.length === 0"
             @click="removeRow(selected[0])"
         >

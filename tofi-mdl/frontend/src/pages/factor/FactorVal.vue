@@ -62,7 +62,7 @@
         </q-btn>
         <q-btn
             icon="delete"
-            color="secondary"
+            color="red"
             class="q-ml-sm"
             :disable="loading || selected.length === 0"
             @click="removeRow(selected[0])"

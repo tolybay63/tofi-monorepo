@@ -62,7 +62,7 @@
         <q-btn
             v-if="hasTarget('mdl:mn_ds:meter:sel:hard:del')"
             icon="delete"
-            color="secondary"
+            color="red"
             class="q-ml-sm"
             @click="fnDel(currentNode)"
             :disable="currentNode == null"
