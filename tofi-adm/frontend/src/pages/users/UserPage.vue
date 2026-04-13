@@ -452,15 +452,7 @@ export default {
               () => {
                 this.fetchData(this.currentNode.id);
                 this.selected2 = [];
-              },
-              (error) => {
-                let msg = error.message;
-                if (error.response)
-                  msg = error.response.data.error.message;
-
-                notifyError(msg);
-              }
-            );
+              })
         })
         .onCancel(() => {
           notifyInfo(this.$t("canceled"));
