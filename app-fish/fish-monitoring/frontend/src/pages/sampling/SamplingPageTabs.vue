@@ -43,7 +43,6 @@
 
 <script>
 import {api} from 'boot/axios'
-import {notifyError} from 'src/utils/jsutils'
 import {ref} from 'vue'
 import SamplingPageTab from 'pages/sampling/SamplingPageTab.vue'
 
@@ -80,7 +79,7 @@ export default {
           params: ['Typ_Sampling'],
         })
         .then((response) => {
-          this.rows = response.data.result.records
+          this.rows = response.data["result"]["records"]
           //console.info("this.rows", this.rows)
         })
         .then(() => {

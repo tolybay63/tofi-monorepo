@@ -586,7 +586,7 @@ export default {
           if (this.selected.length > 0) {
             obj = this.selected[0].obj
           }
-          this.rows = response.data.result.records
+          this.rows = response.data.result["records"]
           //console.info("rows", this.rows)
           if (obj > 0) {
             this.selected = []
@@ -629,7 +629,7 @@ export default {
       })
       .then(
         (response) => {
-          this.optPeriod = response.data.result.records
+          this.optPeriod = response.data.result["records"]
         })
       .finally(() => {
         this.loading = false
@@ -642,7 +642,7 @@ export default {
       })
       .then(
         (response) => {
-          this.optFvReservoirType = response.data.result.records
+          this.optFvReservoirType = response.data.result["records"]
         })
       .finally(() => {
       })
@@ -654,7 +654,7 @@ export default {
       })
       .then(
         (response) => {
-          this.optFvReservoirStatus = response.data.result.records
+          this.optFvReservoirStatus = response.data.result["records"]
         })
       .finally(() => {
       })
@@ -666,7 +666,7 @@ export default {
       })
       .then(
         (response) => {
-          this.optFvFishFarmingType = response.data.result.records
+          this.optFvFishFarmingType = response.data.result["records"]
         })
       .finally(() => {
         this.loadReservors()

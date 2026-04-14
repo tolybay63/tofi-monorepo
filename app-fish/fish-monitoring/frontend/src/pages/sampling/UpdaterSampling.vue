@@ -178,7 +178,7 @@
 
 <script>
 import {api} from 'boot/axios'
-import {notifyError, notifySuccess} from 'src/utils/jsutils'
+import {notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data'],
@@ -338,8 +338,8 @@ export default {
         })
         .then(
           (response) => {
-            this.optReservoir = response.data.result.records
-            this.optReservoirOrg = response.data.result.records
+            this.optReservoir = response.data.result["records"]
+            this.optReservoirOrg = response.data.result["records"]
           })
         .finally(() => {
           this.loading = false
@@ -355,8 +355,8 @@ export default {
         })
         .then(
           (response) => {
-            this.optAreaSampling = response.data.result.records
-            this.optAreaSamplingOrg = response.data.result.records
+            this.optAreaSampling = response.data.result["records"]
+            this.optAreaSamplingOrg = response.data.result["records"]
             //console.info("optAreaSampling", this.optAreaSampling)
           })
         .finally(() => {
@@ -409,7 +409,7 @@ export default {
         .then(
           (response) => {
             err = false
-            this.$emit('ok', response.data.result.rows.records[0])
+            this.$emit('ok', response.data.result.rows["records"][0])
             notifySuccess(this.$t('success'))
           })
         .finally(() => {
@@ -432,7 +432,7 @@ export default {
       })
       .then(
         (response) => {
-          this.optPeriod = response.data.result.records
+          this.optPeriod = response.data.result["records"]
         })
       .finally(() => {
         this.loading = false
@@ -448,9 +448,8 @@ export default {
         this.mapMeasure = response.data.result
         //console.info("mapMeasure", this.mapMeasure)
       })
-      .catch((error) => {
-
 /*
+      .catch((error) => {
         if (error.response.data.error.message.includes('@')) {
           let msgs = error.response.data.error.message.split('@')
           let m1 = this.$t(`${msgs[0]}`)
@@ -460,9 +459,8 @@ export default {
         } else {
           notifyError(this.$t(error.response.data.error.message))
         }
-*/
-
       })
+*/
       .finally(() => {
         this.loading = false
       })
@@ -474,8 +472,8 @@ export default {
         params: ['Cls_Branch'],
       })
       .then((response) => {
-        this.optBranch = response.data.result.records
-        this.optBranchOrg = response.data.result.records
+        this.optBranch = response.data.result["records"]
+        this.optBranchOrg = response.data.result["records"]
       })
       .then(() => {
         api
@@ -484,7 +482,7 @@ export default {
             params: ['Typ_Users', 'Prop_SampleExecutor'],
           })
           .then((response) => {
-            this.optExecutor = response.data.result.records
+            this.optExecutor = response.data.result["records"]
             //console.info("optExecutor", this.optExecutor)
           })
           .then(()=> {
@@ -506,8 +504,8 @@ export default {
                 params: ['Cls_FishGearTrade'],
               })
               .then((response) => {
-                this.optFishGear = response.data.result.records
-                this.optFishGearOrg = response.data.result.records
+                this.optFishGear = response.data.result["records"]
+                this.optFishGearOrg = response.data.result["records"]
               })
           })
       })

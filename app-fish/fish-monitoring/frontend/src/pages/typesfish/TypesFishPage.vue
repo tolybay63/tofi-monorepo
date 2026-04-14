@@ -121,7 +121,7 @@
 <script>
 import {defineComponent} from 'vue'
 import {api} from "boot/axios";
-import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack} from 'src/utils/jsutils'
+import {collapsAll, expandAll, getParentNode, hasTarget, notifyInfo, pack} from 'src/utils/jsutils'
 import QTreeTable from "components/QTreeTable.vue";
 import UpdaterTypesFish from 'pages/typesfish/UpdaterTypesFish.vue'
 import {extend} from "quasar";
@@ -178,8 +178,8 @@ export default defineComponent({
           params: [{ codCls: 'Cls_FishTypes', isRec: false, idObj: 0 }],
         })
         .then((response) => {
-          this.cnt = response.data.result.records.length
-          this.rows = pack(response.data.result.records, "ord")
+          this.cnt = response.data.result["records"].length
+          this.rows = pack(response.data.result["records"], "ord")
         })
         .then(() => {
           api
@@ -192,7 +192,7 @@ export default defineComponent({
               //console.info("mapFV", this.mapFV)
             })
         })
-        .catch((error) => {
+        .catch(() => {
 /*
           let msg = error.message
           if (error.response) {
