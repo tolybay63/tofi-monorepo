@@ -194,7 +194,7 @@ export default {
       //
       api
         .post("", {
-          method: "dimobj/loadPropStatus",
+          method: "dimobjitem/loadPropStatus",
           params: [prop],
         })
         .then((response) => {
@@ -217,7 +217,7 @@ export default {
       //
       api
         .post("", {
-          method: "dimobj/loadPropProvider",
+          method: "dimobjitem/loadPropProvider",
           params: [prop],
         })
         .then((response) => {
@@ -275,7 +275,7 @@ export default {
       api
         .post("", {
           id: this.form.id,
-          method: "dimobj/" + method,
+          method: "dimobjitem/" + method,
           params: [this.form],
         })
         .then(
@@ -329,7 +329,7 @@ export default {
     this.visible = ref(true);
     api
       .post("", {
-        method: "dimobj/loadOptProp",
+        method: "dimobjitem/loadOptProp",
         params: [this.doi],
       })
       .then((response) => {

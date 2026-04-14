@@ -169,7 +169,7 @@ export default {
       api
         .post("", {
           id: this.form.id,
-          method: "dimobj/" + method,
+          method: "dimobjitem/" + method,
           params: [this.form],
         })
         .then(
@@ -198,7 +198,7 @@ export default {
       this.visible = ref(true);
       api
           .post("", {
-            method: "dimobj/loadOptPropVal",
+            method: "dimobjitem/loadOptPropVal",
             params: [this.prop, this.pt, this.dimObjItemProp, this.mode],
           })
           .then((response) => {
