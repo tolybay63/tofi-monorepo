@@ -449,7 +449,6 @@ export default {
         //console.info("mapMeasure", this.mapMeasure)
       })
 /*
-      .catch((error) => {
         if (error.response.data.error.message.includes('@')) {
           let msgs = error.response.data.error.message.split('@')
           let m1 = this.$t(`${msgs[0]}`)
@@ -459,7 +458,6 @@ export default {
         } else {
           notifyError(this.$t(error.response.data.error.message))
         }
-      })
 */
       .finally(() => {
         this.loading = false
