@@ -7,139 +7,138 @@
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
       separator-class="bg-red"
+      style="height: calc(100vh - 135px); width: 100%"
     >
 
       <template v-slot:before>
-        <div class="q-pa-sm" style="height: calc(100vh - 140px); width: 100%">
-        <q-table
-          style="height: 100%; width: 100%"
-          class="sticky-header-table"
+        <q-page class="q-pa-sm" style="height: 100px; width: 100% ">
+          <q-table
+            style="height: 98%; width: 100%"
+            class="sticky-header-table"
+            dense
+            card-class="bg-amber-1 text-brown"
+            row-key="obj"
+            :columns="cols"
+            :rows="rows"
+            :wrap-cells="true"
+            table-header-class="text-bold text-white bg-blue-grey-13"
+            separator="horizontal"
+            :filter="filter"
+            :loading="loading"
+            selection="single"
+            v-model:selected="selected"
+            @update:selected="updateSelected"
+            :rows-per-page-options="[25, 0]"
+          >
+            <template #bottom-row>
+              <q-td colspan="100%" v-if="selected.length > 0">
+                <span class="text-blue"> {{ $t('selectedRow') }}: </span>
+                <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
+              </q-td>
+              <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+                {{ $t('infoRow') }}
+              </q-td>
+            </template>
 
-          dense
-          card-class="bg-amber-1 text-brown"
-          row-key="obj"
-          :columns="cols"
-          :rows="rows"
-          :wrap-cells="true"
+            <template v-slot:top>
+              <div style="font-size: 1.2em; font-weight: bold">
+                <q-avatar color="black" text-color="white" icon="sailing"></q-avatar>
+                {{ $t('reservoirs') }}
+              </div>
 
-          table-header-class="text-bold text-white bg-blue-grey-13"
-          separator="horizontal"
-          :filter="filter"
-          :loading="loading"
-          selection="single"
-          v-model:selected="selected"
-          @update:selected="updateSelected"
-          :rows-per-page-options="[25, 0]"
-        >
-          <template #bottom-row>
-            <q-td colspan="100%" v-if="selected.length > 0">
-              <span class="text-blue"> {{ $t('selectedRow') }}: </span>
-              <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
-            </q-td>
-            <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
-              {{ $t('infoRow') }}
-            </q-td>
-          </template>
+              <q-space/>
+              <q-btn
+                v-if="hasTarget('mon:vod:ins')"
+                icon="post_add"
+                dense
+                color="secondary"
+                :disable="loading"
+                @click="editRowRefs(null, 'ins')"
+              >
+                <q-tooltip transition-show="rotate" transition-hide="rotate">
+                  {{ $t('newRecord') }}
+                </q-tooltip>
+              </q-btn>
+              <q-btn
+                v-if="hasTarget('mon:vod:upd')"
+                icon="edit"
+                dense
+                color="secondary"
+                class="q-ml-sm"
+                :disable="loading || selected.length === 0"
+                @click="editRowRefs(selected[0], 'upd')"
+              >
+                <q-tooltip transition-show="rotate" transition-hide="rotate">
+                  {{ $t('editRecord') }}
+                </q-tooltip>
+              </q-btn>
+              <q-btn
+                v-if="hasTarget('mon:vod:del')"
+                icon="delete"
+                dense
+                color="secondary"
+                class="q-ml-lg"
+                :disable="loading || selected.length === 0"
+                @click="removeRow(selected[0])"
+              >
+                <q-tooltip transition-show="rotate" transition-hide="rotate">
+                  {{ $t('deletingRecord') }}
+                </q-tooltip>
+              </q-btn>
 
-          <template v-slot:top>
-            <div style="font-size: 1.2em; font-weight: bold">
-              <q-avatar color="black" text-color="white" icon="sailing"></q-avatar>
-              {{ $t('reservoirs') }}
-            </div>
+              <q-input
+                v-model="dte"
+                :label="$t('date')"
+                :model-value="dte"
+                class="q-ml-lg"
+                dense
+                stack-label
+                style="width: 100px"
+                type="date"
+                @update:model-value="fnDt"
+              />
 
-            <q-space />
-            <q-btn
-              v-if="hasTarget('mon:vod:ins')"
-              icon="post_add"
-              dense
-              color="secondary"
-              :disable="loading"
-              @click="editRowRefs(null, 'ins')"
-            >
-              <q-tooltip transition-show="rotate" transition-hide="rotate">
-                {{ $t('newRecord') }}
-              </q-tooltip>
-            </q-btn>
-            <q-btn
-              v-if="hasTarget('mon:vod:upd')"
-              icon="edit"
-              dense
-              color="secondary"
-              class="q-ml-sm"
-              :disable="loading || selected.length === 0"
-              @click="editRowRefs(selected[0], 'upd')"
-            >
-              <q-tooltip transition-show="rotate" transition-hide="rotate">
-                {{ $t('editRecord') }}
-              </q-tooltip>
-            </q-btn>
-            <q-btn
-              v-if="hasTarget('mon:vod:del')"
-              icon="delete"
-              dense
-              color="secondary"
-              class="q-ml-lg"
-              :disable="loading || selected.length === 0"
-              @click="removeRow(selected[0])"
-            >
-              <q-tooltip transition-show="rotate" transition-hide="rotate">
-                {{ $t('deletingRecord') }}
-              </q-tooltip>
-            </q-btn>
-
-            <q-input
-              v-model="dte"
-              :label="$t('date')"
-              :model-value="dte"
-              class="q-ml-lg"
-              dense
-              stack-label
-              style="width: 100px"
-              type="date"
-              @update:model-value="fnDt"
-            />
-
-            <!--  PeriodType  -->
-            <q-select
-              class="q-ml-lg"
-              v-model="periodType"
-              :model-value="periodType"
-              dense
-              options-dense
-              :options="optPeriod"
-              :label="fnReqLabel('periodType')"
-              option-value="id"
-              option-label="text"
-              map-options
-              @update:model-value="fnSelectPeriodType"
-              style="width: 100px"
-            />
+              <!--  PeriodType  -->
+              <q-select
+                class="q-ml-lg"
+                v-model="periodType"
+                :model-value="periodType"
+                dense
+                options-dense
+                :options="optPeriod"
+                :label="fnReqLabel('periodType')"
+                option-value="id"
+                option-label="text"
+                map-options
+                @update:model-value="fnSelectPeriodType"
+                style="width: 100px"
+              />
 
 
-            <q-space />
+              <q-space/>
 
-            <q-input
-              dense
-              debounce="300"
-              color="primary"
-              v-model="filter"
-              :label="$t('txt_filter')"
-            >
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-          </template>
+              <q-input
+                dense
+                debounce="300"
+                color="primary"
+                v-model="filter"
+                :label="$t('txt_filter')"
+              >
+                <template v-slot:append>
+                  <q-icon name="search"/>
+                </template>
+              </q-input>
+            </template>
 
-          <template v-slot:loading>
-            <q-inner-loading showing color="secondary" />
-          </template>
-        </q-table>
-</div>
+            <template v-slot:loading>
+              <q-inner-loading showing color="secondary"/>
+            </template>
+          </q-table>
+        </q-page>
       </template>
 
       <template v-slot:after>
-        <q-banner dense class="text-bold text-white bg-grey-13" inline-actions>
+        <q-banner dense class="text-bold text-white bg-blue-grey-13" inline-actions>
           <div class="row">
             {{ $t('other_props') }}
           </div>
@@ -154,7 +153,6 @@
                 {{ $t('newRecord') }}
               </q-tooltip>
             </q-btn>
-
 
 
             <q-btn
@@ -326,10 +324,10 @@ import UpdaterReservoirMeter from 'pages/reservoirs/UpdaterReservoirMeter.vue'
 
 export default {
   name: 'ReservoirsPage',
-  components: { LifiInfo },
+  components: {LifiInfo},
   props: [],
 
-  data: function() {
+  data: function () {
     return {
       splitterModel: 100,
       cols: [],
@@ -365,13 +363,13 @@ export default {
     },
 
     fnReqLabel(label) {
-      return this.$t(label)+"*"
+      return this.$t(label) + "*"
     },
 
     editRowMeters(mode) {
       let data
 
-      if (mode==="upd") {
+      if (mode === "upd") {
         data = {
           didReservoirHydroLevel: this.recUpd.didReservoirHydroLevel,
           idReservoirHydroLevel: this.recUpd.idReservoirHydroLevel,
@@ -414,12 +412,12 @@ export default {
           //console.info("UpdMeter", r)
           this.loadReservors()
 
-/*
-          this.recUpd.WaterArea = r.WaterArea
-          this.recUpd.WaterAreaFishing = r.WaterAreaFishing
-          this.recUpd.WaterAreaLittoral = r.WaterAreaLittoral
-          this.recUpd.ReservoirHydroLevel = r.ReservoirHydroLevel
-*/
+          /*
+                    this.recUpd.WaterArea = r.WaterArea
+                    this.recUpd.WaterAreaFishing = r.WaterAreaFishing
+                    this.recUpd.WaterAreaLittoral = r.WaterAreaLittoral
+                    this.recUpd.ReservoirHydroLevel = r.ReservoirHydroLevel
+          */
 
         })
     },
@@ -437,7 +435,7 @@ export default {
     fnDt(val) {
       //let dt = date.formatDate(val).isWellFormed()
       //console.log(val.length)
-      if (val.length===10 && date.formatDate(val).isWellFormed()) {
+      if (val.length === 10 && date.formatDate(val).isWellFormed()) {
         this.dte = val
         this.loadReservors()
 
@@ -448,7 +446,7 @@ export default {
     },
 
     editRowRefs(row, mode) {
-      let data = { accessLevel: 1 }
+      let data = {accessLevel: 1}
       if (mode === 'upd') {
         data = extend(true, {}, row)
       }
@@ -588,7 +586,7 @@ export default {
       api
         .post('', {
           method: 'data/loadReservors',
-          params: [{ codTyp: 'Typ_WaterBodies', isRec: false, idObj: 0, dte: this.dte, periodType: this.periodType }]
+          params: [{codTyp: 'Typ_WaterBodies', isRec: false, idObj: 0, dte: this.dte, periodType: this.periodType}]
         })
         .then((response) => {
           let obj = 0
@@ -709,16 +707,16 @@ export default {
 }
 </script>
 
-<!--<style lang="sass">
+<style lang="sass">
 .my-sticky-header-table
   /* height or max-height is important */
-  height: calc(100vh - 190px)
+  height: 90%
 
   .q-table__top,
   .q-table__bottom,
   thead tr:first-child th
-    /* bg color is important for th; just specify one #00b4ff #bdbdcb  #bdbdbd*/
-    background-color: #607d8b
+    /* bg color is important for th; just specify one #00b4ff #bdbdcb  #bdbdbd  #607d8b*/
+    background-color: 00b4ff
 
   thead tr th
     position: sticky
@@ -729,18 +727,20 @@ export default {
 
   /* this is when the loading indicator appears */
 
-  &.q-table&#45;&#45;loading thead tr:last-child th
+
+  &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
   /* prevent scrolling behind sticky top row on focus */
 
+
   tbody
     /* height of all previous header rows */
     scroll-margin-top: 48px
-</style>-->
+</style>
 
-<style scoped>
+<!--<style scoped>
 .sticky-header-table {
   /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
   max-height: 95%;
@@ -764,7 +764,7 @@ export default {
 }
 
 /* Опционально: если у таблицы есть границы, фиксируем их отображение */
-.sticky-header-table .q-table--bordered {
+.sticky-header-table .q-table&#45;&#45;bordered {
   border-top: none;
 }
-</style>
+</style>-->
