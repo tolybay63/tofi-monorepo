@@ -57,9 +57,6 @@ export default {
           this.rows = response.data.result.records
           //console.info("rows life", this.rows)
         })
-        .catch((error) => {
-          notifyError(error.message)
-        })
         .finally(() => {
           this.loading = false
         })

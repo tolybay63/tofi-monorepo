@@ -168,13 +168,7 @@ export default {
           (response) => {
             this.optReservoir = response.data.result.records
             this.optReservoirOrg = response.data.result.records
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -219,15 +213,7 @@ export default {
             err = false
             this.$emit('ok', response.data.result.records[0])
             notifySuccess(this.$t('success'))
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            err = true
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           if (!err) this.hide()
         })
@@ -250,13 +236,7 @@ export default {
         (response) => {
           this.optBranch = response.data.result.records
           this.optBranchOrg = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })

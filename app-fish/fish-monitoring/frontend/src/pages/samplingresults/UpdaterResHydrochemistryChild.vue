@@ -158,7 +158,7 @@
 </template>
 
 <script>
-import {notifyError, notifySuccess} from 'src/utils/jsutils'
+import {notifySuccess} from 'src/utils/jsutils'
 import {api} from "boot/axios.js";
 
 export default {
@@ -224,14 +224,7 @@ export default {
             err = false
             this.$emit('ok', response.data.result.records[0])
             notifySuccess(this.$t('success'))
-          },
-          (error) => {
-            err = true
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           if (!err) this.hide()
         })

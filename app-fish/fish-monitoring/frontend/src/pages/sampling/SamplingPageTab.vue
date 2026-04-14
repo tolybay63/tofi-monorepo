@@ -357,10 +357,6 @@ export default {
               //row[col.name] = null
               this.loadSampling()
             })
-            .catch((error) => {
-              console.log(error.message)
-              notifyError(error.message)
-            })
         })
     },
 
@@ -441,6 +437,8 @@ export default {
                 this.loadSampling()
               },
               (error) => {
+
+/*
                 if (error.response.data.error.message.includes('@')) {
                   let msgs = error.response.data.error.message.split('@')
                   let m1 = msgs[0]
@@ -456,6 +454,8 @@ export default {
                 } else {
                   notifyError(this.$t(error.response.data.error.message))
                 }
+*/
+
               }
             )
         })
@@ -490,6 +490,7 @@ export default {
           this.loadExecutor()
         })
         .catch((error) => {
+/*
           if (error.response.data.error.message.includes('@')) {
             let msgs = error.response.data.error.message.split('@')
             let m1 = this.$t(`${msgs[0]}`)
@@ -499,6 +500,8 @@ export default {
           } else {
             notifyError(this.$t(error.response.data.error.message))
           }
+*/
+
         })
         .finally(() => {
           this.loading2 = false
@@ -517,13 +520,7 @@ export default {
             response.data.result.records.forEach((it) => {
               this.mapExecutor.set(it["id"], it["name"])
             })
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -656,7 +653,8 @@ export default {
               })
       })
       .catch((error) => {
-        console.log(error)
+
+/*
         console.log(error.message)
         if (error.response) {
           if (error.response.data.error.message.includes('@')) {
@@ -669,6 +667,8 @@ export default {
             notifyError(this.$t(error.response.data.error.message))
           }
         }
+*/
+
       })
       .finally(() => {
         this.loading2 = false

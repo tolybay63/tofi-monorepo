@@ -203,14 +203,7 @@ export default {
             err = false
             this.$emit('ok', response.data.result.records[0])
             notifySuccess(this.$t('success'))
-          },
-          (error) => {
-            err = true
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           if (!err) this.hide()
         })
@@ -233,13 +226,7 @@ export default {
         (response) => {
           this.optLinkToSample = response.data.result.records
           this.optLinkToSampleOrg = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })
@@ -254,13 +241,7 @@ export default {
         (response) => {
           this.optExecutor = response.data.result.records
           this.optExecutorOrg = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })

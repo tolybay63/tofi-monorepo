@@ -430,10 +430,6 @@ export default {
             .then(() => {
               props.row[props.col.name] = null
             })
-            .catch((error) => {
-              console.log(error.message)
-              notifyError(error.message)
-            })
         })
     },
 
@@ -512,10 +508,6 @@ export default {
             .then(() => {
               this.loadFishSex(this.form)
             })
-            .catch((error) => {
-              console.log(error.message)
-              notifyError(error.message)
-            })
         })
 
     },
@@ -534,13 +526,7 @@ export default {
             this.cols2 = response.data.result["cols"]
             this.rows1 = response.data.result["rows1"].records
             this.rows2 = response.data.result["rows2"].records
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .then(() => {
           this.loadFishSex(this.form)
         })
@@ -562,11 +548,6 @@ export default {
           this.cols4 = response.data.result["cols"]
           this.rows3 = response.data.result["rows3"].records
           this.rows4 = response.data.result["rows4"].records
-        })
-        .catch(error => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
         })
       .finally(() => {
         this.loading3 = false
@@ -605,13 +586,7 @@ export default {
           (response) => {
             this.optReservoir = response.data.result.records
             this.optReservoirOrg = response.data.result.records
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -695,9 +670,6 @@ export default {
         (response) => {
           this.optPeriod = response.data.result.records
         })
-      .catch(error => {
-        notifyError(error.message)
-      })
       .finally(() => {
         this.loading = false
       })
@@ -712,13 +684,7 @@ export default {
         (response) => {
           this.optBranch = response.data.result.records
           this.optBranchOrg = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })
@@ -733,13 +699,7 @@ export default {
         (response) => {
           this.optTypeOfFish = response.data.result.records
           this.optTypeOfFishOrg = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })

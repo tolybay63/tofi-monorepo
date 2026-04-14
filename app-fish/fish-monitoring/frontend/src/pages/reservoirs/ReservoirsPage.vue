@@ -513,13 +513,6 @@ export default {
               this.selected = []
               this.updateSelected()
             })
-            .catch((error) => {
-              console.log(error.message)
-              if (error.response.data.error)
-                notifyError(error.response.data.error.message)
-              else
-                notifyError(error.message)
-            })
         })
         .onCancel(() => {
           notifyInfo(this.$t('canceled'))
@@ -638,9 +631,6 @@ export default {
         (response) => {
           this.optPeriod = response.data.result.records
         })
-      .catch(error => {
-        notifyError(error.message)
-      })
       .finally(() => {
         this.loading = false
       })
@@ -653,13 +643,7 @@ export default {
       .then(
         (response) => {
           this.optFvReservoirType = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
       })
     //
@@ -671,13 +655,7 @@ export default {
       .then(
         (response) => {
           this.optFvReservoirStatus = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
       })
     //
@@ -689,13 +667,7 @@ export default {
       .then(
         (response) => {
           this.optFvFishFarmingType = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loadReservors()
       })
@@ -728,11 +700,13 @@ export default {
   /* this is when the loading indicator appears */
 
 
+
   &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
   /* prevent scrolling behind sticky top row on focus */
+
 
 
   tbody

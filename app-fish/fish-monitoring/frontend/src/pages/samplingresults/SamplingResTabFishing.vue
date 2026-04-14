@@ -173,15 +173,7 @@ export default {
                     this.selected = []
                     //this.splitterModel = 100
                   }
-                },
-                (error) => {
-                  //console.log(error.message)
-                  let msg = error.message
-                  if (error.response) msg = error.response.data.error.message
-                  notifyError(msg)
-
-                }
-              )
+                })
           }
         )
     },
@@ -197,17 +189,19 @@ export default {
           this.rows = response.data.result.records
           //console.info("rows child", this.rows)
         })
-        .catch((error) => {
-          if (error.response.data.error.message.includes('@')) {
-            let msgs = error.response.data.error.message.split('@')
-            let m1 = this.$t(`${msgs[0]}`)
-            let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
-            let msg = m1 + m2
-            notifyError(msg)
-          } else {
-            notifyError(this.$t(error.response.data.error.message))
-          }
-        })
+        /*
+                .catch((error) => {
+                  if (error.response.data.error.message.includes('@')) {
+                    let msgs = error.response.data.error.message.split('@')
+                    let m1 = this.$t(`${msgs[0]}`)
+                    let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
+                    let msg = m1 + m2
+                    notifyError(msg)
+                  } else {
+                    notifyError(this.$t(error.response.data.error.message))
+                  }
+                })
+        */
         .finally(() => {
           this.loading = false
         })
@@ -284,13 +278,7 @@ export default {
             response.data.result.records.forEach((it) => {
               this.mapTypeOfFish.set(it["id"], it["name"])
             })
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -305,11 +293,6 @@ export default {
         })
         .then((response) => {
           this.mapFV = response.data.result
-        })
-        .catch((error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
         })
     }
     ,

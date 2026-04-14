@@ -114,7 +114,7 @@ export default {
           (error) => {
             //console.log("error.response.data=>>>", error.response.data.error.message)
             err = true
-            if (error.response.data.error.message.includes('@')) {
+/*            if (error.response.data.error.message.includes('@')) {
               let msgs = error.response.data.error.message.split('@')
               let m1 = this.$t(`${msgs[0]}`)
               let m2 = msgs.length > 1 ? ': [' + msgs[1] + ']' : ''
@@ -122,7 +122,7 @@ export default {
               notifyError(msg)
             } else {
               notifyError(this.$t(error.response.data.error.message))
-            }
+            }*/
           }
         )
         .finally(() => {
