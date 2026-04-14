@@ -137,6 +137,9 @@ export default {
   invalidLifeDoc: "The date of approval cannot be later than the date of the validity period",
   fish_model: "Fisheries stock assessment model",
 
+  fkError: "There is a link to the recording",
+  refTable: "Refers to a table",
+
   nothing_here: "Oops. Nothing Here...",
   home: "Home",
 

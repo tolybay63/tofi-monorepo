@@ -223,6 +223,9 @@ export default {
   gridModeCount: "Quantitative ratio of fish",
   gridModeMassa: "Weight ratio of fish",
 
+  fkError: "There is a link to the recording",
+  refTable: "Refers to a table",
+
   nothing_here: 'Oops. Nothing Here...',
   home: 'Home',
 }

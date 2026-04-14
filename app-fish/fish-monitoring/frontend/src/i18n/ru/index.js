@@ -227,7 +227,8 @@ export default {
   gridModeCount: "Количественное соотношение рыб",
   gridModeMassa: "Весовое соотношение рыб",
 
-
+  fkError: "Существует ссылка на запись",
+  refTable: "Ссылается на таблицу",
 
   nothing_here: 'Упс. Здесь ничего...',
   home: 'Домой',
