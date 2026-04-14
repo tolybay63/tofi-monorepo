@@ -680,15 +680,11 @@ export default {
 </script>
 
 <style lang="sass">
-.my-sticky-header-table
+.sticky-header-table
   /* height or max-height is important */
-  height: 90%
-
-  .q-table__top,
-  .q-table__bottom,
-  thead tr:first-child th
-    /* bg color is important for th; just specify one #00b4ff #bdbdcb  #bdbdbd  #607d8b*/
-    background-color: 00b4ff
+  height: calc(100vh - 140px)
+  /* bg color is important for th; just specify one #bdbdbd #607d8b */
+  background-color: #607d8b
 
   thead tr th
     position: sticky
@@ -697,21 +693,15 @@ export default {
   thead tr:first-child th
     top: 0
 
-  /* this is when the loading indicator appears */
-
-
-
   &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
   /* prevent scrolling behind sticky top row on focus */
-
-
-
   tbody
     /* height of all previous header rows */
     scroll-margin-top: 48px
+
 </style>
 
 <!--<style scoped>

@@ -320,8 +320,6 @@ export default {
   /* height or max-height is important */
   height: calc(100vh - 190px)
 
-  .q-table__top,
-  .q-table__bottom,
   thead tr:first-child th
     /* bg color is important for th; just specify one  #bdbdbd*/
     background-color: #607d8b
