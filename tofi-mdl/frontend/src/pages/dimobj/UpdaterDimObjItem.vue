@@ -1241,7 +1241,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadCompFor_11",
+            method: "dimobjitem/loadCompFor_11",
             params: [doit, prop],
           })
           .then((response) => {
@@ -1273,7 +1273,7 @@ export default {
 
       api
           .post("", {
-            method: "dimobj/loadValueOfProp",
+            method: "dimobjitem/loadValueOfProp",
             params: [doit, prop, parent, linkType],
           })
           .then((response) => {
@@ -1318,7 +1318,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadValueOfProp_7",
+            method: "dimobjitem/loadValueOfProp_7",
             params: [doit, prop, rtmORrcm, typORrel, linkType],
           })
           .then((response) => {
@@ -1349,7 +1349,7 @@ export default {
 
       api
           .post("", {
-            method: "dimobj/loadProp_10_11",
+            method: "dimobjitem/loadProp_10_11",
             params: [doit, rtmORrcm, parent, linkType],
           })
           .then((response) => {
@@ -1372,7 +1372,7 @@ export default {
 
       api
           .post("", {
-            method: "dimobj/loadProp_6",
+            method: "dimobjitem/loadProp_6",
             params: [memberType, typORrel, doit, parent],
           })
           .then((response) => {
@@ -1395,7 +1395,7 @@ export default {
 
       api
           .post("", {
-            method: "dimobj/loadProp",
+            method: "dimobjitem/loadProp",
             params: [doit, parent, linkType],
           })
           .then((response) => {
@@ -1418,7 +1418,7 @@ export default {
 
       api
           .post("", {
-            method: "dimobj/loadTypForSelect",
+            method: "dimobjitem/loadTypForSelect",
             params: [relTyp, parent, doit, linkType],
           })
           .then((response) => {
@@ -1439,7 +1439,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadRelTypMember",
+            method: "dimobjitem/loadRelTypMember",
             params: [memberType, relTyp, parent, linkType],
           })
           .then((response) => {
@@ -1460,7 +1460,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadRelClsMember",
+            method: "dimobjitem/loadRelClsMember",
             params: [memberType, relclsORrelTyp, parent, linkType],
           })
           .then((response) => {
@@ -1481,7 +1481,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadClsForSelect",
+            method: "dimobjitem/loadClsForSelect",
             params: [typ],
           })
           .then((response) => {
@@ -1502,7 +1502,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadRelTypForSelect",
+            method: "dimobjitem/loadRelTypForSelect",
             params: [doit, parent, linkType],
           })
           .then((response) => {
@@ -1523,7 +1523,7 @@ export default {
       //
       api
           .post("", {
-            method: "dimobj/loadRelClsForSelect",
+            method: "dimobjitem/loadRelClsForSelect",
             params: [reltyp, doit, parent, linkType],
           })
           .then((response) => {
@@ -1569,7 +1569,7 @@ export default {
       api
           .post("", {
             id: this.form.id,
-            method: "dimobj/" + method,
+            method: "dimobjitem/" + method,
             params: [this.form],
           })
           .then(

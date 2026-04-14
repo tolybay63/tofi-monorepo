@@ -590,7 +590,7 @@ export default {
           .onOk(() => {
             api
                 .post("", {
-                  method: "dimobj/deleteDOIprop",
+                  method: "dimobjitem/deleteDOIprop",
                   params: [rec.id],
                 })
                 .then(
@@ -708,7 +708,7 @@ export default {
           .onOk(() => {
             api
                 .post("", {
-                  method: "dimobj/deleteDOI",
+                  method: "dimobjitem/deleteDOI",
                   params: [rec.id],
                 })
                 .then(
