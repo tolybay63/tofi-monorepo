@@ -183,6 +183,8 @@ export default {
             })
             .catch((error) => {
               //console.log(error.message)
+
+/*
               if (error.response.data.error.message.includes('@')) {
                 let msgs = error.response.data.error.message.split('@')
                 let m1 = msgs[0]
@@ -198,6 +200,7 @@ export default {
               } else {
                 notifyError(this.$t(error.response.data.error.message))
               }
+*/
             })
         })
         .onCancel(() => {
@@ -215,13 +218,7 @@ export default {
         .then(
           (response) => {
             this.rows = response.data.result.records
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -287,13 +284,7 @@ export default {
           response.data.result.records.forEach((it) => {
             this.mapBranch.set(it["id"], it["name"])
           })
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })
@@ -309,13 +300,7 @@ export default {
           response.data.result.records.forEach((it) => {
             this.mapReservoir.set(it["id"], it["name"])
           })
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })

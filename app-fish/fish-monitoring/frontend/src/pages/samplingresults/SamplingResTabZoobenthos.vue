@@ -14,7 +14,7 @@
     >
       <template v-slot:top>
         <div style="font-size: 1.2em; font-weight: bold">
-          <q-avatar color="black" text-color="white" icon="free_cancellation"> </q-avatar>
+          <q-avatar color="black" text-color="white" icon="free_cancellation"></q-avatar>
           {{ $t('researchResults') }}
         </div>
       </template>
@@ -148,11 +148,6 @@ export default {
             .then(() => {
               this.loadData(this.obj)
             })
-            .catch((error) => {
-              let msg = error.message
-              if (error.response) msg = error.response.data.error.message
-              notifyError(msg)
-            })
         })
     },
 
@@ -166,9 +161,6 @@ export default {
         .then((response) => {
           this.rows = response.data.result.records
           //console.info("rows", this.rows)
-        })
-        .catch((error) => {
-          console.error(error.message)
         })
         .finally(() => {
           this.loading = false

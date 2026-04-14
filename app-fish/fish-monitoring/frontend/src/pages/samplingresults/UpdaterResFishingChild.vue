@@ -200,14 +200,7 @@ export default {
             err = false
             this.$emit('ok', response.data.result.records[0])
             notifySuccess(this.$t('success'))
-          },
-          (error) => {
-            err = true
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           if (!err) this.hide()
         })
@@ -253,11 +246,6 @@ export default {
           .then((response) => {
             this.optFvFishGender = response.data.result.records
           })
-      })
-      .catch((error) => {
-        let msg = error.message
-        if (error.response) msg = this.$t(error.response.data.error.message)
-        notifyError(msg)
       })
       .finally(() => {
         this.loading = false

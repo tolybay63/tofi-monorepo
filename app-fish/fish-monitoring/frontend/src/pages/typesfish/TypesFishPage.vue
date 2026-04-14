@@ -193,6 +193,7 @@ export default defineComponent({
             })
         })
         .catch((error) => {
+/*
           let msg = error.message
           if (error.response) {
             if (error.response.data.error.message.includes('@')) {
@@ -207,6 +208,7 @@ export default defineComponent({
           } else {
             notifyError(msg)
           }
+*/
         })
         .finally(() => {
           //setTimeout(()=> {
@@ -339,13 +341,6 @@ export default defineComponent({
               this.loadFishFamily()
               this.selected = []
             })
-            .catch((error) => {
-              console.log(error.message)
-              if (error.response.data.error)
-                  notifyError(error.response.data.error.message)
-              else
-                  notifyError(this.$t("hasChild"))
-            })
         })
         .onCancel(() => {
           notifyInfo(this.$t('canceled'))
@@ -364,13 +359,7 @@ export default defineComponent({
       .then(
         (response) => {
           this.cls = response.data.result
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.visible = false
       })

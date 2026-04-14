@@ -86,7 +86,7 @@ export default {
         .then(() => {
           this.tab = ref(this.rows[0].cod)
         })
-        .catch((error) => {
+/*        .catch((error) => {
           //console.info(error.message);
           if (error.response.data.error.message.includes('@')) {
             let msgs = error.response.data.error.message.split('@')
@@ -97,7 +97,7 @@ export default {
           } else {
             notifyError(this.$t(error.response.data.error.message))
           }
-        })
+        })*/
         .finally(() => {
           this.loading = false
         })

@@ -259,13 +259,7 @@ export default {
           (response) => {
             this.optDistrict = response.data.result.records
             this.optDistrictOrg = response.data.result.records
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -424,6 +418,7 @@ export default {
           (error) => {
             //console.log("error.response.data=>>>", error.response.data.error.message)
             err = true
+/*
             if (error.response.data.error.message.includes('@')) {
               let msgs = error.response.data.error.message.split('@')
               let m1 = this.$t(`${msgs[0]}`)
@@ -433,12 +428,6 @@ export default {
             } else {
               notifyError(this.$t(error.response.data.error.message))
             }
-
-            /*
-            let msg = error.message;
-            if (error.response)
-              msg = this.$t(error.response.data.error.message);
-            notifyError(msg);
 */
           }
         )
@@ -464,13 +453,7 @@ export default {
       .then(
         (response) => {
           this.optCls = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })
@@ -486,13 +469,7 @@ export default {
         (response) => {
           this.optRegion = response.data.result.records
           this.optRegionOrg = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })
@@ -507,13 +484,7 @@ export default {
         (response) => {
           this.optBranch = response.data.result.records
           this.optBranchOrg = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })
@@ -527,13 +498,7 @@ export default {
       .then(
         (response) => {
           this.optFvReservoirType = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })
@@ -547,13 +512,7 @@ export default {
       .then(
         (response) => {
           this.optFvReservoirStatus = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })
@@ -568,13 +527,7 @@ export default {
         (response) => {
           this.optFvFishFarmingType = response.data.result.records
           //console.info("this.optFvFishFarmingType", this.optFvFishFarmingType)
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })

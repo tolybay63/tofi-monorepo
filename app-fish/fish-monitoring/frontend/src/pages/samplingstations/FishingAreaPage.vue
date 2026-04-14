@@ -2,6 +2,7 @@
   <div class="q-pa-none" style="height: calc(100vh - 200px); width: 100%">
     <q-table
       class="sticky-header-table"
+      style="height: 100%; width: 100%"
       color="primary"
       dense
       card-class="bg-amber-1 text-brown"
@@ -182,6 +183,7 @@ export default {
             })
             .catch((error) => {
               //console.log(error.message)
+/*
               if (error.response.data.error.message.includes('@')) {
                 let msgs = error.response.data.error.message.split('@')
                 let m1 = msgs[0]
@@ -197,6 +199,8 @@ export default {
               } else {
                 notifyError(this.$t(error.response.data.error.message))
               }
+*/
+
             })
         })
         .onCancel(() => {
@@ -215,13 +219,7 @@ export default {
           (response) => {
             this.rows = response.data.result.records
             //console.info("this.rows", this.rows)
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -288,13 +286,7 @@ export default {
             this.mapBranch.set(it["id"], it["name"])
           })
           //console.info("this.mapBranch", this.mapBranch)
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .then(()=> {
         api
           .post('', {
@@ -307,13 +299,7 @@ export default {
                 this.mapReservoir.set(it["id"], it["name"])
               })
               //console.info("this.mapReservoir", this.mapReservoir)
-            },
-            (error) => {
-              let msg = error.message
-              if (error.response) msg = this.$t(error.response.data.error.message)
-              notifyError(msg)
-            }
-          )
+            })
           .then(()=> {
             this.loadFishingArea()
           })
@@ -327,15 +313,15 @@ export default {
 }
 </script>
 
-<!--<style lang="sass">
-.my-sticky-header-table
+<style lang="sass">
+.sticky-header-table
   /* height or max-height is important */
   height: calc(100vh - 190px)
 
   .q-table__top,
   .q-table__bottom,
   thead tr:first-child th
-    /* bg color is important for th; just specify one */
+    /* bg color is important for th; just specify one  #607d8b*/
     background-color: #bdbdbd
 
   thead tr th
@@ -345,7 +331,7 @@ export default {
     top: 0
 
   /* this is when the loading indicator appears */
-  &.q-table&#45;&#45;loading thead tr:last-child th
+  &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
@@ -353,9 +339,9 @@ export default {
   tbody
     /* height of all previous header rows */
     scroll-margin-top: 48px
-</style>-->
+</style>
 
-<style scoped>
+<!--<style scoped>
 .sticky-header-table {
   /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
   max-height: 100%;
@@ -379,7 +365,7 @@ export default {
 }
 
 /* Опционально: если у таблицы есть границы, фиксируем их отображение */
-.sticky-header-table .q-table--bordered {
+.sticky-header-table .q-table&#45;&#45;bordered {
   border-top: none;
 }
-</style>
+</style>-->

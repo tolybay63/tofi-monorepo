@@ -188,13 +188,7 @@ export default {
           (response) => {
             this.optReservoir = response.data.result.records
             this.optReservoirOrg = response.data.result.records
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -243,6 +237,7 @@ export default {
           (error) => {
             //console.log("error.response.data=>>>", error.response.data.error.message)
             err = true
+/*
             if (error.response.data.error.message.includes('@')) {
               let msgs = error.response.data.error.message.split('@')
               let m1 = this.$t(`${msgs[0]}`)
@@ -252,6 +247,7 @@ export default {
             } else {
               notifyError(this.$t(error.response.data.error.message))
             }
+*/
           }
         )
         .finally(() => {
@@ -276,13 +272,7 @@ export default {
         (response) => {
           this.optBranch = response.data.result.records
           this.optBranchOrg = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })
@@ -296,13 +286,7 @@ export default {
       .then(
         (response) => {
           this.optTypeOfFish = pack( response.data.result.records, "id")
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
+        })
       .finally(() => {
         this.loading = false
       })

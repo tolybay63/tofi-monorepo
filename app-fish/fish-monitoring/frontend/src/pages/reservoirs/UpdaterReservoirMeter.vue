@@ -218,7 +218,7 @@ export default {
       this.form.mode = this.mode
       if (typeof this.form.periodType === "object")
         this.form.periodType = parseInt(this.form["periodType"]["id"], 10)
-console.log("this.form", this.form)
+//console.log("this.form", this.form)
       api
         .post('', {
           method: 'data/saveReservoirPropertiesMeter',
@@ -233,7 +233,7 @@ console.log("this.form", this.form)
           (error) => {
             //console.log("error.response.data=>>>", error.response.data.error.message)
             err = true
-            if (error.response.data.error.message.includes('@')) {
+/*            if (error.response.data.error.message.includes('@')) {
               let msgs = error.response.data.error.message.split('@')
               let m1 = this.$t(`${msgs[0]}`)
               let m2 = msgs.length > 1 ? ' [' + this.$t(msgs[1]) + ']' : ''
@@ -241,7 +241,7 @@ console.log("this.form", this.form)
               notifyError(msg)
             } else {
               notifyError(this.$t(error.response.data.error.message))
-            }
+            }*/
           }
         )
         .finally(() => {
@@ -267,9 +267,6 @@ console.log("this.form", this.form)
         (response) => {
           this.optPeriodType = response.data.result.records
         })
-      .catch(error => {
-        notifyError(error.message)
-      })
       .finally(() => {
         this.loading = false
       })

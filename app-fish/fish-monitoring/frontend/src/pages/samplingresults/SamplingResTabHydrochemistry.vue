@@ -249,13 +249,7 @@ export default {
             .then(
               () => {
                 this.form = {}
-              },
-              (error) => {
-                let msg = error.message
-                if (error.response) msg = error.response.data.error.message
-                notifyError(msg)
-              }
-            )
+              })
         })
     },
 
@@ -271,6 +265,7 @@ export default {
           //console.info("rows child", this.form)
         })
         .catch((error) => {
+/*
           if (error.response.data.error.message.includes('@')) {
             let msgs = error.response.data.error.message.split('@')
             let m1 = this.$t(`${msgs[0]}`)
@@ -280,6 +275,7 @@ export default {
           } else {
             notifyError(this.$t(error.response.data.error.message))
           }
+*/
         })
         .finally(() => {
           this.loading = false

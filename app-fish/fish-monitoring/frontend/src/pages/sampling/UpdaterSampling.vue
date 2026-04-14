@@ -340,13 +340,7 @@ export default {
           (response) => {
             this.optReservoir = response.data.result.records
             this.optReservoirOrg = response.data.result.records
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -364,13 +358,7 @@ export default {
             this.optAreaSampling = response.data.result.records
             this.optAreaSamplingOrg = response.data.result.records
             //console.info("optAreaSampling", this.optAreaSampling)
-          },
-          (error) => {
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           this.loading = false
         })
@@ -423,14 +411,7 @@ export default {
             err = false
             this.$emit('ok', response.data.result.rows.records[0])
             notifySuccess(this.$t('success'))
-          },
-          (error) => {
-            err = true
-            let msg = error.message
-            if (error.response) msg = this.$t(error.response.data.error.message)
-            notifyError(msg)
-          }
-        )
+          })
         .finally(() => {
           if (!err) this.hide()
         })
@@ -453,9 +434,6 @@ export default {
         (response) => {
           this.optPeriod = response.data.result.records
         })
-      .catch(error => {
-        notifyError(error.message)
-      })
       .finally(() => {
         this.loading = false
       })
@@ -471,6 +449,8 @@ export default {
         //console.info("mapMeasure", this.mapMeasure)
       })
       .catch((error) => {
+
+/*
         if (error.response.data.error.message.includes('@')) {
           let msgs = error.response.data.error.message.split('@')
           let m1 = this.$t(`${msgs[0]}`)
@@ -480,6 +460,8 @@ export default {
         } else {
           notifyError(this.$t(error.response.data.error.message))
         }
+*/
+
       })
       .finally(() => {
         this.loading = false
@@ -528,11 +510,6 @@ export default {
                 this.optFishGearOrg = response.data.result.records
               })
           })
-      })
-      .catch((error) => {
-        let msg = error.message
-        if (error.response) msg = this.$t(error.response.data.error.message)
-        notifyError(msg)
       })
       .finally(() => {
         this.loading = false
