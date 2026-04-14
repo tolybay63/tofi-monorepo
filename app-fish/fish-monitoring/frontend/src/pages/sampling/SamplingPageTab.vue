@@ -50,7 +50,7 @@
 
             </div>
 
-            <q-space />
+            <q-space/>
             <q-btn
               v-if="hasTarget(tgIns)"
               icon="post_add"
@@ -95,17 +95,17 @@
             <q-radio v-model="gridMode" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="massa"
                      label="Весовое соотношение" @update:model-value="fnRadio"/>
 
-            <q-space />
+            <q-space/>
 
           </template>
 
           <template v-slot:body="props">
-<!--            <q-tr :props="props" :key="`e_${props.row.index}`">
-              <q-td colspan="100%">
-                <span> {{$t("executor")}}: </span>
-                <span class="text-bold">{{ props.row.nameSampleExecutor }}</span>
-              </q-td>
-            </q-tr>-->
+            <!--            <q-tr :props="props" :key="`e_${props.row.index}`">
+                          <q-td colspan="100%">
+                            <span> {{$t("executor")}}: </span>
+                            <span class="text-bold">{{ props.row.nameSampleExecutor }}</span>
+                          </q-td>
+                        </q-tr>-->
             <q-tr :props="props" :key="`m_${props.row.index}`">
               <q-td>
                 <q-btn
@@ -162,7 +162,7 @@
 
                 <div v-else>
                   <div v-if="col.field==='objFishGear'">
-                  {{ mapFishGear.get(col.value) }}
+                    {{ mapFishGear.get(col.value) }}
                   </div>
                   <div v-else>
                     {{ col.value }}
@@ -239,7 +239,7 @@
 <script>
 import {api} from 'boot/axios'
 import UpdaterSampling from 'pages/sampling/UpdaterSampling.vue'
-import {hasTarget, notifyError} from 'src/utils/jsutils'
+import {hasTarget} from 'src/utils/jsutils'
 import {date, extend} from 'quasar'
 import {ref} from 'vue'
 import UpdaterSamplingTab1 from 'pages/sampling/UpdaterSamplingTab1.vue'
@@ -293,7 +293,7 @@ export default {
           componentProps: {
             mode: mode,
             data: {
-              codProp: this.gridMode==="count" ? "Prop_FishRatio" : "Prop_FishRatioWeight",
+              codProp: this.gridMode === "count" ? "Prop_FishRatio" : "Prop_FishRatioWeight",
               prop: parseInt(col.name.split("_")[1], 10),
               colName: col.label,
               periodName: row["periodName"],
@@ -325,8 +325,8 @@ export default {
       else
         msg = msg + ", масса - " + row[col.name]
 
-      let dta= {
-        codProp: this.gridMode==="count" ? "Prop_FishRatio" : "Prop_FishRatioWeight",
+      let dta = {
+        codProp: this.gridMode === "count" ? "Prop_FishRatio" : "Prop_FishRatioWeight",
         prop: parseInt(col.name.split("_")[1], 10),
         periodType: row["periodType"],
         dbeg: row["dbeg"],
@@ -376,8 +376,10 @@ export default {
     },
 
     editObjProps(row, mode) {
-      let data = { cls: this.cls, dte: date.formatDate(Date.now(), 'YYYY-MM-DD'),
-        gridMode: this.gridMode, periodType: 71 }
+      let data = {
+        cls: this.cls, dte: date.formatDate(Date.now(), 'YYYY-MM-DD'),
+        gridMode: this.gridMode, periodType: 71
+      }
       if (mode === 'upd') {
         extend(true, data, row)
         data.dte = data.dbeg
@@ -436,25 +438,25 @@ export default {
                 this.selected2 = []
                 this.loadSampling()
               },
-              (error) => {
+              () => {
 
-/*
-                if (error.response.data.error.message.includes('@')) {
-                  let msgs = error.response.data.error.message.split('@')
-                  let m1 = msgs[0]
-                  let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
-                  let msg = ''
-                  if (m1 === 'existsSampling') {
-                    msg = `
-                      Результаты забора проб:
-                      Существует - ${m2}
-                      `
-                  }
-                  notifyError(msg)
-                } else {
-                  notifyError(this.$t(error.response.data.error.message))
-                }
-*/
+                /*
+                                if (error.response.data.error.message.includes('@')) {
+                                  let msgs = error.response.data.error.message.split('@')
+                                  let m1 = msgs[0]
+                                  let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
+                                  let msg = ''
+                                  if (m1 === 'existsSampling') {
+                                    msg = `
+                                      Результаты забора проб:
+                                      Существует - ${m2}
+                                      `
+                                  }
+                                  notifyError(msg)
+                                } else {
+                                  notifyError(this.$t(error.response.data.error.message))
+                                }
+                */
 
               }
             )
@@ -483,24 +485,24 @@ export default {
           response.data.result.cols.forEach((col) => {
             this.cols2.push(col)
           })
-          this.rows2 = response.data.result.rows.records
+          this.rows2 = response.data.result.rows["records"]
           //console.info("rows2", this.rows2)
         })
         .then(() => {
           this.loadExecutor()
         })
-        .catch((error) => {
-/*
-          if (error.response.data.error.message.includes('@')) {
-            let msgs = error.response.data.error.message.split('@')
-            let m1 = this.$t(`${msgs[0]}`)
-            let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
-            let msg = m1 + m2
-            notifyError(msg)
-          } else {
-            notifyError(this.$t(error.response.data.error.message))
-          }
-*/
+        .catch(() => {
+          /*
+                    if (error.response.data.error.message.includes('@')) {
+                      let msgs = error.response.data.error.message.split('@')
+                      let m1 = this.$t(`${msgs[0]}`)
+                      let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
+                      let msg = m1 + m2
+                      notifyError(msg)
+                    } else {
+                      notifyError(this.$t(error.response.data.error.message))
+                    }
+          */
 
         })
         .finally(() => {
@@ -517,7 +519,7 @@ export default {
         })
         .then(
           (response) => {
-            response.data.result.records.forEach((it) => {
+            response.data.result["records"].forEach((it) => {
               this.mapExecutor.set(it["id"], it["name"])
             })
           })
@@ -527,14 +529,14 @@ export default {
     },
 
     infoSelected2(row) {
-      return ' ' + row["nameFishZone"] + ' (' + row["periodName"]+ ')'
+      return ' ' + row["nameFishZone"] + ' (' + row["periodName"] + ')'
     },
 
     getColumns1() {
       return [
         {
           name: 'periodName',
-          label: this.$t('periodType')+"*",
+          label: this.$t('periodType') + "*",
           field: 'periodName',
           align: 'left',
           classes: 'bg-blue-grey-1',
@@ -542,7 +544,7 @@ export default {
         },
         {
           name: 'nameFishZone',
-          label: this.$t('fishArea')+"*",
+          label: this.$t('fishArea') + "*",
           field: 'nameFishZone',
           align: 'left',
           sortable: true,
@@ -551,7 +553,7 @@ export default {
         },
         {
           name: 'objFishGear',
-          label: this.$t('FishGear')+"*",
+          label: this.$t('FishGear') + "*",
           field: 'objFishGear',
           align: 'left',
           classes: 'bg-blue-grey-1',
@@ -569,7 +571,8 @@ export default {
     },
   },
 
-  mounted() {},
+  mounted() {
+  },
 
   created() {
     this.loading2 = true
@@ -583,7 +586,7 @@ export default {
         this.codCls = response.data.result
         //console.log('codCls', this.codCls)
       })
-      .then(()=> {
+      .then(() => {
         if (this.codCls === "Cls_SamplingFishing") {
           this.tgIns = 'mon:zp:vr:ins'
           this.tgUpd = 'mon:zp:vr:upd'
@@ -615,7 +618,7 @@ export default {
           this.tgDel = 'mon:zp:him:del'
         }
       })
-      .then(()=> {
+      .then(() => {
         api
           .post('', {
             method: 'data/measureInfo',
@@ -632,7 +635,7 @@ export default {
                 params: ['Cls_Branch'],
               })
               .then((response) => {
-                this.optBranch = response.data.result.records
+                this.optBranch = response.data.result["records"]
               })
               .then(() => {
                 api
@@ -641,33 +644,33 @@ export default {
                     params: ['Cls_FishGearTrade'],
                   })
                   .then((response) => {
-                    response.data.result.records.forEach((it) => {
+                    response.data.result["records"].forEach((it) => {
                       this.mapFishGear.set(it["id"], it["name"])
                     })
                     //console.info("this.mapFishGear", this.mapFishGear)
                   })
               })
-              .then(()=> {
-                  this.loadSampling()
-                })
+              .then(() => {
+                this.loadSampling()
               })
+          })
       })
-      .catch((error) => {
+      .catch(() => {
 
-/*
-        console.log(error.message)
-        if (error.response) {
-          if (error.response.data.error.message.includes('@')) {
-            let msgs = error.response.data.error.message.split('@')
-            let m1 = this.$t(`${msgs[0]}`)
-            let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
-            let msg = m1 + m2
-            notifyError(msg)
-          } else {
-            notifyError(this.$t(error.response.data.error.message))
-          }
-        }
-*/
+        /*
+                console.log(error.message)
+                if (error.response) {
+                  if (error.response.data.error.message.includes('@')) {
+                    let msgs = error.response.data.error.message.split('@')
+                    let m1 = this.$t(`${msgs[0]}`)
+                    let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
+                    let msg = m1 + m2
+                    notifyError(msg)
+                  } else {
+                    notifyError(this.$t(error.response.data.error.message))
+                  }
+                }
+        */
 
       })
       .finally(() => {
@@ -689,15 +692,18 @@ export default {
   thead tr th
     position: sticky
     z-index: 1
+
   thead tr:first-child th
     top: 0
 
   /* this is when the loading indicator appears */
+
   &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
   /* prevent scrolling behind sticky top row on focus */
+
   tbody
     /* height of all previous header rows */
     scroll-margin-top: 48px
