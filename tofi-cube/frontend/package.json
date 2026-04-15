@@ -2,8 +2,8 @@
   "name": "frontend",
   "version": "0.0.1",
   "description": "A Quasar Project",
-  "productName": "Quasar App",
-  "author": "tolybay-zh <Tolybay.Kuanov <tolybay.zh.k@gmail.com>>",
+  "productName": "Fish Cube",
+  "author": "tolybay-zh <Tolybay.Kuanov <tolybay.zh@gmail.com>>",
   "type": "module",
   "private": true,
   "scripts": {
@@ -15,23 +15,21 @@
     "postinstall": "quasar prepare"
   },
   "dependencies": {
-    "@quasar/extras": "^1.17.0",
-    "axios": "^1.14.0",
+    "@quasar/extras": "^1.18.0",
+    "axios": "^1.15.0",
     "pinia": "^3.0.4",
-    "quasar": "^2.19.2",
-    "vue": "^3.5.31",
-    "vue-i18n": "^11.3.0",
-    "vue-router": "^4.6.4"
+    "quasar": "^2.19.3",
+    "vue": "^3.5.32",
+    "vue-i18n": "^11.3.2",
+    "vue-router": "^5.0.4"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
-    "@intlify/unplugin-vue-i18n": "^6.0.8",
-    "@quasar/app-vite": "^2.5.4",
-    "@vue/eslint-config-prettier": "^10.2.0",
-    "autoprefixer": "^10.4.27",
-    "postcss": "^8.5.8",
-    "prettier": "^3.8.1",
-    "vite": "^8.0.3"
+    "@intlify/unplugin-vue-i18n": "^11.0.7",
+    "@quasar/app-vite": "^2.6.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.9",
+    "prettier": "^3.8.3",
+    "vite": "^8.0.8"
   },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
