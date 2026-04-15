@@ -2,7 +2,6 @@
   <div class="no-padding no-margin">
     <q-splitter
       v-model="splitterModel2"
-      :model-value="splitterModel2"
       :limits="[80, 100]"
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
@@ -173,7 +172,12 @@
             </q-tr>
           </template>
 
+          <template #loading>
+            <q-inner-loading showing color="secondary"></q-inner-loading>
+          </template>
+
         </q-table>
+
       </template>
 
       <template v-slot:after>
@@ -674,7 +678,9 @@ export default {
 
       })
       .finally(() => {
-        this.loading2 = false
+        //setTimeout(()=> {
+          this.loading2 = false
+        //}, 500)
       })
   },
 }

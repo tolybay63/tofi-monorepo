@@ -133,7 +133,7 @@ export default defineConfig((ctx) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: ["Dialog", "Notify", "LocalStorage", 'LoadingBar'],
+      plugins: ["Dialog", "Notify", "LocalStorage", 'LoadingBar', 'Loading'],
 
     },
 
