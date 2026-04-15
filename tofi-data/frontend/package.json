@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "TOFI Data & Quasar Project",
   "productName": "TOFI Data",
-  "author": "Tolybay.Kuanov <tolybay_zh.k@gmail.com>",
+  "author": "Tolybay.Kuanov <tolybay_zh@gmail.com>",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,21 +14,21 @@
     "build": "quasar build"
   },
   "dependencies": {
-    "@quasar/extras": "^1.17.0",
-    "axios": "^1.14.0",
+    "@quasar/extras": "^1.18.0",
+    "axios": "^1.15.0",
     "pinia": "^3.0.4",
-    "quasar": "^2.19.2",
-    "vue": "^3.5.31",
-    "vue-i18n": "^11.3.0",
-    "vue-router": "^4.6.4",
+    "quasar": "^2.19.3",
+    "vue": "^3.5.32",
+    "vue-i18n": "^11.3.2",
+    "vue-router": "^5.0.4",
     "vue3-treeselect": "^0.1.10"
   },
   "devDependencies": {
-    "@intlify/unplugin-vue-i18n": "^6.0.8",
-    "@quasar/app-vite": "^2.5.4",
-    "autoprefixer": "^10.4.27",
-    "postcss": "^8.5.8",
-    "vite": "^8.0.3"
+    "@intlify/unplugin-vue-i18n": "^11.0.7",
+    "@quasar/app-vite": "^2.6.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.9",
+    "vite": "^8.0.8"
   },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",

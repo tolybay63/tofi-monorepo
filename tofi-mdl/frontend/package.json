@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.0.1",
   "description": "TOFI Model & Quasar",
-  "productName": "TOFI Model",
+  "productName": "Fish Model",
   "author": "Tolybay Kuanov <tolybay.zh@gmail.com>",
   "type": "module",
   "private": true,
