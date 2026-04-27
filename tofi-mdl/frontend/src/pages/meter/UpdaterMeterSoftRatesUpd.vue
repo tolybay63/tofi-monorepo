@@ -149,16 +149,14 @@ const collaps = (item) => {
 };
 
 export default {
-  props: ["meter", "lg", "dense"],
+  props: ["meter", "dense"],
   //components: {QTreeTable},
 
   data() {
     return {
-      lang: this.lg,
       cols: [],
       rows: [],
-      separator: ref("cell"),
-      loading: ref(false),
+      loading: false,
       //
       isExpanded: true,
       currentNode: null,
@@ -184,7 +182,7 @@ export default {
     },
 
     loadData() {
-      this.loading = ref(true);
+      this.loading = true;
       api
         .post("", {
           method: "meterrate/loadMeterSoftForUpd",
@@ -200,7 +198,7 @@ export default {
           notifyError("Для данного измерителя не указаны факторы")
         })
         .finally(() => {
-          this.loading = ref(false);
+          this.loading = false;
         });
     },
 
@@ -237,8 +235,6 @@ export default {
     },
 
     onOKClick() {
-      //this.loading = ref(true)
-
       let dta = [];
       const tt = (node, chks) => {
         if (node.checked) {
@@ -247,9 +243,7 @@ export default {
         let children = node.children;
         if (children.length > 0) {
           children.forEach((ch) => tt(ch, chks));
-        }/* else {
-          return;
-        }*/
+        }
       };
 
       const getCheckeds = (data, chks) => {

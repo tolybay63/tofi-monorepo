@@ -20,7 +20,7 @@ class MeterRateMdbUtils extends EntityMdbUtils {
         this.tableName = tableName
     }
 
-    public Store loadSoftMR(long meter) throws Exception {
+    Store loadSoftMR(long meter) throws Exception {
         UtMeterSoft ut = new UtMeterSoft(mdb, meter)
         Store st = ut.getMeterRatesWithParent()
         mdb.resolveDicts(st)
@@ -28,12 +28,12 @@ class MeterRateMdbUtils extends EntityMdbUtils {
         return st
     }
 
-    public void createAllSoftMR(long meter) throws Exception {
+    void createAllSoftMR(long meter) throws Exception {
         UtMeterSoft ut = new UtMeterSoft(mdb, meter, true)
         ut.createMeterRates(null)
     }
 
-    public void deleteSoftMR(Map<String, Object> params) throws Exception {
+    void deleteSoftMR(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"))
         long mr = UtCnv.toLong(rec.get("id"))
         try {
@@ -45,7 +45,7 @@ class MeterRateMdbUtils extends EntityMdbUtils {
         }
     }
 
-    public void deleteAllMR(long meter) throws Exception {
+    void deleteAllMR(long meter) throws Exception {
         try {
             mdb.execQuery("""
                 delete from MeterRateFV where meterrate in (
@@ -66,14 +66,14 @@ class MeterRateMdbUtils extends EntityMdbUtils {
         }
     }
 
-    public void updateSoftMR(Map<String, Object> params) throws Exception {
+    void updateSoftMR(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"))
         updateEntity(rec)
     }
 
 
     //**********************************************************
-    public Store loadHardMR(long meter) throws Exception {
+    Store loadHardMR(long meter) throws Exception {
         Store st = mdb.createStore("MeterRate")
         mdb.loadQuery(st, """
             select * from MeterRate where meter=:meter order by parent,ord
@@ -83,28 +83,28 @@ class MeterRateMdbUtils extends EntityMdbUtils {
         return st
     }
 
-    public void insertHardMR(Map<String, Object> params) throws Exception {
+    void insertHardMR(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"))
         insertEntity(rec)
     }
 
-    public void updateHardMR(Map<String, Object> params) throws Exception {
+    void updateHardMR(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"))
         updateEntity(rec)
     }
 
-    public void deleteHardMR(Map<String, Object> params) throws Exception {
+    void deleteHardMR(Map<String, Object> params) throws Exception {
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"))
         deleteEntity(rec)
     }
     //
 
-    public Store loadMeterSoftForUpd(long meter) throws Exception {
+    Store loadMeterSoftForUpd(long meter) throws Exception {
         UtMeterSoft utMS = new UtMeterSoft(mdb, meter, true)
         Store stAll = utMS.generateAllMeterRates()
         Store st = utMS.getMeterRatesWithParent()
 
-        //mdb.outTable(st)
+        mdb.outTable(st)
 
         for (StoreRecord r1 : st) {
             Stream<StoreRecord> fltAll = stAll.getRecords().stream().filter(r -> {
@@ -123,12 +123,12 @@ class MeterRateMdbUtils extends EntityMdbUtils {
             })
         }
 
-        //mdb.outTable(stAll)
+        mdb.outTable(stAll)
 
         return stAll;
     }
 
-    public Store loadMeterSoftForUpdSave(Map<String, Object> params) throws Exception {
+    Store loadMeterSoftForUpdSave(Map<String, Object> params) throws Exception {
         long meter = UtCnv.toLong(params.get("meter"));
         List<Map<String, Object>> lstCheckeds = (List<Map<String, Object>>) params.get("checkeds");
 
@@ -181,7 +181,7 @@ class MeterRateMdbUtils extends EntityMdbUtils {
         return stRez;
     }
 
-    public void saveMeterSoftRates(Map<String, Object> params) throws Exception {
+    void saveMeterSoftRates(Map<String, Object> params) throws Exception {
         long meter = UtCnv.toLong(params.get("meter"));
         UtMeterSoft utMS = new UtMeterSoft(mdb, meter, true)
         List<Map<String, Object>> lstData = (List<Map<String, Object>>) params.get("data");
