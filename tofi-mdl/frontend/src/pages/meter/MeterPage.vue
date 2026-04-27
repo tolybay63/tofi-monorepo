@@ -1,40 +1,40 @@
 <template>
   <q-page class="q-pa-md" style="height: 100px">
     <q-table
-      class="sticky-header-table"
-      style="height: 100%; width: 100%"
-      color="primary"
-      card-class="bg-amber-1"
-      row-key="id"
       :columns="cols"
-      :rows="rows"
       :dense="dense"
-      :wrap-cells="true"
-      :table-colspan="4"
-      table-header-class="text-bold text-white bg-blue-grey-13"
-      separator="cell"
       :filter="filter"
       :loading="loading"
-      @request="requestData"
-      :rows-per-page-options="[25, 0]"
       :max="pagesNumber"
+      :rows="rows"
+      :rows-per-page-options="[25, 0]"
+      :table-colspan="4"
+      :wrap-cells="true"
+      card-class="bg-amber-1"
+      class="sticky-header-table"
+      color="primary"
+      row-key="id"
       selection="single"
-      v-model:pagination="pagination"
+      separator="cell"
+      style="height: 100%; width: 100%"
+      table-header-class="text-bold text-white bg-blue-grey-13"
+      @request="requestData"
       v-model:selected="selected"
+      v-model:pagination="pagination"
     >
       <template #bottom-row>
-        <q-td colspan="100%" v-if="selected.length > 0">
+        <q-td v-if="selected.length > 0" colspan="100%">
           <span class="text-blue"> {{ $t("selectedRow") }}: </span>
-          <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+          <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
         </q-td>
-        <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+        <q-td v-else-if="rows.length > 0" class="text-bold" colspan="100%">
           {{ $t("infoRow") }}
         </q-td>
       </template>
 
       <template v-slot:top>
         <div style="font-size: 1.2em; font-weight: bold;">
-          <q-avatar color="black" text-color="white" icon="scale"></q-avatar>
+          <q-avatar color="black" icon="scale" text-color="white"></q-avatar>
           {{ $t("meters") }}
         </div>
 
@@ -42,84 +42,84 @@
         <q-btn
           v-if="hasTarget('mdl:mn_ds:meter:ins')"
           :dense="dense"
-          icon="post_add"
-          color="secondary"
           :disable="loading"
+          color="secondary"
+          icon="post_add"
           @click="editRow(null, 'ins')"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("newRecord") }}
           </q-tooltip>
         </q-btn>
         <q-btn
           v-if="hasTarget('mdl:mn_ds:meter:upd')"
           :dense="dense"
-          icon="edit"
-          color="secondary"
-          class="q-ml-sm"
           :disable="loading || selected.length === 0"
+          class="q-ml-sm"
+          color="secondary"
+          icon="edit"
           @click="editRow(selected[0], 'upd')"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("editRecord") }}
           </q-tooltip>
         </q-btn>
         <q-btn
           v-if="hasTarget('mdl:mn_ds:meter:del')"
           :dense="dense"
-          icon="delete"
-          color="red"
-          class="q-ml-sm"
           :disable="loading || selected.length === 0"
+          class="q-ml-sm"
+          color="red"
+          icon="delete"
           @click="removeRow(selected[0])"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("deletingRecord") }}
           </q-tooltip>
         </q-btn>
         <q-btn
           v-if="hasTarget('mdl:mn_ds:meter:sel')"
           :dense="dense"
-          icon="pan_tool_alt"
-          color="secondary"
-          class="q-ml-lg"
           :disable="loading || selected.length === 0"
+          class="q-ml-lg"
+          color="secondary"
+          icon="pan_tool_alt"
           @click="meterChoise"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("chooseRecord") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
+          :dense="dense"
           class="q-ml-lg"
-          icon-right="archive"
           color="secondary"
+          icon-right="archive"
           no-caps
           @click="exportTable"
-          :dense="dense"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("msgToFile") }}
           </q-tooltip>
         </q-btn>
 
         <q-toggle
-          style="margin-left: 10px"
-          :dense="dense"
           v-model="dense"
-          :model-value="dense"
+          :dense="dense"
           :label="$t('isDense')"
+          :model-value="dense"
+          style="margin-left: 10px"
         />
 
         <q-space/>
         <q-input
-          :dense="dense"
-          debounce="300"
-          color="primary"
-          :model-value="filter"
           v-model="filter"
+          :dense="dense"
           :label="$t('txt_filter')"
+          :model-value="filter"
+          color="primary"
+          debounce="300"
         >
           <template v-slot:append>
             <q-icon name="search"/>
@@ -128,7 +128,7 @@
       </template>
 
       <template #loading>
-        <q-inner-loading showing color="secondary"></q-inner-loading>
+        <q-inner-loading color="secondary" showing></q-inner-loading>
       </template>
     </q-table>
   </q-page>
@@ -139,7 +139,7 @@ import {defineComponent, ref} from "vue";
 import {api} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateMeter from "pages/meter/UpdateMeter.vue";
-import {extend, exportFile} from "quasar";
+import {exportFile, extend} from "quasar";
 
 const requestParam = {
   page: 1,
@@ -166,8 +166,37 @@ function wrapCsvValue(val, formatFn) {
 }
 
 export default defineComponent({
+
+  data: function () {
+    return {
+      cols: [],
+      rows: [],
+      filter: "",
+      loading: false,
+      FD_AccessLevel: null,
+      FD_MeterStruct: null,
+
+      pagination: {
+        sortBy: null,
+        descending: false,
+        page: 1,
+        rowsPerPage: 25,
+        rowsNumber: 0,
+        filter: "",
+      },
+      selected: [],
+      meter: 0,
+      dense: true,
+    };
+  },
+
+
   methods: {
     hasTarget,
+
+    infoSelected(row) {
+      return " " + row.cod + " - " + row.name;
+    },
     meterChoise() {
       this.$router["push"]({
         name: "meterSelected",
@@ -254,7 +283,7 @@ export default defineComponent({
             this.pagination.rowsPerPage = meta.limit;
             this.pagination.rowsNumber = meta.total;
 
-            this.selected = ref([]);
+            this.selected = [];
             if (this.meter > 0) {
               let index = this.rows.findIndex((row) => row.id === this.meter);
               this.selected.push(this.rows[index]);
@@ -312,7 +341,7 @@ export default defineComponent({
               () => {
                 //console.log("response=>>>", response.data)
                 this.rows.splice(index, 1);
-                this.selected = ref([]);
+                this.selected = [];
                 notifySuccess(this.$t("success"));
               },
               () => {
@@ -429,29 +458,6 @@ export default defineComponent({
     },
   },
 
-  data: function () {
-    return {
-      cols: [],
-      rows: [],
-      filter: "",
-      loading: false,
-      FD_AccessLevel: null,
-      FD_MeterStruct: null,
-
-      pagination: {
-        sortBy: null,
-        descending: false,
-        page: 1,
-        rowsPerPage: 25,
-        rowsNumber: 0,
-        filter: "",
-      },
-      selected: [],
-      meter: 0,
-      dense: true,
-    };
-  },
-
   created() {
     console.info("Create")
 
@@ -491,13 +497,7 @@ export default defineComponent({
   },
 
 
-  setup() {
-    return {
-      infoSelected(row) {
-        return " " + row.cod + " - " + row.name;
-      },
-    };
-  },
+  setup() {},
 });
 </script>
 
@@ -517,11 +517,13 @@ export default defineComponent({
 
   /* this is when the loading indicator appears */
 
+
   &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
   /* prevent scrolling behind sticky top row on focus */
+
 
   tbody
     /* height of all previous header rows */
