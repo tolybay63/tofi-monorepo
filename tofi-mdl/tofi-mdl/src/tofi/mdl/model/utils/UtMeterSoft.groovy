@@ -207,8 +207,7 @@ class UtMeterSoft {
                             setFv.add(r.getLong("id"))
                         }
                     }
-                    String sFv = String.join(",", UtCnv.toString(setFv)).
-                            replace("[", "").replace("]", "").replace(" ", "")
+                    String sFv = setFv.join(",")
                     rMR.setValue("fvs", sFv)
                     rMR.setValue("sz", setFv.size())
                 }

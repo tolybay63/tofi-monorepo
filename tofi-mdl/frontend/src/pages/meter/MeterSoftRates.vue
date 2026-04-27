@@ -145,7 +145,7 @@ export default defineComponent({
       selected: ref([]),
       currentNode: null,
       itemId: null,
-      FD_AccessLevel: null,
+      FD_AccessLevel: new Map(),
       columns: [],
       table: [],
       separator: "cell",
@@ -160,17 +160,13 @@ export default defineComponent({
   },
 
   created() {
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.columns = this.getColumns();
-
     api
       .post("", {
         method: "dict/load",
         params: [{dict: "FD_AccessLevel"}],
       })
       .then((response) => {
-        this.FD_AccessLevel = new Map();
         response.data.result.records.forEach((it) => {
           this.FD_AccessLevel.set(it["id"], it["text"]);
         })
@@ -204,7 +200,6 @@ export default defineComponent({
           component: UpdaterMeterSoftRatesUpd,
           componentProps: {
             meter: this.meter_id,
-            lg: this.lang,
             dense: true,
           },
         })
