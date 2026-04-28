@@ -113,11 +113,6 @@
               {{ item[cols[1].field] }}
             </td>
 
-            <!--fvs-->
-            <td :data-th="cols[2].name">
-              {{ item[cols[2].field] }}
-            </td>
-
           </tr>
           </tbody>
         </table>
@@ -198,9 +193,7 @@ export default {
           this.sz = response.data.result.records.length;
           this.rows = pack(response.data.result.records, "id");
           expandAll(this.rows);
-
-          console.log("rows", this.rows);
-
+          //console.log("rows", this.rows);
         })
         .catch((error) => {
           console.error(error.message);
@@ -235,11 +228,13 @@ export default {
           headerStyle: "font-size: 1.2em; width: 40%",
         },
 
+/*
         {
           name: "fvs",
           field: "fvs",
           headerStyle: "width: 20%",
         },
+*/
 
       ];
     },
@@ -369,7 +364,7 @@ export default {
   },
 
   created() {
-    console.info("UpdaterMeterSoftRatesUpd")
+    //console.info("UpdaterMeterSoftRatesUpd")
     this.cols = this.getColumns();
     this.loadData();
   },

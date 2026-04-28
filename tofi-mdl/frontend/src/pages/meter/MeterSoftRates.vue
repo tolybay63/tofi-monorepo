@@ -142,7 +142,7 @@ export default defineComponent({
     return {
       isExpanded: true,
       selectedRowID: {},
-      selected: ref([]),
+      selected: [],
       currentNode: null,
       itemId: null,
       FD_AccessLevel: new Map(),
@@ -150,7 +150,6 @@ export default defineComponent({
       table: [],
       separator: "cell",
       meter_id: null,
-      loading: ref(false),
     };
   },
   mounted() {
@@ -227,7 +226,7 @@ export default defineComponent({
       if (this.currentNode.parent > 0) {
         let parentNode = [];
         getParentNode(this.table, this.currentNode.parent, parentNode);
-        console.log("ParentNode-----", parentNode);
+        //console.log("ParentNode-----", parentNode);
         parentName = parentNode[0].fullName;
 
         isChild = true;
