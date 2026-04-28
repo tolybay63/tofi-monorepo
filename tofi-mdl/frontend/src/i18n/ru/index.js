@@ -72,6 +72,7 @@ export default {
   notAccess: "У вас отсутствуют права для выполнения данной операции",
   notAccessService: "У вас отсутствуют права для входа в данный сервис",
   invalid_user_passwd: "Имя пользователя или пароль не верные",
+  lifetime_expired: "Время жизни токена истекло",
 
   networkError: "Ошибка сети",
   NetworkError: "Ошибка сети",
