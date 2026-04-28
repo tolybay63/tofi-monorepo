@@ -28,7 +28,7 @@ public class BaseTofiAuthProcessor extends BaseComp implements AuthProcessor {
         Map<String, Object> fullAttrs = z.getUserInfo(token.getUsername(), token.getPasswd());
 
         if (fullAttrs == null || fullAttrs.isEmpty()) {
-            throw new XError("msg_invalid_user_passwd");
+            throw new XError("invalid_user_passwd");
         }
 
         // 2. Генерируем JWT, упаковывая туда ВСЕ атрибуты

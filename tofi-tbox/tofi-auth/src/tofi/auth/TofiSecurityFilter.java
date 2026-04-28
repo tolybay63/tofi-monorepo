@@ -44,8 +44,7 @@ public class TofiSecurityFilter extends BaseFilter {
 
         // 3. Если пользователь не опознан и путь защищенный — блокируем доступ
         if (normPath.startsWith("api") || normPath.startsWith("meta") ||
-                normPath.startsWith("nsi") || normPath.startsWith("admin") ||
-                normPath.startsWith("report")) {
+                normPath.startsWith("nsi") || normPath.startsWith("admin")) {
             // Возвращаем 401 ошибку, чтобы фронтенд (Quasar) мог сделать редирект на логин
             //throw new XError("401: Unauthorized", 401);
             throw new XError("lifetime_expired");
