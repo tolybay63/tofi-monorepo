@@ -79,12 +79,23 @@ class UtMeterSoft {
         for (int l = lev; l > 0; l--) {
             for (StoreRecord r in dsRes) {
                 if (r.getInt("sz") == lev) {
+
+/*
                     List<Long> arr1 = rec.getString("fvs").split(",") as List<Long>
                     List<Long> arr0 = r.getString("fvs").split(",") as List<Long>
                     if (arr1.containsAll(arr0)) {
                         rec.set("parent", r.getLong("id"))
                         return rec
                     }
+*/
+
+                    String fvs1 = rec.getString("fvs")
+                    String fvs0 = r.getString("fvs")
+                    if (fvs1.contains(fvs0)) {
+                        rec.set("parent", r.getLong("id"))
+                        return rec
+                    }
+
                 }
             }
         }
