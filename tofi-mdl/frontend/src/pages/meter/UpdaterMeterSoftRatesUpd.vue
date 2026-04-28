@@ -112,6 +112,12 @@
             <td :data-th="cols[1].name">
               {{ item[cols[1].field] }}
             </td>
+
+            <!--fvs-->
+            <td :data-th="cols[2].name">
+              {{ item[cols[2].field] }}
+            </td>
+
           </tr>
           </tbody>
         </table>
@@ -192,6 +198,9 @@ export default {
           this.sz = response.data.result.records.length;
           this.rows = pack(response.data.result.records, "id");
           expandAll(this.rows);
+
+          console.log("rows", this.rows);
+
         })
         .catch((error) => {
           console.error(error.message);
@@ -223,8 +232,15 @@ export default {
           label: this.$t("fldFullName"),
           field: "fullName",
           align: "left",
-          headerStyle: "font-size: 1.2em; width: 60%",
+          headerStyle: "font-size: 1.2em; width: 40%",
         },
+
+        {
+          name: "fvs",
+          field: "fvs",
+          headerStyle: "width: 20%",
+        },
+
       ];
     },
 
