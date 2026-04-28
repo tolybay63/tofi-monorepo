@@ -25,12 +25,8 @@ class UtMeterSoft {
         this.withNameMeter = withNameMeter
     }
 
-/*    String getDbName() {
-        return mdb.getDbSource().getDbDriver().getName()
-    }*/
-
     Store getMeterRatesWithParent() throws Exception {
-        String sMeter = null
+        //String sMeter = null
 
         int sz = mdb.loadQuery("select count(*) as cnt from MeterFactor where meter=:m",
                 Map.of("m", meter)).get(0).getInt("cnt")
@@ -63,10 +59,10 @@ class UtMeterSoft {
                     Store st1 = mdb.createStore(domainResult)
                     StoreRecord r1 = st1.add(r)
                     if (r.getInt("sz") == 1) {
-                        r1.set("parent", sMeter)
+                        r1.set("parent", null/*sMeter*/)
                         dsRes.add(r1)
                     } else {
-                        StoreRecord record = toRes(dsRes, r1, i - 1, sMeter)
+                        StoreRecord record = toRes(dsRes, r1, i - 1/*, sMeter*/)
                         dsRes.add(record)
                     }
                 }
@@ -75,7 +71,7 @@ class UtMeterSoft {
         return dsRes
     }
 
-    protected static StoreRecord toRes(Store dsRes, StoreRecord rec, int lev, String sMeter) {
+    protected static StoreRecord toRes(Store dsRes, StoreRecord rec, int lev/*, String sMeter*/) {
         for (int l = lev; l > 0; l--) {
             for (StoreRecord r in dsRes) {
                 if (r.getInt("sz") == lev) {
@@ -99,7 +95,7 @@ class UtMeterSoft {
                 }
             }
         }
-        rec.set("parent", sMeter)
+        rec.set("parent", null/*sMeter*/)
         return rec
     }
     //
@@ -167,34 +163,40 @@ class UtMeterSoft {
             }
             List<StoreRecord> lstFV = dsFV.getRecords()
             lstlstFV.add(lstFV)
+/*
             println("l="+l)
             lstlstFV.forEach {List lst->
                 lst.forEach { it ->
                     mdb.outTable(it)
                 }
             }
+*/
 
         }
         List<List<StoreRecord>> res = CartesianProduct.result(lstlstFV)
         Store st = mdb.createStore("MeterRate.soft.tree")
         //
+/*
         println("res="+res.size())
         res.forEach {List lst->
             lst.forEach { it ->
                 mdb.outTable(it)
             }
         }
+*/
         //
 
         for (List<StoreRecord> lst in res) {
             if (isCompatible(lst)) {
                 def nmArr = []; def fnArr = []
                 //
+/*
                 System.out.println("idInc: "+idInc)
                 System.out.println("size: "+lst.size())
                 lst.forEach {StoreRecord it->
                     mdb.outTable(it)
                 }
+*/
                 //
                 lst.each { r ->
                     //mdb.outTable(r)
@@ -240,7 +242,7 @@ class UtMeterSoft {
             }
         }
         //
-        mdb.outTable(st)
+        //mdb.outTable(st)
 
         //
         Store dsRes = mdb.createStore("MeterRate.soft.tree")
@@ -250,10 +252,10 @@ class UtMeterSoft {
                     Store st1 = mdb.createStore(domainResult)
                     StoreRecord r1 = st1.add(r)
                     if (r.getInt("sz") == 1) {
-                        r1.set("parent", sMeter)
+                        r1.set("parent", null/*sMeter*/)
                         dsRes.add(r1)
                     } else {
-                        StoreRecord record = toRes(dsRes, r1, i - 1, sMeter)
+                        StoreRecord record = toRes(dsRes, r1, i - 1/*, sMeter*/)
                         dsRes.add(record)
                     }
                 }
@@ -270,7 +272,8 @@ class UtMeterSoft {
      * @throws Exception
      */
     void createMeterRates(List<Long> lstFVs) throws Exception {
-        MeterMdbUtils mdbUtils = new MeterMdbUtils(mdb, "Meter")
+        //MeterMdbUtils mdbUtils = new MeterMdbUtils(mdb, "Meter")
+        MeterMdbUtils mdbUtils = mdb.createDao(MeterMdbUtils.class)// new MeterMdbUtils(mdb, "Meter")
         StoreRecord rM = mdbUtils.loadRec(Map.of("id", meter))
         if (rM.getLong("meterstruct") != FD_MeterStruct_consts.soft) {
             throw new XError(MessageFormat.format(UtLang.t("Измеритель с кодом [{0}] не является мягкой"), rM.getString("cod")))
