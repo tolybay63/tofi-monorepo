@@ -156,21 +156,35 @@ class UtMeterSoft {
             }
             List<StoreRecord> lstFV = dsFV.getRecords()
             lstlstFV.add(lstFV)
+            println("l="+l)
+            lstlstFV.forEach {List lst->
+                lst.forEach { it ->
+                    mdb.outTable(it)
+                }
+            }
+
         }
         List<List<StoreRecord>> res = CartesianProduct.result(lstlstFV)
         Store st = mdb.createStore("MeterRate.soft.tree")
+        //
+        println("res="+res.size())
+        res.forEach {List lst->
+            lst.forEach { it ->
+                mdb.outTable(it)
+            }
+        }
+        //
 
         for (List<StoreRecord> lst in res) {
             if (isCompatible(lst)) {
                 def nmArr = []; def fnArr = []
-/*
+                //
                 System.out.println("idInc: "+idInc)
                 System.out.println("size: "+lst.size())
                 lst.forEach {StoreRecord it->
                     mdb.outTable(it)
                 }
-*/
-
+                //
                 lst.each { r ->
                     //mdb.outTable(r)
                     if (!r.getString("name").isBlank()) {
@@ -201,7 +215,8 @@ class UtMeterSoft {
                     rMR.setValue("name", nm)
                     rMR.setValue("fullName", fn)
                     //
-                    Set<Object> setFv = new HashSet<>()
+                    //Set<Object> setFv = new HashSet<>()
+                    List<Object> setFv = new ArrayList<>()
                     lst.each { r ->
                         if (r.getLong("id") != 0) {
                             setFv.add(r.getLong("id"))
@@ -213,6 +228,9 @@ class UtMeterSoft {
                 }
             }
         }
+        //
+        mdb.outTable(st)
+
         //
         Store dsRes = mdb.createStore("MeterRate.soft.tree")
         for (int i = 1; i < sz + 1; i++) {
