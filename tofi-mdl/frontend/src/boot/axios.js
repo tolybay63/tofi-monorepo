@@ -13,8 +13,8 @@ let baseURL = url + "/api"
 // Настройка путей для PROD
 if (import.meta.env.PROD) {
   const currentPath = window.location.pathname;
-  if (currentPath.includes(`/dtj/${SERVICE_NAME}/`)) {
-    baseURL = `/dtj/${SERVICE_NAME}/api/`;
+  if (currentPath.includes(`/fish/${SERVICE_NAME}/`)) {
+    baseURL = `/fish/${SERVICE_NAME}/api/`;
   } else {
     baseURL = "/api";
   }
@@ -31,7 +31,7 @@ const api = axios.create({
 LoadingBar.setDefaults({ color: 'amber-14', size: '10px', position: 'top' })
 
 // 4. Глобальный заголовок авторизации
-const token = localStorage.getItem('dtj_token')
+const token = localStorage.getItem('fish_token')
 if (token && typeof token === 'string' && token !== 'null') {
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 }

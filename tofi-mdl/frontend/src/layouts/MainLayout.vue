@@ -160,9 +160,9 @@ import {api, authURL, urlMainApp} from "boot/axios";
 import {useUserStore} from "stores/user-store";
 import {storeToRefs} from "pinia";
 import {useRouter} from "vue-router";
-import {extend, useQuasar} from "quasar";
+import {useQuasar} from "quasar";
 import {hasTarget} from "src/utils/jsutils.js";
-import * as http from "node:http";
+
 
 export default defineComponent({
   components: {
