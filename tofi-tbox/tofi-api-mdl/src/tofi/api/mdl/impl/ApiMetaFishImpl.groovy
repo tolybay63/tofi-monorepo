@@ -99,7 +99,7 @@ class ApiMetaFishImpl extends BaseMdbUtils implements ApiMetaFish {
         Store st = mdb.loadQuery("""
             select cls
             from clsfactorval
-            where cls in (select c.id from Cls c, Typ t where c.typ=t.id and t.cod like 'Typ_WaterBodies')
+            where cls in (select c.id from Cls c, Typ t where c.typ=t.id and t.cod like '${codTyp}')
             group by cls
             having count(*) > 1
         """)

@@ -134,6 +134,22 @@
         <field name="Description" parent="memo"/>
     </domain>
 
+    <domain name="Obj.sampling.station" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idCoordinate" parent="long"/>
+        <field name="Coordinate" parent="string"/>
+
+        <field name="idAreaOfTon" parent="long"/>
+        <field name="AreaOfTon" parent="double"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+    </domain>
+
+
 
 
     <domain name="Obj.FishFamily" parent="base">

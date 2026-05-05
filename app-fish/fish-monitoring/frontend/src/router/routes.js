@@ -9,16 +9,26 @@ const routes = [
         name: 'ReservoirsPage',
         component: () => import('pages/reservoirs/ReservoirsPage.vue'),
       },
+
       {
-        path: '/piscesreservoirs',
-        name: 'PiscesReservoirsTabs',
-        component: () => import('pages/piscesreservoirs/PiscesReservoirsTabs.vue'),
+        path: '/samplingstations',
+        name: 'SamplingStationsPage',
+        component: () => import('pages/samplingstations/SamplingStationsPage.vue'),
+        //component: () => import('pages/samplingstations/StationAreaTabs.vue'),
       },
+
       {
         path: '/typesfish',
         name: 'TypesFishPage',
         component: () => import('pages/typesfish/TypesFishPage.vue'),
       },
+
+      {
+        path: '/piscesreservoirs',
+        name: 'PiscesReservoirsTabs',
+        component: () => import('pages/piscesreservoirs/PiscesReservoirsTabs.vue'),
+      },
+
       {
         path: '/sampling',
         name: 'SamplingPageTabs',
@@ -29,11 +39,7 @@ const routes = [
         name: 'SamplingResPageTabs',
         component: () => import('pages/samplingresults/SamplingResPageTabs.vue'),
       },
-      {
-        path: '/samplingstations',
-        name: 'StationAreaTabs',
-        component: () => import('pages/samplingstations/StationAreaTabs.vue'),
-      },
+
       { path: '/test', name: 'TestPage', component: () => import('pages/test/TestPage.vue') },
     ],
   },
