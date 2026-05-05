@@ -119,7 +119,7 @@ export default {
   piscesInReservoirs: 'Рыбы по водоемам',
   sampling: 'Заборы проб',
   samplingResults: 'Результаты забора проб',
-  samplingStations: 'Станции отбора проб',
+  samplingStations: 'Станции отбора проб и ловли рыб',
   samplingStation: 'Станция отбора проб',
   fishingArea: 'Место (Рыбопромысловый район, участок)',
   fishArea: 'Место',
@@ -163,8 +163,8 @@ export default {
   ReservoirHydroLevel: 'Гидрологический уровень водоема (мБС)',
   SplitLife: 'Невозможно расщеплять интервал жизни',
   ExistsValueOnDate: 'На указанную дату существует значение',
-  PropAreaOfTon: "Площадь тони, га",
-  PropAreaOfTonShort: "Площадь, га",
+  AreaOfTon: "Площадь тони, га",
+  AreaOfTonShort: "Площадь, га",
 
 
   reservoirDepth_maxGRavg: 'Ошибка (Глубина водоема): макс. >= сред.',

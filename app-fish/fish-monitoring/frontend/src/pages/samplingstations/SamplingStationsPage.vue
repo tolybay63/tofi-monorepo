@@ -1,7 +1,7 @@
 <template>
-  <div class="q-pa-none">
+  <div class="q-pa-sm">
     <q-table
-      style="height: calc(100vh - 200px); width: 100%"
+      style="height: calc(100vh - 140px); width: 100%"
       class="sticky-header-table"
       color="primary"
       dense
@@ -213,11 +213,13 @@ export default {
       api
         .post('', {
           method: 'data/loadSamplingStations',
-          params: [{ codCls: 'Cls_StationSampling', isRec: false, idObj: 0 }],
+          params: [{ codCls: 'Cls_Station', idObj: 0 }],
         })
         .then(
           (response) => {
-            this.rows = response.data.result.records
+            this.rows = response.data.result["records"]
+
+            console.info("rows", this.rows)
           })
         .finally(() => {
           this.loading = false
@@ -227,41 +229,38 @@ export default {
     getColumns() {
       return [
         {
-          name: 'objBranch',
-          label: this.$t('branch')+"*",
-          field: 'objBranch',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width:20%',
-          format: (v) => (this.mapBranch ? this.mapBranch.get(v) : null),
-        },
-        {
-          name: 'objReservoirShore',
-          label: this.$t('reservoir')+"*",
-          field: 'objReservoirShore',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 25%',
-          format: (v) => (this.mapReservoir ? this.mapReservoir.get(v) : null),
-        },
-        {
           name: 'name',
           label: this.$t('fldName')+"*",
           field: 'name',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 25%',
+          headerStyle: 'font-size: 1.2em; width: 30%',
         },
         {
-          name: 'cmt',
-          label: this.$t('fldCmt'),
-          field: 'cmt',
+          name: 'Coordinate',
+          label: this.$t('coordinates')+"*",
+          field: 'Coordinate',
           align: 'left',
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 30%',
+          headerStyle: 'font-size: 1.2em; width:20%',
+        },
+        {
+          name: 'AreaOfTon',
+          label: this.$t('AreaOfTon')+"*",
+          field: 'AreaOfTon',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 15%',
+        },
+
+        {
+          name: 'Description',
+          label: this.$t('description'),
+          field: 'Description',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 35%',
         },
       ]
     },
@@ -274,6 +273,7 @@ export default {
   created() {
     this.cols = this.getColumns()
     this.loading = true
+/*
     api
       .post('', {
         method: 'data/loadBranchName',
@@ -304,6 +304,8 @@ export default {
       .finally(() => {
         this.loading = false
       })
+*/
+
     //
     this.loadSamplingStations()
   },

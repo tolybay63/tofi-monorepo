@@ -170,19 +170,13 @@ export default defineComponent({
     let getLinks = () => {
       return [
         {
-          title: 'typesOfFish',
-          info: '',
-          icon: 'set_meal',
-          link: '/typesfish',
-          target: 'mon:vr',
-        },
-        {
           title: 'reservoirs',
           info: '',
           icon: 'sailing',
           link: '/reservoirs',
           target: 'mon:vod',
         },
+
         {
           title: 'samplingStations',
           info: '',
@@ -190,6 +184,15 @@ export default defineComponent({
           link: '/samplingstations',
           target: 'mon:st',
         },
+
+        {
+          title: 'typesOfFish',
+          info: '',
+          icon: 'set_meal',
+          link: '/typesfish',
+          target: 'mon:vr',
+        },
+
         {
           title: 'piscesInReservoirs',
           info: '',
