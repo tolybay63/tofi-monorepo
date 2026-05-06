@@ -85,7 +85,6 @@ export default {
     },
 
     fnSelectCls(v) {
-      console.log("Cls", v)
       this.form.cls = v.id
     },
 

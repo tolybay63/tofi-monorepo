@@ -214,8 +214,6 @@ export default {
         .then(
           (response) => {
             this.rows = response.data.result["records"]
-
-            console.info("rows", this.rows)
           })
         .finally(() => {
           this.loading = false
