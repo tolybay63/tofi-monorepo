@@ -194,6 +194,7 @@ export default {
   FishLength: 'Длина',
 
   FishGear: 'Орудия лова',
+  FishGearType: 'Тип орудия лова',
   FishGender: 'Пол рыбы',
 
   research: 'Исследования',

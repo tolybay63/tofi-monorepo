@@ -190,6 +190,7 @@ export default {
   FishLength: 'Length',
 
   FishGear: 'Fishing tools',
+  FishGearType: 'Type of fishing gear',
   FishGender: 'Fish Gender',
 
   research: 'Research',

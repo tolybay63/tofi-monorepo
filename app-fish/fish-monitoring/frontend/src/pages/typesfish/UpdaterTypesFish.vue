@@ -32,7 +32,7 @@
           v-model="form.cls"
           dense options-dense
           :options="optCls"
-          :label="fmReqLabel('cls')"
+          :label="fmReqLabel('typeOfFish')"
           option-value="id"
           option-label="name"
           map-options
@@ -87,7 +87,7 @@
 
 <script>
 import {api} from 'boot/axios'
-import {notifyError, notifySuccess} from 'src/utils/jsutils'
+import {notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data'],
