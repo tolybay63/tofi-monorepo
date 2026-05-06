@@ -115,18 +115,15 @@ export default {
     },
 
     fnSelectCls(v) {
-      console.log("Cls", v)
       this.form.cls = v.id
     },
 
     fnSelectFishFamily(v) {
-      console.log("Family", v)
       this.form.fvFishFamily = v.id
       this.form.pvFishFamily = v.pv
     },
 
     fnSelectFishTyp(v) {
-      console.log("FishTyp", v)
       this.form.fvFishTyp = v.id
       this.form.pvFishTyp = v.pv
     },

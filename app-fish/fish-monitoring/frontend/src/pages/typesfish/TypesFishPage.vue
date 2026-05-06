@@ -216,8 +216,6 @@ export default {
         .then(
           (response) => {
             this.rows = response.data.result["records"]
-
-            console.info("rows", this.rows)
           })
         .finally(() => {
           this.loading = false
@@ -282,7 +280,6 @@ export default {
       .then(
         (response) => {
           this.FishFamily = response.data.result
-          console.info("ff", this.FishFamily)
         })
       .finally(()=> {
         this.loading = false
@@ -297,7 +294,6 @@ export default {
       .then(
         (response) => {
           this.FishTyp = response.data.result
-          console.info("ft", this.FishTyp)
         })
       .finally(()=> {
         this.loading = false
