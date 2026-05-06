@@ -104,7 +104,7 @@
 import {extend} from 'quasar'
 import {api} from 'boot/axios'
 import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
-import UpdaterSamplingStation from 'pages/samplingstations/UpdaterSamplingStation.vue'
+import UpdaterTypesFish from "pages/typesfish/UpdaterTypesFish.vue";
 
 export default {
   name: 'SamplingStationsPage',
@@ -117,6 +117,8 @@ export default {
       filter: '',
       selected: [],
       loading: false,
+      FishFamily: new Map(),
+      FishTyp: new Map(),
     }
   },
 
@@ -132,7 +134,7 @@ export default {
 
       this.$q
         .dialog({
-          component: UpdaterSamplingStation,
+          component: UpdaterTypesFish,
           componentProps: {
             mode: mode,
             data: data,
@@ -211,7 +213,7 @@ export default {
       api
         .post('', {
           method: 'data/loadTypesFish',
-          params: [{ codCls: 'Cls_Station', idObj: 0 }],
+          params: [{ codTyp: 'Typ_Fish', idObj: 0 }],
         })
         .then(
           (response) => {
@@ -236,20 +238,22 @@ export default {
           headerStyle: 'font-size: 1.2em; width: 30%',
         },
         {
-          name: 'FishFamily',
+          name: 'fvFishFamily',
           label: this.$t('FishFamily')+"*",
-          field: 'FishFamily',
+          field: 'fvFishFamily',
           align: 'left',
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width:20%',
+          format: (v) => (this.FishFamily ? this.FishFamily[v] : null),
         },
         {
-          name: 'FishTyp',
+          name: 'fvFishTyp',
           label: this.$t('FishType')+"*",
-          field: 'FishTyp',
+          field: 'fvFishTyp',
           align: 'left',
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 15%',
+          headerStyle: 'font-size: 1.2em; width: 20%',
+          format: (v) => (this.FishTyp ? this.FishTyp[v] : null),
         },
 
         {
@@ -258,7 +262,7 @@ export default {
           field: 'Description',
           align: 'left',
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 35%',
+          headerStyle: 'font-size: 1.2em; width: 30%',
         },
       ]
     },
@@ -272,10 +276,37 @@ export default {
     this.cols = this.getColumns()
     this.loading = true
     //
-
-
+    api
+      .post('', {
+        method: 'data/loadFVasMap',
+        params: ['Prop_FishFamily'],
+      })
+      .then(
+        (response) => {
+          this.FishFamily = response.data.result
+          console.info("ff", this.FishFamily)
+        })
+      .finally(()=> {
+        this.loading = false
+      })
+    //
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/loadFVasMap',
+        params: ['Prop_FishTyp'],
+      })
+      .then(
+        (response) => {
+          this.FishTyp = response.data.result
+          console.info("ft", this.FishTyp)
+        })
+      .finally(()=> {
+        this.loading = false
+      })
     //
     this.loadTypesFish()
+
   },
 }
 </script>

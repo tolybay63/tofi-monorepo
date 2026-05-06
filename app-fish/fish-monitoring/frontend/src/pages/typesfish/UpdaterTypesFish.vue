@@ -26,24 +26,48 @@
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         />
 
-        <!-- Coordinate -->
-        <q-input
-          v-model="form.Coordinate"
-          :label="fmReqLabel('coordinates')"
-          dense
-          class="q-mb-md"
+        <!-- Class -->
+        <q-select
+          class="q-mt-md"
+          v-model="form.cls"
+          dense options-dense
+          :options="optCls"
+          :label="fmReqLabel('cls')"
+          option-value="id"
+          option-label="name"
+          map-options
+          :disable="mode==='upd'"
+          @update:model-value="fnSelectCls"
         />
 
-        <!-- AreaOfTon -->
-        <q-input
-          v-model="form.AreaOfTon"
-          :label="fmReqLabel('AreaOfTon')"
-          type="number" dense
-          class="q-mb-md"
+        <!-- FishFamily -->
+        <q-select
+          class="q-mt-md"
+          v-model="form.fvFishFamily"
+          dense options-dense
+          :options="optFishFamily"
+          :label="fmReqLabel('FishFamily')"
+          option-value="id"
+          option-label="name"
+          map-options
+          @update:model-value="fnSelectFishFamily"
+        />
+
+        <!-- FishTyp -->
+        <q-select
+          class="q-mt-md"
+          v-model="form.fvFishTyp"
+          dense options-dense
+          :options="optFishTyp"
+          :label="fmReqLabel('FishType')"
+          option-value="id"
+          option-label="name"
+          map-options
+          @update:model-value="fnSelectFishTyp"
         />
 
         <!-- Description -->
-        <q-input v-model="form['Description']" type="textarea" :label="$t('description')" />
+        <q-input v-model="form['Description']" type="textarea" :label="$t('description')"/>
       </q-card-section>
       <!---->
 
@@ -55,7 +79,7 @@
           @click="onOKClick"
           :disable="validSave()"
         />
-        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick" />
+        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -72,6 +96,10 @@ export default {
     return {
       form: this.data,
       loading: false,
+
+      optCls: [],
+      optFishFamily: [],
+      optFishTyp: [],
     }
   },
 
@@ -86,8 +114,25 @@ export default {
       return this.$t(label) + '*'
     },
 
+    fnSelectCls(v) {
+      console.log("Cls", v)
+      this.form.cls = v.id
+    },
+
+    fnSelectFishFamily(v) {
+      console.log("Family", v)
+      this.form.fvFishFamily = v.id
+      this.form.pvFishFamily = v.pv
+    },
+
+    fnSelectFishTyp(v) {
+      console.log("FishTyp", v)
+      this.form.fvFishTyp = v.id
+      this.form.pvFishTyp = v.pv
+    },
+
     validSave() {
-      if (!this.form.AreaOfTon || !this.form.Coordinate || !this.form.name) return true
+      if (!this.form.cls || !this.form.fvFishFamily || !this.form.fvFishTyp || !this.form.name) return true
     },
 
     // following method is REQUIRED
@@ -117,7 +162,7 @@ export default {
       this.form.mode = this.mode
       api
         .post('', {
-          method: 'data/saveSamplingStation',
+          method: 'data/saveTypesFish',
           params: [this.form],
         })
         .then(
@@ -137,6 +182,44 @@ export default {
     },
   },
   created() {
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/loadCls',
+        params: ['Typ_Fish'],
+      })
+      .then(
+        (response) => {
+          this.optCls = response.data.result["records"]
+        })
+      .then(() => {
+        api
+          .post('', {
+            method: 'data/loadFVasStore',
+            params: ['Prop_FishFamily'],
+          })
+          .then(
+            (response) => {
+              this.optFishFamily = response.data.result["records"]
+            })
+      })
+      .then(() => {
+        api
+          .post('', {
+            method: 'data/loadFVasStore',
+            params: ['Prop_FishTyp'],
+          })
+          .then(
+            (response) => {
+              this.optFishTyp = response.data.result["records"]
+            })
+      })
+      .finally(() => {
+        this.loading = false
+      })
+    //
+
+
   },
 }
 </script>

@@ -230,4 +230,7 @@ public interface ApiMeta {
 
     String ListClsParents(long typ, long cls);
 
+    Store loadFVasStore(String codProp);
+
+    Map<Long, String> loadFVasMap(String codProp);
 }

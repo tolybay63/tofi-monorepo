@@ -227,6 +227,8 @@ export default {
   fkError: "There is a link to the recording",
   refTable: "Refers to a table",
 
+  cls: "Class",
+
   nothing_here: 'Oops. Nothing Here...',
   home: 'Home',
 }
