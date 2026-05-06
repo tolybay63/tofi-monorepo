@@ -24,6 +24,12 @@ const routes = [
       },
 
       {
+        path: '/fishGear',
+        name: 'FishGearPage',
+        component: () => import('pages/fishgear/FishGearPage.vue'),
+      },
+
+      {
         path: '/piscesreservoirs',
         name: 'PiscesReservoirsTabs',
         component: () => import('pages/piscesreservoirs/PiscesReservoirsTabs.vue'),

@@ -566,7 +566,7 @@ class DataDao extends BaseMdbUtils {
             if (rec != null)
                 r.set("fvFishTyp", rec.getLong("factorval"))
         }
-        mdb.outTable(st)
+        //mdb.outTable(st)
         return st
     }
 
@@ -608,7 +608,74 @@ class DataDao extends BaseMdbUtils {
         return loadTypesFish([codTyp: "", idObj: own] as Map<String, Object>)
     }
 
+    //---------------- TypesFishGear ----------------//
+    @DaoMethod
+    Store loadFishGear(Map<String, Object> params) {
+        String codTyp = UtCnv.toString(params.get("codTyp"))
+        long idObj = UtCnv.toLong(params.get("idObj"))
 
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        String whe = "o.id=${idObj}"
+        if (idObj==0) {
+            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
+            whe = "o.cls in (${idsCls.join(",")})"
+        }
+        Store st = mdb.createStore("Obj.FishGear")
+        mdb.loadQuery(st, """
+            select o.id as obj, o.cls, v.name, null as nameCls, 
+                v3.id as idDescription, v3.multiStrVal as Description
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_FishFamily
+                left join DataPropVal v1 on d1.id=v1.dataprop 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FishTyp
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataPropVal v3 on d3.id=v3.dataprop
+            where ${whe}
+        """, map)
+        Set<Object> idsCls = st.getUniqueValues("cls")
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select c.id, name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null)
+                r.set("nameCls", rec.getString("name"))
+        }
+        //mdb.outTable(st)
+        return st
+    }
+
+    @DaoMethod
+    Store saveFishGear(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("fullName", pms.get("name"))
+        if (pms.getString("mode").equalsIgnoreCase("ins")) {
+            par.put("cls", params.get("cls"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //Prop_Description
+            fillProperties(true, "Prop_Description", pms)
+        } else {
+            own = pms.getLong("obj")
+            par.put("id", own)
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+        }
+        return loadFishGear([codTyp: "", idObj: own] as Map<String, Object>)
+    }
     @DaoMethod
     Store loadPeriodType() {
         return loadSqlMeta("select id, text from FD_PeriodType where vis=1", "")
