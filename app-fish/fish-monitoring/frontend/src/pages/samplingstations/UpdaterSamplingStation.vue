@@ -28,7 +28,7 @@
 
         <!-- Coordinate -->
         <q-input
-          v-model="form.Coordinate"
+          v-model="form['Coordinate']"
           :label="fmReqLabel('coordinates')"
           dense
           class="q-mb-md"
@@ -63,7 +63,7 @@
 
 <script>
 import {api} from 'boot/axios'
-import {notifyError, notifySuccess} from 'src/utils/jsutils'
+import { notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data'],
@@ -87,7 +87,7 @@ export default {
     },
 
     validSave() {
-      if (!this.form.AreaOfTon || !this.form.Coordinate || !this.form.name) return true
+      if (!this.form.AreaOfTon || !this.form["Coordinate"] || !this.form.name) return true
     },
 
     // following method is REQUIRED

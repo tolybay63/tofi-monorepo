@@ -174,7 +174,7 @@ export default {
     'Қателік (Резервуардың ені): жоғарғы мәні >= орташа мәні >= төменгі мәні',
 
   FishFamily: 'Балықтар отбасы',
-  FishType: 'Тип рыбы',
+  FishType: 'Балық түрі',
   fishFarmingType: 'Балық аулау шаруашылығының түрі',
   SampleNumberExists: '[Үлгі нөмірі] бірегей болуы керек',
   ResearchNumberExists: '[Зерттеу нөмірі] бірегей болуы керек',
@@ -186,6 +186,7 @@ export default {
   FishLength: 'Ұзындығы',
 
   FishGear: 'Балық аулау құралы',
+  FishGearType: 'Балық аулау құралдарының түрі',
   FishGender: 'Балық жынысы',
 
   research: 'Зерттеу',

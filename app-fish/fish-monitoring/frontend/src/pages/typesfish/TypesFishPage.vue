@@ -67,7 +67,7 @@
           v-if="hasTarget('mon:vr:del')"
           icon="delete"
           dense
-          color="secondary"
+          color="red"
           class="q-ml-lg"
           :disable="loading || selected.length === 0"
           @click="removeRow(selected[0])"

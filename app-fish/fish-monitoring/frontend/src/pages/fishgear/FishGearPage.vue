@@ -67,7 +67,7 @@
           v-if="hasTarget('mon:vr:del')"
           icon="delete"
           dense
-          color="secondary"
+          color="red"
           class="q-ml-lg"
           :disable="loading || selected.length === 0"
           @click="removeRow(selected[0])"
@@ -102,7 +102,7 @@
 <script>
 import {extend} from 'quasar'
 import {api} from 'boot/axios'
-import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
+import {hasTarget, notifyInfo} from 'src/utils/jsutils'
 import UpdaterFishGear from "pages/fishgear/UpdaterFishGear.vue";
 
 export default {
@@ -177,7 +177,7 @@ export default {
               this.loadFishGear()
               this.selected = []
             })
-            .catch((error) => {
+            .catch(() => {
               //console.log(error.message)
 
 /*
@@ -233,7 +233,7 @@ export default {
         },
         {
           name: 'nameCls',
-          label: this.$t('cls')+"*",
+          label: this.$t('FishGearType')+"*",
           field: 'nameCls',
           align: 'left',
           classes: 'bg-blue-grey-1',
