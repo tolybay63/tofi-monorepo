@@ -149,6 +149,24 @@
         <field name="Description" parent="string"/>
     </domain>
 
+    <domain name="Obj.typesFish" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idFishFamily" parent="long"/>
+        <field name="pvFishFamily" parent="long"/>
+        <field name="fvFishFamily" parent="long"/>
+
+        <field name="idFishTyp" parent="long"/>
+        <field name="pvFishTyp" parent="long"/>
+        <field name="fvFishTyp" parent="long"/>
+
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+    </domain>
+
 
 
 

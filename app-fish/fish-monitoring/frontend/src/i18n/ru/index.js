@@ -176,7 +176,8 @@ export default {
   reservoirWidth_avgGRmin: 'Ошибка (Ширина водоема): сред. >= мин.',
   reservoirWidth_maxGRavgGRmin: 'Ошибка (Ширина водоема): макс. >= сред. >= мин.',
 
-  fishFamily: 'Семейство рыб',
+  FishFamily: 'Семейство рыб',
+  FishType: 'Тип рыбы',
   fishFarmingType: 'Вид ведения рыбного хозяйства',
 
   sampleNumber: 'Номер пробы',

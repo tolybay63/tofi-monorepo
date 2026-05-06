@@ -54,160 +54,9 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiUserData() {return app.bean(ApinatorService).getApi("userdata")}
     ApinatorApi apiNSIData() {return app.bean(ApinatorService).getApi("nsidata")}
     ApinatorApi apiMonitoringData() {return app.bean(ApinatorService).getApi("monitoringdata")}
+    //-----------------------------------------------------------------------------------------------//
 
-    //-------------------------
-
-    private void checkForExistData(long id, int isObj) {
-        if (isObj == 1) {
-            // 1 Родитель ?
-            Store stTmp = mdb.loadQuery("""
-                select distinct ov1.name
-                from Obj o
-                    left join ObjVer ov on o.id=ov.ownerver and ov.lastver=1
-                    left join ObjVer ov1 on ov1.ownerVer=ov.objParent
-                where ov.objParent=${id}
-            """)
-            if (stTmp.size() > 0) {
-                throw new XError("Объект [" + stTmp.get(0).getString("name") + "] имеет дочерные элементы")
-            }
-            //2 Участник ?
-            stTmp = mdb.loadQuery("""
-                select ov.name as nm1, rv.name as nm
-                from relobjmember m
-                    inner join ObjVer ov on m.obj=ov.ownerver and ov.lastver=1
-                    left join RelObjVer rv on m.relobj=rv.ownerver and rv.lastver=1
-                where m.obj=${id}
-            """)
-            if (stTmp.size() > 0) {
-                throw new XError("Объект [" + stTmp.get(0).getString("nm1") + "] является участником отношения [" + stTmp.get(0).getString("nm") + "]")
-            }
-            //
-            //3 Объект имеет значение?
-
-/*
-            stTmp = mdb.loadQuery("""
-                select ov.name nm1, d.prop, d.periodType, v.dbeg, v.dend
-                from DataProp d
-                    left join DataPropVal v on d.id=v.dataprop
-                    inner join ObjVer ov on d.isObj=1 and d.objorrelobj=ov.ownerver and ov.lastver=1
-                where d.isObj=1 and d.objorrelobj=${id} and v.obj is null and v.relobj is null
-            """)
-            if (stTmp.size() > 0) {
-                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
-                if (stTmp.get(0).getLong("periodType") > 0) {
-                    PeriodGenerator pg = new PeriodGenerator()
-                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
-                }
-                Store stProp = loadSqlMeta("""
-                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
-                """, "")
-                throw new XError("Имеется значения свойства [" + stProp.get(0).getString("name") + "] объекта [" + stTmp.get(0).getString("nm1") + "]" + periodName)
-            }
-*/
-
-            //3 Объект/отношение является значением объекта?
-            stTmp = mdb.loadQuery("""
-                select  
-                    ov1.name nm1, d.prop, v.obj, v.relobj, d.periodType, v.dbeg, v.dend,
-                    case when v.obj is not null then ov2.name when v.relobj is not null then rv2.name end as nm2
-                from DataProp d
-                    left join DataPropVal v on d.id=v.dataprop
-                    inner join ObjVer ov1 on d.isObj=1 and d.objorrelobj=ov1.ownerver and ov1.lastver=1
-                    left join ObjVer ov2 on v.obj is not null and v.obj=ov2.ownerver and ov2.lastver=1
-                    left join RelObjVer rv2 on v.relobj is not null and v.relobj=rv2.ownerver and rv2.lastver=1
-                where d.isObj=1 and (v.obj=${id} or v.relobj=${id})
-            """)
-            if (stTmp.size() > 0) {
-                String nmOR = stTmp.get(0).getLong("obj") > 0 ? "Объект [" : "Отношение ["
-                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
-                if (stTmp.get(0).getLong("periodType") > 0) {
-                    PeriodGenerator pg = new PeriodGenerator()
-                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
-                }
-                Store stProp = loadSqlMeta("""
-                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
-                """, "")
-                throw new XError(nmOR + stTmp.get(0).getString("nm2") + "] является значением свойства [" + stProp.get(0).getString("name") + "] объекта [" + stTmp.get(0).getString("nm1") + "]" + periodName)
-            }
-
-        } else {
-            //1 Отношение имеет значение?
-            Store stTmp = mdb.loadQuery("""
-                select ov.name nm1, d.prop, d.periodType, v.dbeg, v.dend
-                from DataProp d
-                    left join DataPropVal v on d.id=v.dataprop
-                    inner join RelObjVer ov on d.isObj=0 and d.objorrelobj=ov.ownerver and ov.lastver=1
-                where d.isObj=0 and d.objorrelobj=${id} and v.obj is null and v.relobj is null
-            """)
-            if (stTmp.size() > 0) {
-                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
-                if (stTmp.get(0).getLong("periodType") > 0) {
-                    PeriodGenerator pg = new PeriodGenerator()
-                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
-                }
-                Store stProp = loadSqlMeta("""
-                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
-                """, "")
-                throw new XError("Имеется значения свойства [" + stProp.get(0).getString("name") + "] отношения [" + stTmp.get(0).getString("nm1") + "]" + periodName)
-            }
-            //2 Объект/отношение является значением отношения?
-            stTmp = mdb.loadQuery("""
-                select rv1.name nm1, d.prop, v.obj, v.relobj, d.periodType, v.dbeg, v.dend, 
-                    case when v.obj is not null then ov2.name when v.relobj is not null then rv2.name end as nm2
-                from DataProp d
-                    left join DataPropVal v on d.id=v.dataprop
-                    inner join RelObjVer rv1 on d.isObj=0 and d.objorrelobj=rv1.ownerver and rv1.lastver=1
-                    left join ObjVer ov2 on v.obj is not null and v.obj=ov2.ownerver and ov2.lastver=1
-                    left join RelObjVer rv2 on v.relobj is not null and v.relobj=rv2.ownerver and rv2.lastver=1
-                where d.isObj=0 and d.objorrelobj is not null and (v.obj=${id} or v.relobj=${id})
-            """)
-            if (stTmp.size() > 0) {
-                String nmOR = stTmp.get(0).getLong("obj") > 0 ? "Объект [" : "Отношение ["
-                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
-                if (stTmp.get(0).getLong("periodType") > 0) {
-                    PeriodGenerator pg = new PeriodGenerator()
-                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
-                }
-                Store stProp = loadSqlMeta("""
-                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
-                """, "")
-                throw new XError(nmOR + stTmp.get(0).getString("nm2") + "] является значением свойства [" + stProp.get(0).getString("name") + "] отношения [" + stTmp.get(0).getString("nm1") + "]" + periodName)
-            }
-        }
-    }
-
-    /*
-        delete Owner with properties
-    */
-    @DaoMethod
-    void deleteOwnerWithProperties(long id, int isObj) {
-        String tableName = isObj == 1 ? "Obj" : "RelObj"
-        //
-        checkForExistData(id, isObj)
-        //
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, tableName)
-        mdb.execQueryNative("""
-            delete from DataPropVal
-            where dataProp in (select id from DataProp where isobj=${isObj} and objorrelobj=${id});
-            delete from DataProp where id in (
-                select id from dataprop
-                except
-                select dataProp as id from DataPropVal
-            );
-        """)
-        if (tableName.equalsIgnoreCase("RelObj")) {
-            try {
-                mdb.execQueryNative("""
-                    delete from RelObjMember
-                    where relobj=${id};
-                """)
-            } finally {
-                eu.deleteEntity(id)
-            }
-        } else
-            eu.deleteEntity(id)
-    }
-
+    //---------------- Reservors---------------- //
     @DaoMethod
     Store loadReservors(Map<String, Object> params) {
 
@@ -364,63 +213,6 @@ class DataDao extends BaseMdbUtils {
         }
         st.sort("nameRegion,nameDistrict")
         return st
-    }
-
-    @DaoMethod
-    Store loadPeriodType() {
-        return loadSqlMeta("select id, text from FD_PeriodType where vis=1", "")
-    }
-
-    @DaoMethod
-    Store loadFvReservoirType(String codFactor) {
-        return loadFvForSelect(codFactor)
-    }
-
-    @DaoMethod
-    Store loadFvReservoirStatus(String codFactor) {
-        return loadFvForSelect(codFactor)
-    }
-
-    @DaoMethod
-    Store loadFvFishFamilyForSelect(String codFactor) {
-        return loadFvForSelect(codFactor)
-    }
-
-    @DaoMethod
-    Store loadFvFishFarmingType(String codFactor) {
-        return loadFvForSelect(codFactor)
-    }
-
-    private Store loadFvForSelect(String codFactor) {
-        return apiMetaFish().get(ApiMetaFish).loadFvForSelect(codFactor)
-    }
-
-
-    @DaoMethod
-    Store loadDistrict(long region) {
-        Store stDistrict = loadSql("""
-            select o.id, v.name, o.cls, 0 as pv
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and v.objParent=${region}
-        """, "", "nsidata")
-        Set<Object> idsCls = stDistrict.getUniqueValues("cls")
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_District", "") as Map<String, Object>
-
-        Store stPV = apiMeta().get(ApiMeta).loadSqlWithParams("""
-            select id, cls from PropVal where prop=:Prop_District and cls in (0${idsCls.join(",")})
-        """, "", map)
-        StoreIndex indexPV = stPV.getIndex("cls")
-        for (StoreRecord r in stDistrict) {
-            StoreRecord rec = indexPV.get(r.getLong("cls"))
-            if (rec != null)
-                r.set("pv", rec.getLong("id"))
-        }
-        return stDistrict
-    }
-
-    @DaoMethod
-    Store loadChildClsForSelect(String codTyp) {
-        return apiMetaFish().get(ApiMetaFish).loadChildClsForSelect(codTyp)
     }
 
     @DaoMethod
@@ -591,18 +383,6 @@ class DataDao extends BaseMdbUtils {
                               dte   : pms.getString("dte"), periodType: pms.getString("periodType")] as Map<String, Object>)
     }
 
-
-    @DaoMethod
-    Store loadRegion(String codCls) {
-        return loadObjForSelect(codCls, "Prop_Region")
-    }
-
-    @DaoMethod
-    Store loadBranchName(String codCls) {
-        return loadObjForSelect(codCls, "Prop_Branch")
-    }
-
-
     @DaoMethod
     Store saveReservoirPropertiesMeter(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -673,6 +453,311 @@ class DataDao extends BaseMdbUtils {
         //
         return loadReservors([codTyp: "", isRec: true, idObj: pms.getLong("obj"),
                               dte   : pms.getString("dte"), periodType: pms.getString("periodType")] as Map<String, Object>)
+    }
+
+    //---------------- SamplingStation ----------------//
+    @DaoMethod
+    Store loadSamplingStations(Map<String, Object> params) {
+        String codCls = UtCnv.toString(params.get("codCls"))
+        long idObj = UtCnv.toLong(params.get("idObj"))
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        String whe = "o.id=${idObj}"
+        if (idObj==0) {
+            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
+            whe = "o.cls = ${map1.get(codCls)}"
+        }
+        Store st = mdb.createStore("Obj.sampling.station")
+        mdb.loadQuery(st, """
+            select o.id as obj, o.cls, v.name, 
+                v1.id as idCoordinate, v1.strVal as Coordinate, 
+                v2.id as idAreaOfTon, v2.numberVal as AreaOfTon,
+                v3.id as idDescription, v3.multiStrVal as Description
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
+                left join DataPropVal v1 on d1.id=v1.dataprop 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_AreaOfTon
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataPropVal v3 on d3.id=v3.dataprop
+            where ${whe}
+        """, map)
+        return st
+    }
+
+    @DaoMethod
+    Store saveSamplingStation(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("fullName", pms.get("name"))
+        if (pms.getString("mode").equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Station", "")
+            if (map.isEmpty()) throw new XError("NotFoundCod@Cls_Station")
+            par.put("cls", map.get("Cls_Station"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //Prop_AreaOfTon
+            fillProperties(true, "Prop_AreaOfTon", pms)
+            //Prop_Coordinate
+            fillProperties(true, "Prop_Coordinate", pms)
+            //Prop_Description
+            fillProperties(true, "Prop_Description", pms)
+        } else {
+            own = pms.getLong("obj")
+            par.put("id", own)
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //1 Prop_AreaOfTon
+            if (pms.containsKey("idAreaOfTon"))
+                updateProperties("Prop_AreaOfTon", pms)
+            //2 Prop_Coordinate
+            if (pms.containsKey("idCoordinate"))
+                updateProperties("Prop_Coordinate", pms)
+            //3 Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+        }
+        return loadSamplingStations([codCls: "", idObj: own] as Map<String, Object>)
+    }
+
+    //---------------- TypesFish ----------------//
+    @DaoMethod
+    Store loadTypesFish(Map<String, Object> params) {
+        String codTyp = UtCnv.toString(params.get("codTyp"))
+        long idObj = UtCnv.toLong(params.get("idObj"))
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        String whe = "o.id=${idObj}"
+        if (idObj==0) {
+            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
+            whe = "o.cls in (${idsCls.join(",")})"
+        }
+        Store st = mdb.createStore("Obj.typesFish")
+
+        return null
+    }
+
+    @DaoMethod
+    Store loadPeriodType() {
+        return loadSqlMeta("select id, text from FD_PeriodType where vis=1", "")
+    }
+
+    @DaoMethod
+    Store loadFvReservoirType(String codFactor) {
+        return loadFvForSelect(codFactor)
+    }
+
+    @DaoMethod
+    Store loadFvReservoirStatus(String codFactor) {
+        return loadFvForSelect(codFactor)
+    }
+
+    @DaoMethod
+    Store loadFvFishFamilyForSelect(String codFactor) {
+        return loadFvForSelect(codFactor)
+    }
+
+    @DaoMethod
+    Store loadFvFishFarmingType(String codFactor) {
+        return loadFvForSelect(codFactor)
+    }
+
+    private Store loadFvForSelect(String codFactor) {
+        return apiMetaFish().get(ApiMetaFish).loadFvForSelect(codFactor)
+    }
+
+    @DaoMethod
+    Store loadDistrict(long region) {
+        Store stDistrict = loadSql("""
+            select o.id, v.name, o.cls, 0 as pv
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and v.objParent=${region}
+        """, "", "nsidata")
+        Set<Object> idsCls = stDistrict.getUniqueValues("cls")
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_District", "") as Map<String, Object>
+
+        Store stPV = apiMeta().get(ApiMeta).loadSqlWithParams("""
+            select id, cls from PropVal where prop=:Prop_District and cls in (0${idsCls.join(",")})
+        """, "", map)
+        StoreIndex indexPV = stPV.getIndex("cls")
+        for (StoreRecord r in stDistrict) {
+            StoreRecord rec = indexPV.get(r.getLong("cls"))
+            if (rec != null)
+                r.set("pv", rec.getLong("id"))
+        }
+        return stDistrict
+    }
+
+    @DaoMethod
+    Store loadChildClsForSelect(String codTyp) {
+        return apiMetaFish().get(ApiMetaFish).loadChildClsForSelect(codTyp)
+    }
+
+    @DaoMethod
+    Store loadRegion(String codCls) {
+        return loadObjForSelect(codCls, "Prop_Region")
+    }
+
+    @DaoMethod
+    Store loadBranchName(String codCls) {
+        return loadObjForSelect(codCls, "Prop_Branch")
+    }
+
+    /*
+        delete Owner with properties
+    */
+    @DaoMethod
+    void deleteOwnerWithProperties(long id, int isObj) {
+        String tableName = isObj == 1 ? "Obj" : "RelObj"
+        //
+        checkForExistData(id, isObj)
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, tableName)
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=${isObj} and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        if (tableName.equalsIgnoreCase("RelObj")) {
+            try {
+                mdb.execQueryNative("""
+                    delete from RelObjMember
+                    where relobj=${id};
+                """)
+            } finally {
+                eu.deleteEntity(id)
+            }
+        } else
+            eu.deleteEntity(id)
+    }
+
+    private void checkForExistData(long id, int isObj) {
+        if (isObj == 1) {
+            // 1 Родитель ?
+            Store stTmp = mdb.loadQuery("""
+                select distinct ov1.name
+                from Obj o
+                    left join ObjVer ov on o.id=ov.ownerver and ov.lastver=1
+                    left join ObjVer ov1 on ov1.ownerVer=ov.objParent
+                where ov.objParent=${id}
+            """)
+            if (stTmp.size() > 0) {
+                throw new XError("Объект [" + stTmp.get(0).getString("name") + "] имеет дочерные элементы")
+            }
+            //2 Участник ?
+            stTmp = mdb.loadQuery("""
+                select ov.name as nm1, rv.name as nm
+                from relobjmember m
+                    inner join ObjVer ov on m.obj=ov.ownerver and ov.lastver=1
+                    left join RelObjVer rv on m.relobj=rv.ownerver and rv.lastver=1
+                where m.obj=${id}
+            """)
+            if (stTmp.size() > 0) {
+                throw new XError("Объект [" + stTmp.get(0).getString("nm1") + "] является участником отношения [" + stTmp.get(0).getString("nm") + "]")
+            }
+            //
+            //3 Объект имеет значение?
+
+/*
+            stTmp = mdb.loadQuery("""
+                select ov.name nm1, d.prop, d.periodType, v.dbeg, v.dend
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataprop
+                    inner join ObjVer ov on d.isObj=1 and d.objorrelobj=ov.ownerver and ov.lastver=1
+                where d.isObj=1 and d.objorrelobj=${id} and v.obj is null and v.relobj is null
+            """)
+            if (stTmp.size() > 0) {
+                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
+                if (stTmp.get(0).getLong("periodType") > 0) {
+                    PeriodGenerator pg = new PeriodGenerator()
+                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
+                }
+                Store stProp = loadSqlMeta("""
+                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
+                """, "")
+                throw new XError("Имеется значения свойства [" + stProp.get(0).getString("name") + "] объекта [" + stTmp.get(0).getString("nm1") + "]" + periodName)
+            }
+*/
+
+            //3 Объект/отношение является значением объекта?
+            stTmp = mdb.loadQuery("""
+                select  
+                    ov1.name nm1, d.prop, v.obj, v.relobj, d.periodType, v.dbeg, v.dend,
+                    case when v.obj is not null then ov2.name when v.relobj is not null then rv2.name end as nm2
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataprop
+                    inner join ObjVer ov1 on d.isObj=1 and d.objorrelobj=ov1.ownerver and ov1.lastver=1
+                    left join ObjVer ov2 on v.obj is not null and v.obj=ov2.ownerver and ov2.lastver=1
+                    left join RelObjVer rv2 on v.relobj is not null and v.relobj=rv2.ownerver and rv2.lastver=1
+                where d.isObj=1 and (v.obj=${id} or v.relobj=${id})
+            """)
+            if (stTmp.size() > 0) {
+                String nmOR = stTmp.get(0).getLong("obj") > 0 ? "Объект [" : "Отношение ["
+                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
+                if (stTmp.get(0).getLong("periodType") > 0) {
+                    PeriodGenerator pg = new PeriodGenerator()
+                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
+                }
+                Store stProp = loadSqlMeta("""
+                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
+                """, "")
+                throw new XError(nmOR + stTmp.get(0).getString("nm2") + "] является значением свойства [" + stProp.get(0).getString("name") + "] объекта [" + stTmp.get(0).getString("nm1") + "]" + periodName)
+            }
+
+        } else {
+            //1 Отношение имеет значение?
+            Store stTmp = mdb.loadQuery("""
+                select ov.name nm1, d.prop, d.periodType, v.dbeg, v.dend
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataprop
+                    inner join RelObjVer ov on d.isObj=0 and d.objorrelobj=ov.ownerver and ov.lastver=1
+                where d.isObj=0 and d.objorrelobj=${id} and v.obj is null and v.relobj is null
+            """)
+            if (stTmp.size() > 0) {
+                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
+                if (stTmp.get(0).getLong("periodType") > 0) {
+                    PeriodGenerator pg = new PeriodGenerator()
+                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
+                }
+                Store stProp = loadSqlMeta("""
+                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
+                """, "")
+                throw new XError("Имеется значения свойства [" + stProp.get(0).getString("name") + "] отношения [" + stTmp.get(0).getString("nm1") + "]" + periodName)
+            }
+            //2 Объект/отношение является значением отношения?
+            stTmp = mdb.loadQuery("""
+                select rv1.name nm1, d.prop, v.obj, v.relobj, d.periodType, v.dbeg, v.dend, 
+                    case when v.obj is not null then ov2.name when v.relobj is not null then rv2.name end as nm2
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataprop
+                    inner join RelObjVer rv1 on d.isObj=0 and d.objorrelobj=rv1.ownerver and rv1.lastver=1
+                    left join ObjVer ov2 on v.obj is not null and v.obj=ov2.ownerver and ov2.lastver=1
+                    left join RelObjVer rv2 on v.relobj is not null and v.relobj=rv2.ownerver and rv2.lastver=1
+                where d.isObj=0 and d.objorrelobj is not null and (v.obj=${id} or v.relobj=${id})
+            """)
+            if (stTmp.size() > 0) {
+                String nmOR = stTmp.get(0).getLong("obj") > 0 ? "Объект [" : "Отношение ["
+                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
+                if (stTmp.get(0).getLong("periodType") > 0) {
+                    PeriodGenerator pg = new PeriodGenerator()
+                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
+                }
+                Store stProp = loadSqlMeta("""
+                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
+                """, "")
+                throw new XError(nmOR + stTmp.get(0).getString("nm2") + "] является значением свойства [" + stProp.get(0).getString("name") + "] отношения [" + stTmp.get(0).getString("nm1") + "]" + periodName)
+            }
+        }
     }
 
 
@@ -823,6 +908,7 @@ class DataDao extends BaseMdbUtils {
         throw new XError("MinIO не настроен!")
     }
 
+    //todo Delete!
     @DaoMethod
     Store loadFishFamily(Map<String, Object> params) {
         String codCls = UtCnv.toString(params.get("codCls"))
@@ -1036,37 +1122,6 @@ class DataDao extends BaseMdbUtils {
         """, map)
     }
 
-
-    @DaoMethod
-    Store loadSamplingStations(Map<String, Object> params) {
-        String codCls = UtCnv.toString(params.get("codCls"))
-        long idObj = UtCnv.toLong(params.get("idObj"))
-
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-        String whe = "o.id=${idObj}"
-        if (idObj==0) {
-            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
-            whe = "o.cls = ${map1.get(codCls)}"
-        }
-        Store st = mdb.createStore("Obj.sampling.station")
-        mdb.loadQuery(st, """
-            select o.id as obj, o.cls, v.name, 
-                v1.id as idCoordinate, v1.strVal as Coordinate, 
-                v2.id as idAreaOfTon, v2.numberVal as AreaOfTon,
-                v3.id as idDescription, v3.multiStrVal as Description
-            from Obj o
-                left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
-                left join DataPropVal v1 on d1.id=v1.dataprop 
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_AreaOfTon
-                left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
-                left join DataPropVal v3 on d3.id=v3.dataprop
-            where ${whe}
-        """, map)
-        return st
-    }
-
     @DaoMethod
     Store loadFishingArea(Map<String, Object> params) {
         String codCls = UtCnv.toString(params.get("codCls"))
@@ -1262,46 +1317,6 @@ class DataDao extends BaseMdbUtils {
             }
         }
         return loadFishFamily([codCls: "", isRec: true, idObj: own] as Map<String, Object>)
-    }
-
-    @DaoMethod
-    Store saveSamplingStation(Map<String, Object> params) {
-        VariantMap pms = new VariantMap(params)
-        long own
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Object> par = new HashMap<>(pms)
-        par.put("fullName", pms.get("name"))
-        if (pms.getString("mode").equalsIgnoreCase("ins")) {
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Station", "")
-            if (map.isEmpty()) throw new XError("NotFoundCod@Cls_Station")
-            par.put("cls", map.get("Cls_Station"))
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-            //Prop_AreaOfTon
-            fillProperties(true, "Prop_AreaOfTon", pms)
-            //Prop_Coordinate
-            fillProperties(true, "Prop_Coordinate", pms)
-            //Prop_Description
-            fillProperties(true, "Prop_Description", pms)
-        } else {
-            own = pms.getLong("obj")
-            par.put("id", own)
-            eu.updateEntity(par)
-            //
-            pms.put("own", own)
-            //1 Prop_AreaOfTon
-            if (pms.containsKey("idAreaOfTon"))
-                updateProperties("Prop_AreaOfTon", pms)
-            //2 Prop_Coordinate
-            if (pms.containsKey("idCoordinate"))
-                updateProperties("Prop_Coordinate", pms)
-            //3 Prop_Description
-            if (pms.containsKey("idDescription"))
-                updateProperties("Prop_Description", pms)
-            else if (!pms.getString("Description").isEmpty())
-                fillProperties(true, "Prop_Description", pms)
-        }
-        return loadSamplingStations([codCls: "", idObj: own] as Map<String, Object>)
     }
 
     @DaoMethod
