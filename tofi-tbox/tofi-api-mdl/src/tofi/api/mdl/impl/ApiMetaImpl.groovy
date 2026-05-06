@@ -279,10 +279,9 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     @Override
     Store storeFVfromPropVal() {
         Store st = mdb.loadQuery("""
-            select pv.factorval, pv.id as propval
-            from propval pv
-                left join Prop p on pv.prop=p.id
-            where p.propType=${FD_PropType_consts.factor}
+            select factorval, id as propval
+            from propval
+            where factorval is not null
         """)
         return st
     }
@@ -583,4 +582,24 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         return cu.ListClsParents(typ, cls)
     }
 
+    @Override
+    Store loadFVasStore(String codProp) {
+        Map<String, Long> map = getIdFromCodOfEntity("Prop", codProp, "")
+        return mdb.loadQuery("""
+            select fv.id, fv.name, pv.id as pv
+            from PropVal pv
+                left join Factor fv on pv.factorVal=fv.id
+            where pv.prop=${map.get(codProp)}
+        """)
+    }
+
+    @Override
+    Map<Long, String> loadFVasMap(String codProp) {
+        Map<Long, String> map = new HashMap<>()
+        Store st = loadFVasStore(codProp)
+        for (StoreRecord r in st) {
+            map.put(r.getLong("id"), r.getString("name"))
+        }
+        return map
+    }
 }

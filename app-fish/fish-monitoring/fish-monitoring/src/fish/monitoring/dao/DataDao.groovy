@@ -539,9 +539,75 @@ class DataDao extends BaseMdbUtils {
             whe = "o.cls in (${idsCls.join(",")})"
         }
         Store st = mdb.createStore("Obj.typesFish")
+        mdb.loadQuery(st, """
+            select o.id as obj, o.cls, v.name, 
+                v1.id as idFishFamily, v1.propVal as pvFishFamily, null as fvFishFamily, 
+                v2.id as idFishTyp, v2.propVal as pvFishTyp, null as fvFishTyp,
+                v3.id as idDescription, v3.multiStrVal as Description
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_FishFamily
+                left join DataPropVal v1 on d1.id=v1.dataprop 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FishTyp
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataPropVal v3 on d3.id=v3.dataprop
+            where ${whe}
+        """, map)
 
-        return null
+        Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
+        StoreIndex indFV = stFV.getIndex("propval")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("pvFishFamily"))
+            if (rec != null)
+                r.set("fvFishFamily", rec.getLong("factorval"))
+            rec = indFV.get(r.getLong("pvFishTyp"))
+            if (rec != null)
+                r.set("fvFishTyp", rec.getLong("factorval"))
+        }
+        mdb.outTable(st)
+        return st
     }
+
+    @DaoMethod
+    Store saveTypesFish(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("fullName", pms.get("name"))
+        if (pms.getString("mode").equalsIgnoreCase("ins")) {
+            par.put("cls", params.get("cls"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //Prop_FishFamily
+            fillProperties(true, "Prop_FishFamily", pms)
+            //Prop_FishTyp
+            fillProperties(true, "Prop_FishTyp", pms)
+            //Prop_Description
+            fillProperties(true, "Prop_Description", pms)
+        } else {
+            own = pms.getLong("obj")
+            par.put("id", own)
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //1 Prop_FishFamily
+            if (pms.containsKey("idFishFamily"))
+                updateProperties("Prop_FishFamily", pms)
+            //2 Prop_FishTyp
+            if (pms.containsKey("idFishTyp"))
+                updateProperties("Prop_FishTyp", pms)
+            //3 Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+        }
+        return loadTypesFish([codTyp: "", idObj: own] as Map<String, Object>)
+    }
+
 
     @DaoMethod
     Store loadPeriodType() {
@@ -570,6 +636,16 @@ class DataDao extends BaseMdbUtils {
 
     private Store loadFvForSelect(String codFactor) {
         return apiMetaFish().get(ApiMetaFish).loadFvForSelect(codFactor)
+    }
+
+    @DaoMethod
+    Store loadFVasStore(String codProp) {
+        return apiMeta().get(ApiMeta).loadFVasStore(codProp)
+    }
+
+    @DaoMethod
+    Map<Long, String> loadFVasMap(String codProp) {
+        return apiMeta().get(ApiMeta).loadFVasMap(codProp)
     }
 
     @DaoMethod
@@ -1483,11 +1559,12 @@ class DataDao extends BaseMdbUtils {
         }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ReservoirType") ||
+            if (/*cod.equalsIgnoreCase("Prop_ReservoirType") ||
                     cod.equalsIgnoreCase("Prop_ReservoirStatus") ||
-                    cod.equalsIgnoreCase("Prop_FishFamily") ||
                     cod.equalsIgnoreCase("Prop_FishFarmingType") ||
-                    cod.equalsIgnoreCase("Prop_FishGender")) {
+                    cod.equalsIgnoreCase("Prop_FishGender") ||*/
+                    cod.equalsIgnoreCase("Prop_FishFamily") ||
+                    cod.equalsIgnoreCase("Prop_FishTyp")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -1704,11 +1781,12 @@ class DataDao extends BaseMdbUtils {
         }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ReservoirType") ||
+            if (/*cod.equalsIgnoreCase("Prop_ReservoirType") ||
                     cod.equalsIgnoreCase("Prop_ReservoirStatus") ||
-                    cod.equalsIgnoreCase("Prop_FishFamily") ||
                     cod.equalsIgnoreCase("Prop_FishFarmingType") ||
-                    cod.equalsIgnoreCase("Prop_FishGender")) {
+                    cod.equalsIgnoreCase("Prop_FishGender") ||*/
+                    cod.equalsIgnoreCase("Prop_FishFamily") ||
+                    cod.equalsIgnoreCase("Prop_FishTyp")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
