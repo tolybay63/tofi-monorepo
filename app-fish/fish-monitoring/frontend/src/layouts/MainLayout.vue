@@ -184,13 +184,20 @@ export default defineComponent({
           link: '/samplingstations',
           target: 'mon:st',
         },
-
         {
           title: 'typesOfFish',
           info: '',
           icon: 'set_meal',
           link: '/typesfish',
-          target: 'mon:vr',
+          target: 'mon:tf',
+        },
+
+        {
+          title: 'FishGear',
+          info: '',
+          icon: 'phishing',
+          link: '/fishGear',
+          target: 'mon:fg',
         },
 
         {

@@ -31,8 +31,8 @@
 
       <template v-slot:top>
         <div style="font-size: 1.2em; font-weight: bold">
-          <q-avatar color="black" text-color="white" icon="set_meal"> </q-avatar>
-          {{ $t('typesOfFish') }}
+          <q-avatar color="black" text-color="white" icon="phishing"> </q-avatar>
+          {{ $t('FishGear') }}
         </div>
 
         <q-space />
@@ -103,10 +103,10 @@
 import {extend} from 'quasar'
 import {api} from 'boot/axios'
 import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
-import UpdaterTypesFish from "pages/typesfish/UpdaterTypesFish.vue";
+import UpdaterFishGear from "pages/fishgear/UpdaterFishGear.vue";
 
 export default {
-  name: 'SamplingStationsPage',
+  name: 'FishGearPage',
   props: [],
 
   data: function () {
@@ -116,8 +116,6 @@ export default {
       filter: '',
       selected: [],
       loading: false,
-      FishFamily: new Map(),
-      FishTyp: new Map(),
     }
   },
 
@@ -132,7 +130,7 @@ export default {
 
       this.$q
         .dialog({
-          component: UpdaterTypesFish,
+          component: UpdaterFishGear,
           componentProps: {
             mode: mode,
             data: data,
@@ -176,7 +174,7 @@ export default {
               params: [row.obj, 1],
             })
             .then(() => {
-              this.loadTypesFish()
+              this.loadFishGear()
               this.selected = []
             })
             .catch((error) => {
@@ -206,12 +204,12 @@ export default {
         })
     },
 
-    loadTypesFish() {
+    loadFishGear() {
       this.loading = true
       api
         .post('', {
-          method: 'data/loadTypesFish',
-          params: [{ codTyp: 'Typ_Fish', idObj: 0 }],
+          method: 'data/loadFishGear',
+          params: [{ codTyp: 'Typ_FishGear', idObj: 0 }],
         })
         .then(
           (response) => {
@@ -233,34 +231,23 @@ export default {
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 30%',
+          headerStyle: 'font-size: 1.2em; width: 35%',
         },
         {
-          name: 'fvFishFamily',
-          label: this.$t('FishFamily')+"*",
-          field: 'fvFishFamily',
+          name: 'nameCls',
+          label: this.$t('cls')+"*",
+          field: 'nameCls',
           align: 'left',
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width:20%',
-          format: (v) => (this.FishFamily ? this.FishFamily[v] : null),
+          headerStyle: 'font-size: 1.2em; width:25%',
         },
-        {
-          name: 'fvFishTyp',
-          label: this.$t('FishType')+"*",
-          field: 'fvFishTyp',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 20%',
-          format: (v) => (this.FishTyp ? this.FishTyp[v] : null),
-        },
-
         {
           name: 'Description',
           label: this.$t('description'),
           field: 'Description',
           align: 'left',
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 30%',
+          headerStyle: 'font-size: 1.2em; width: 40%',
         },
       ]
     },
@@ -272,38 +259,8 @@ export default {
 
   created() {
     this.cols = this.getColumns()
-    this.loading = true
     //
-    api
-      .post('', {
-        method: 'data/loadFVasMap',
-        params: ['Prop_FishFamily'],
-      })
-      .then(
-        (response) => {
-          this.FishFamily = response.data.result
-          console.info("ff", this.FishFamily)
-        })
-      .finally(()=> {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFVasMap',
-        params: ['Prop_FishTyp'],
-      })
-      .then(
-        (response) => {
-          this.FishTyp = response.data.result
-          console.info("ft", this.FishTyp)
-        })
-      .finally(()=> {
-        this.loading = false
-      })
-    //
-    this.loadTypesFish()
+    this.loadFishGear()
 
   },
 }

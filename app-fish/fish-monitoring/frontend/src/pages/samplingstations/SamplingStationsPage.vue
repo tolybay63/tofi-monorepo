@@ -17,7 +17,6 @@
       :loading="loading"
       selection="single"
       v-model:selected="selected"
-      @update:selected="updateSelected"
       :rows-per-page-options="[25, 0]"
     >
       <template #bottom-row>
@@ -122,7 +121,6 @@ export default {
 
   methods: {
     hasTarget,
-    updateSelected() {},
 
     editRow(row, mode) {
       let data = { accessLevel: 1 }
@@ -179,7 +177,7 @@ export default {
               this.loadSamplingStations()
               this.selected = []
             })
-            .catch((error) => {
+            .catch(() => {
               //console.log(error.message)
 
 /*
@@ -270,40 +268,6 @@ export default {
 
   created() {
     this.cols = this.getColumns()
-    this.loading = true
-/*
-    api
-      .post('', {
-        method: 'data/loadBranchName',
-        params: ['Cls_Branch'],
-      })
-      .then(
-        (response) => {
-          response.data.result.records.forEach((it) => {
-            this.mapBranch.set(it["id"], it["name"])
-          })
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadReservoirName',
-        params: [],
-      })
-      .then(
-        (response) => {
-          response.data.result.records.forEach((it) => {
-            this.mapReservoir.set(it["id"], it["name"])
-          })
-        })
-      .finally(() => {
-        this.loading = false
-      })
-*/
-
     //
     this.loadSamplingStations()
   },
