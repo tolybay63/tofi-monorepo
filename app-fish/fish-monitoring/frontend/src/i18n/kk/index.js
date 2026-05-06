@@ -173,7 +173,8 @@ export default {
   reservoirWidth_maxGRavgGRmin:
     'Қателік (Резервуардың ені): жоғарғы мәні >= орташа мәні >= төменгі мәні',
 
-  fishFamily: 'Балықтар отбасы',
+  FishFamily: 'Балықтар отбасы',
+  FishType: 'Тип рыбы',
   fishFarmingType: 'Балық аулау шаруашылығының түрі',
   SampleNumberExists: '[Үлгі нөмірі] бірегей болуы керек',
   ResearchNumberExists: '[Зерттеу нөмірі] бірегей болуы керек',

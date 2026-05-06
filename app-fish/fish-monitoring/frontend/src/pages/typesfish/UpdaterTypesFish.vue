@@ -6,53 +6,46 @@
     autofocus
     transition-show="slide-up"
     transition-hide="slide-down"
-    style="width: 600px"
+    style="width: 800px"
   >
-    <q-card class="q-dialog-plugin" style="width: 600px">
+    <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
-        <div>{{ $t("newRecord") }}</div>
+        <div>{{ $t('newRecord') }}</div>
       </q-bar>
       <q-bar v-if="mode === 'upd'" class="text-white bg-primary">
-        <div>{{ $t("editRecord") }}</div>
+        <div>{{ $t('editRecord') }}</div>
       </q-bar>
 
       <q-card-section>
-        <q-item-section v-if="isChild">
-          <div class="row">
-          <span class="text-blue q-mt-md-md" > {{ $t("parent") }}: </span>
-          <span class="q-mb-lg q-ml-md text-bold"> {{ parentName }} </span>
-          </div>
-        </q-item-section>
 
         <!-- name -->
         <q-input
-          :model-value="form.name"
+          autofocus dense
           v-model="form.name"
           :label="fmReqLabel('fldName')"
-          autofocus
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         />
 
-        <!-- F_FishFamily -->
-        <q-select
-          :readonly="isChild"
-          v-model="form.fvFishFamily"
-          :model-value="form.fvFishFamily"
-          :label="fmReqLabel('fishFamily')"
-          :options="optFvFishFamily"
+        <!-- Coordinate -->
+        <q-input
+          v-model="form.Coordinate"
+          :label="fmReqLabel('coordinates')"
           dense
-          map-options
-          option-label="name"
-          option-value="id"
           class="q-mb-md"
-          @update:model-value="fnSelectFvFishFamily"
+        />
+
+        <!-- AreaOfTon -->
+        <q-input
+          v-model="form.AreaOfTon"
+          :label="fmReqLabel('AreaOfTon')"
+          type="number" dense
+          class="q-mb-md"
         />
 
         <!-- Description -->
-        <q-input :model-value="form['cmt']" v-model="form['cmt']" type="textarea" :label="$t('fldCmt')" />
-
-        <!---->
+        <q-input v-model="form['Description']" type="textarea" :label="$t('description')" />
       </q-card-section>
+      <!---->
 
       <q-card-actions align="right">
         <q-btn
@@ -62,71 +55,57 @@
           @click="onOKClick"
           :disable="validSave()"
         />
-        <q-btn
-          color="primary"
-          icon="cancel"
-          :label="$t('cancel')"
-          @click="onCancelClick"
-        />
+        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <script>
-import {api} from "boot/axios";
-import {notifyError} from "src/utils/jsutils";
+import {api} from 'boot/axios'
+import {notifyError, notifySuccess} from 'src/utils/jsutils'
 
 export default {
-  props: ["mode", "isChild", "parentName", "data"],
+  props: ['mode', 'data'],
 
   data() {
     return {
       form: this.data,
       loading: false,
-      optFvFishFamily: [],
-
     }
   },
 
   emits: [
     // REQUIRED
-    "ok",
-    "hide",
+    'ok',
+    'hide',
   ],
 
   methods: {
     fmReqLabel(label) {
-      return this.$t(label) + "*";
-    },
-
-    fnSelectFvFishFamily(v) {
-      if (v) {
-        this.form.fvFishFamily = v.id
-        this.form.pvFishFamily = v["pv"]
-      }
+      return this.$t(label) + '*'
     },
 
     validSave() {
-      if (!this.form.name || !this.form.fvFishFamily) return true
+      if (!this.form.AreaOfTon || !this.form.Coordinate || !this.form.name) return true
     },
 
     // following method is REQUIRED
     // (don't change its name --> "show")
     show() {
-      this.$refs.dialog["show"]();
+      this.$refs.dialog["show"]()
     },
 
     // following method is REQUIRED
     // (don't change its name --> "hide")
     hide() {
-      this.$refs.dialog["hide"]();
+      this.$refs.dialog["hide"]()
     },
 
     onDialogHide() {
       // required to be emitted
       // when QDialog emits "hide" event
-      this.$emit("hide");
+      this.$emit('hide')
     },
 
     onOKClick() {
@@ -138,21 +117,15 @@ export default {
       this.form.mode = this.mode
       api
         .post('', {
-          method: 'data/saveTypesFishProperties',
+          method: 'data/saveSamplingStation',
           params: [this.form],
         })
         .then(
           (response) => {
-            this.$emit("ok", response.data.result["records"][0]);
-            //notifySuccess(this.$t("success"));
+            err = false
+            this.$emit('ok', response.data.result["records"][0])
+            notifySuccess(this.$t('success'))
           })
-        .catch(error => {
-          err = true
-          let msg = error.response
-            ? error.response.data.error.message
-            : error.message
-          notifyError(msg)
-        })
         .finally(() => {
           if (!err) this.hide()
         })
@@ -160,30 +133,10 @@ export default {
 
     onCancelClick() {
       // we just need to hide the dialog
-      this.hide();
+      this.hide()
     },
   },
-
   created() {
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFvFishFamilyForSelect',
-        params: ['Factor_FishType'],
-      })
-      .then(
-        (response) => {
-          this.optFvFishFamily = response.data.result.records
-        },
-        (error) => {
-          let msg = error.message
-          if (error.response) msg = this.$t(error.response.data.error.message)
-          notifyError(msg)
-        }
-      )
-      .finally(() => {
-        this.loading = false
-      })
   },
 }
 </script>

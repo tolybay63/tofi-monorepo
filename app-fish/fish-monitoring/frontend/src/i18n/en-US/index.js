@@ -176,7 +176,8 @@ export default {
   WaterAreaLittoral: 'Litoral zone area, ha',
   ReservoirHydroLevel: 'Hydrological level of the reservoir (mBS)',
 
-  fishFamily: 'Family of fish',
+  FishFamily: 'Family of fish',
+  FishType: 'Type of fish',
   fishFarmingType: 'Type of fishing',
   SampleNumberExists: 'The number of the sample should be unique',
   ResearchNumberExists: 'The number of the research should be unique',

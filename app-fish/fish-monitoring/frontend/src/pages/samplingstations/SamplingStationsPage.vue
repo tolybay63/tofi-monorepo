@@ -103,7 +103,7 @@
 <script>
 import {extend} from 'quasar'
 import {api} from 'boot/axios'
-import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
+import {hasTarget, notifyInfo} from 'src/utils/jsutils'
 import UpdaterSamplingStation from 'pages/samplingstations/UpdaterSamplingStation.vue'
 
 export default {
@@ -117,8 +117,6 @@ export default {
       filter: '',
       selected: [],
       loading: false,
-      mapBranch: new Map(),
-      mapReservoir: new Map(),
     }
   },
 

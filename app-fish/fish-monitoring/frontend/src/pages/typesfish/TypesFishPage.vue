@@ -1,316 +1,160 @@
 <template>
-
-  <div class="q-pa-md no-scroll bg-amber-1">
-    <q-banner
+  <div class="q-pa-sm">
+    <q-table
+      style="height: calc(100vh - 140px); width: 100%"
+      class="sticky-header-table"
+      color="primary"
       dense
-      inline-actions
-      style="margin-bottom: -5px;"
-      class="bg-amber-1"
+      card-class="bg-amber-1 text-brown"
+      row-key="obj"
+      :columns="cols"
+      :rows="rows"
+      :wrap-cells="true"
+      :table-colspan="4"
+      table-header-class="text-bold text-white bg-blue-grey-13"
+      separator="horizontal"
+      :filter="filter"
+      :loading="loading"
+      selection="single"
+      v-model:selected="selected"
+      @update:selected="updateSelected"
+      :rows-per-page-options="[25, 0]"
     >
+      <template #bottom-row>
+        <q-td colspan="100%" v-if="selected.length > 0">
+          <span class="text-blue"> {{ $t('selectedRow') }}: </span>
+          <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+        </q-td>
+        <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+          {{ $t('infoRow') }}
+        </q-td>
+      </template>
 
-      <div style="font-size: 1.2em; font-weight: bold;">
-        <q-avatar color="black" text-color="white" icon="home_work"></q-avatar>
-        {{ $t("typesOfFish") }}
-        <span v-if="currentNode">
-          <span style="color: #1976d2; margin-left: 5px;font-size: 0.8em;">
-            {{ $t("selectedNode") }}:
-            <span style="font-size: 0.9em; color: #0f1010; font-weight: bold">
-              {{ this.nodeInfo() }}
-            </span>
-          </span>
+      <template v-slot:top>
+        <div style="font-size: 1.2em; font-weight: bold">
+          <q-avatar color="black" text-color="white" icon="set_meal"> </q-avatar>
+          {{ $t('typesOfFish') }}
+        </div>
 
-        </span>
-      </div>
-      <template v-slot:action>
-        <q-btn
-          dense
-          icon="expand_more"
-          color="secondary"
-          @click="fnExpand()"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t("expandAll") }}
-          </q-tooltip>
-        </q-btn>
-        <q-btn
-          dense
-          icon="expand_less"
-          color="secondary"
-          class="q-ml-sm"
-          @click="fnCollapse()"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t("collapseAll") }}
-          </q-tooltip>
-        </q-btn>
+        <q-space />
         <q-btn
           v-if="hasTarget('mon:vr:ins')"
-          dense
           icon="post_add"
+          dense
           color="secondary"
-          class="q-ml-sm"
-          @click="fnIns('ins', false)"
+          :disable="loading"
+          @click="editRow(null, 'ins')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t("add") }}
+            {{ $t('newRecord') }}
           </q-tooltip>
         </q-btn>
-        <q-btn
-          v-if="hasTarget('mon:vr:ins')"
-          dense
-          icon="post_add"
-          color="secondary"
-          class="q-ml-sm img-vert"
-          @click="fnIns('ins', true)"
-          :disable="currentNode == null"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t("addChild") }}
-          </q-tooltip>
-        </q-btn>
+
         <q-btn
           v-if="hasTarget('mon:vr:upd')"
+          icon="edit"
           dense
-          icon="edit_note"
           color="secondary"
           class="q-ml-sm"
-          @click="fnIns('upd', false)"
-          :disable="currentNode == null"
+          :disable="loading || selected.length === 0"
+          @click="editRow(selected[0], 'upd')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t("editRecord") }}
+            {{ $t('editRecord') }}
           </q-tooltip>
         </q-btn>
+
         <q-btn
           v-if="hasTarget('mon:vr:del')"
-          dense
           icon="delete"
+          dense
           color="secondary"
-          class="q-ml-sm"
-          @click="removeRow(currentNode)"
-          :disable="currentNode == null"
+          class="q-ml-lg"
+          :disable="loading || selected.length === 0"
+          @click="removeRow(selected[0])"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t("deletingRecord") }}
+            {{ $t('deletingRecord') }}
           </q-tooltip>
         </q-btn>
+
+        <q-space />
+
+        <q-input
+          dense
+          debounce="300"
+          color="primary"
+          v-model="filter"
+          :label="$t('txt_filter')"
+        >
+          <template v-slot:append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
       </template>
-    </q-banner>
 
-    <div style="height: calc(100vh - 280px); width: 100%; margin-top: -5px" class="scroll">
-
-      <QTreeTable
-        :cols="cols"
-        :rows="rows"
-        :icon_leaf="''"
-        @updateSelect="onUpdateSelect"
-        checked_visible="true"
-        ref="childComp"
-        :FD_FishType="mapFV"
-      >
-      </QTreeTable>
-
-    </div>
-
-    <q-banner style="background-color: #607d8b;" class="text-white" >Всего записей: {{this.cnt}} </q-banner>
+      <template #loading>
+        <q-inner-loading showing color="secondary"></q-inner-loading>
+      </template>
+    </q-table>
   </div>
-
 </template>
 
-
 <script>
-import {defineComponent} from 'vue'
-import {api} from "boot/axios";
-import {collapsAll, expandAll, getParentNode, hasTarget, notifyInfo, pack} from 'src/utils/jsutils'
-import QTreeTable from "components/QTreeTable.vue";
-import UpdaterTypesFish from 'pages/typesfish/UpdaterTypesFish.vue'
-import {extend} from "quasar";
+import {extend} from 'quasar'
+import {api} from 'boot/axios'
+import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
+import UpdaterSamplingStation from 'pages/samplingstations/UpdaterSamplingStation.vue'
 
-export default defineComponent({
-  name: "TypesFishPage",
-  props: {},
-  components: {QTreeTable},
+export default {
+  name: 'SamplingStationsPage',
+  props: [],
 
   data: function () {
     return {
-      selected: [],
       cols: [],
       rows: [],
-      currentNode: null,
-      visible: false,
-      cls: null,
-      mapFV: new Map(),
-      cnt: 0
-    };
+      filter: '',
+      selected: [],
+      loading: false,
+    }
   },
 
   methods: {
     hasTarget,
+    updateSelected() {},
 
-    nodeInfo() {
-      let res = "";
-      if (this.currentNode) {
-        res = this.currentNode.name
-          ? this.currentNode.name
-          : this.currentNode.cod ? this.currentNode.cod : "";
-      }
-      return res;
-    },
-
-    fnExpand() {
-      expandAll(this.rows);
-    },
-
-    fnCollapse() {
-      collapsAll(this.rows);
-    },
-
-    onUpdateSelect(data) {
-      this.currentNode = data.selected !== undefined ? data.selected : null;
-      //console.log("currentNode onUpdateSelect", this.currentNode)
-    },
-
-    loadFishFamily() {
-      this.visible = true
-      api
-        .post('', {
-          method: 'data/loadFishFamily',
-          params: [{ codCls: 'Cls_FishTypes', isRec: false, idObj: 0 }],
-        })
-        .then((response) => {
-          this.cnt = response.data.result["records"].length
-          this.rows = pack(response.data.result["records"], "ord")
-        })
-        .then(() => {
-          api
-            .post('', {
-              method: 'data/mapFvNameFromId',
-              params: [],
-            })
-            .then((response) => {
-              this.mapFV = response.data.result
-              //console.info("mapFV", this.mapFV)
-            })
-        })
-        .catch(() => {
-/*
-          let msg = error.message
-          if (error.response) {
-            if (error.response.data.error.message.includes('@')) {
-              let msgs = error.response.data.error.message.split('@')
-              let m1 = this.$t(`${msgs[0]}`)
-              let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
-              msg = m1 + m2
-              notifyError(msg)
-            } else {
-              notifyError(this.$t(error.response.data.error.message))
-            }
-          } else {
-            notifyError(msg)
-          }
-*/
-        })
-        .finally(() => {
-          //setTimeout(()=> {
-          this.visible = false
-          //}, 5000)
-        })
-    },
-
-    getColumns() {
-      return [
-        {
-          name: 'name',
-          label: this.$t('fldName')+"*",
-          field: 'name',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width:30%',
-        },
-        {
-          name: 'fvFishFamily',
-          label: this.$t('fishFamily')+"*",
-          field: 'fvFishFamily',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 20%',
-          format: (v) => (this.mapFV ? this.mapFV[v] : null),
-        },
-        {
-          name: 'cmt',
-          label: this.$t('fldCmt'),
-          field: 'cmt',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 50%',
-        },
-      ];
-    },
-
-    fnIns(mode, isChild) {
-      let data = { accessLevel: 1, cls: this.cls };
-
-      let parent = null
-      let parentName = null
-      let fvFishFamily = null
-      let pvFishFamily = null
-
-      if (isChild) {
-        //console.info("isChild this.currentNode", this.currentNode)
-        if (this.currentNode.parent) {
-          parent = parseInt(this.currentNode.parent, 10)
-          let parentNode = []
-          getParentNode(this.rows, parent, parentNode)
-          parentName = parentNode[0].name
-          fvFishFamily = parentNode[0].fvFishFamily
-          pvFishFamily = parentNode[0].pvFishFamily
-        } else {
-          parent = this.currentNode.id
-          parentName = this.currentNode.name
-          fvFishFamily = this.currentNode.fvFishFamily
-          pvFishFamily = this.currentNode.pvFishFamily
-
-        }
-      }
-      if (mode === "ins") {
-        data.parent = parent
-      } else if (mode === "upd") {
-        data = extend(true, {}, this.currentNode)
-        parent = this.currentNode.parent ? parseInt(this.currentNode.parent, 10) : 0
-        if (parent > 0) {
-          let parentNode = [];
-          getParentNode(this.rows, parent, parentNode)
-          parentName = parentNode[0].name
-          fvFishFamily = parentNode[0].fvFishFamily
-          pvFishFamily = parentNode[0].pvFishFamily
-          isChild = true
-        }
+    editRow(row, mode) {
+      let data = { accessLevel: 1 }
+      if (mode === 'upd') {
+        data = extend(true, {}, row)
       }
 
-
-      if (isChild) {
-        data.fvFishFamily = fvFishFamily
-        data.pvFishFamily = pvFishFamily
-      }
-
-      //console.info(mode, this.currentNode)
       this.$q
         .dialog({
-          component: UpdaterTypesFish,
+          component: UpdaterSamplingStation,
           componentProps: {
             mode: mode,
-            isChild: isChild,
-            parentName: parentName,
             data: data,
             // ...
           },
         })
         .onOk((r) => {
-          this.loadFishFamily()
-          this.currentNode = r
-          this.$refs.childComp.restoreSelect(r)
+          //console.log("Ok! updated", r);
+          if (mode === 'ins') {
+            this.rows.push(r)
+            this.selected = []
+            this.selected.push(r)
+          } else {
+            for (let key in r) {
+              row[key] = r[key]
+              /*
+              if (r.hasOwnProperty(key)) {
+                row[key] = r[key]
+              }
+*/
+            }
+          }
         })
     },
 
@@ -318,13 +162,7 @@ export default defineComponent({
       this.$q
         .dialog({
           title: this.$t('confirmation'),
-          message:
-            this.$t('deleteRecord') +
-            '<div style="color: plum">(' +
-            row.name +
-            ' - ' +
-            this.mapFV[row.fvFishFamily] +
-            ')</div>',
+          message: this.$t('deleteRecord') + '<div style="color: plum">(' + row.name + ')</div>',
           html: true,
           cancel: true,
           persistent: true,
@@ -338,8 +176,29 @@ export default defineComponent({
               params: [row.obj, 1],
             })
             .then(() => {
-              this.loadFishFamily()
+              this.loadTypesFish()
               this.selected = []
+            })
+            .catch((error) => {
+              //console.log(error.message)
+
+/*
+              if (error.response.data.error.message.includes('@')) {
+                let msgs = error.response.data.error.message.split('@')
+                let m1 = msgs[0]
+                let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
+                let msg = ''
+                if (m1 === 'existsSampling') {
+                  msg = `
+                  Заборы проб:
+                  Существует - ${m2}
+                  `
+                }
+                notifyError(msg)
+              } else {
+                notifyError(this.$t(error.response.data.error.message))
+              }
+*/
             })
         })
         .onCancel(() => {
@@ -347,37 +206,133 @@ export default defineComponent({
         })
     },
 
+    loadTypesFish() {
+      this.loading = true
+      api
+        .post('', {
+          method: 'data/loadTypesFish',
+          params: [{ codCls: 'Cls_Station', idObj: 0 }],
+        })
+        .then(
+          (response) => {
+            this.rows = response.data.result["records"]
+
+            console.info("rows", this.rows)
+          })
+        .finally(() => {
+          this.loading = false
+        })
+    },
+
+    getColumns() {
+      return [
+        {
+          name: 'name',
+          label: this.$t('fldName')+"*",
+          field: 'name',
+          align: 'left',
+          sortable: true,
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 30%',
+        },
+        {
+          name: 'FishFamily',
+          label: this.$t('FishFamily')+"*",
+          field: 'FishFamily',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width:20%',
+        },
+        {
+          name: 'FishTyp',
+          label: this.$t('FishType')+"*",
+          field: 'FishTyp',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 15%',
+        },
+
+        {
+          name: 'Description',
+          label: this.$t('description'),
+          field: 'Description',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 35%',
+        },
+      ]
+    },
+
+    infoSelected(row) {
+      return ' ' + row.name
+    },
   },
 
   created() {
-    this.visible = true
-    api
-      .post('', {
-        method: 'data/loadClsId',
-        params: ['Cls_FishTypes'],
-      })
-      .then(
-        (response) => {
-          this.cls = response.data.result
-        })
-      .finally(() => {
-        this.visible = false
-      })
     this.cols = this.getColumns()
-    this.loadFishFamily()
+    this.loading = true
+    //
+
+
+    //
+    this.loadTypesFish()
   },
-
-  setup() {
-    return {};
-  },
-
-})
-
+}
 </script>
 
+<!--<style lang="sass">
+.my-sticky-header-table
+  /* height or max-height is important */
+  height: calc(100vh - 190px)
+
+  .q-table__top,
+  .q-table__bottom,
+  thead tr:first-child th
+    /* bg color is important for th; just specify one */
+    background-color: #bdbdbd
+
+  thead tr th
+    position: sticky
+    z-index: 1
+  thead tr:first-child th
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table&#45;&#45;loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 48px
+
+  /* prevent scrolling behind sticky top row on focus */
+  tbody
+    /* height of all previous header rows */
+    scroll-margin-top: 48px
+</style>-->
+
 <style scoped>
-.img-vert {
-  transform: scaleY(-1);
-  -ms-filter: "FlipV";
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 100%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: none;
 }
 </style>
