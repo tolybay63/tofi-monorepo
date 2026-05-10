@@ -173,18 +173,25 @@ export default {
           },
         })
         .onOk((r) => {
-          console.log("Ok! updated", r);
+          //console.log("Ok! updated", r);
           if (mode === 'ins') {
             this.rows.push(r)
             this.selected = []
             this.selected.push(r)
           } else {
             for (let key in r) {
-              //row[key] = r[key]
               if (r.hasOwnProperty(key)) {
                 row[key] = r[key]
               }
             }
+            if (r["FishSpawPeriod"] !== null)
+              row["FishSpawPeriod"] = r["FishSpawPeriod"]
+            if (r["FishStartPuberty"] !== null)
+              row["FishStartPuberty"] = r["FishStartPuberty"]
+            if (r["FishEndPuberty"] !== null)
+              row["FishEndPuberty"] = r["FishEndPuberty"]
+            if (r["FishSpawFrequency"] !== null)
+              row["FishSpawFrequency"] = r["FishSpawFrequency"]
           }
         })
     },
@@ -244,8 +251,6 @@ export default {
         .then(
           (response) => {
             this.rows = response.data.result["records"]
-
-            console.info("rows", this.rows)
           })
         .finally(() => {
           //setTimeout(()=> {

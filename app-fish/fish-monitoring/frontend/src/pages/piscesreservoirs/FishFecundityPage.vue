@@ -151,10 +151,12 @@ export default {
             .then(
               () => {
                 if (row.level===0) {
+                  this.rows[0].idval = null;
                   this.rows[0].numberval = null;
                 } else {
                   let childs = this.rows[0].children;
                   let index = childs.findIndex((rec) => rec.id === row.id);
+                  childs[index].idval = null;
                   childs[index].numberval = null;
                 }
               },
@@ -178,15 +180,17 @@ export default {
           },
         })
         .onOk((r) => {
-          if (r.res) {
+
             if (row.level===0) {
-              this.rows[0].numberval = r.res;
+              this.rows[0].idval = r.idval;
+              this.rows[0].numberval = r.numberval;
             } else {
               let childs = this.rows[0].children;
               let index = childs.findIndex((rec) => rec.id === row.id);
-              childs[index].numberval = r.res;
+              childs[index].idval = r.idval;
+              childs[index].numberval = r.numberval;
             }
-          }
+
         })
         .onCancel(() => {
           notifyInfo(this.$t("canceled"))
@@ -356,13 +360,12 @@ export default {
     api
       .post('', {
         method: 'data/loadFishFecundity',
-        params: [this.relobj],
+        params: [this.relobj, 0],
       })
       .then(
         (response) => {
           this.rows = pack(response.data.result["records"], "id")
           expandAll(this.rows)
-          console.info("rows", this.rows);
         })
       .finally(() => {
         this.loading = false

@@ -44,11 +44,8 @@ export default {
   props: ['data'],
 
   data() {
-    //console.info("data", this.data)
     return {
       form: this.data,
-      //val: this.data.numberval || "",
-      //label: this.data.name,
       loading: false,
     }
   },
@@ -96,9 +93,9 @@ export default {
           params: [this.form],
         })
         .then(
-          () => {
+          (response) => {
             err = false
-            this.$emit('ok', {res: this.form.numberval})
+            this.$emit('ok', response.data.result.records[0])
             notifySuccess(this.$t('success'))
           },
           (error) => {
