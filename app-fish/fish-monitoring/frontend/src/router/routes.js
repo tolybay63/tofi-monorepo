@@ -32,7 +32,7 @@ const routes = [
       {
         path: '/piscesreservoirs',
         name: 'PiscesReservoirsTabs',
-        component: () => import('pages/piscesreservoirs/PiscesReservoirsTabs.vue'),
+        component: () => import('pages/piscesreservoirs/PiscesReservoirsPage.vue'),
       },
 
       {

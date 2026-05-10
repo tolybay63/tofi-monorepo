@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div class="q-pa-sm">
     <q-table
-      style="height: calc(100vh - 190px); width: 100%"
+      style="height: calc(100vh - 140px); width: 100%"
       class="my-sticky-header-table"
       color="primary"
       dense
@@ -17,7 +17,6 @@
       :loading="loading"
       selection="single"
       v-model:selected="selected"
-      @update:selected="updateSelected"
       :rows-per-page-options="[25, 0]"
     >
       <template #bottom-row>
@@ -51,10 +50,24 @@
         </q-btn>
 
         <q-btn
+          v-if="hasTarget('mon:rpv:upd')"
+          icon="edit"
+          dense
+          color="secondary"
+          class="q-ml-sm"
+          :disable="loading || selected.length === 0"
+          @click="editRow(selected[0], 'upd')"
+        >
+          <q-tooltip transition-show="rotate" transition-hide="rotate">
+            {{ $t('editRecord') }}
+          </q-tooltip>
+        </q-btn>
+
+        <q-btn
           v-if="hasTarget('mon:rpv:del')"
           icon="delete"
           dense
-          color="secondary"
+          color="red"
           class="q-ml-lg"
           :disable="loading || selected.length === 0"
           @click="removeRow(selected[0])"
@@ -63,6 +76,22 @@
             {{ $t('deletingRecord') }}
           </q-tooltip>
         </q-btn>
+
+        <q-btn
+          v-if="hasTarget('mon:rpv:sel')"
+          dense="dense"
+          :disable="loading || selected.length === 0"
+          class="q-ml-lg"
+          color="secondary"
+          icon="pan_tool_alt"
+          @click="ReservoirFishSelect()"
+        >
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
+            {{ $t("chooseRecord") }}
+          </q-tooltip>
+        </q-btn>
+
+
 
         <q-space />
 
@@ -91,6 +120,7 @@ import {api} from 'boot/axios'
 import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
 import {extend} from 'quasar'
 import UpdaterPiscesReservoir from 'pages/piscesreservoirs/UpdaterPiscesReservoir.vue'
+import FishFecundityPage from "pages/piscesreservoirs/FishFecundityPage.vue";
 
 export default {
   name: 'PiscesReservoirsPage',
@@ -103,7 +133,7 @@ export default {
       filter: '',
       selected: [],
       loading: false,
-      mapBranch: new Map(),
+
       mapReservoir: new Map(),
       mapTypeOfFish: new Map(),
     }
@@ -111,7 +141,21 @@ export default {
 
   methods: {
     hasTarget,
-    updateSelected() {},
+
+    ReservoirFishSelect() {
+      this.$q
+        .dialog({
+          component: FishFecundityPage,
+          componentProps: {
+            relobj: this.selected[0].relobj,
+            name: this.mapReservoir.get(this.selected[0].reservoir) + " - " + this.mapTypeOfFish.get(this.selected[0].typeOfFish),
+            // ...
+          },
+        })
+        .onOk(() => {
+        })
+    },
+
 
     editRow(row, mode) {
       let data = { accessLevel: 1 }
@@ -129,26 +173,23 @@ export default {
           },
         })
         .onOk((r) => {
-          //console.log("Ok! updated", r);
+          console.log("Ok! updated", r);
           if (mode === 'ins') {
             this.rows.push(r)
             this.selected = []
             this.selected.push(r)
           } else {
             for (let key in r) {
-              row[key] = r[key]
-              /*
+              //row[key] = r[key]
               if (r.hasOwnProperty(key)) {
                 row[key] = r[key]
               }
-*/
             }
           }
         })
     },
 
     removeRow(row) {
-      console.info("row", row)
       this.$q
         .dialog({
           title: this.$t('confirmation'),
@@ -168,7 +209,6 @@ export default {
           api
             .post('', {
               //method: 'data/deleteFishInResoirvoir',
-              //params: [row.relobj, row.typeoffish],
               method: 'data/deleteOwnerWithProperties',
               params: [row.relobj, 0],
             })
@@ -199,11 +239,13 @@ export default {
       api
         .post('', {
           method: 'data/loadPiscesReservoir',
-          params: [{ codRelTyp: 'RelTyp_FishType' }],
+          params: [{ codRelTyp: 'RelTyp_FishReservoir' }],
         })
         .then(
           (response) => {
-            this.rows = response.data.result.records
+            this.rows = response.data.result["records"]
+
+            console.info("rows", this.rows)
           })
         .finally(() => {
           //setTimeout(()=> {
@@ -215,36 +257,56 @@ export default {
     getColumns() {
       return [
         {
-          name: 'branch',
-          label: this.$t('branch')+"*",
-          field: 'branch',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width:35%',
-          format: (v) => (this.mapBranch ? this.mapBranch.get(v) : null),
-        },
-        {
           name: 'reservoir',
           label: this.$t('reservoir')+"*",
           field: 'reservoir',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 35%',
+          headerStyle: 'font-size: 1.2em; width: 20%',
           format: (v) => (this.mapReservoir ? this.mapReservoir.get(v) : null),
         },
         {
-          name: 'typeoffish',
+          name: 'typeOfFish',
           label: this.$t('typeOfFish')+"*",
-          field: 'typeoffish',
+          field: 'typeOfFish',
           align: 'left',
           sortable: true,
-          sort: (a,b)=> this.mapTypeOfFish.get(a) < this.mapTypeOfFish.get(b) ? 1 :
-            this.mapTypeOfFish.get(a) > this.mapTypeOfFish.get(b) ? -1 : 0,
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 30%',
+          headerStyle: 'font-size: 1.2em; width: 20%',
           format: (v) => (this.mapTypeOfFish ? this.mapTypeOfFish.get(v) : null),
+        },
+        {
+          name: 'FishSpawPeriod',
+          label: this.$t('FishSpawPeriod'),
+          field: 'FishSpawPeriod',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 15%',
+        },
+        {
+          name: 'FishStartPuberty',
+          label: this.$t('FishStartPuberty'),
+          field: 'FishStartPuberty',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 15%',
+        },
+        {
+          name: 'FishEndPuberty',
+          label: this.$t('FishEndPuberty'),
+          field: 'FishEndPuberty',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 15%',
+        },
+        {
+          name: 'FishSpawFrequency',
+          label: this.$t('FishSpawFrequency'),
+          field: 'FishSpawFrequency',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 15%',
         },
       ]
     },
@@ -262,27 +324,11 @@ export default {
 
   created() {
     this.cols = this.getColumns()
-    //this.loading = true
+    this.loading = true
     api
       .post('', {
-        method: 'data/loadBranchName',
-        params: ['Cls_Branch'],
-      })
-      .then(
-        (response) => {
-          response.data.result.records.forEach((it) => {
-            this.mapBranch.set(it["id"], it["name"])
-          })
-        })
-      .finally(() => {
-        //this.loading = false
-      })
-    //
-    //this.loading = true
-    api
-      .post('', {
-        method: 'data/loadReservoirName',
-        params: [],
+        method: 'data/loadReservoir',
+        params: ["Typ_WaterBodies"],
       })
       .then(
         (response) => {
@@ -291,14 +337,14 @@ export default {
           })
         })
       .finally(() => {
-        //this.loading = false
+        this.loading = false
       })
     //
-    //this.loading = true
+    this.loading = true
     api
       .post('', {
         method: 'data/loadTypeOfFish',
-        params: ['Cls_FishTypes', null],
+        params: ['Typ_Fish'],
       })
       .then(
         (response) => {
@@ -307,10 +353,13 @@ export default {
           })
         })
       .finally(() => {
-        //this.loading = false
-        this.loadData()
+        this.loading = false
       })
     //
+    setTimeout(()=> {
+      this.loadData()
+    }, 200)
+
   },
 }
 </script>

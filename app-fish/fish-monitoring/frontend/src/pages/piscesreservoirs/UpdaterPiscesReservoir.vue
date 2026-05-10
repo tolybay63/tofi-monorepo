@@ -1,13 +1,13 @@
 <template>
   <q-dialog
     ref="dialog"
-    @hide="onDialogHide"
-    persistent
     autofocus
-    transition-show="slide-up"
+    persistent
     transition-hide="slide-down"
+    transition-show="slide-up"
+    @hide="onDialogHide"
   >
-    <q-card class="q-dialog-plugin" style="height: 400px; width: 800px">
+    <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
         <div>{{ $t('newRecord') }}</div>
       </q-bar>
@@ -16,66 +16,68 @@
       </q-bar>
 
       <q-card-section>
-        <!-- Branch -->
-        <q-select
-          v-model="form.branch"
-          :model-value="form.branch"
-          :label="fmReqLabel('branch')"
-          :options="optBranch"
-          dense
-          map-options
-          option-label="name"
-          option-value="id"
-          class="q-mb-lg"
-          use-input
-          @update:model-value="fnSelectBranch"
-          @filter="filterBranch"
-        />
 
         <!-- Reservoir -->
         <q-select
           v-model="form.reservoir"
-          :model-value="form.reservoir"
           :label="fmReqLabel('reservoir')"
+          :model-value="form.reservoir"
           :options="optReservoir"
+          class="q-mb-lg"
           dense
           map-options
           option-label="name"
           option-value="id"
-          class="q-mb-lg"
           use-input
-          @update:model-value="fnSelectReservoir"
           @filter="filterReservoir"
+          @update:model-value="fnSelectReservoir"
         />
 
         <!-- TypeOfFish -->
-        <q-item-label class="text-grey-7" style="font-size: 0.8em">{{fmReqLabel('typeOfFish')}}
-        </q-item-label>
-        <treeselect
+        <q-select
+          v-model="form.typeOfFish"
+          :label="fmReqLabel('typeOfFish')"
           :options="optTypeOfFish"
-          v-model="form.typeoffish"
-          maxHeight="800"
-          :normalizer="normalizer"
-          :placeholder="$t('select')"
-          :noChildrenText="$t('noChilds')"
-          :noResultsText="$t('noResult')"
-          :noOptionsText="$t('noResult')"
-          @select="fnSelectTypeOfFish"
-          class="q-mb-xl"
+          class="q-mb-lg"
+          dense
+          map-options
+          option-label="name"
+          option-value="id"
+          use-input
+          @filter="filterTypeOfFish"
+          @update:model-value="fnSelectTypeOfFish"
         />
+        <!-- FishSpawPeriod -->
+        <q-input v-model="form['FishSpawPeriod']" :label="$t('FishSpawPeriod')"
+                 class="q-mb-lg"
+                 dense/>
+
+        <!-- FishStartPuberty -->
+        <q-input v-model="form['FishStartPuberty']" :label="$t('FishStartPuberty')"
+                 class="q-mb-lg"
+                 dense type="number"/>
+
+        <!-- FishEndPuberty -->
+        <q-input v-model="form['FishEndPuberty']" :label="$t('FishEndPuberty')" class="q-mb-lg"
+                 dense type="number"/>
+
+        <!-- FishSpawFrequency -->
+        <q-input v-model="form['FishSpawFrequency']" :label="$t('FishSpawFrequency')"
+                 class="q-mb-lg"
+                 dense/>
 
       </q-card-section>
       <!---->
       <q-card-actions align="right">
         <q-btn
+          :disable="validSave()"
+          :label="$t('save')"
+          class="q-mt-xl"
           color="primary"
           icon="save"
-          :label="$t('save')"
           @click="onOKClick"
-          :disable="validSave()"
-          class="q-mt-xl"
         />
-        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick" class="q-mt-xl"/>
+        <q-btn :label="$t('cancel')" class="q-mt-xl" color="primary" icon="cancel" @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -83,24 +85,20 @@
 
 <script>
 
-import treeselect from "vue3-treeselect";
-import "vue3-treeselect/dist/vue3-treeselect.css";
 import {api} from 'boot/axios'
-import {notifyError, notifySuccess, pack} from 'src/utils/jsutils'
+import {notifySuccess} from 'src/utils/jsutils'
 
 export default {
-  components: {treeselect},
   props: ['mode', 'data'],
 
   data() {
     return {
       form: this.data,
       loading: false,
-      optBranch: [],
-      optBranchOrg: [],
       optReservoir: [],
       optReservoirOrg: [],
       optTypeOfFish: [],
+      optTypeOfFishOrg: [],
     }
   },
 
@@ -113,34 +111,6 @@ export default {
   methods: {
     fmReqLabel(label) {
       return this.$t(label) + '*'
-    },
-
-    fnSelectBranch(v) {
-      if (v) {
-        this.form.branch = v.id
-        this.form.reservoir = null
-        this.form.cls1 = null
-        this.form.typeoffish = null
-        this.form.cls2 = null
-        this.loadReservoir(v.id)
-      }
-    },
-
-    filterBranch(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optBranch = this.optBranchOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optBranchOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optBranch = this.optBranchOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
     },
 
     fnSelectReservoir(v) {
@@ -165,37 +135,30 @@ export default {
       })
     },
 
-    normalizer(node) {
-      return {
-        id: node.id,
-        label: node.name,
-      };
-    },
-
     fnSelectTypeOfFish(v) {
-      this.form.typeoffish = v.id
+      this.form.typeOfFish = v.id
       this.form.cls2 = v.cls
     },
 
-    loadReservoir(branch) {
-      this.loading = true
-      api
-        .post('', {
-          method: 'data/loadReservoir',
-          params: [branch],
+    filterTypeOfFish(val, update) {
+      if (val === null || val === '') {
+        update(() => {
+          this.optTypeOfFish = this.optTypeOfFishOrg
         })
-        .then(
-          (response) => {
-            this.optReservoir = response.data.result.records
-            this.optReservoirOrg = response.data.result.records
-          })
-        .finally(() => {
-          this.loading = false
+        return
+      }
+      update(() => {
+        if (this.optTypeOfFishOrg.length < 2) return
+        const needle = val.toLowerCase()
+        let name = 'name'
+        this.optTypeOfFish = this.optTypeOfFishOrg.filter((v) => {
+          return v[name].toLowerCase().indexOf(needle) > -1
         })
+      })
     },
 
     validSave() {
-      if (!this.form.branch || !this.form.reservoir || !this.form.typeoffish) return true
+      if (!this.form.reservoir || !this.form.typeOfFish) return true
     },
 
     // following method is REQUIRED
@@ -234,20 +197,19 @@ export default {
             this.$emit('ok', response.data.result.records[0])
             notifySuccess(this.$t('success'))
           },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
+          () => {
             err = true
-/*
-            if (error.response.data.error.message.includes('@')) {
-              let msgs = error.response.data.error.message.split('@')
-              let m1 = this.$t(`${msgs[0]}`)
-              let m2 = msgs.length > 1 ? ': [' + msgs[1] + ']' : ''
-              let msg = m1 + m2
-              notifyError(msg)
-            } else {
-              notifyError(this.$t(error.response.data.error.message))
-            }
-*/
+            /*
+                        if (error.response.data.error.message.includes('@')) {
+                          let msgs = error.response.data.error.message.split('@')
+                          let m1 = this.$t(`${msgs[0]}`)
+                          let m2 = msgs.length > 1 ? ': [' + msgs[1] + ']' : ''
+                          let msg = m1 + m2
+                          notifyError(msg)
+                        } else {
+                          notifyError(this.$t(error.response.data.error.message))
+                        }
+            */
           }
         )
         .finally(() => {
@@ -265,13 +227,13 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadBranchName',
-        params: ['Cls_Branch'],
+        method: 'data/loadReservoir',
+        params: ['Typ_WaterBodies'],
       })
       .then(
         (response) => {
-          this.optBranch = response.data.result.records
-          this.optBranchOrg = response.data.result.records
+          this.optReservoir = response.data.result["records"]
+          this.optReservoirOrg = response.data.result["records"]
         })
       .finally(() => {
         this.loading = false
@@ -280,12 +242,13 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadTypeOfFishForSelect',
-        params: ['Cls_FishTypes'],
+        method: 'data/loadTypeOfFish',
+        params: ['Typ_Fish'],
       })
       .then(
         (response) => {
-          this.optTypeOfFish = pack( response.data.result.records, "id")
+          this.optTypeOfFish = response.data.result["records"]
+          this.optTypeOfFishOrg = response.data.result["records"]
         })
       .finally(() => {
         this.loading = false

@@ -110,6 +110,14 @@ export default {
   success: 'Action was successful',
   download: 'Download',
 
+  FishSpawPeriod: "Spawning Period",
+  FishStartPuberty: "Age of Onset of Puberty",
+  FishEndPuberty: "Age of End of Puberty",
+  FishFecundity: "Number of Eggs in a Female",
+  FishSpawFrequency: "Fish Spawning Frequency",
+
+
+
   typesOfFish: 'Types of fish',
   typeOfFish: 'Type of fish',
   reservoirs: 'Reservoirs',

@@ -112,6 +112,15 @@ export default {
   success: 'Успешно',
   download: 'Скачать',
 
+  FishSpawPeriod: "Период нереста",
+  FishStartPuberty: "Возраст начала полового созревания",
+  FishEndPuberty: "Возраст окончания полового созревания",
+  FishFecundity: "Количество икринок в одной самке",
+  FishSpawFrequency: "Частота нереста рыб",
+
+
+
+
   typesOfFish: 'Виды рыб',
   typeOfFish: 'Вид рыбы',
   reservoirs: 'Водоемы',
