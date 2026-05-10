@@ -834,30 +834,39 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadFishFecundity(long relobj) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FishFecundity", "")
-        Store st = loadSqlMeta("""
-            select id, parent, name, null as numberval, null as idval 
-            from Prop where id=${map.get("Prop_FishFecundity")} or parent=${map.get("Prop_FishFecundity")}
-            order by id
-        """, "")
-        Set<Object> idsProp = st.getUniqueValues("id")
+    Store loadFishFecundity(long relobj, long prop) {
+        if (prop > 0) {
+            return mdb.loadQuery("""
+                select d.prop as id, v.numberval, v.id as idval
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=0 and d.objorrelobj=${relobj} and d.prop=${prop}
+            """)
+        } else {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FishFecundity", "")
+            Store st = loadSqlMeta("""
+                select id, parent, name, null as numberval, null as idval 
+                from Prop where id=${map.get("Prop_FishFecundity")} or parent=${map.get("Prop_FishFecundity")}
+                order by id
+            """, "")
+            Set<Object> idsProp = st.getUniqueValues("id")
 
-        Store stData = mdb.loadQuery("""
-            select d.prop as id, v.numberval, v.id as idval
-            from DataProp d
-                left join DataPropVal v on d.id=v.dataProp
-            where d.isObj=0 and d.objorrelobj=${relobj} and d.prop in (0${idsProp.join(",")})
-        """)
-        StoreIndex indData = stData.getIndex("id")
-        for (StoreRecord r in st) {
-            StoreRecord rec = indData.get(r.getLong("id"))
-            if (rec != null) {
-                r.set("numberval", rec.getDouble("numberval"))
-                r.set("idval", rec.getLong("idval"))
+            Store stData = mdb.loadQuery("""
+                select d.prop as id, v.numberval, v.id as idval
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=0 and d.objorrelobj=${relobj} and d.prop in (0${idsProp.join(",")})
+            """)
+            StoreIndex indData = stData.getIndex("id")
+            for (StoreRecord r in st) {
+                StoreRecord rec = indData.get(r.getLong("id"))
+                if (rec != null) {
+                    r.set("numberval", rec.getDouble("numberval"))
+                    r.set("idval", rec.getLong("idval"))
+                }
             }
+            return st
         }
-        return st
     }
 
     @DaoMethod
@@ -874,7 +883,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    void saveFishFecundiry(Map<String, Object> rec) {
+    Store saveFishFecundiry(Map<String, Object> rec) {
         long relobj = UtCnv.toLong(rec.get("relobj"))
         long prop = UtCnv.toLong(rec.get("prop"))
         long idVal = UtCnv.toLong(rec.get("idval"))
@@ -914,6 +923,7 @@ class DataDao extends BaseMdbUtils {
             recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
             mdb.insertRec("DataPropVal", recDPV, false)
         }
+        return loadFishFecundity(relobj, prop)
     }
 
     @DaoMethod
