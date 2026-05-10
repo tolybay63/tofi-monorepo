@@ -111,6 +111,12 @@ export default {
   success: 'Жетiстiк',
   download: 'Файлды көшіру',
 
+  FishSpawPeriod: "Уылдырық шашу кезеңі",
+  FishStartPuberty: "Жыныстық жетілудің басталу жасы",
+  FishEndPuberty: "Жыныстық жетілудің аяқталу жасы",
+  FishFecundity: "Аналық балықтың жұмыртқа саны",
+  FishSpawFrequency: "Балықтың уылдырық шашу жиілігі",
+
   typesOfFish: 'Балықтардың түрлері',
   typeOfFish: 'Балықтың түрі',
   reservoirs: 'Су қоймалары',

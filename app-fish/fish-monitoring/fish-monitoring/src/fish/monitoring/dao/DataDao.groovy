@@ -504,7 +504,8 @@ class DataDao extends BaseMdbUtils {
             //Prop_Coordinate
             fillProperties(true, "Prop_Coordinate", pms)
             //Prop_Description
-            fillProperties(true, "Prop_Description", pms)
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
         } else {
             own = pms.getLong("obj")
             par.put("id", own)
@@ -586,7 +587,8 @@ class DataDao extends BaseMdbUtils {
             //Prop_FishTyp
             fillProperties(true, "Prop_FishTyp", pms)
             //Prop_Description
-            fillProperties(true, "Prop_Description", pms)
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
         } else {
             own = pms.getLong("obj")
             par.put("id", own)
@@ -661,7 +663,8 @@ class DataDao extends BaseMdbUtils {
             own = eu.insertEntity(par)
             pms.put("own", own)
             //Prop_Description
-            fillProperties(true, "Prop_Description", pms)
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
         } else {
             own = pms.getLong("obj")
             par.put("id", own)
@@ -676,6 +679,278 @@ class DataDao extends BaseMdbUtils {
         }
         return loadFishGear([codTyp: "", idObj: own] as Map<String, Object>)
     }
+
+    //---------------- PiscesReservoir ----------------//
+    @DaoMethod
+    Store loadPiscesReservoir(Map<String, Object> params) {
+        String codRelTyp = UtCnv.toString(params.get("codRelTyp"))
+        long relobj = UtCnv.toLong(params.get("relobj"))
+        String whe = "o.id=" + relobj
+        if (relobj == 0) {
+            Set<Object> idsRelCls = apiMeta().get(ApiMeta).setIdsOfRelCls(codRelTyp)
+            whe = "o.relcls in (0" + idsRelCls.join(",") + ")"
+        }
+        Map<String, Long> mapProps = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Fish%")
+        Store st = mdb.createStore("RelObj.FishReservoir")
+        mdb.loadQuery(st, """
+            select o.id as relobj, o.relcls, null::bigint as reservoir, null::bigint as cls1, 
+                null::bigint as typeOfFish, null::bigint as cls2,
+                v1.id as idFishSpawPeriod, v1.strVal as FishSpawPeriod,
+                v2.id as idFishStartPuberty, v2.numberVal as FishStartPuberty,
+                v3.id as idFishEndPuberty, v3.numberVal as FishEndPuberty,
+                v4.id as idFishSpawFrequency, v4.strVal as FishSpawFrequency
+            from RelObj o
+                left join DataProp d1 on d1.isObj=0 and d1.objorrelobj=o.id and d1.prop=:Prop_FishSpawPeriod
+                left join DataPropVal v1 on v1.dataProp=d1.id
+                left join DataProp d2 on d2.isObj=0 and d2.objorrelobj=o.id and d2.prop=:Prop_FishStartPuberty
+                left join DataPropVal v2 on v2.dataProp=d2.id
+                left join DataProp d3 on d3.isObj=0 and d3.objorrelobj=o.id and d3.prop=:Prop_FishEndPuberty
+                left join DataPropVal v3 on v3.dataProp=d3.id
+                left join DataProp d4 on d4.isObj=0 and d4.objorrelobj=o.id and d4.prop=:Prop_FishSpawFrequency
+                left join DataPropVal v4 on v4.dataProp=d4.id
+            where ${whe}
+        """, mapProps)
+
+        Store stROM = mdb.loadQuery("""
+            select relobj, 
+                STRING_AGG (cast(cls as varchar(2000)), ',' order by id) as clslist, 
+                STRING_AGG (cast(obj as varchar(2000)), ',' order by id) as objlist 
+            from relobjmember
+            where relobj in (select o.id from RelObj o where ${whe}) 
+            group by relobj
+        """)
+        StoreIndex indROM = stROM.getIndex("relobj")
+        //
+        for (StoreRecord r in st) {
+            StoreRecord rec = indROM.get(r.getLong("relobj"))
+            if (rec != null) {
+                def clss = rec.getString("clslist").split(",")
+                def objs = rec.getString("objlist").split(",")
+                long cls1 = UtCnv.toLong(clss[0])
+                long cls2 = UtCnv.toLong(clss[1])
+                long obj1 = UtCnv.toLong(objs[0])
+                long obj2 = UtCnv.toLong(objs[1])
+
+                r.set("reservoir", obj1)
+                r.set("cls1", cls1)
+                r.set("typeOfFish", obj2)
+                r.set("cls2", cls2)
+            }
+        }
+        return st
+    }
+
+    @DaoMethod
+    Store savePiscesReservoir(Map<String, Object> params) {
+        VariantMap form = new VariantMap(params)
+        long relobj = 0
+        //
+        if (form.getString("mode") == "ins") {
+            Store stTmp = mdb.loadQuery("""
+                select v.name 
+                from RelObjMember r 
+                    inner join RelObjMember r2 on r.relobj=r2.relobj and r2.cls=${form.getLong("cls2")} and r2.obj=${form.getLong("typeOfFish")}
+                    inner join relobjver v on r.relobj=v.ownerver and v.lastver=1
+                where r.cls=${form.getLong("cls1")} and r.obj=${form.getLong("reservoir")}
+            """)
+            if (stTmp.size() > 0) {
+                throw new XError("exists@${stTmp.get(0).getString("name")}")
+            }
+            //
+            long relCls = apiMetaFish().get(ApiMetaFish).idRelCls(form.getLong("cls1"), form.getLong("cls2"))
+            Map<String, Object> pms = new HashMap<>()
+            pms.put("relCls", relCls)
+            String n1 = mdb.loadQuery(
+                    "select name from ObjVer where ownerVer=:o and lastVer=1", [o: form.getLong("reservoir")])
+                    .get(0).getString("name")
+            String n2 = mdb.loadQuery(
+                    "select name from ObjVer where ownerVer=:o and lastVer=1", [o: form.getLong("typeOfFish")])
+                    .get(0).getString("name")
+            pms.put("name", n1 + " => " + n2)
+            pms.put("fullName", n1 + " => " + n2)
+            EntityMdbUtils eu = new EntityMdbUtils(mdb, "RelObj")
+            relobj = eu.insertEntity(pms)
+            //
+            Store stRCM = apiMetaFish().get(ApiMetaFish).loadRelClsMember(relCls)
+
+            StoreRecord recROM = mdb.createStoreRecord("RelObjMember")
+            recROM.set("relObj", relobj)
+            recROM.set("relClsMember", stRCM.get(0).getLong("id"))
+            recROM.set("cls", form.getLong("cls1"))
+            recROM.set("obj", form.getLong("reservoir"))
+            mdb.insertRec("RelObjMember", recROM, true)
+            //
+            recROM = mdb.createStoreRecord("RelObjMember")
+            recROM.set("relObj", relobj)
+            recROM.set("relClsMember", stRCM.get(1).getLong("id"))
+            recROM.set("cls", form.getLong("cls2"))
+            recROM.set("obj", form.getLong("typeOfFish"))
+            mdb.insertRec("RelObjMember", recROM, true)
+            //
+            form.put("own", relobj)
+            //Prop_FishSpawPeriod
+            if (!form.getString("FishSpawPeriod").isEmpty())
+                fillProperties(false, "Prop_FishSpawPeriod", form)
+            //Prop_FishStartPuberty
+            if (!form.getString("FishStartPuberty").isEmpty())
+                fillProperties(false, "Prop_FishStartPuberty", form)
+            //Prop_FishEndPuberty
+            if (!form.getString("FishEndPuberty").isEmpty())
+                fillProperties(false, "Prop_FishEndPuberty", form)
+            //Prop_FishSpawFrequency
+            if (!form.getString("FishSpawFrequency").isEmpty())
+                fillProperties(false, "Prop_FishSpawFrequency", form)
+        } else if (form.getString("mode") == "upd") {
+            relobj = form.getLong("relobj")
+            form.put("own", relobj)
+            //Prop_FishSpawPeriod
+            if (form.getLong("idFishSpawPeriod") > 0)
+                updateProperties("Prop_FishSpawPeriod", form)
+            else if (!form.getString("FishSpawPeriod").isEmpty())
+                fillProperties(false, "Prop_FishSpawPeriod", form)
+
+            //Prop_FishStartPuberty
+            if (form.getLong("idFishStartPuberty") > 0)
+                updateProperties("Prop_FishStartPuberty", form)
+            else if (!form.getString("FishStartPuberty").isEmpty())
+                fillProperties(false, "Prop_FishStartPuberty", form)
+
+            //Prop_FishEndPuberty
+            if (form.getLong("idFishEndPuberty") > 0)
+                updateProperties("Prop_FishEndPuberty", form)
+            else if (!form.getString("FishEndPuberty").isEmpty())
+                fillProperties(false, "Prop_FishEndPuberty", form)
+
+            //Prop_FishSpawFrequency
+            if (form.getLong("idFishSpawFrequency") > 0)
+                updateProperties("Prop_FishSpawFrequency", form)
+            else if (!form.getString("FishSpawFrequency").isEmpty())
+                fillProperties(false, "Prop_FishSpawFrequency", form)
+        } else {
+            throw new XError("Не известный режим ввода [${form.getString("mode")}]")
+        }
+        //
+        return loadPiscesReservoir(Map.of("relobj", (Object) relobj))
+    }
+
+    @DaoMethod
+    Store loadFishFecundity(long relobj) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FishFecundity", "")
+        Store st = loadSqlMeta("""
+            select id, parent, name, null as numberval, null as idval 
+            from Prop where id=${map.get("Prop_FishFecundity")} or parent=${map.get("Prop_FishFecundity")}
+            order by id
+        """, "")
+        Set<Object> idsProp = st.getUniqueValues("id")
+
+        Store stData = mdb.loadQuery("""
+            select d.prop as id, v.numberval, v.id as idval
+            from DataProp d
+                left join DataPropVal v on d.id=v.dataProp
+            where d.isObj=0 and d.objorrelobj=${relobj} and d.prop in (0${idsProp.join(",")})
+        """)
+        StoreIndex indData = stData.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indData.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("numberval", rec.getDouble("numberval"))
+                r.set("idval", rec.getLong("idval"))
+            }
+        }
+        return st
+    }
+
+    @DaoMethod
+    void deleteFishFecundity(long idDPV) {
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where id=${idDPV};
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+    }
+
+    @DaoMethod
+    void saveFishFecundiry(Map<String, Object> rec) {
+        long relobj = UtCnv.toLong(rec.get("relobj"))
+        long prop = UtCnv.toLong(rec.get("prop"))
+        long idVal = UtCnv.toLong(rec.get("idval"))
+        boolean hasValue = rec.containsKey("numberval")
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        if (idVal > 0) {
+            if (hasValue) {
+                mdb.execQueryNative("""
+                    update DataPropVal set numberval=${value} where id=${idVal}
+                """)
+            } else {
+                mdb.execQueryNative("""
+                    delete from DataPropVal
+                    where dataProp in (select id from DataProp where isobj=0 and objorrelobj=${relobj});
+                    delete from DataProp where id in (
+                            select id from dataprop
+                            except
+                            select dataProp as id from DataPropVal
+                    );
+                """)
+            }
+        } else if (hasValue) {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", 0)
+            recDP.set("objorrelobj", relobj)
+            recDP.set("prop", prop)
+            long idDP = mdb.insertRec("DataProp", recDP)
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", value)
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            mdb.insertRec("DataPropVal", recDPV, false)
+        }
+    }
+
+    @DaoMethod
+    Store loadReservoir(String codTyp) {
+        Store st = loadObjForSelect(codTyp)
+        Set<Object> idsCls = st.getUniqueValues("cls")
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select c.id, v.name from Cls c, ClsVer v 
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("name", r.getString("name") + " (" + rec.getString("name") + ")")
+            }
+        }
+        return st
+    }
+
+    @DaoMethod
+    Store loadTypeOfFish(String codTyp) {
+        return loadObjForSelect(codTyp)
+    }
+
+    @DaoMethod
+    Store loadObjForSelect(String codTyp) {
+        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
+        idsCls.add(0)
+        return mdb.loadQuery("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+        """)
+    }
+
+
     @DaoMethod
     Store loadPeriodType() {
         return loadSqlMeta("select id, text from FD_PeriodType where vis=1", "")
@@ -742,15 +1017,30 @@ class DataDao extends BaseMdbUtils {
         return apiMetaFish().get(ApiMetaFish).loadChildClsForSelect(codTyp)
     }
 
+/*
     @DaoMethod
     Store loadRegion(String codCls) {
         return loadObjForSelect(codCls, "Prop_Region")
     }
-
     @DaoMethod
     Store loadBranchName(String codCls) {
         return loadObjForSelect(codCls, "Prop_Branch")
     }
+
+
+    @DaoMethod
+    Store loadFishGearName(String codCls) {
+        return loadObjForSelect(codCls, "Prop_FishGear")
+    }
+
+    private Store loadObjForSelect(String codCls, String codProp) {
+        return apiNSIData().get(ApiNSIData).loadObjForSelect(codCls, codProp)
+    }
+
+
+*/
+
+
 
     /*
         delete Owner with properties
@@ -1103,32 +1393,6 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadTypeOfFish(String codCls, String codProp) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
-        if (map.isEmpty())
-            throw new XError("NotFoundCod@" + codCls)
-
-        Store st = mdb.loadQuery("""
-            select o.id, o.cls, v.name, 0 as pv
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.cls=:Cls_FishTypes
-        """, map)
-
-        if (codProp) {
-            Store stPV = loadSqlMeta("""
-                select pv.id, pv.cls from PropVal pv, Prop p where pv.prop=p.id and p.cod like '${codProp}'
-            """, "")
-            StoreIndex indPV = stPV.getIndex("cls")
-            for (StoreRecord r in st) {
-                StoreRecord rec = indPV.get(r.getLong("cls"))
-                if (rec != null)
-                    r.set("pv", rec.getLong("id"))
-            }
-        }
-        return st
-    }
-
-    @DaoMethod
     Store loadTypeOfFishForRes(long objResSampling, String codProp) {
         String whe1 = "o.id=${objResSampling}"
         String whe2 = "r1.obj=0"
@@ -1296,31 +1560,6 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Map<Long, String> mapFvNameFromId() {
         return apiMeta().get(ApiMeta).mapFvNameFromId()
-    }
-
-    @DaoMethod
-    Store loadFishGearName(String codCls) {
-        return loadObjForSelect(codCls, "Prop_FishGear")
-    }
-
-    @DaoMethod
-    Store loadReservoirName() {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Branch", "")
-        if (map.isEmpty())
-            throw new XError("NotFoundCod@Prop_Branch")
-        return mdb.loadQuery("""
-            select d.objorrelobj as id, o.cls, ov.name
-            from DataProp d
-                left join DataPropVal v on d.id=v.dataprop
-                left join Obj o on o.id=d.objorrelobj
-                left join ObjVer ov on o.id=ov.ownerVer and ov.lastVer=1
-            where d.isObj=1 and d.prop=:Prop_Branch
-        """, map)
-    }
-
-
-    private Store loadObjForSelect(String codCls, String codProp) {
-        return apiNSIData().get(ApiNSIData).loadObjForSelect(codCls, codProp)
     }
 
     private static void validatePropertiesRef(VariantMap pms) {
@@ -1574,8 +1813,8 @@ class DataDao extends BaseMdbUtils {
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_Coordinate") ||
-                    cod.equalsIgnoreCase("Prop_SampleNumber") ||
-                    cod.equalsIgnoreCase("Prop_ResearchNumber")) {
+                    cod.equalsIgnoreCase("Prop_FishSpawPeriod") ||
+                    cod.equalsIgnoreCase("Prop_FishSpawFrequency")) {
                 if (params.get(keyValue) != null) {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -1641,24 +1880,9 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_WaterArea") ||
-                    cod.equalsIgnoreCase("Prop_WorkDuration") ||
-                    cod.equalsIgnoreCase("Prop_FishAge") ||
-                    cod.equalsIgnoreCase("Prop_FishWeight") ||
-                    cod.equalsIgnoreCase("Prop_FishLength") ||
-                    cod.equalsIgnoreCase("Prop_Ph") ||
-                    cod.equalsIgnoreCase("Prop_DissGasesCO2") ||
-                    cod.equalsIgnoreCase("Prop_DissGasesO2") ||
-                    cod.equalsIgnoreCase("Prop_DissGasesCO2Percent") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompNH4") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompNO2") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompNO3") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompPO4") ||
-                    cod.equalsIgnoreCase("Prop_OrganicMatter") ||
-                    cod.equalsIgnoreCase("Prop_Mineralization") ||
-                    cod.equalsIgnoreCase("Prop_WaterAreaFishing") ||
-                    cod.equalsIgnoreCase("Prop_WaterAreaLittoral") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirHydroLevel") ||
+            if (cod.equalsIgnoreCase("Prop_FishStartPuberty") ||
+                    cod.equalsIgnoreCase("Prop_FishEndPuberty") ||
+                    cod.equalsIgnoreCase("Prop_FishFecundity") ||
                     cod.equalsIgnoreCase("Prop_AreaOfTon")) {
                 if (params.get(keyValue) != null) {
                     double v = UtCnv.toDouble(params.get(keyValue))
@@ -1689,6 +1913,8 @@ class DataDao extends BaseMdbUtils {
                     updateDbegDend(UtCnv.toInt(isObj), prop, cod, params, recDPV)
                 }
             } else {
+                params.putIfAbsent("dbeg", "1800-01-01")
+                params.putIfAbsent("dend", "3333-12-01")
                 recDPV.set("dbeg", params.get("dbeg"))
                 recDPV.set("dend", params.get("dend"))
             }
@@ -1761,8 +1987,8 @@ class DataDao extends BaseMdbUtils {
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_Coordinate") ||
-                    cod.equalsIgnoreCase("Prop_SampleNumber") ||
-                    cod.equalsIgnoreCase("Prop_ResearchNumber")) {
+                    cod.equalsIgnoreCase("Prop_FishSpawPeriod") ||
+                    cod.equalsIgnoreCase("Prop_FishSpawFrequency")) {
                 def strValue = mapProp.getString(keyValue)
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     sql = """
@@ -1872,24 +2098,9 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_WaterArea") ||
-                    cod.equalsIgnoreCase("Prop_WorkDuration") ||
-                    cod.equalsIgnoreCase("Prop_FishAge") ||
-                    cod.equalsIgnoreCase("Prop_FishWeight") ||
-                    cod.equalsIgnoreCase("Prop_FishLength") ||
-                    cod.equalsIgnoreCase("Prop_Ph") ||
-                    cod.equalsIgnoreCase("Prop_DissGasesCO2") ||
-                    cod.equalsIgnoreCase("Prop_DissGasesO2") ||
-                    cod.equalsIgnoreCase("Prop_DissGasesCO2Percent") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompNH4") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompNO2") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompNO3") ||
-                    cod.equalsIgnoreCase("Prop_BiogenicCompPO4") ||
-                    cod.equalsIgnoreCase("Prop_OrganicMatter") ||
-                    cod.equalsIgnoreCase("Prop_Mineralization") ||
-                    cod.equalsIgnoreCase("Prop_WaterAreaFishing") ||
-                    cod.equalsIgnoreCase("Prop_WaterAreaLittoral") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirHydroLevel") ||
+            if (cod.equalsIgnoreCase("Prop_FishStartPuberty") ||
+                    cod.equalsIgnoreCase("Prop_FishEndPuberty") ||
+                    cod.equalsIgnoreCase("Prop_FishFecundity") ||
                     cod.equalsIgnoreCase("Prop_AreaOfTon")) {
                 if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
@@ -1954,6 +2165,7 @@ class DataDao extends BaseMdbUtils {
         return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "").get(codCls)
     }
 
+/* Delete!
     @DaoMethod
     Store loadReservoir(long branch) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Branch", "")
@@ -1983,135 +2195,8 @@ class DataDao extends BaseMdbUtils {
         }
         return st
     }
+*/
 
-    @DaoMethod
-    Store savePiscesReservoir(Map<String, Object> params) {
-        VariantMap form = new VariantMap(params)
-        //
-        Store stTmp = mdb.loadQuery("""
-            select v.name 
-            from RelObjMember r 
-                inner join RelObjMember r2 on r.relobj=r2.relobj and r2.cls=${form.getLong("cls2")} and r2.obj=${form.getLong("typeoffish")}
-                inner join relobjver v on r.relobj=v.ownerver and v.lastver=1
-            where r.cls=${form.getLong("cls1")} and r.obj=${form.getLong("reservoir")}
-        """)
-        if (stTmp.size() > 0) {
-            throw new XError("exists@${stTmp.get(0).getString("name")}")
-        }
-        //
-        long relCls = apiMetaFish().get(ApiMetaFish).idRelCls(form.getLong("cls1"), form.getLong("cls2"))
-        Map<String, Object> pms = new HashMap<>()
-        pms.put("relCls", relCls)
-        String n1 = mdb.loadQuery(
-                "select name from ObjVer where ownerVer=:o and lastVer=1", [o: form.getLong("reservoir")])
-                .get(0).getString("name")
-        String n2 = mdb.loadQuery(
-                "select name from ObjVer where ownerVer=:o and lastVer=1", [o: form.getLong("typeoffish")])
-                .get(0).getString("name")
-        pms.put("name", n1 + " => " + n2)
-        pms.put("fullName", n1 + " => " + n2)
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "RelObj")
-        long relobj = eu.insertEntity(pms)
-        //
-        Store stRCM = apiMetaFish().get(ApiMetaFish).loadRelClsMember(relCls)
-
-        StoreRecord recROM = mdb.createStoreRecord("RelObjMember")
-        recROM.set("relObj", relobj)
-        recROM.set("relClsMember", stRCM.get(0).getLong("id"))
-        recROM.set("cls", form.getLong("cls1"))
-        recROM.set("obj", form.getLong("reservoir"))
-        mdb.insertRec("RelObjMember", recROM, true)
-        //
-        recROM = mdb.createStoreRecord("RelObjMember")
-        recROM.set("relObj", relobj)
-        recROM.set("relClsMember", stRCM.get(1).getLong("id"))
-        recROM.set("cls", form.getLong("cls2"))
-        recROM.set("obj", form.getLong("typeoffish"))
-        mdb.insertRec("RelObjMember", recROM, true)
-
-        Store st = mdb.loadQuery("""
-            select o.id as relobj, o.relCls, m1.obj as reservoir, m1.cls as cls1, m2.obj as typeOfFish, 
-                m2.cls as cls2, null::bigint as branch
-            from RelObj o
-                left join RelObjVer v on o.id=v.ownerVer and v.lastVer=1
-                left join RelObjMember m1 on m1.relobj=o.id and m1.cls=:cls1
-                left join RelObjMember m2 on m2.relobj=o.id and m2.cls=:cls2
-            where o.id=:relobj    
-        """, [relobj: relobj, cls1: form.getLong("cls1"), cls2: form.getLong("cls2")])
-
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Branch", "")
-        if (map.isEmpty())
-            throw new XError("NotFoundCod@Prop_Branch")
-        long reservoir = st.get(0).getLong("reservoir")
-        Store stBranch = mdb.loadQuery("""
-            select v.obj
-            from DataProp d
-                left join DataPropVal v on d.id=v.dataprop
-            where d.isObj=1 and d.prop=${map.get("Prop_Branch")} and d.objorrelobj=${reservoir}
-        """)
-
-        for (StoreRecord r in st) {
-            r.set("branch", stBranch.get(0).getLong("obj"))
-        }
-        //
-        return st
-    }
-
-    @DaoMethod
-    Store loadPiscesReservoir(Map<String, Object> params) {
-        String codRelTyp = UtCnv.toString(params.get("codRelTyp"))
-        Set<Object> idsRelCls = apiMeta().get(ApiMeta).setIdsOfRelCls(codRelTyp)
-        String whe = "(0" + idsRelCls.join(",") + ")"
-        Store st = mdb.loadQuery("""
-            select o.id as relobj, o.relcls, null::bigint as reservoir, null::bigint as cls1, 
-                null::bigint as typeOfFish, null::bigint as cls2, null::bigint as branch
-            from RelObj o
-            where o.relcls in ${whe}
-        """)
-
-        Store stROM = mdb.loadQuery("""
-            select relobj, 
-                STRING_AGG (cast(cls as varchar(1000)), ',' order by id) as clslist, 
-                STRING_AGG (cast(obj as varchar(1000)), ',' order by id) as objlist 
-            from relobjmember
-            where relobj in (select id from RelObj where relcls in ${whe}) 
-            group by relobj
-        """)
-        StoreIndex indROM = stROM.getIndex("relobj")
-        //
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Branch", "")
-        if (map.isEmpty())
-            throw new XError("NotFoundCod@Prop_Branch")
-        Store stBranch = mdb.loadQuery("""
-            select v.obj, d.objorrelobj as reservoir
-            from DataProp d
-                left join DataPropVal v on d.id=v.dataprop
-            where d.isObj=1 and d.prop=${map.get("Prop_Branch")}
-        """)
-        StoreIndex indBranch = stBranch.getIndex("reservoir")
-
-        for (StoreRecord r in st) {
-            StoreRecord rec = indROM.get(r.getLong("relobj"))
-            if (rec != null) {
-                def clss = rec.getString("clslist").split(",")
-                def objs = rec.getString("objlist").split(",")
-                long cls1 = UtCnv.toLong(clss[0])
-                long cls2 = UtCnv.toLong(clss[1])
-                long obj1 = UtCnv.toLong(objs[0])
-                long obj2 = UtCnv.toLong(objs[1])
-
-                r.set("reservoir", obj1)
-                r.set("cls1", cls1)
-                r.set("typeOfFish", obj2)
-                r.set("cls2", cls2)
-                StoreRecord rec1 = indBranch.get(obj1)
-                if (rec1 != null)
-                    r.set("branch", rec1.getLong("obj"))
-            }
-
-        }
-        return st
-    }
 
     @DaoMethod
     Store loadCls(String codTyp) {

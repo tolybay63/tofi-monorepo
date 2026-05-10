@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
+    <domain name="RelObj.FishReservoir" parent="base">
+        <field name="relobj" parent="long"/>
+        <field name="relcls" parent="long"/>
+        <field name="reservoir" parent="long"/>
+        <field name="cls1" parent="long"/>
+        <field name="typeOfFish" parent="long"/>
+        <field name="cls2" parent="long"/>
+
+        <field name="idFishSpawPeriod" parent="long"/>
+        <field name="FishSpawPeriod" parent="string"/>
+
+        <field name="idFishStartPuberty" parent="long"/>
+        <field name="FishStartPuberty" parent="double"/>
+
+        <field name="idFishEndPuberty" parent="long"/>
+        <field name="FishEndPuberty" parent="double"/>
+
+        <field name="idFishSpawFrequency" parent="long"/>
+        <field name="FishSpawFrequency" parent="string"/>
+    </domain>
+
     <domain name="Obj.reservoirs" parent="base">
         <field name="obj" parent="long"/>
 
