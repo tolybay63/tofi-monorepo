@@ -117,7 +117,7 @@
 
 <script>
 import {api} from 'boot/axios'
-import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
+import {hasTarget, notifyInfo} from 'src/utils/jsutils'
 import {extend} from 'quasar'
 import UpdaterPiscesReservoir from 'pages/piscesreservoirs/UpdaterPiscesReservoir.vue'
 import FishFecundityPage from "pages/piscesreservoirs/FishFecundityPage.vue";
