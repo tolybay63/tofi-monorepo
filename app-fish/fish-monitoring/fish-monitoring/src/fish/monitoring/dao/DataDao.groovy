@@ -891,8 +891,9 @@ class DataDao extends BaseMdbUtils {
         double value = UtCnv.toDouble(rec.get("numberval"))
         if (idVal > 0) {
             if (hasValue) {
+                String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
                 mdb.execQueryNative("""
-                    update DataPropVal set numberval=${value} where id=${idVal}
+                    update DataPropVal set numberval=${value}, timestamp='${tm}' where id=${idVal}
                 """)
             } else {
                 mdb.execQueryNative("""
@@ -920,6 +921,8 @@ class DataDao extends BaseMdbUtils {
             long idDPV = mdb.getNextId("DataPropVal")
             recDPV.set("id", idDPV)
             recDPV.set("ord", idDPV)
+            recDPV.set("dbeg", "1800-01-01")
+            recDPV.set("dend", "3333-12-01")
             recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
             mdb.insertRec("DataPropVal", recDPV, false)
         }
