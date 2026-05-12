@@ -170,8 +170,8 @@ export default {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
             .post('', {
-              method: 'data/deleteOwnerWithProperties',
-              params: [row.obj, 1],
+              method: 'data/deleteSamplingStation',
+              params: [row.obj],
             })
             .then(() => {
               this.loadSamplingStations()
