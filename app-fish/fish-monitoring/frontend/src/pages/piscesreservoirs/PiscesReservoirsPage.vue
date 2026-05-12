@@ -215,9 +215,8 @@ export default {
         .onOk(() => {
           api
             .post('', {
-              //method: 'data/deleteFishInResoirvoir',
-              method: 'data/deleteOwnerWithProperties',
-              params: [row.relobj, 0],
+              method: 'data/deletePiscesReservoir',
+              params: [row.relobj],
             })
             .then(() => {
               this.loadData()

@@ -545,6 +545,16 @@ export default {
         },
 
         {
+          name: 'nameBranch',
+          label: this.$t('branch') + '*',
+          field: 'nameBranch',
+          align: 'left',
+          sortable: true,
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 20%'
+        },
+
+        {
           name: 'nameRegion',
           label: this.$t('region') + '*',
           field: 'nameRegion',
@@ -562,15 +572,7 @@ export default {
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 20%'
         },
-        {
-          name: 'nameBranch',
-          label: this.$t('branch') + '*',
-          field: 'nameBranch',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 20%'
-        }
+
       ]
     },
 
