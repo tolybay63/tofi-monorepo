@@ -26,19 +26,6 @@ class ApiMetaDataImpl extends BaseMdbUtils implements ApiMetaData {
         return app.bean(ApinatorService).getApi("userdata")
     }
 
-    ApinatorApi apiKPIData() {
-        return app.bean(ApinatorService).getApi("kpidata")
-    }
-
-    ApinatorApi apiPollData() {
-        return app.bean(ApinatorService).getApi("polldata")
-    }
-
-    ApinatorApi apiIndicatorData() {
-        return app.bean(ApinatorService).getApi("indicatordata")
-    }
-
-
     @Override
     Store loadDataBase() {
         return mdb.loadQuery("""

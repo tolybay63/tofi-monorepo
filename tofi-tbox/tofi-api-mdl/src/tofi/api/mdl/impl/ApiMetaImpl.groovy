@@ -286,7 +286,6 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         return st
     }
 
-
     @Override
     long idPV(String entity, long idEntity, String codProp) {
         Store st = mdb.loadQuery("""

@@ -171,7 +171,7 @@ export default {
           api
             .post('', {
               method: 'data/deleteKato',
-              params: [row.obj],
+              params: [row.id],
             })
             .then(() => {
               this.loadKato()
