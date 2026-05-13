@@ -109,16 +109,6 @@ class ApiMetaFishImpl extends BaseMdbUtils implements ApiMetaFish {
     }
 
     @Override
-    Store loadChildClsForSelect(String codTyp) {
-        String ids = idsChildClses(codTyp).join(",")
-        return mdb.loadQuery("""
-            select c.id, v.name from Cls c, ClsVer v
-            where c.id=v.ownerVer and v.lastVer=1 and c.id in (${ids}) 
-            order by v.name
-        """)
-    }
-
-    @Override
     Store loadFvForSelect(String codFactor) {
         Store st = mdb.loadQuery("""
             select fv.id, fv.name, 0 as pv

@@ -170,6 +170,20 @@ export default defineComponent({
     let getLinks = () => {
       return [
         {
+          title: 'Branches',
+          info: '',
+          icon: 'business',
+          link: '/branch',
+          target: 'mon:vod',
+        },
+        {
+          title: 'KATOs',
+          info: '',
+          icon: 'home_work',
+          link: '/kato',
+          target: 'mon:vod',
+        },
+        {
           title: 'reservoirs',
           info: '',
           icon: 'sailing',

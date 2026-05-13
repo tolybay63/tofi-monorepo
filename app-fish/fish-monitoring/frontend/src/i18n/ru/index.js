@@ -137,9 +137,10 @@ export default {
 
   addRegion: 'Добавить область',
   addDistrict: 'Добавить район',
-  region: 'Область',
-  branch: 'Филиал',
-  district: 'Район',
+  Branch: 'Филиал',
+  Branches: 'Филиалы',
+  KATO: 'Область/Район',
+  KATOs: 'Области/Районы',
   attached_files: 'Прикрепленные файлы',
   attach_file: 'Прикрепить файл',
   view: 'Просмотр',
@@ -147,8 +148,8 @@ export default {
 
   vidWaterObject: 'Вид водного объекта',
   vidReservoir: 'Вид водоема',
-  typeReservoir: 'Тип водоема',
-  statusReservoir: 'Статус водоема',
+  ReservoirType: 'Тип водоема',
+  ReservoirStatus: 'Статус водоема',
   other_props: 'Другие свойства',
 
   location: 'Местоположение',

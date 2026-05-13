@@ -132,9 +132,10 @@ export default {
 
   addRegion: 'Add the region',
   addDistrict: 'Add the district',
-  region: 'Region',
-  branch: 'Branch',
-  district: 'District',
+  Branch: 'Branch',
+  Branches: 'Branches',
+  KATO: 'Region/District',
+  KATOs: 'Regions/Districts',
   nameCls: 'Type of gun',
   attached_files: 'Attached files',
   attach_file: 'Attach the file',
@@ -143,8 +144,8 @@ export default {
 
   vidWaterObject: 'Type of water object',
   vidReservoir: 'Kind of reservoir',
-  typeReservoir: 'Type of reservoir',
-  statusReservoir: 'The status of a reservoir',
+  ReservoirType: 'Type of reservoir',
+  ReservoirStatus: 'The status of a reservoir',
   other_props: 'Other properties',
 
   location: 'Location',

@@ -5,6 +5,16 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       {
+        path: '/branch',
+        name: 'BranchPage',
+        component: () => import('pages/branch/BranchPage.vue'),
+      },
+      {
+        path: '/kato',
+        name: 'KatoPage',
+        component: () => import('pages/kato/KatoPage.vue'),
+      },
+      {
         path: '/reservoirs',
         name: 'ReservoirsPage',
         component: () => import('pages/reservoirs/ReservoirsPage.vue'),

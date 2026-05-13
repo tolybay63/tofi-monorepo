@@ -174,7 +174,7 @@
         <q-card class="bg-amber-1 text-brown">
           <q-card-section v-if="selected.length > 0">
             <!-- F_ReservoirType -->
-            <q-select
+<!--            <q-select
               v-model="recUpd.fvReservoirType"
               :model-value="recUpd.fvReservoirType"
               :label="$t('typeReservoir')"
@@ -187,7 +187,7 @@
               readonly
               stack-label
             />
-            <!-- F_ReservoirStatus -->
+            &lt;!&ndash; F_ReservoirStatus &ndash;&gt;
             <q-select
               v-model="recUpd.fvReservoirStatus"
               :model-value="recUpd.fvReservoirStatus"
@@ -202,7 +202,7 @@
               stack-label
             />
 
-            <!-- F_FishFarmingType -->
+            &lt;!&ndash; F_FishFarmingType &ndash;&gt;
             <q-select
               v-model="recUpd.fvFishFarmingType"
               :model-value="recUpd.fvFishFarmingType"
@@ -215,7 +215,7 @@
               class="q-ma-sm"
               readonly
               stack-label
-            />
+            />-->
 
             <!--Prop_WaterArea-->
             <q-input
@@ -336,12 +336,12 @@ export default {
       selected: [],
       recUpd: {},
       loading: true,
-      optFvReservoirType: [],
-      optFvReservoirStatus: [],
-      optFvFishFarmingType: [],
+      optFvReservoirType: new Map(),
+      optFvReservoirStatus: new Map(),
+      optFvFishFarmingType: new Map(),
       pagination: ref({
         page: 1,
-        rowsPerPage: 15,
+        rowsPerPage: 25,
         rowsNumber: 0,
         descending: false,
         sortBy: 'name'
@@ -534,6 +534,7 @@ export default {
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width:20%'
         },
+/*
         {
           name: 'nameCls',
           label: this.$t('vidWaterObject') + '*',
@@ -543,35 +544,49 @@ export default {
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 15%'
         },
+*/
 
         {
-          name: 'nameBranch',
-          label: this.$t('branch') + '*',
-          field: 'nameBranch',
+          name: 'Branch',
+          label: this.$t('Branch') + '*',
+          field: 'Branch',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 20%'
+          headerStyle: 'font-size: 1.2em; width: 25%'
         },
 
         {
-          name: 'nameRegion',
-          label: this.$t('region') + '*',
-          field: 'nameRegion',
+          name: 'KATO',
+          label: this.$t('KATO') + '*',
+          field: 'KATO',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 25%'
         },
         {
-          name: 'nameDistrict',
-          label: this.$t('district'),
-          field: 'nameDistrict',
+          name: 'ReservoirType',
+          label: this.$t('ReservoirType') + '*',
+          field: 'ReservoirType',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 20%'
+          headerStyle: 'font-size: 1.2em; width: 15%',
+          format: (v) => (this.optFvReservoirType ? this.optFvReservoirType[v] : null),
         },
+
+        {
+          name: 'ReservoirStatus',
+          label: this.$t('ReservoirStatus') + '*',
+          field: 'ReservoirStatus',
+          align: 'left',
+          sortable: true,
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 15%',
+          format: (v) => (this.optFvReservoirStatus ? this.optFvReservoirStatus[v] : null),
+        },
+
 
       ]
     },
@@ -581,7 +596,7 @@ export default {
       api
         .post('', {
           method: 'data/loadReservors',
-          params: [{codTyp: 'Typ_WaterBodies', isRec: false, idObj: 0, dte: this.dte, periodType: this.periodType}]
+          params: [{codTyp: 'Typ_WaterBodies', idObj: 0}]
         })
         .then((response) => {
           let obj = 0
@@ -639,36 +654,36 @@ export default {
 
     api
       .post('', {
-        method: 'data/loadFvReservoirType',
-        params: ['Factor_ReservoirType']
+        method: 'data/loadFvReservoirTypeAsMap',
+        params: ['Prop_ReservoirType']
       })
       .then(
         (response) => {
-          this.optFvReservoirType = response.data.result["records"]
+          this.optFvReservoirType = response.data.result
         })
       .finally(() => {
       })
     //
     api
       .post('', {
-        method: 'data/loadFvReservoirStatus',
-        params: ['Factor_ReservoirStatus']
+        method: 'data/loadFvReservoirStatusAsMap',
+        params: ['Prop_ReservoirStatus']
       })
       .then(
         (response) => {
-          this.optFvReservoirStatus = response.data.result["records"]
+          this.optFvReservoirStatus = response.data.result
         })
       .finally(() => {
       })
     //
     api
       .post('', {
-        method: 'data/loadFvFishFarmingType',
-        params: ['Factor_FishFarmingType']
+        method: 'data/loadFvFishFarmingTypeAsMap',
+        params: ['Prop_FishFarmingType']
       })
       .then(
         (response) => {
-          this.optFvFishFarmingType = response.data.result["records"]
+          this.optFvFishFarmingType = response.data.result
         })
       .finally(() => {
         this.loadReservors()
