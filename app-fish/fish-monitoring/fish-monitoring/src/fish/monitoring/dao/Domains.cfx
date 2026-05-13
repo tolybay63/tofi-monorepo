@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
+
+    <domain name="ObjAndObjVer" parent="base">
+        <field name="id" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="fullName" parent="string"/>
+        <field name="nameCls" parent="string"/>
+        <field name="cmt" parent="memo"/>
+    </domain>
+
     <domain name="RelObj.FishReservoir" parent="base">
         <field name="relobj" parent="long"/>
         <field name="relcls" parent="long"/>
@@ -24,25 +34,16 @@
 
     <domain name="Obj.reservoirs" parent="base">
         <field name="obj" parent="long"/>
-
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
-        <field name="nameCls" parent="string"/>
-
-        <field name="idRegion" parent="long"/>
-        <field name="pvRegion" parent="long"/>
-        <field name="objRegion" parent="long"/>
-        <field name="nameRegion" parent="string"/>
-
-        <field name="idDistrict" parent="long"/>
-        <field name="pvDistrict" parent="long"/>
-        <field name="objDistrict" parent="long"/>
-        <field name="nameDistrict" parent="string"/>
 
         <field name="idBranch" parent="long"/>
         <field name="pvBranch" parent="long"/>
         <field name="objBranch" parent="long"/>
-        <field name="nameBranch" parent="string"/>
+
+        <field name="idKATO" parent="long"/>
+        <field name="pvKATO" parent="long"/>
+        <field name="objKATO" parent="long"/>
 
         <field name="idReservoirType" parent="long"/>
         <field name="pvReservoirType" parent="long"/>
@@ -56,73 +57,8 @@
         <field name="pvFishFarmingType" parent="long"/>
         <field name="fvFishFarmingType" parent="long"/>
 
-        <field name="didWaterArea" parent="long"/>
-        <field name="idWaterArea" parent="long"/>
-        <field name="WaterArea" parent="double"/>
-        <field name="oldWaterArea" parent="double"/>
-
-        <field name="didWaterAreaFishing" parent="long"/>
-        <field name="idWaterAreaFishing" parent="long"/>
-        <field name="WaterAreaFishing" parent="double"/>
-        <field name="oldWaterAreaFishing" parent="double"/>
-
-        <field name="didWaterAreaLittoral" parent="long"/>
-        <field name="idWaterAreaLittoral" parent="long"/>
-        <field name="WaterAreaLittoral" parent="double"/>
-        <field name="oldWaterAreaLittoral" parent="double"/>
-
-        <field name="didReservoirHydroLevel" parent="long"/>
-        <field name="idReservoirHydroLevel" parent="long"/>
-        <field name="ReservoirHydroLevel" parent="double"/>
-        <field name="oldReservoirHydroLevel" parent="double"/>
-
-<!--
-        <field name="didWaterLength" parent="long"/>
-        <field name="idWaterLength" parent="long"/>
-        <field name="WaterLength" parent="double"/>
-        <field name="oldWaterLength" parent="double"/>
-
-        <field name="didCurrentSpeed" parent="long"/>
-        <field name="idCurrentSpeed" parent="long"/>
-        <field name="CurrentSpeed" parent="double"/>
-        <field name="oldCurrentSpeed" parent="double"/>
-
-        <field name="didReservoirDepthMax" parent="long"/>
-        <field name="idReservoirDepthMax" parent="long"/>
-        <field name="ReservoirDepthMax" parent="double"/>
-        <field name="oldReservoirDepthMax" parent="double"/>
-
-        <field name="didReservoirDepthAvg" parent="long"/>
-        <field name="idReservoirDepthAvg" parent="long"/>
-        <field name="ReservoirDepthAvg" parent="double"/>
-        <field name="oldReservoirDepthAvg" parent="double"/>
-
-        <field name="didReservoirDepthMin" parent="long"/>
-        <field name="idReservoirDepthMin" parent="long"/>
-        <field name="ReservoirDepthMin" parent="double"/>
-        <field name="oldReservoirDepthMin" parent="double"/>
-
-        <field name="didReservoirWidthMax" parent="long"/>
-        <field name="idReservoirWidthMax" parent="long"/>
-        <field name="ReservoirWidthMax" parent="double"/>
-        <field name="oldReservoirWidthMax" parent="double"/>
-
-        <field name="didReservoirWidthAvg" parent="long"/>
-        <field name="idReservoirWidthAvg" parent="long"/>
-        <field name="ReservoirWidthAvg" parent="double"/>
-        <field name="oldReservoirWidthAvg" parent="double"/>
-
-        <field name="didReservoirWidthMin" parent="long"/>
-        <field name="idReservoirWidthMin" parent="long"/>
-        <field name="ReservoirWidthMin" parent="double"/>
-        <field name="oldReservoirWidthMin" parent="double"/>
-
-        <field name="idLocation" parent="long"/>
-        <field name="Location" parent="string"/>
-
-        <field name="idCoordinates" parent="long"/>
-        <field name="Coordinates" parent="string"/>
--->
+        <field name="idCoordinate" parent="long"/>
+        <field name="Coordinate" parent="string"/>
 
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="memo"/>

@@ -20,6 +20,7 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreField
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import jandcode.jc.std.Ut
 import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiUserData
@@ -47,9 +48,127 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMonitoringData() {return app.bean(ApinatorService).getApi("monitoringdata")}
     //-----------------------------------------------------------------------------------------------//
 
+    //---------------- Branch ---------------- //
+
+    @DaoMethod
+    Store loadBranch(Map<String, Object> params) {
+        return loadObj(UtCnv.toString(params.get("codTyp")), UtCnv.toLong(params.get("idObj")))
+    }
+
+    @DaoMethod
+    Store saveBranch(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        long id = 0
+        if (UtCnv.toString(rec.get("mode")) == "ins") {
+            id = eu.insertEntity(rec)
+        } else {
+            id = UtCnv.toLong(rec.get("id"))
+            eu.updateEntity(rec)
+        }
+        return loadBranch(Map.of("idObj", (Object) id))
+    }
+
+    @DaoMethod
+    Store loadKato(Map<String, Object> params) {
+        return loadObj(UtCnv.toString(params.get("codTyp")), UtCnv.toLong(params.get("idObj")))
+    }
+
+    @DaoMethod
+    Store saveKato(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        long id = 0
+        if (UtCnv.toString(rec.get("mode")) == "ins") {
+            id = eu.insertEntity(rec)
+        } else {
+            id = UtCnv.toLong(rec.get("id"))
+            eu.updateEntity(rec)
+        }
+        return loadKato(Map.of("idObj", (Object) id))
+    }
+
+
+    Store loadObj(String codTyp, long idObj) {
+        String whe = "o.id=${idObj}"
+        if (idObj == 0) {
+            Set<Object> ids = apiMetaFish().get(ApiMetaFish).idsChildClses(codTyp)
+            whe = "o.cls in (0${ids.join(",")})"
+        }
+        Store st = mdb.createStore("ObjAndObjVer")
+        mdb.loadQuery(st, """
+            select
+                o.id, o.cls, v.name, v.fullName, null as nameCls, o.cmt
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+            where ${whe}
+        """)
+        Set<Object> idsCls = st.getUniqueValues("cls")
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select c.id, v.name
+            from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null)
+                r.set("nameCls", rec.getString("name"))
+        }
+        return st
+    }
+
     //---------------- Reservors---------------- //
     @DaoMethod
     Store loadReservors(Map<String, Object> params) {
+
+        String codTyp = UtCnv.toString(params.get("codTyp"))
+        long idObj = UtCnv.toLong(params.get("idObj"))
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        String whe = "o.id=${idObj}"
+        if (idObj == 0) {
+            Set<Object> ids = apiMetaFish().get(ApiMetaFish).idsChildClses(codTyp)
+            whe = "o.cls in (0${ids.join(",")})"
+        }
+        Store st = mdb.createStore("Obj.reservoirs")
+        mdb.loadQuery(st, """
+            select
+                o.id as obj, o.cls, v.name,
+                v1.id as idBranch, v1.propval as pvBranch, v1.obj as objBranch,
+                v2.id as idKATO, v2.propval as pvKATO, v2.obj as objKATO,
+                v3.id as idReservoirType, v3.propval as pvReservoirType, null as fvReservoirType,
+                v4.id as idReservoirStatus, v4.propval as pvReservoirStatus, null as fvReservoirStatus,
+                v5.id as idFishFarmingType, v5.propval as pvFishFarmingType, null as fvFishFarmingType,
+                v6.id as idCoordinate, v5.strVal as Coordinate,
+                v7.id as idDescription, v7.multiStrVal as Description
+            from Obj o
+                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d1 on d1.isobj=1 and d1.objorrelobj=o.id and d1.prop=:Prop_Branch
+                left join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d2 on d2.isobj=1 and d2.objorrelobj=o.id and d2.prop=:Prop_KATO
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.isobj=1 and d3.objorrelobj=o.id and d3.prop=:Prop_ReservoirType
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.isobj=1 and d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirStatus
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.isobj=1 and d5.objorrelobj=o.id and d5.prop=:Prop_FishFarmingType
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.isobj=1 and d6.objorrelobj=o.id and d6.prop=:Prop_Coordinate
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.isobj=1 and d7.objorrelobj=o.id and d7.prop=:Prop_Description
+                left join DataPropVal v7 on d7.id=v7.dataprop
+            where ${whe}
+        """, map)
+        mdb.outTable(st)
+
+
+
+        return null
+    }
+
+
+
+
+
+    @DaoMethod
+    Store loadReservors_old(Map<String, Object> params) {
 
         String codTyp = UtCnv.toString(params.get("codTyp"))
         boolean isRec = UtCnv.toBoolean(params.get("isRec"))
@@ -370,7 +489,7 @@ class DataDao extends BaseMdbUtils {
 */
 
         }
-        return loadReservors([codTyp: "", isRec: true, idObj: own,
+        return loadReservors_old([codTyp: "", isRec: true, idObj: own,
                               dte   : pms.getString("dte"), periodType: pms.getString("periodType")] as Map<String, Object>)
     }
 
@@ -442,7 +561,7 @@ class DataDao extends BaseMdbUtils {
 
         }
         //
-        return loadReservors([codTyp: "", isRec: true, idObj: pms.getLong("obj"),
+        return loadReservors_old([codTyp: "", isRec: true, idObj: pms.getLong("obj"),
                               dte   : pms.getString("dte"), periodType: pms.getString("periodType")] as Map<String, Object>)
     }
 
@@ -968,14 +1087,34 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadObjForSelect(String codTyp) {
-        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
-        idsCls.add(0)
-        return mdb.loadQuery("""
-            select o.id, o.cls, v.name
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
-        """)
+    Store loadObjForSelect(String codTypOrProp) {
+        if (codTypOrProp.startsWith("Typ_")) {
+            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
+            idsCls.add(0)
+            return mdb.loadQuery("""
+                select o.id, o.cls, v.name
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            """)
+        } else if (codTypOrProp.startsWith("Prop_")) {
+            Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codTypOrProp, "")
+            Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select cls
+                from PropVal
+                where prop=${mapProp.get(codTypOrProp)} and cls is not null
+            """, "")
+
+            Set<Object> idsCls = stProp.getUniqueValues("cls")
+
+            return mdb.loadQuery("""
+                select *
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
+            """)
+
+        } else {
+            throw new XError("Неверный параметр")
+        }
     }
 
 
@@ -985,23 +1124,33 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadFvReservoirType(String codFactor) {
-        return loadFvForSelect(codFactor)
+    Map<Long, String> loadFvReservoirTypeAsMap(String codProp) {
+        return loadFVasMap(codProp) //loadFvForSelect(codFactor)
     }
 
     @DaoMethod
-    Store loadFvReservoirStatus(String codFactor) {
-        return loadFvForSelect(codFactor)
+    Store loadFvReservoirTypeAsStore(String codProp) {
+        return loadFVasStore(codProp)
     }
 
     @DaoMethod
-    Store loadFvFishFamilyForSelect(String codFactor) {
-        return loadFvForSelect(codFactor)
+    Map<Long, String> loadFvReservoirStatusAsMap(String codProp) {
+        return loadFVasMap(codProp)
     }
 
     @DaoMethod
-    Store loadFvFishFarmingType(String codFactor) {
-        return loadFvForSelect(codFactor)
+    Store loadFvReservoirStatusAsStore(String codProp) {
+        return loadFVasStore(codProp)
+    }
+
+    @DaoMethod
+    Map<Long, String> loadFvFishFarmingTypeAsMap(String codProp) {
+        return loadFVasMap(codProp)
+    }
+
+    @DaoMethod
+    Store loadFvFishFarmingTypeAsStore(String codProp) {
+        return loadFVasStore(codProp)
     }
 
     private Store loadFvForSelect(String codFactor) {
@@ -1019,30 +1168,11 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadDistrict(long region) {
-        Store stDistrict = loadSql("""
-            select o.id, v.name, o.cls, 0 as pv
-            from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and v.objParent=${region}
-        """, "", "nsidata")
-        Set<Object> idsCls = stDistrict.getUniqueValues("cls")
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_District", "") as Map<String, Object>
-
-        Store stPV = apiMeta().get(ApiMeta).loadSqlWithParams("""
-            select id, cls from PropVal where prop=:Prop_District and cls in (0${idsCls.join(",")})
-        """, "", map)
-        StoreIndex indexPV = stPV.getIndex("cls")
-        for (StoreRecord r in stDistrict) {
-            StoreRecord rec = indexPV.get(r.getLong("cls"))
-            if (rec != null)
-                r.set("pv", rec.getLong("id"))
-        }
-        return stDistrict
-    }
-
-    @DaoMethod
-    Store loadChildClsForSelect(String codTyp) {
-        return apiMetaFish().get(ApiMetaFish).loadChildClsForSelect(codTyp)
+    Store loadCls(String codTyp) {
+        Store st = apiMeta().get(ApiMeta).loadCls(codTyp)
+        if (st.size() == 0)
+            throw new XError("NotFoundCod@${codTyp}")
+        return st
     }
 
 /*
@@ -2229,14 +2359,6 @@ class DataDao extends BaseMdbUtils {
     }
 */
 
-
-    @DaoMethod
-    Store loadCls(String codTyp) {
-        Store st = apiMeta().get(ApiMeta).loadCls(codTyp)
-        if (st.size() == 0)
-            throw new XError("NotFoundCod@${codTyp}")
-        return st
-    }
 
     @DaoMethod
     Store loadExecutor(String codTyp, String codProp) {

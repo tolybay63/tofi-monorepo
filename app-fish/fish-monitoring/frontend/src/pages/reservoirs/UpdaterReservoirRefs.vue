@@ -447,7 +447,7 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadChildClsForSelect',
+        method: 'data/loadCls',
         params: ['Typ_WaterBodies'],
       })
       .then(

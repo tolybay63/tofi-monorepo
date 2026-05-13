@@ -27,13 +27,6 @@ public interface ApiMetaFish {
 
     /**
      *
-     * @param codTyp cod Typ
-     * @return  Store Obj
-     */
-    Store loadChildClsForSelect(String codTyp);
-
-    /**
-     *
      * @param codFactor cod of Factor
      * @return  store FV from PropVal
      */

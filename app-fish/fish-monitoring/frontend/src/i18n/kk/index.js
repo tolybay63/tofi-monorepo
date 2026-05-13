@@ -131,9 +131,10 @@ export default {
 
   addRegion: 'Аймақты қосу',
   addDistrict: 'Ауданды қосу',
-  region: 'Аймақ',
-  branch: 'Филиал',
-  district: 'Аудан',
+  Branch: 'Филиал',
+  Branches: 'Филиалдар',
+  KATO: 'Аймақ/Аудан',
+  KATOs: 'Аймақтар/Аудандар',
   nameCls: 'Құрал түрі',
   attached_files: 'Тіркелген файлдар',
   attach_file: 'Файлды тіркеу',
@@ -142,8 +143,8 @@ export default {
 
   vidWaterObject: 'Су объектісінің түрі',
   vidReservoir: 'Резервуар түрі',
-  typeReservoir: 'Резервуар түрі',
-  statusReservoir: 'Резервуар мәртебесі',
+  ReservoirType: 'Резервуар түрі',
+  ReservoirStatus: 'Резервуар мәртебесі',
   other_props: 'Басқа қасиеттері',
 
   location: 'Орналасқан жері',
