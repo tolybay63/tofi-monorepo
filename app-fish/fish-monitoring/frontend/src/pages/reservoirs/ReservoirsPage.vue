@@ -423,6 +423,8 @@ export default {
     },
 
     updateSelected() {
+/*
+
       if (this.selected.length > 0) {
         //console.info(this.selected[0]);
         this.splitterModel = 70
@@ -430,6 +432,8 @@ export default {
         console.info(this.recUpd);
       } else
         this.splitterModel = 100
+*/
+
     },
 
     fnDt(val) {

@@ -171,7 +171,7 @@ export default {
           api
             .post('', {
               method: 'data/deleteBranch',
-              params: [row.obj],
+              params: [row.id],
             })
             .then(() => {
               this.loadBranch()

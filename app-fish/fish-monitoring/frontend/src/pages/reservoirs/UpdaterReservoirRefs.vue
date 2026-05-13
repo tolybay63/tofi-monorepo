@@ -1,22 +1,18 @@
 <template>
   <q-dialog
     ref="dialog"
-    @hide="onDialogHide"
-    persistent
     autofocus
-    transition-show="slide-up"
+    persistent
     transition-hide="slide-down"
+    transition-show="slide-up"
+    @hide="onDialogHide"
   >
-    <q-card class="q-dialog-plugin" style="min-width: 40%">
+    <q-card class="q-dialog-plugin" style="min-width: 60%">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
-        <div>{{ $t('newRecord') }} на {{ labDte() }}</div>
-        <q-space />
-        <div>Текущая дата: {{ labToday() }}</div>
+        <div>{{ $t('newRecord') }}</div>
       </q-bar>
       <q-bar v-if="mode === 'upd'" class="text-white bg-primary">
-        <div>{{ $t('editRecord') }} на {{ labDte() }}</div>
-        <q-space />
-        <div>Текущая дата: {{ labToday() }}</div>
+        <div>{{ $t('editRecord') }}</div>
       </q-bar>
 
       <q-card-section>
@@ -25,147 +21,139 @@
           <div class="col">
             <q-select
               v-model="form.cls"
-              :model-value="form.cls"
-              autofocus
+              :disable="mode==='upd'"
               :label="fmReqLabel('vidReservoir')"
+              :model-value="form.cls"
               :options="optCls"
+              autofocus
+              class="q-ma-md"
               dense
               map-options
               option-label="name"
               option-value="id"
-              class="q-ma-md"
-              :disable="mode==='upd'"
               @update:model-value="fnSelectCls"
             />
           </div>
           <div class="col">
             <!-- name -->
             <q-input
-              :model-value="form.name"
               v-model="form.name"
               :label="fmReqLabel('fldName')"
-              class="q-ma-md"
-              dense
+              :model-value="form.name"
               :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+              class="q-ma-md"
+              dense
             />
           </div>
         </div>
-        <div class="row">
-          <div class="col">
-            <!-- Region -->
-            <q-select
-              v-model="form.objRegion"
-              :model-value="form.objRegion"
-              options-dense
-              :label="fmReqLabel('region')"
-              :options="optRegion"
-              dense
-              map-options
-              option-label="name"
-              option-value="id"
-              class="q-ma-md"
-              use-input
-              @update:model-value="fnSelectRegion"
-              @filter="filterRegion"
-            />
-          </div>
-          <!-- District -->
-          <div class="col">
-            <q-select
-              v-model="form.objDistrict"
-              :model-value="form.objDistrict"
-              :label="$t('district')"
-              :options="optDistrict"
-              dense
-              options-dense
-              map-options
-              option-label="name"
-              option-value="id"
-              class="q-ma-md"
-              use-input
-              clearable
-              @update:model-value="fnSelectDistrict"
-              @filter="filterDistrict"
-              @clear="fnClearDistrict"
-            />
-          </div>
-        </div>
-
         <div class="row">
           <!-- Branch -->
           <div class="col">
             <q-select
               v-model="form.objBranch"
+              :label="fmReqLabel('Branch')"
               :model-value="form.objBranch"
-              :label="fmReqLabel('branch')"
               :options="optBranch"
+              class="q-ma-md"
               dense
-              options-dense
               map-options
               option-label="name"
               option-value="id"
-              class="q-ma-md"
+              options-dense
               use-input
-              @update:model-value="fnSelectBranch"
               @filter="filterBranch"
+              @update:model-value="fnSelectBranch"
             />
           </div>
+
+          <div class="col">
+            <!-- Region -->
+            <q-select
+              v-model="form.objRegion"
+              :label="fmReqLabel('KATO')"
+              :model-value="form.objRegion"
+              :options="optRegion"
+              class="q-ma-md"
+              dense
+              map-options
+              option-label="name"
+              option-value="id"
+              options-dense
+              use-input
+              @filter="filterRegion"
+              @update:model-value="fnSelectRegion"
+            />
+          </div>
+
+        </div>
+
+        <div class="row">
           <div class="col">
             <!-- F_ReservoirType -->
             <q-select
               v-model="form.fvReservoirType"
+              :label="fmReqLabel('ReservoirType')"
               :model-value="form.fvReservoirType"
-              :label="$t('typeReservoir')"
               :options="optFvReservoirType"
+              class="q-ma-md"
+              clearable
               dense
-              options-dense
               map-options
               option-label="name"
               option-value="id"
+              options-dense
+              @clear="fnClearFvReservoirType"
+              @update:model-value="fnSelectFvReservoirType"
+            />
+          </div>
+          <div class="col">
+            <!-- F_ReservoirStatus -->
+            <q-select
+              v-model="form.fvReservoirStatus"
+              :label="fmReqLabel('ReservoirStatus')"
+              :model-value="form.fvReservoirStatus"
+              :options="optFvReservoirStatus"
               class="q-ma-md"
               clearable
-              @update:model-value="fnSelectFvReservoirType"
-              @clear="fnClearFvReservoirType"
+              dense
+              map-options
+              option-label="name"
+              option-value="id"
+              options-dense
+              @clear="fnClearFvReservoirStatus"
+              @update:model-value="fnSelectFvReservoirStatus"
             />
           </div>
         </div>
 
         <div class="row">
-          <div class="col">
-            <!-- F_ReservoirStatus -->
-            <q-select
-              v-model="form.fvReservoirStatus"
-              :model-value="form.fvReservoirStatus"
-              :label="$t('statusReservoir')"
-              :options="optFvReservoirStatus"
-              dense
-              options-dense
-              map-options
-              option-label="name"
-              option-value="id"
-              class="q-ma-md"
-              clearable
-              @update:model-value="fnSelectFvReservoirStatus"
-              @clear="fnClearFvReservoirStatus"
-            />
-          </div>
 
           <div class="col">
             <!--  F_FishFarmingType   -->
             <q-select
               v-model="form.fvFishFarmingType"
+              :label="$t('FishFarmingType')"
               :model-value="form.fvFishFarmingType"
-              :label="$t('fishFarmingType')"
               :options="optFvFishFarmingType"
+              class="q-ma-md"
+              clearable
               dense
-              options-dense
               map-options
               option-label="name"
               option-value="id"
-              class="q-ma-md"
-              clearable
-              @update:model-value="fnSelectFvFishFarmingType"
+              options-dense
               @clear="fnClearFvFishFarmingType"
+              @update:model-value="fnSelectFvFishFarmingType"
+            />
+          </div>
+
+          <div class="col">
+            <!-- Coordinate -->
+            <q-input
+              v-model="form['Coordinate']"
+              :label="$t('coordinates')"
+              class="q-ma-md"
+              dense
             />
           </div>
         </div>
@@ -174,14 +162,14 @@
 
       <q-card-actions align="right">
         <q-btn
-          color="primary"
-          icon="save"
-          dense
-          :label="$t('save')"
-          @click="onOKClick"
           :disable="validSave()"
+          :label="$t('save')"
+          color="primary"
+          dense
+          icon="save"
+          @click="onOKClick"
         />
-        <q-btn color="primary" icon="cancel" dense :label="$t('cancel')" @click="onCancelClick" />
+        <q-btn :label="$t('cancel')" color="primary" dense icon="cancel" @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -189,24 +177,20 @@
 
 <script>
 import {api} from 'boot/axios'
-import {notifyError, notifySuccess, today} from 'src/utils/jsutils'
+import {notifySuccess, today} from 'src/utils/jsutils'
 import {date} from 'quasar'
-import LifiInfo from 'pages/reservoirs/LifiInfo.vue'
 
 export default {
-  components: { LifiInfo },
-  props: ['mode', 'data', 'dte', 'periodType'],
+  props: ['mode', 'data'],
 
   data() {
     return {
       form: this.data,
       optCls: [],
-      optRegion: [],
-      optRegionOrg: [],
-      optDistrict: [],
-      optDistrictOrg: [],
       optBranch: [],
       optBranchOrg: [],
+      optRegion: [],
+      optRegionOrg: [],
       optFvReservoirType: [],
       optFvReservoirStatus: [],
       optFvFishFarmingType: [],
@@ -242,38 +226,9 @@ export default {
       if (v) {
         this.form.objRegion = v.id
         this.form.pvRegion = v["pv"]
-        this.form.objDistrict = null
-        this.form.pvDistrict = null
-        this.loadDistrict(v.id)
       }
     },
 
-    loadDistrict(region) {
-      this.loading = true
-      api
-        .post('', {
-          method: 'data/loadDistrict',
-          params: [region],
-        })
-        .then(
-          (response) => {
-            this.optDistrict = response.data.result.records
-            this.optDistrictOrg = response.data.result.records
-          })
-        .finally(() => {
-          this.loading = false
-        })
-    },
-
-    fnSelectDistrict(v) {
-      this.form.objDistrict = v.id
-      this.form.pvDistrict = v["pv"]
-    },
-
-    fnClearDistrict() {
-      this.form.objDistrict = null
-      this.form.pvDistrict = null
-    },
 
     fnSelectBranch(v) {
       this.form.objBranch = v.id
@@ -418,17 +373,17 @@ export default {
           (error) => {
             //console.log("error.response.data=>>>", error.response.data.error.message)
             err = true
-/*
-            if (error.response.data.error.message.includes('@')) {
-              let msgs = error.response.data.error.message.split('@')
-              let m1 = this.$t(`${msgs[0]}`)
-              let m2 = msgs.length > 1 ? ' [' + this.$t(msgs[1]) + ']' : ''
-              let msg = m1 + m2
-              notifyError(msg)
-            } else {
-              notifyError(this.$t(error.response.data.error.message))
-            }
-*/
+            /*
+                        if (error.response.data.error.message.includes('@')) {
+                          let msgs = error.response.data.error.message.split('@')
+                          let m1 = this.$t(`${msgs[0]}`)
+                          let m2 = msgs.length > 1 ? ' [' + this.$t(msgs[1]) + ']' : ''
+                          let msg = m1 + m2
+                          notifyError(msg)
+                        } else {
+                          notifyError(this.$t(error.response.data.error.message))
+                        }
+            */
           }
         )
         .finally(() => {
@@ -457,28 +412,12 @@ export default {
       .finally(() => {
         this.loading = false
       })
-
     //
     this.loading = true
     api
       .post('', {
-        method: 'data/loadRegion',
-        params: ['Cls_Regions'],
-      })
-      .then(
-        (response) => {
-          this.optRegion = response.data.result.records
-          this.optRegionOrg = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadBranchName',
-        params: ['Cls_Branch'],
+        method: 'data/loadBranchForSelect',
+        params: ['Prop_Branch'],
       })
       .then(
         (response) => {
@@ -492,8 +431,24 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadFvReservoirType',
-        params: ['Factor_ReservoirType'],
+        method: 'data/loadKatoForSelect',
+        params: ['Prop_KATO'],
+      })
+      .then(
+        (response) => {
+          this.optRegion = response.data.result.records
+          this.optRegionOrg = response.data.result.records
+        })
+      .finally(() => {
+        this.loading = false
+      })
+    //
+
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/loadFvReservoirTypeAsStore',
+        params: ['Prop_ReservoirType'],
       })
       .then(
         (response) => {
@@ -506,8 +461,8 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadFvReservoirStatus',
-        params: ['Factor_ReservoirStatus'],
+        method: 'data/loadFvReservoirStatusAsStore',
+        params: ['Prop_ReservoirStatus'],
       })
       .then(
         (response) => {
@@ -520,8 +475,8 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadFvFishFarmingType',
-        params: ['Factor_FishFarmingType'],
+        method: 'data/loadFvFishFarmingTypeAsStore',
+        params: ['Prop_FishFarmingType'],
       })
       .then(
         (response) => {
@@ -532,9 +487,7 @@ export default {
         this.loading = false
       })
     //
-    if (this.mode === 'upd') {
-      this.loadDistrict(this.form.objRegion)
-    }
+
   },
 }
 </script>

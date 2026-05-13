@@ -69,6 +69,15 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    void deleteBranch(long id) {
+        checkForExistData(id, 1)
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.deleteEntity(id)
+    }
+
+    //---------------- KATO ---------------- //
+
+    @DaoMethod
     Store loadKato(Map<String, Object> params) {
         return loadObj(UtCnv.toString(params.get("codTyp")), UtCnv.toLong(params.get("idObj")))
     }
@@ -86,11 +95,18 @@ class DataDao extends BaseMdbUtils {
         return loadKato(Map.of("idObj", (Object) id))
     }
 
+    @DaoMethod
+    void deleteKato(long id) {
+        checkForExistData(id, 1)
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.deleteEntity(id)
+    }
+
 
     Store loadObj(String codTyp, long idObj) {
         String whe = "o.id=${idObj}"
         if (idObj == 0) {
-            Set<Object> ids = apiMetaFish().get(ApiMetaFish).idsChildClses(codTyp)
+            Set<Object> ids = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
             whe = "o.cls in (0${ids.join(",")})"
         }
         Store st = mdb.createStore("ObjAndObjVer")
@@ -1087,6 +1103,16 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadBranchForSelect(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp)
+    }
+
+    @DaoMethod
+    Store loadKatoForSelect(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp)
+    }
+
+    @DaoMethod
     Store loadObjForSelect(String codTypOrProp) {
         if (codTypOrProp.startsWith("Typ_")) {
             Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
@@ -1125,7 +1151,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Map<Long, String> loadFvReservoirTypeAsMap(String codProp) {
-        return loadFVasMap(codProp) //loadFvForSelect(codFactor)
+        return loadFVasMap(codProp)
     }
 
     @DaoMethod
