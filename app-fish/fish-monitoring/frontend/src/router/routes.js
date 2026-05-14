@@ -4,16 +4,8 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      {
-        path: '/branch',
-        name: 'BranchPage',
-        component: () => import('pages/branch/BranchPage.vue'),
-      },
-      {
-        path: '/kato',
-        name: 'KatoPage',
-        component: () => import('pages/kato/KatoPage.vue'),
-      },
+      {path: '/struct_enterprise', name: "StructEnterprise", component: () => import('pages/struct_enterprise/StructEnterprise.vue')},
+      {path: '/kato', name: "KatoPage", component: () => import('pages/kato/KatoPage.vue')},
       {
         path: '/reservoirs',
         name: 'ReservoirsPage',

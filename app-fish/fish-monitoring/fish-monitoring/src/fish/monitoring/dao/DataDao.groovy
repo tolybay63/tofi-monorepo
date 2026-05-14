@@ -55,11 +55,69 @@ class DataDao extends BaseMdbUtils {
     //---------------- Branch ---------------- //
 
     @DaoMethod
-    Store loadBranch(Map<String, Object> params) {
-        return loadObj(UtCnv.toString(params.get("codTyp")), UtCnv.toLong(params.get("idObj")))
+    Store loadClsTree(Map<String, Object> params) {
+        return apiMeta().get(ApiMeta).loadClsTree(params)
     }
 
     @DaoMethod
+    Store loadObj(long cls) {
+        Store st = mdb.createStore("Obj.full")
+        mdb.loadQuery(st, """
+            select o.*, v.name, v.fullName, v.objParent as parent from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls=:c
+        """, [c: cls])
+        return st
+    }
+
+    @DaoMethod
+    Map<String, Object> idNameParent(long cls) {
+        Map<String, Object> res = new HashMap<>()
+        Store st = mdb.loadQuery("""
+            select o.id, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls=:cls
+        """, [cls: cls])
+        if (st.size() == 0) {
+            res.put("id", 0) as Map<String, Object>
+            res.put("name", "") as Map<String, Object>
+        } else {
+            res.put("id", st.get(0).getLong("id"))
+            res.put("name", st.get(0).getString("name"))
+        }
+        return res
+    }
+
+    @DaoMethod
+    Map<String, Long> getClsIds(String codCls) {
+        if (codCls=="")
+            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_%")
+        else
+            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
+    }
+
+    @DaoMethod
+    StoreRecord insertBranch(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        long own = eu.insertEntity(rec)
+        return loadObjRec(own)
+    }
+
+    @DaoMethod
+    StoreRecord updateBranch(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        long id = UtCnv.toLong(rec.get("id"))
+        eu.updateEntity(rec)
+        return loadObjRec(id)
+    }
+
+    StoreRecord loadObjRec(long obj) {
+        StoreRecord st = mdb.createStoreRecord("Obj.full")
+        mdb.loadQueryRecord(st, """
+            select o.*, v.name, v.fullName, v.objParent as parent from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id=:o
+        """, [o: obj])
+        return st
+    }
+
+/*    @DaoMethod
     Store saveBranch(Map<String, Object> rec) {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         long id = 0
@@ -70,7 +128,7 @@ class DataDao extends BaseMdbUtils {
             eu.updateEntity(rec)
         }
         return loadBranch(Map.of("idObj", (Object) id))
-    }
+    }*/
 
     @DaoMethod
     void deleteBranch(long id) {
@@ -80,12 +138,39 @@ class DataDao extends BaseMdbUtils {
     }
 
     //---------------- KATO ---------------- //
+    @DaoMethod
+    Store loadKATO() {
+        Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_KATO")
+        if (setCls.isEmpty()) setCls.add(0L)
+        String whe = setCls.join(",")
+        Store st = mdb.createStore("Obj.cust")
+        mdb.loadQuery(st, """
+            select o.id, v.objParent as parent, o.cls, v.name, o.cmt, v.fullName, o.ord 
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+            where o.cls in (${whe})
+            order by o.ord
+        """)
+        //
+        return st
+    }
 
+    @DaoMethod
+    void deleteKATO(long id) {
+        checkForExistData(id, 1)
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.deleteEntity(id)
+    }
+
+
+/*
     @DaoMethod
     Store loadKato(Map<String, Object> params) {
         return loadObj(UtCnv.toString(params.get("codTyp")), UtCnv.toLong(params.get("idObj")))
     }
+*/
 
+/*
     @DaoMethod
     Store saveKato(Map<String, Object> rec) {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
@@ -98,13 +183,7 @@ class DataDao extends BaseMdbUtils {
         }
         return loadKato(Map.of("idObj", (Object) id))
     }
-
-    @DaoMethod
-    void deleteKato(long id) {
-        checkForExistData(id, 1)
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        eu.deleteEntity(id)
-    }
+*/
 
 
     Store loadObj(String codTyp, long idObj) {
@@ -911,6 +990,70 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadReservoirsMeter(long obj, long prop) {
+        if (prop > 0) {
+            return mdb.loadQuery("""
+                select d.prop as id, v.numberval, v.id as idval
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=0 and d.objorrelobj=${obj} and d.prop=${prop}
+            """)
+        } else {
+            if (obj == 0)
+                return mdb.createStore()
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Water%")
+            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Reservoir%")
+            map.putAll(map1)
+            Store st = apiMeta().get(ApiMeta).loadSqlWithParams("""
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
+                from Prop p, Measure m
+                where p.id=:Prop_WaterArea and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
+                from Prop p, Measure m
+                where p.id=:Prop_WaterLevel and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
+                from Prop p, Measure m
+                where p.id=:Prop_WaterLength and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
+                from Prop p, Measure m
+                where p.id=:Prop_ReservoirWidth and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
+                from Prop p, Measure m
+                where p.parent=:Prop_ReservoirWidth and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
+                from Prop p, Measure m
+                where p.id=:Prop_ReservoirDepth and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
+                from Prop p, Measure m
+                where p.parent=:Prop_ReservoirDepth and p.measure=m.id
+            """, "", map as Map<String, Object>)
+            Set<Object> idsProp = st.getUniqueValues("id")
+
+            Store stData = mdb.loadQuery("""
+                select d.prop as id, v.numberval, v.id as idval
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=0 and d.objorrelobj=${obj} and d.prop in (0${idsProp.join(",")})
+            """)
+            StoreIndex indData = stData.getIndex("id")
+            for (StoreRecord r in st) {
+                StoreRecord rec = indData.get(r.getLong("id"))
+                if (rec != null) {
+                    r.set("numberval", rec.getDouble("numberval"))
+                    r.set("idval", rec.getLong("idval"))
+                }
+            }
+            return st
+        }
+    }
+
+    @DaoMethod
     Store savePiscesReservoir(Map<String, Object> params) {
         VariantMap form = new VariantMap(params)
         long relobj = 0
@@ -1019,6 +1162,8 @@ class DataDao extends BaseMdbUtils {
                 where d.isObj=0 and d.objorrelobj=${relobj} and d.prop=${prop}
             """)
         } else {
+            if (relobj == 0)
+                return mdb.createStore()
             Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FishFecundity", "")
             Store st = loadSqlMeta("""
                 select id, parent, name, null as numberval, null as idval 
@@ -1419,14 +1564,6 @@ class DataDao extends BaseMdbUtils {
 //************************************************************************//
 
 /*
-    @DaoMethod
-    Map<String, Long> getClsIds(String codCls) {
-        if (codCls == "")
-            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_%")
-        else
-            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
-    }
-
     @DaoMethod
     Store loadObjWithCls(String codTyp) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", codTyp, "")

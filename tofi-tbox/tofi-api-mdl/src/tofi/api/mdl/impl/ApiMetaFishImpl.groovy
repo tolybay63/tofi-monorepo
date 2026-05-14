@@ -82,7 +82,7 @@ class ApiMetaFishImpl extends BaseMdbUtils implements ApiMetaFish {
             order by r2.id
         """)
         if (st.size()==0)
-            throw new XError("Not Found relcl[${cls1},${cls2}]")
+            throw new XError("Not Found relcls[${cls1},${cls2}]")
 
         return st.get(0).getLong("relcls")
     }

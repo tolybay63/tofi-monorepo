@@ -1,118 +1,123 @@
 <template>
   <div class="q-pa-sm">
-    <q-table
-      style="height: calc(100vh - 140px); width: 100%"
-      class="my-sticky-header-table"
-      color="primary"
-      dense
-      card-class="bg-amber-1 text-brown"
-      row-key="relobj"
-      :columns="cols"
-      :rows="rows"
-      :wrap-cells="true"
-      :table-colspan="4"
-      table-header-class="text-bold text-white bg-blue-grey-13"
-      separator="horizontal"
-      :filter="filter"
-      :loading="loading"
-      selection="single"
-      v-model:selected="selected"
-      :rows-per-page-options="[25, 0]"
+
+    <q-splitter
+      v-model="splitterModel"
+      :model-value="splitterModel"
+      :limits="[70, 100]"
+      before-class="overflow-hidden q-mr-sm"
+      after-class="overflow-hidden q-ml-sm"
+      separator-class="bg-red"
+      style="height: calc(100vh - 135px); width: 100%"
     >
-      <template #bottom-row>
-        <q-td colspan="100%" v-if="selected.length > 0">
-          <span class="text-blue"> {{ $t('selectedRow') }}: </span>
-          <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
-        </q-td>
-        <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
-          {{ $t('infoRow') }}
-        </q-td>
-      </template>
 
-      <template v-slot:top>
-        <div style="font-size: 1.2em; font-weight: bold">
-          <q-avatar color="black" text-color="white" icon="tsunami"> </q-avatar>
-          {{ $t('piscesInReservoirs') }}
-        </div>
-
-        <q-space />
-        <q-btn
-          v-if="hasTarget('mon:rpv:ins')"
-          icon="post_add"
-          dense
-          color="secondary"
-          :disable="loading"
-          @click="editRow(null, 'ins')"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('newRecord') }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('mon:rpv:upd')"
-          icon="edit"
-          dense
-          color="secondary"
-          class="q-ml-sm"
-          :disable="loading || selected.length === 0"
-          @click="editRow(selected[0], 'upd')"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('editRecord') }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('mon:rpv:del')"
-          icon="delete"
-          dense
-          color="red"
-          class="q-ml-lg"
-          :disable="loading || selected.length === 0"
-          @click="removeRow(selected[0])"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('deletingRecord') }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('mon:rpv:sel')"
-          dense="dense"
-          :disable="loading || selected.length === 0"
-          class="q-ml-lg"
-          color="secondary"
-          icon="pan_tool_alt"
-          @click="ReservoirFishSelect()"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("chooseRecord") }}
-          </q-tooltip>
-        </q-btn>
-
-
-
-        <q-space />
-
-        <q-input
-          dense
-          debounce="300"
+      <template v-slot:before>
+        <q-table
+          style="height: calc(100vh - 140px); width: 100%"
+          class="my-sticky-header-table"
           color="primary"
-          v-model="filter"
-          :label="$t('txt_filter')"
+          dense
+          card-class="bg-amber-1 text-brown"
+          row-key="relobj"
+          :columns="cols"
+          :rows="rows"
+          :wrap-cells="true"
+          :table-colspan="4"
+          table-header-class="text-bold text-white bg-blue-grey-13"
+          separator="horizontal"
+          :filter="filter"
+          :loading="loading"
+          selection="single"
+          v-model:selected="selected"
+          @update:selected="updateSelected"
+          :rows-per-page-options="[25, 0]"
         >
-          <template v-slot:append>
-            <q-icon name="search" />
+          <template #bottom-row>
+            <q-td colspan="100%" v-if="selected.length > 0">
+              <span class="text-blue"> {{ $t('selectedRow') }}: </span>
+              <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+            </q-td>
+            <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+              {{ $t('infoRow') }}
+            </q-td>
           </template>
-        </q-input>
+
+          <template v-slot:top>
+            <div style="font-size: 1.2em; font-weight: bold">
+              <q-avatar color="black" text-color="white" icon="tsunami"></q-avatar>
+              {{ $t('piscesInReservoirs') }}
+            </div>
+
+            <q-space/>
+            <q-btn
+              v-if="hasTarget('mon:rpv:ins')"
+              icon="post_add"
+              dense
+              color="secondary"
+              :disable="loading"
+              @click="editRow(null, 'ins')"
+            >
+              <q-tooltip transition-show="rotate" transition-hide="rotate">
+                {{ $t('newRecord') }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('mon:rpv:upd')"
+              icon="edit"
+              dense
+              color="secondary"
+              class="q-ml-sm"
+              :disable="loading || selected.length === 0"
+              @click="editRow(selected[0], 'upd')"
+            >
+              <q-tooltip transition-show="rotate" transition-hide="rotate">
+                {{ $t('editRecord') }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('mon:rpv:del')"
+              icon="delete"
+              dense
+              color="red"
+              class="q-ml-lg"
+              :disable="loading || selected.length === 0"
+              @click="removeRow(selected[0])"
+            >
+              <q-tooltip transition-show="rotate" transition-hide="rotate">
+                {{ $t('deletingRecord') }}
+              </q-tooltip>
+            </q-btn>
+            <q-space/>
+            <q-input
+              dense
+              debounce="300"
+              color="primary"
+              v-model="filter"
+              :label="$t('txt_filter')"
+            >
+              <template v-slot:append>
+                <q-icon name="search"/>
+              </template>
+            </q-input>
+          </template>
+
+          <template #loading>
+            <q-inner-loading showing color="secondary"></q-inner-loading>
+          </template>
+        </q-table>
       </template>
 
-      <template #loading>
-        <q-inner-loading showing color="secondary"></q-inner-loading>
+      <template v-slot:after>
+        <FishFecundityPage ref="FishFecundity" :name="name"></FishFecundityPage>
+
       </template>
-    </q-table>
+
+    </q-splitter>
   </div>
+
+
 </template>
 
 <script>
@@ -124,15 +129,19 @@ import FishFecundityPage from "pages/piscesreservoirs/FishFecundityPage.vue";
 
 export default {
   name: 'PiscesReservoirsPage',
+  components: {FishFecundityPage},
   props: [],
 
   data: function () {
     return {
+
+      splitterModel: 100,
       cols: [],
       rows: [],
       filter: '',
       selected: [],
       loading: false,
+      name: "",
 
       mapReservoir: new Map(),
       mapTypeOfFish: new Map(),
@@ -141,24 +150,28 @@ export default {
 
   methods: {
     hasTarget,
+    updateSelected() {
+      let relobj = 0
 
-    ReservoirFishSelect() {
-      this.$q
-        .dialog({
-          component: FishFecundityPage,
-          componentProps: {
-            relobj: this.selected[0].relobj,
-            name: this.mapReservoir.get(this.selected[0].reservoir) + " - " + this.mapTypeOfFish.get(this.selected[0].typeOfFish),
-            // ...
-          },
-        })
-        .onOk(() => {
-        })
+      if (this.selected.length > 0) {
+        //console.info(this.selected[0]);
+        this.splitterModel = 70
+        relobj = this.selected[0].relobj
+        this.name = this.mapReservoir.get(this.selected[0].reservoir) + " - " + this.mapTypeOfFish.get(this.selected[0].typeOfFish)
+        //this.recUpd = extend(true, {}, this.selected[0], {dte: this.dte})
+        //console.info(this.recUpd);
+      } else {
+        this.splitterModel = 100
+        relobj = 0
+        this.name = ""
+        this.$refs.FishFecundity.clearData()
+      }
+      this.$refs.FishFecundity.loadFishFecundity(relobj)
+
     },
 
-
     editRow(row, mode) {
-      let data = { accessLevel: 1 }
+      let data = {accessLevel: 1}
       if (mode === 'upd') {
         data = extend(true, {}, row)
       }
@@ -222,18 +235,18 @@ export default {
               this.loadData()
               this.selected = []
             })
-/*
-            .catch((error) => {
-              console.log(error.message)
-              let msg = error.message
-              if (error.response) {
-                msg = error.response.data.error.message
-                if (msg==="existsFishInResoirvoir")
-                  msg = "["+this.mapTypeOfFish.get(row.typeoffish)+"] используется в результатах исследования"
-              }
-              notifyError(msg)
-            })
-*/
+          /*
+                      .catch((error) => {
+                        console.log(error.message)
+                        let msg = error.message
+                        if (error.response) {
+                          msg = error.response.data.error.message
+                          if (msg==="existsFishInResoirvoir")
+                            msg = "["+this.mapTypeOfFish.get(row.typeoffish)+"] используется в результатах исследования"
+                        }
+                        notifyError(msg)
+                      })
+          */
         })
         .onCancel(() => {
           notifyInfo(this.$t('canceled'))
@@ -245,7 +258,7 @@ export default {
       api
         .post('', {
           method: 'data/loadPiscesReservoir',
-          params: [{ codRelTyp: 'RelTyp_FishReservoir' }],
+          params: [{codRelTyp: 'RelTyp_FishReservoir'}],
         })
         .then(
           (response) => {
@@ -253,7 +266,7 @@ export default {
           })
         .finally(() => {
           //setTimeout(()=> {
-            this.loading = false
+          this.loading = false
           //}, 3000)
         })
     },
@@ -262,7 +275,7 @@ export default {
       return [
         {
           name: 'reservoir',
-          label: this.$t('reservoir')+"*",
+          label: this.$t('reservoir') + "*",
           field: 'reservoir',
           align: 'left',
           sortable: true,
@@ -272,7 +285,7 @@ export default {
         },
         {
           name: 'typeOfFish',
-          label: this.$t('typeOfFish')+"*",
+          label: this.$t('typeOfFish') + "*",
           field: 'typeOfFish',
           align: 'left',
           sortable: true,
@@ -360,7 +373,7 @@ export default {
         this.loading = false
       })
     //
-    setTimeout(()=> {
+    setTimeout(() => {
       this.loadData()
     }, 200)
 
@@ -380,15 +393,22 @@ export default {
   thead tr th
     position: sticky
     z-index: 1
+
   thead tr:first-child th
     top: 0
 
   /* this is when the loading indicator appears */
+
+
+
   &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
   /* prevent scrolling behind sticky top row on focus */
+
+
+
   tbody
     /* height of all previous header rows */
     scroll-margin-top: 48px

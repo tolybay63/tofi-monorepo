@@ -118,9 +118,6 @@ export default {
   FishFecundity: "Количество икринок в одной самке",
   FishSpawFrequency: "Частота нереста рыб",
 
-
-
-
   typesOfFish: 'Виды рыб',
   typeOfFish: 'Вид рыбы',
   reservoirs: 'Водоемы',
@@ -137,10 +134,10 @@ export default {
 
   addRegion: 'Добавить область',
   addDistrict: 'Добавить район',
-  Branch: 'Филиал',
-  Branches: 'Филиалы',
-  KATO: 'Область/Район',
-  KATOs: 'Области/Районы',
+
+  kato: "Классификатор административно-территориальных объектов",
+  struct_enterprise: "Организационная структура предприятия",
+
   attached_files: 'Прикрепленные файлы',
   attach_file: 'Прикрепить файл',
   view: 'Просмотр',
