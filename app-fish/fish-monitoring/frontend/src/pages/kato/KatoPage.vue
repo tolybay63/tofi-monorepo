@@ -1,322 +1,294 @@
 <template>
-  <div class="q-pa-sm">
-    <q-table
-      style="height: calc(100vh - 140px); width: 100%"
-      class="sticky-header-table"
-      color="primary"
+
+  <div class="q-pa-md bg-amber-1 no-scroll">
+    <q-banner
       dense
-      card-class="bg-amber-1 text-brown"
-      row-key="id"
-      :columns="cols"
-      :rows="rows"
-      :wrap-cells="true"
-      :table-colspan="4"
-      table-header-class="text-bold text-white bg-blue-grey-13"
-      separator="horizontal"
-      :filter="filter"
-      :loading="loading"
-      selection="single"
-      v-model:selected="selected"
-      :rows-per-page-options="[25, 0]"
+      inline-actions
+      class="bg-orange-1"
+      style="margin-bottom: 5px"
     >
-      <template #bottom-row>
-        <q-td colspan="100%" v-if="selected.length > 0">
-          <span class="text-blue"> {{ $t('selectedRow') }}: </span>
-          <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
-        </q-td>
-        <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
-          {{ $t('infoRow') }}
-        </q-td>
-      </template>
-
-      <template v-slot:top>
-        <div style="font-size: 1.2em; font-weight: bold">
-          <q-avatar color="black" text-color="white" icon="home_work"> </q-avatar>
-          {{ $t('KATOs') }}
-        </div>
-
-        <q-space />
+      <div style="font-size: 1.2em; font-weight: bold;">
+        <q-avatar color="black" text-color="white" icon="home_work"></q-avatar>
+        {{ $t("kato") }}
+      </div>
+      <template v-slot:action>
         <q-btn
-          v-if="hasTarget('mon:vr:ins')"
+          v-if="hasTarget('nsi:kato:ins')"
+          dense
           icon="post_add"
-          dense
-          color="secondary"
-          :disable="loading"
-          @click="editRow(null, 'ins')"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('newRecord') }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('mon:vr:upd')"
-          icon="edit"
-          dense
           color="secondary"
           class="q-ml-sm"
-          :disable="loading || selected.length === 0"
-          @click="editRow(selected[0], 'upd')"
+          @click="fnIns('ins', false)"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('editRecord') }}
+            {{ $t("addRegion") }}
           </q-tooltip>
         </q-btn>
 
         <q-btn
-          v-if="hasTarget('mon:vr:del')"
-          icon="delete"
+          v-if="hasTarget('nsi:kato:ins')"
           dense
-          color="red"
-          class="q-ml-lg"
-          :disable="loading || selected.length === 0"
-          @click="removeRow(selected[0])"
+          icon="post_add"
+          color="secondary"
+          class="q-ml-sm img-vert"
+          @click="fnIns('ins', true)"
+          :disable="currentNode == null"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('deletingRecord') }}
+            {{ $t("addDistrict") }}
           </q-tooltip>
         </q-btn>
 
-        <q-space />
-
-        <q-input
+        <q-btn
+          v-if="hasTarget('nsi:kato:upd')"
           dense
-          debounce="300"
-          color="primary"
-          v-model="filter"
-          :label="$t('txt_filter')"
+          icon="edit_note"
+          color="secondary"
+          class="q-ml-sm"
+          @click="fnIns('upd', false)"
+          :disable="currentNode == null"
         >
-          <template v-slot:append>
-            <q-icon name="search" />
-          </template>
-        </q-input>
-      </template>
+          <q-tooltip transition-show="rotate" transition-hide="rotate">
+            {{ $t("editRecord") }}
+          </q-tooltip>
+        </q-btn>
 
-      <template #loading>
-        <q-inner-loading showing color="secondary"></q-inner-loading>
+        <q-btn
+          v-if="hasTarget('nsi:kato:del')"
+          dense
+          icon="delete"
+          color="secondary"
+          class="q-ml-sm"
+          @click="fnDel(currentNode)"
+          :disable="currentNode == null"
+        >
+          <q-tooltip transition-show="rotate" transition-hide="rotate">
+            {{ $t("deletingRecord") }}
+          </q-tooltip>
+        </q-btn>
+        <q-inner-loading :showing="visible" color="secondary"/>
       </template>
-    </q-table>
+    </q-banner>
+
+    <div style="height: calc(100vh - 250px); width: 100%" class="scroll">
+      <QTreeTable
+        :cols="cols"
+        :rows="rows"
+        :icon_leaf="''"
+        @updateSelect="onUpdateSelect"
+        checked_visible="true"
+        ref="childComp"
+      />
+
+    </div>
   </div>
+
 </template>
 
-<script>
-import {extend} from 'quasar'
-import {api} from 'boot/axios'
-import {hasTarget, notifyInfo} from 'src/utils/jsutils'
-import UpdaterKato from "pages/kato/UpdaterKato.vue";
 
-export default {
-  name: 'KatoPage',
-  props: [],
+<script>
+import {defineComponent} from "vue";
+import {api} from "boot/axios";
+import {collapsAll, getParentNode, hasTarget, notifyError, pack,} from "src/utils/jsutils";
+import QTreeTable from "components/QTreeTable.vue";
+import UpdaterKATO from "pages/kato/UpdaterKATO.vue";
+
+export default defineComponent({
+  name: "KatoPage",
+  props: {},
+  components: {QTreeTable},
 
   data: function () {
     return {
+      selected: [],
       cols: [],
       rows: [],
-      filter: '',
-      selected: [],
-      loading: false,
-    }
+      currentNode: null,
+      visible: false,
+    };
   },
 
   methods: {
     hasTarget,
-
-    editRow(row, mode) {
-      let data = { accessLevel: 1 }
-      if (mode === 'upd') {
-        data = extend(true, {}, row)
-      }
-
-      this.$q
-        .dialog({
-          component: UpdaterKato,
-          componentProps: {
-            mode: mode,
-            data: data,
-            // ...
-          },
-        })
-        .onOk((r) => {
-          //console.log("Ok! updated", r);
-          if (mode === 'ins') {
-            this.rows.push(r)
-            this.selected = []
-            this.selected.push(r)
-          } else {
-            for (let key in r) {
-              row[key] = r[key]
-              /*
-              if (r.hasOwnProperty(key)) {
-                row[key] = r[key]
-              }
-*/
-            }
-          }
-        })
+    clearAny() {
+      this.$refs.childComp.clrAny();
     },
 
-    removeRow(row) {
-      this.$q
-        .dialog({
-          title: this.$t('confirmation'),
-          message: this.$t('deleteRecord') + '<div style="color: plum">(' + row.name + ')</div>',
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: 'cancel',
-        })
-        .onOk(() => {
-          //let index = this.rows.findIndex((row) => row.id === rec.id);
-          api
-            .post('', {
-              method: 'data/deleteKato',
-              params: [row.id],
-            })
-            .then(() => {
-              this.loadKato()
-              this.selected = []
-            })
-            .catch(() => {
-              //console.log(error.message)
-
-/*
-              if (error.response.data.error.message.includes('@')) {
-                let msgs = error.response.data.error.message.split('@')
-                let m1 = msgs[0]
-                let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
-                let msg = ''
-                if (m1 === 'existsSampling') {
-                  msg = `
-                  Заборы проб:
-                  Существует - ${m2}
-                  `
-                }
-                notifyError(msg)
-              } else {
-                notifyError(this.$t(error.response.data.error.message))
-              }
-*/
-            })
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t('canceled'))
-        })
+    onUpdateSelect(data) {
+      this.currentNode = data.selected !== undefined ? data.selected : null;
+      //console.log("currentNode onUpdateSelect", this.currentNode)
     },
 
-    loadKato: function () {
-      this.loading = true
+    fetchData() {
+      this.visible = true;
       api
         .post('', {
-          method: 'data/loadKato',
-          params: [{ codTyp: 'Typ_KATO', idObj: 0 }],
+          method: "data/loadKATO",
+          params: [],
         })
         .then(
           (response) => {
-            this.rows = response.data.result["records"]
+            this.rows = pack(response.data.result["records"], "ord")
+            collapsAll(this.rows)
           })
-        .finally(() => {
-          this.loading = false
+        .catch((error) => {
+          let msg = error.message
+          if (error.response)
+            msg = this.$t(error.response.data.error.message)
+          notifyError(msg)
         })
+        .finally(() => {
+          this.visible = false;
+        });
     },
 
     getColumns() {
       return [
         {
-          name: 'name',
-          label: this.$t('fldName')+"*",
-          field: 'name',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 35%',
+          name: "name",
+          label: this.$t("fldName"),
+          field: "name",
+          align: "left",
+          classes: "bg-blue-grey-1",
+          headerStyle: "font-size: 1.2em; width: 30%",
         },
         {
-          name: 'nameCls',
-          label: this.$t('cls')+"*",
-          field: 'nameCls',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width:25%',
+          name: "fullName",
+          label: this.$t("fldFullName"),
+          field: "fullName",
+          align: "left",
+          classes: "bg-blue-grey-1",
+          headerStyle: "font-size: 1.2em; width: 40%",
         },
         {
-          name: 'cmt',
-          label: this.$t('description'),
-          field: 'cmt',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 40%',
+          name: "cmt",
+          label: this.$t("fldCmt"),
+          field: "cmt",
+          align: "left",
+          classes: "bg-blue-grey-1",
+          headerStyle: "font-size: 1.2em; width: 30%",
         },
-      ]
+
+      ];
     },
 
-    infoSelected(row) {
-      return ' ' + row.name
+    fnIns(mode, isChild) {
+      let data = {
+        accessLevel: 1,
+      };
+
+      let parent = null
+      let parentName = null
+
+      if (isChild) {
+        if (this.currentNode.parent) {
+          parent = this.currentNode.parent
+          let parentNode = []
+          getParentNode(this.rows, this.currentNode.parent, parentNode)
+          parentName = parentNode[0].fullName
+        } else {
+          parent = this.currentNode.id
+          parentName = this.currentNode.fullName
+        }
+      }
+      if (mode === "ins") {
+        data.parent = parent
+      } else if (mode === "upd") {
+        data = {
+          id: this.currentNode.id,
+          cls: this.currentNode.cls,
+          parent: this.currentNode.parent,
+          cod: this.currentNode.cod,
+          accessLevel: this.currentNode.accessLevel,
+          name: this.currentNode.name,
+          fullName: this.currentNode.fullName,
+          cmt: this.currentNode.cmt,
+        }
+        if (this.currentNode.parent > 0) {
+          let parentNode = [];
+          getParentNode(this.rows, this.currentNode.parent, parentNode)
+          parentName = parentNode[0].fullName
+          isChild = true
+        }
+      }
+      this.$q
+        .dialog({
+          component: UpdaterKATO,
+          componentProps: {
+            mode: mode,
+            isChild: isChild,
+            parentName: parentName,
+            data: data,
+            // ...
+          },
+        })
+        .onOk((data) => {
+          //console.log("Ok! updated", data);
+          this.fetchData()
+          this.currentNode = data
+          this.$refs.childComp.restoreSelect(data)
+        })
     },
+
+    fnDel(rec) {
+      this.$q
+        .dialog({
+          title: this.$t("confirmation"),
+          message:
+            this.$t("deleteRecord") +
+            '<div style="color: plum">(' + rec.fullName + ")</div>",
+          html: true,
+          cancel: true,
+          persistent: true,
+          focus: "cancel",
+        })
+        .onOk(() => {
+          //let index = this.rows.findIndex((row) => row.id === rec.id);
+          api
+            .post('', {
+              method: "data/deleteKATO",
+              params: [rec.id],
+            })
+            .then(
+              () => {
+                this.fetchData()
+                this.clearAny()
+                this.selected = []
+                this.currentNode = null
+              })
+            .catch((error) => {
+              if (error.response.data.error.message.includes("@")) {
+                let msgs = error.response.data.error.message.split("@")
+                let m1 = this.$t(`${msgs[0]}`)
+                let m2 = (msgs.length > 1) ? " [" + msgs[1] + "]" : ""
+                let msg = m1 + m2
+                notifyError(msg)
+              } else {
+                notifyError(this.$t("hasChild"))
+              }
+            })
+        })
+    },
+
   },
 
   created() {
     this.cols = this.getColumns()
-    //
-    this.loadKato()
-
+    this.fetchData()
   },
-}
+
+  setup() {
+    return {};
+  },
+
+})
+
 </script>
 
-<!--<style lang="sass">
-.my-sticky-header-table
-  /* height or max-height is important */
-  height: calc(100vh - 190px)
-
-  .q-table__top,
-  .q-table__bottom,
-  thead tr:first-child th
-    /* bg color is important for th; just specify one */
-    background-color: #bdbdbd
-
-  thead tr th
-    position: sticky
-    z-index: 1
-  thead tr:first-child th
-    top: 0
-
-  /* this is when the loading indicator appears */
-  &.q-table&#45;&#45;loading thead tr:last-child th
-    /* height of all previous header rows */
-    top: 48px
-
-  /* prevent scrolling behind sticky top row on focus */
-  tbody
-    /* height of all previous header rows */
-    scroll-margin-top: 48px
-</style>-->
 
 <style scoped>
-.sticky-header-table {
-  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
-  max-height: 100%;
-  overflow: auto;
-}
-
-.sticky-header-table table {
-  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.sticky-header-table thead th {
-  /* Делаем заголовок липким */
-  position: sticky;
-  top: 0;
-  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
-  z-index: 1;
-  /* Фон обязателен, иначе заголовок будет прозрачным */
-  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
-}
-
-/* Опционально: если у таблицы есть границы, фиксируем их отображение */
-.sticky-header-table .q-table--bordered {
-  border-top: none;
+.img-vert {
+  transform: scaleY(-1);
+  -ms-filter: "FlipV";
 }
 </style>
