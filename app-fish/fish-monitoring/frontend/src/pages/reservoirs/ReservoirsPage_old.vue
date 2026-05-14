@@ -520,7 +520,7 @@ export default {
 
         {
           name: 'nameBranch',
-          label: this.$t('Branch') + '*',
+          label: this.$t('struct_enterprise') + '*',
           field: 'nameBranch',
           align: 'left',
           sortable: true,
@@ -530,7 +530,7 @@ export default {
 
         {
           name: 'nameKATO',
-          label: this.$t('KATO') + '*',
+          label: this.$t('kato') + '*',
           field: 'nameKATO',
           align: 'left',
           sortable: true,

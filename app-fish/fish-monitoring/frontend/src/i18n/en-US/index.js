@@ -130,6 +130,8 @@ export default {
   fisArea: 'Place',
   enterprise: 'Enterprise',
 
+  region: "Region",
+  district: "District",
   addRegion: 'Add the region',
   addDistrict: 'Add the district',
 

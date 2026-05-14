@@ -129,6 +129,8 @@ export default {
   fishArea: 'Орын',
   enterprise: 'Кәсіпорын',
 
+  region: "Аймақ",
+  district: "Аудан",
   addRegion: 'Аймақты қосу',
   addDistrict: 'Ауданды қосу',
 

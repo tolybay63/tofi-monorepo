@@ -51,7 +51,7 @@
             <q-select
               v-model="objBranch"
               :model-value="objBranch"
-              :label="fmReqLabel('Branch')"
+              :label="fmReqLabel('struct_enterprise')"
               :options="optBranch"
               class="q-ma-md"
               dense emit-value
@@ -67,7 +67,7 @@
             <!-- KATO -->
             <q-select
               v-model="objKATO"
-              :label="fmReqLabel('KATO')"
+              :label="fmReqLabel('kato')"
               :options="optKATO"
               class="q-ma-md"
               dense emit-value

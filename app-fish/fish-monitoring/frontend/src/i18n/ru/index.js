@@ -132,6 +132,8 @@ export default {
 
   enterprise: 'Предприятия',
 
+  region: "Область",
+  district: "Район",
   addRegion: 'Добавить область',
   addDistrict: 'Добавить район',
 

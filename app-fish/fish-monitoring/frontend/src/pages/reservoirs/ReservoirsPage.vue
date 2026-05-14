@@ -4,8 +4,8 @@
       v-model="splitterModel"
       :model-value="splitterModel"
       :limits="[70, 100]"
-      before-class="overflow-hidden q-mr-sm"
-      after-class="overflow-hidden q-ml-sm"
+      before-class="overflow-hidden"
+      after-class="overflow-hidden q-pl-sm"
       separator-class="bg-red"
       style="height: calc(100vh - 135px); width: 100%"
     >
@@ -200,17 +200,7 @@ export default {
           }
         })
         .onOk(() => {
-
-          //console.info("UpdMeter", r)
           this.loadReservors()
-
-          /*
-                    this.recUpd.WaterArea = r.WaterArea
-                    this.recUpd.WaterAreaFishing = r.WaterAreaFishing
-                    this.recUpd.WaterAreaLittoral = r.WaterAreaLittoral
-                    this.recUpd.ReservoirHydroLevel = r.ReservoirHydroLevel
-          */
-
         })
     },
 
@@ -335,7 +325,7 @@ export default {
 
         {
           name: 'nameBranch',
-          label: this.$t('Branch') + '*',
+          label: this.$t('struct_enterprise') + '*',
           field: 'nameBranch',
           align: 'left',
           sortable: true,
@@ -345,7 +335,7 @@ export default {
 
         {
           name: 'nameKATO',
-          label: this.$t('KATO') + '*',
+          label: this.$t('kato') + '*',
           field: 'nameKATO',
           align: 'left',
           sortable: true,
@@ -391,7 +381,7 @@ export default {
             obj = this.selected[0].obj
           }
           this.rows = response.data.result["records"]
-          console.info("rows", this.rows)
+          //console.info("rows", this.rows)
           if (obj > 0) {
             this.selected = []
             let sel = this.rows.filter((item) => {
