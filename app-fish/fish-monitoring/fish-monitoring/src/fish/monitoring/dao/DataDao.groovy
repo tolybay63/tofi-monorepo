@@ -2506,7 +2506,7 @@ class DataDao extends BaseMdbUtils {
     String getPathFile(long id) {
 
         DbFileStorageService dfsrv = apiMeta().get(ApiMeta).getDbFileStorageService()
-        dfsrv.setModelName(UtCnv.toString("nsidata"))
+        dfsrv.setModelName(UtCnv.toString("monitoringdata"))
         DbFileStorageItem dfsi = dfsrv.getFile(id)
 
         String pdf_dir = getApp().getAppdir() + File.separator + "frontend" + File.separator + "pdf"
