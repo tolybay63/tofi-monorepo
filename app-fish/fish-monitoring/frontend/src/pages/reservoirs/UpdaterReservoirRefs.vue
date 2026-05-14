@@ -47,41 +47,35 @@
           </div>
         </div>
         <div class="row">
-          <!-- Branch -->
           <div class="col">
             <q-select
-              v-model="form.objBranch"
+              v-model="objBranch"
+              :model-value="objBranch"
               :label="fmReqLabel('Branch')"
-              :model-value="form.objBranch"
               :options="optBranch"
               class="q-ma-md"
-              dense
+              dense emit-value
               map-options
+              multiple
               option-label="name"
               option-value="id"
               options-dense
-              use-input
-              @filter="filterBranch"
-              @update:model-value="fnSelectBranch"
             />
           </div>
 
           <div class="col">
-            <!-- Region -->
+            <!-- KATO -->
             <q-select
-              v-model="form.objRegion"
+              v-model="form.objKATO"
               :label="fmReqLabel('KATO')"
-              :model-value="form.objRegion"
-              :options="optRegion"
+              :options="optKATO"
               class="q-ma-md"
-              dense
+              dense emit-value
               map-options
+              multiple
               option-label="name"
               option-value="id"
               options-dense
-              use-input
-              @filter="filterRegion"
-              @update:model-value="fnSelectRegion"
             />
           </div>
 
@@ -127,7 +121,6 @@
         </div>
 
         <div class="row">
-
           <div class="col">
             <!--  F_FishFarmingType   -->
             <q-select
@@ -146,7 +139,6 @@
               @update:model-value="fnSelectFvFishFarmingType"
             />
           </div>
-
           <div class="col">
             <!-- Coordinate -->
             <q-input
@@ -157,7 +149,12 @@
             />
           </div>
         </div>
-
+        <div class="row">
+          <div class="col">
+            <!-- Description -->
+            <q-input v-model="form['Description']" :label="$t('description')" class="q-ma-md" type="textarea"/>
+          </div>
+        </div>
       </q-card-section>
 
       <q-card-actions align="right">
@@ -187,10 +184,11 @@ export default {
     return {
       form: this.data,
       optCls: [],
+
+      objBranch: [],
       optBranch: [],
-      optBranchOrg: [],
-      optRegion: [],
-      optRegionOrg: [],
+      optKATO: [],
+
       optFvReservoirType: [],
       optFvReservoirStatus: [],
       optFvFishFarmingType: [],
@@ -220,19 +218,6 @@ export default {
 
     fnSelectCls(val) {
       this.form.cls = val.id
-    },
-
-    fnSelectRegion(v) {
-      if (v) {
-        this.form.objRegion = v.id
-        this.form.pvRegion = v["pv"]
-      }
-    },
-
-
-    fnSelectBranch(v) {
-      this.form.objBranch = v.id
-      this.form.pvBranch = v["pv"]
     },
 
     fnSelectFvReservoirType(v) {
@@ -271,61 +256,11 @@ export default {
       this.form.pvReservoirStatus = null
     },
 
-    filterRegion(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optRegion = this.optRegionOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optRegionOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optRegion = this.optRegionOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
-    },
-
-    filterDistrict(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optDistrict = this.optDistrictOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optDistrictOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optDistrict = this.optDistrictOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
-    },
-
-    filterBranch(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optBranch = this.optBranchOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optBranchOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optBranch = this.optBranchOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
-    },
-
     validSave() {
       let nm = this.form.name
       nm = nm ? nm.trim() : null
-      if (!nm || !this.form.cls || !this.form.objRegion || !this.form.objBranch) return true
+      if (!nm || !this.form.cls || !this.form.objKATO || !this.objBranch ||
+        !this.form.fvReservoirType || !this.form.fvReservoirStatus) return true
     },
 
     // following method is REQUIRED
@@ -355,8 +290,8 @@ export default {
       this.form.mode = this.mode
       let nm = this.form.name
       this.form.name = nm.trim()
-      this.form.dte = this.dte
-      this.form.periodType = this.periodType
+      this.form.objBranch = this.objBranch
+      //this.form.periodType = this.periodType
 
       api
         .post('', {
@@ -422,7 +357,7 @@ export default {
       .then(
         (response) => {
           this.optBranch = response.data.result.records
-          this.optBranchOrg = response.data.result.records
+          console.info("optBranch", this.optBranch)
         })
       .finally(() => {
         this.loading = false
@@ -436,8 +371,8 @@ export default {
       })
       .then(
         (response) => {
-          this.optRegion = response.data.result.records
-          this.optRegionOrg = response.data.result.records
+          this.optKATO = response.data.result.records
+          console.info("optKATO", this.optKATO)
         })
       .finally(() => {
         this.loading = false
@@ -487,7 +422,12 @@ export default {
         this.loading = false
       })
     //
-
+    if (this.mode==="upd") {
+      let arr = this.data.objBranch.split(',') || []
+      arr.forEach(item => {
+        this.objBranch.push(item)
+      })
+    }
   },
 }
 </script>

@@ -188,7 +188,7 @@ export default {
 
   FishFamily: 'Семейство рыб',
   FishType: 'Тип рыбы',
-  fishFarmingType: 'Вид ведения рыбного хозяйства',
+  FishFarmingType: 'Вид ведения рыбного хозяйства',
 
   sampleNumber: 'Номер пробы',
   dateSampling: 'Дата забора пробы',
