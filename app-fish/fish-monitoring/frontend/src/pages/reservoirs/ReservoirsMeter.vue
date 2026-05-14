@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-md row bg-amber-1" >
+  <div class="q-pa-sm row bg-amber-1" >
     <!--  Date  -->
     <q-input
       v-model="dte"
@@ -42,7 +42,7 @@
         >
           <thead class="text-bold text-white bg-blue-grey-13">
           <tr>
-            <th style="font-size: 1.2em; width: 50%">
+            <th style="font-size: 1.2em; width: 54%">
               {{ cols[0].label }}
             </th>
             <th style="font-size: 1.2em; width: 8%">
@@ -51,7 +51,7 @@
             <th style="font-size: 1.2em; width: 8%">
               {{ cols[2].label }}
             </th>
-            <th style="font-size: 1.2em; width: 20%">
+            <th style="font-size: 1.2em; width: 16%">
               {{ cols[3].label }}
             </th>
             <th></th>
@@ -375,6 +375,19 @@ export default {
 
   created() {
     this.cols = this.getColumns();
+    api
+      .post('', {
+        method: 'data/loadPeriodType',
+        params: [],
+      })
+      .then(
+        (response) => {
+          this.optPeriod = response.data.result["records"]
+        })
+      .finally(() => {
+        this.loading = false
+      })
+    //
   },
 }
 </script>

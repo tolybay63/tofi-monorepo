@@ -141,7 +141,7 @@ export default {
       // emit "ok" event (with optional payload)
       // before hiding the QDialog
 
-      const method = this.mode === "ins" ? "insertKATO" : "updateKATO";
+      const method = this.mode === "ins" ? "insertBranch" : "updateBranch";
       if (this.isChild)
         this.form.cls = this.clsDistrict
       else

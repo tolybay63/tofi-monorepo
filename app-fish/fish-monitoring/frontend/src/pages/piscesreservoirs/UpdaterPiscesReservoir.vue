@@ -31,6 +31,7 @@
           use-input
           @filter="filterReservoir"
           @update:model-value="fnSelectReservoir"
+          :disable="mode === 'upd'"
         />
 
         <!-- TypeOfFish -->
@@ -46,6 +47,7 @@
           use-input
           @filter="filterTypeOfFish"
           @update:model-value="fnSelectTypeOfFish"
+          :disable="mode === 'upd'"
         />
         <!-- FishSpawPeriod -->
         <q-input v-model="form['FishSpawPeriod']" :label="$t('FishSpawPeriod')"
