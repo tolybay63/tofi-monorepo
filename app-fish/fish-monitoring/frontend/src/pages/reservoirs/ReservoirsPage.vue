@@ -551,9 +551,9 @@ export default {
 */
 
         {
-          name: 'Branch',
+          name: 'nameBranch',
           label: this.$t('Branch') + '*',
-          field: 'Branch',
+          field: 'nameBranch',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
@@ -561,13 +561,13 @@ export default {
         },
 
         {
-          name: 'KATO',
+          name: 'nameKATO',
           label: this.$t('KATO') + '*',
-          field: 'KATO',
+          field: 'nameKATO',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 25%'
+          headerStyle: 'font-size: 1.2em; width: 25%',
         },
         {
           name: 'fvReservoirType',
@@ -618,7 +618,7 @@ export default {
             this.selected.push(sel[0])
             this.updateSelected()
           }
-          //console.info("this.rows", this.rows)
+          console.info("this.rows", this.rows)
         })
         .catch((error) => {
           if (error.response.data.error.message.includes('@')) {
@@ -655,7 +655,7 @@ export default {
       .finally(() => {
         this.loading = false
       })
-
+    //
     api
       .post('', {
         method: 'data/loadFvReservoirTypeAsMap',
@@ -692,6 +692,7 @@ export default {
       .finally(() => {
         this.loadReservors()
       })
+    //
   },
 
   setup() {

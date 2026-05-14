@@ -40,13 +40,15 @@
 
         <field name="lstBranch" parent="string"/>
         <field name="objBranch" parent="string"/>
+        <field name="nameBranch" parent="string"/>
         <field name="idBranch" parent="long"/>
         <field name="pvBranch" parent="long"/>
 
         <field name="lstKATO" parent="string"/>
+        <field name="objKATO" parent="string"/>
+        <field name="nameKATO" parent="string"/>
         <field name="idKATO" parent="long"/>
         <field name="pvKATO" parent="long"/>
-        <field name="objKATO" parent="long"/>
 
         <field name="idReservoirType" parent="long"/>
         <field name="pvReservoirType" parent="long"/>
