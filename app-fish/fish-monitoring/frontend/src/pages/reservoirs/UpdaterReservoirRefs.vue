@@ -66,7 +66,7 @@
           <div class="col">
             <!-- KATO -->
             <q-select
-              v-model="form.objKATO"
+              v-model="objKATO"
               :label="fmReqLabel('KATO')"
               :options="optKATO"
               class="q-ma-md"
@@ -187,6 +187,8 @@ export default {
 
       objBranch: [],
       optBranch: [],
+
+      objKATO: [],
       optKATO: [],
 
       optFvReservoirType: [],
@@ -357,7 +359,7 @@ export default {
       .then(
         (response) => {
           this.optBranch = response.data.result.records
-          console.info("optBranch", this.optBranch)
+          //console.info("optBranch", this.optBranch)
         })
       .finally(() => {
         this.loading = false
@@ -372,7 +374,7 @@ export default {
       .then(
         (response) => {
           this.optKATO = response.data.result.records
-          console.info("optKATO", this.optKATO)
+          //console.info("optKATO", this.optKATO)
         })
       .finally(() => {
         this.loading = false
@@ -426,6 +428,11 @@ export default {
       let arr = this.data.objBranch.split(',') || []
       arr.forEach(item => {
         this.objBranch.push(item)
+      })
+      //
+      arr = this.data.objKATO.split(',') || []
+      arr.forEach(item => {
+        this.objKATO.push(item)
       })
     }
   },

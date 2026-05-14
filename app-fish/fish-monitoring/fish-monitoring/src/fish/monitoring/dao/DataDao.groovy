@@ -194,7 +194,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d7 on d7.isobj=1 and d7.objorrelobj=ob.id and d7.prop=:Prop_Description
                 left join DataPropVal v7 on d7.id=v7.dataprop
         """, map)
-        mdb.outTable(st)
+        //mdb.outTable(st)
 
         Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
         StoreIndex indFV = stFV.getIndex("propval")
@@ -203,11 +203,33 @@ class DataDao extends BaseMdbUtils {
             List<String> objBranch = new ArrayList<>()
             String lstBranch = r.getString("lstBranch")
             String [] arr0 = lstBranch.split(",")
+            List<Object> idsObj = new ArrayList<>()
             for (String it in arr0) {
                 String [] arr1 = it.split("_")
                 objBranch.add(arr1[1]+"_"+arr1[2])
+                idsObj.add(arr1[1])
             }
             r.set("objBranch", objBranch.join(","))
+            Store stObj = mdb.loadQuery("""
+                select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObj.join(",")})
+            """)
+            r.set("nameBranch", stObj.getUniqueValues("name").join("; "))
+            //
+            List<String> objKATO = new ArrayList<>()
+            String lstKATO = r.getString("lstKATO")
+            arr0 = lstKATO.split(",")
+            idsObj = new ArrayList<>()
+            for (String it in arr0) {
+                String [] arr1 = it.split("_")
+                objKATO.add(arr1[1]+"_"+arr1[2])
+                idsObj.add(arr1[1])
+            }
+            r.set("objKATO", objKATO.join(","))
+            stObj = mdb.loadQuery("""
+                select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObj.join(",")})
+            """)
+            r.set("nameKATO", stObj.getUniqueValues("name").join("; "))
+            //
             StoreRecord rec = indFV.get(r.getLong("pvReservoirType"))
             if (rec != null)
                 r.set("fvReservoirType", rec.getLong("factorval"))
