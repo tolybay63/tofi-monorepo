@@ -76,7 +76,7 @@
                 v-if="hasTarget('mon:vod:del')"
                 icon="delete"
                 dense
-                color="secondary"
+                color="red"
                 class="q-ml-lg"
                 :disable="loading || selected.length === 0"
                 @click="removeRow(selected[0])"
@@ -570,9 +570,9 @@ export default {
           headerStyle: 'font-size: 1.2em; width: 25%'
         },
         {
-          name: 'ReservoirType',
+          name: 'fvReservoirType',
           label: this.$t('ReservoirType') + '*',
-          field: 'ReservoirType',
+          field: 'fvReservoirType',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
@@ -581,9 +581,9 @@ export default {
         },
 
         {
-          name: 'ReservoirStatus',
+          name: 'fvReservoirStatus',
           label: this.$t('ReservoirStatus') + '*',
-          field: 'ReservoirStatus',
+          field: 'fvReservoirStatus',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
@@ -608,7 +608,7 @@ export default {
             obj = this.selected[0].obj
           }
           this.rows = response.data.result["records"]
-          //console.info("rows", this.rows)
+          console.info("rows", this.rows)
           if (obj > 0) {
             this.selected = []
             let sel = this.rows.filter((item) => {

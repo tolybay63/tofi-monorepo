@@ -182,7 +182,7 @@ export default {
 
   FishFamily: 'Балықтар отбасы',
   FishType: 'Балық түрі',
-  fishFarmingType: 'Балық аулау шаруашылығының түрі',
+  FishFarmingType: 'Балық аулау шаруашылығының түрі',
   SampleNumberExists: '[Үлгі нөмірі] бірегей болуы керек',
   ResearchNumberExists: '[Зерттеу нөмірі] бірегей болуы керек',
 

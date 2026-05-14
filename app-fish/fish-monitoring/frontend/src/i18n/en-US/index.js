@@ -187,7 +187,7 @@ export default {
 
   FishFamily: 'Family of fish',
   FishType: 'Type of fish',
-  fishFarmingType: 'Type of fishing',
+  FishFarmingType: 'Type of fishing',
   SampleNumberExists: 'The number of the sample should be unique',
   ResearchNumberExists: 'The number of the research should be unique',
 

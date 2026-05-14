@@ -11,16 +11,13 @@ import jandcode.commons.error.XError
 import jandcode.commons.variant.IVariantMap
 import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
-import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
-import jandcode.core.dbm.mdb.Mdb
 import jandcode.core.std.DataDirService
 import jandcode.core.store.Store
 import jandcode.core.store.StoreField
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
-import jandcode.jc.std.Ut
 import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiUserData
@@ -29,7 +26,10 @@ import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.ApiMetaFish
-import tofi.api.mdl.model.consts.*
+import tofi.api.mdl.model.consts.FD_AttribValType_consts
+import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_PeriodNameTml_consts
+import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageItem
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService
 import tofi.apinator.ApinatorApi
@@ -42,10 +42,14 @@ import java.nio.file.Paths
 class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
-    ApinatorApi apiMetaFish() { return app.bean(ApinatorService).getApi("meta")}
-    ApinatorApi apiUserData() {return app.bean(ApinatorService).getApi("userdata")}
-    ApinatorApi apiNSIData() {return app.bean(ApinatorService).getApi("nsidata")}
-    ApinatorApi apiMonitoringData() {return app.bean(ApinatorService).getApi("monitoringdata")}
+
+    ApinatorApi apiMetaFish() { return app.bean(ApinatorService).getApi("meta") }
+
+    ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
+
+    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
+
+    ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
 
     //---------------- Branch ---------------- //
@@ -145,42 +149,210 @@ class DataDao extends BaseMdbUtils {
         }
         Store st = mdb.createStore("Obj.reservoirs")
         mdb.loadQuery(st, """
+            with ob as (
             select
-                o.id as obj, o.cls, v.name,
-                v1.id as idBranch, v1.propval as pvBranch, v1.obj as objBranch,
-                v2.id as idKATO, v2.propval as pvKATO, v2.obj as objKATO,
+                o.id, o.cls , v.name
+                from Obj o
+                    left join ObjVer v on o.id=v.ownerVer and v.lastVer=1                
+                where ${whe}
+            )
+            select
+                ob.id as obj, ob.cls, ob.name,
+                t1.lstBranch, t2.lstKATO,
                 v3.id as idReservoirType, v3.propval as pvReservoirType, null as fvReservoirType,
                 v4.id as idReservoirStatus, v4.propval as pvReservoirStatus, null as fvReservoirStatus,
                 v5.id as idFishFarmingType, v5.propval as pvFishFarmingType, null as fvFishFarmingType,
-                v6.id as idCoordinate, v5.strVal as Coordinate,
+                v6.id as idCoordinate, v6.strVal as Coordinate,
                 v7.id as idDescription, v7.multiStrVal as Description
-            from Obj o
-                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
-                left join DataProp d1 on d1.isobj=1 and d1.objorrelobj=o.id and d1.prop=:Prop_Branch
-                left join DataPropVal v1 on d1.id=v1.dataprop
-                left join DataProp d2 on d2.isobj=1 and d2.objorrelobj=o.id and d2.prop=:Prop_KATO
-                left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.isobj=1 and d3.objorrelobj=o.id and d3.prop=:Prop_ReservoirType
+            from ob                
+                left join (
+                    select d1.objorrelobj, d1.prop,
+                    STRING_AGG (cast(v1.id||'_'||v1.obj||'_'||v1.propval as varchar(2000)), ',' order by v1.id) as lstBranch
+                    from ob
+                        left join DataProp d1  on d1.isobj=1 and d1.objorrelobj=ob.id and d1.prop=:Prop_Branch
+                        left join DataPropVal v1 on d1.id=v1.dataprop
+                    where 0=0
+                    group by d1.objorrelobj, d1.prop
+                    ) t1 on t1.objorrelobj=ob.id and t1.prop=:Prop_Branch
+                left join (
+                    select d2.objorrelobj, d2.prop,
+                    STRING_AGG (cast(v2.id||'_'||v2.obj||'_'||v2.propval as varchar(2000)), ',' order by v2.id) as lstKATO
+                    from ob
+                        left join DataProp d2  on d2.isobj=1 and d2.objorrelobj=ob.id and d2.prop=:Prop_KATO
+                        left join DataPropVal v2 on d2.id=v2.dataprop
+                    where 0=0
+                    group by d2.objorrelobj, d2.prop
+                    ) t2 on t2.objorrelobj=ob.id and t2.prop=:Prop_KATO
+                left join DataProp d3 on d3.isobj=1 and d3.objorrelobj =ob.id and d3.prop=:Prop_ReservoirType
                 left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.isobj=1 and d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirStatus
+                left join DataProp d4 on d4.isobj=1 and d4.objorrelobj=ob.id and d4.prop=:Prop_ReservoirStatus
                 left join DataPropVal v4 on d4.id=v4.dataprop
-                left join DataProp d5 on d5.isobj=1 and d5.objorrelobj=o.id and d5.prop=:Prop_FishFarmingType
+                left join DataProp d5 on d5.isobj=1 and d5.objorrelobj=ob.id and d5.prop=:Prop_FishFarmingType
                 left join DataPropVal v5 on d5.id=v5.dataprop
-                left join DataProp d6 on d6.isobj=1 and d6.objorrelobj=o.id and d6.prop=:Prop_Coordinate
+                left join DataProp d6 on d6.isobj=1 and d6.objorrelobj=ob.id and d6.prop=:Prop_Coordinate
                 left join DataPropVal v6 on d6.id=v6.dataprop
-                left join DataProp d7 on d7.isobj=1 and d7.objorrelobj=o.id and d7.prop=:Prop_Description
+                left join DataProp d7 on d7.isobj=1 and d7.objorrelobj=ob.id and d7.prop=:Prop_Description
                 left join DataPropVal v7 on d7.id=v7.dataprop
-            where ${whe}
         """, map)
         mdb.outTable(st)
 
+        Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
+        StoreIndex indFV = stFV.getIndex("propval")
+
+        for (StoreRecord r in st) {
+            List<String> objBranch = new ArrayList<>()
+            String lstBranch = r.getString("lstBranch")
+            String [] arr0 = lstBranch.split(",")
+            for (String it in arr0) {
+                String [] arr1 = it.split("_")
+                objBranch.add(arr1[1]+"_"+arr1[2])
+            }
+            r.set("objBranch", objBranch.join(","))
+            StoreRecord rec = indFV.get(r.getLong("pvReservoirType"))
+            if (rec != null)
+                r.set("fvReservoirType", rec.getLong("factorval"))
+            rec = indFV.get(r.getLong("pvReservoirStatus"))
+            if (rec != null)
+                r.set("fvReservoirStatus", rec.getLong("factorval"))
+            rec = indFV.get(r.getLong("pvFishFarmingType"))
+            if (rec != null)
+                r.set("fvFishFarmingType", rec.getLong("factorval"))
+
+        }
 
 
-        return null
+        return st
     }
 
 
+    @DaoMethod
+    Store saveReservoirPropertiesRef(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
 
+        List<String> lstBranch = UtCnv.toList(pms.get("objBranch"))
+        List<String> lstRegion = UtCnv.toList(pms.get("objKATO"))
+        validatePropertiesRef(pms)
+        long own = pms.getLong("obj")
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("fullName", pms.get("name"))
+        if (pms.getString("mode").equalsIgnoreCase("ins")) {
+            if (own > 0) {
+                throw new XError("ExistsReservoirWithProps")
+            }
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //
+            for (String it in lstBranch) {
+                String[] arr = it.split("_")
+                pms.put("objBranch", UtCnv.toLong(arr[0]))
+                pms.put("pvBranch", UtCnv.toLong(arr[1]))
+                fillProperties(true, "Prop_Branch", pms)
+            }
+            for (String it in lstRegion) {
+                String[] arr = it.split("_")
+                pms.put("objKATO", UtCnv.toLong(arr[0]))
+                pms.put("pvKATO", UtCnv.toLong(arr[1]))
+                fillProperties(true, "Prop_KATO", pms)
+            }
+            //
+            //3 Prop_ReservoirType
+            if (pms.containsKey("fvReservoirType"))
+                fillProperties(true, "Prop_ReservoirType", pms)
+            else
+                throw new XError("Не указан [ReservoirType]")
+            //4 Prop_ReservoirStatus
+            if (pms.containsKey("fvReservoirStatus"))
+                fillProperties(true, "Prop_ReservoirStatus", pms)
+            else
+                throw new XError("Не указан [ReservoirStatus]")
+            //5 Prop_FishFarmingType
+            if (pms.containsKey("fvFishFarmingType"))
+                fillProperties(true, "Prop_FishFarmingType", pms)
+
+            //6 Prop_Coordinate
+            if (pms.containsKey("Coordinate"))
+                fillProperties(true, "Prop_Coordinate", pms)
+
+            //7 Prop_Description
+            if (pms.containsKey("Description"))
+                fillProperties(true, "Prop_Description", pms)
+        } else if (pms.getString("mode").equalsIgnoreCase("ins")) {
+
+        } else {
+            throw new XError("Не известный режим ввода")
+        }
+
+        return loadReservors([codTyp: "", idObj: own] as Map<String, Object>)
+/*
+        validatePropertiesRef(pms)
+        long own = getReservoir(params)
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("fullName", pms.get("name"))
+        par.put("dbeg", pms.get("dte"))
+        if (pms.getString("mode").equalsIgnoreCase("ins")) {
+            if (own > 0) {
+                throw new XError("ExistsReservoirWithProps")
+            }
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            pms.put("isFirst", 1)
+
+            //1 Prop_Region *
+            fillProperties(true, "Prop_Region", pms)
+            //2 Prop_Branch *
+            fillProperties(true, "Prop_Branch", pms)
+            //3 Prop_ReservoirType
+            if (pms.containsKey("fvReservoirType"))
+                fillProperties(true, "Prop_ReservoirType", pms)
+            //4 Prop_ReservoirStatus
+            if (pms.containsKey("fvReservoirStatus"))
+                fillProperties(true, "Prop_ReservoirStatus", pms)
+            //4_1 Prop_FishFarmingType
+            if (pms.containsKey("fvFishFarmingType"))
+                fillProperties(true, "Prop_FishFarmingType", pms)
+
+        } else {
+            checkForExistReservoir(params)
+            own = pms.getLong("obj")
+            par.put("id", own)
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            pms.put("isFirst", 1)
+
+            //todo isUniq
+            //1 Prop_Region
+            if (params.containsKey("idRegion"))
+                updateProperties("Prop_Region", pms)
+            //2 Prop_Branch
+            if (params.containsKey("idBranch"))
+                updateProperties("Prop_Branch", pms)
+
+            //3 Prop_ReservoirType
+            if (pms.containsKey("idReservoirType"))
+                updateProperties("Prop_ReservoirType", pms)
+            else if (pms.containsKey("pvReservoirType"))
+                fillProperties(true, "Prop_ReservoirType", pms)
+
+            //4 Prop_ReservoirStatus
+            if (pms.containsKey("idReservoirStatus"))
+                updateProperties("Prop_ReservoirStatus", pms)
+            else if (pms.containsKey("pvReservoirStatus"))
+                fillProperties(true, "Prop_ReservoirStatus", pms)
+
+            //4.1 Prop_FishFarmingType
+            if (pms.containsKey("idFishFarmingType"))
+                updateProperties("Prop_FishFarmingType", pms)
+            else if (pms.containsKey("pvFishFarmingType"))
+                fillProperties(true, "Prop_FishFarmingType", pms)
+        }
+        return loadReservors([codTyp: "", idObj: own] as Map<String, Object>)
+*/
+
+
+    }
 
 
     @DaoMethod
@@ -250,8 +422,8 @@ class DataDao extends BaseMdbUtils {
         //mdb.outTable(st2)
         Store st3 = mdb.createStore("Obj.reservoirsMeter")
         for (StoreRecord r in st2) {
-            if ( r.getLong("idWaterArea")>0 || r.getLong("idWaterAreaFishing")>0
-                    || r.getLong("idWaterAreaLittoral") >0 || r.getLong("idReservoirHydroLevel") >0 ) {
+            if (r.getLong("idWaterArea") > 0 || r.getLong("idWaterAreaFishing") > 0
+                    || r.getLong("idWaterAreaLittoral") > 0 || r.getLong("idReservoirHydroLevel") > 0) {
                 st3.add(r)
             }
         }
@@ -342,179 +514,11 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store saveReservoirPropertiesRef(Map<String, Object> params) {
-        VariantMap pms = new VariantMap(params)
-        validatePropertiesRef(pms)
-        long own = getReservoir(params)
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Object> par = new HashMap<>(pms)
-        par.put("fullName", pms.get("name"))
-        par.put("dbeg", pms.get("dte"))
-        if (pms.getString("mode").equalsIgnoreCase("ins")) {
-            if (own > 0) {
-                throw new XError("ExistsReservoirWithProps")
-            }
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-            pms.put("isFirst", 1)
-
-            //1 Prop_Region *
-            fillProperties(true, "Prop_Region", pms)
-            //2 Prop_Branch *
-            fillProperties(true, "Prop_Branch", pms)
-            //1_1 Prop_District
-            if (pms.containsKey("objDistrict"))
-                fillProperties(true, "Prop_District", pms)
-            //3 Prop_ReservoirType
-            if (pms.containsKey("fvReservoirType"))
-                fillProperties(true, "Prop_ReservoirType", pms)
-            //4 Prop_ReservoirStatus
-            if (pms.containsKey("fvReservoirStatus"))
-                fillProperties(true, "Prop_ReservoirStatus", pms)
-            //4_1 Prop_FishFarmingType
-            if (pms.containsKey("fvFishFarmingType"))
-                fillProperties(true, "Prop_FishFarmingType", pms)
-/*
-            //7 Prop_WaterArea
-            if (pms.containsKey("WaterArea"))
-                fillProperties(true, "Prop_WaterArea", pms)
-
-            //16 Prop_WaterAreaFishing
-            if (pms.containsKey("WaterAreaFishing"))
-                fillProperties(true, "Prop_WaterAreaFishing", pms)
-            //17 Prop_WaterAreaLittoral
-            if (pms.containsKey("WaterAreaLittoral"))
-                fillProperties(true, "Prop_WaterAreaLittoral", pms)
-            //18 Prop_ReservoirHydroLevel
-            if (pms.containsKey("ReservoirHydroLevel"))
-                fillProperties(true, "Prop_ReservoirHydroLevel", pms)*/
-
-        } else {
-            checkForExistReservoir(params)
-            own = pms.getLong("obj")
-            par.put("id", own)
-            eu.updateEntity(par)
-            //
-            pms.put("own", own)
-            pms.put("isFirst", 1)
-
-            //todo isUniq
-            //1 Prop_Region
-            if (params.containsKey("idRegion"))
-                updateProperties("Prop_Region", pms)
-            //2 Prop_Branch
-            if (params.containsKey("idBranch"))
-                updateProperties("Prop_Branch", pms)
-
-
-            //1_1 Prop_District
-            if (params.containsKey("idDistrict"))
-                updateProperties("Prop_District", pms)
-            else if (params.containsKey("District"))
-                fillProperties(true, "Prop_District", pms)
-
-            //3 Prop_ReservoirType
-            if (pms.containsKey("idReservoirType"))
-                updateProperties("Prop_ReservoirType", pms)
-            else if (pms.containsKey("pvReservoirType"))
-                fillProperties(true, "Prop_ReservoirType", pms)
-
-            //4 Prop_ReservoirStatus
-            if (pms.containsKey("idReservoirStatus"))
-                updateProperties("Prop_ReservoirStatus", pms)
-            else if (pms.containsKey("pvReservoirStatus"))
-                fillProperties(true, "Prop_ReservoirStatus", pms)
-
-            //4.1 Prop_FishFarmingType
-            if (pms.containsKey("idFishFarmingType"))
-                updateProperties("Prop_FishFarmingType", pms)
-            else if (pms.containsKey("pvFishFarmingType"))
-                fillProperties(true, "Prop_FishFarmingType", pms)
-
-
-//********************************************************************************************
-/*
-            //7 Prop_WaterArea
-            if (pms.containsKey("idWaterArea")) {
-                if (pms.getBoolean("newlife")) {
-                    pms.put("isFirst", 2)
-                    if (pms.getDouble("WaterArea") != pms.getDouble("oldWaterArea"))
-                        fillProperties(true, "Prop_WaterArea", pms)
-                } else {
-                    if (pms.getDouble("WaterArea") == 0) {
-                        deleteData(pms.getLong("idWaterArea"))
-                    } else if (pms.getDouble("WaterArea") != pms.getDouble("oldWaterArea"))
-                        updateProperties("Prop_WaterArea", pms)
-                }
-            } else if (pms.containsKey("WaterArea")) {
-                pms.put("isFirst", 1)
-                fillProperties(true, "Prop_WaterArea", pms)
-            }
-
-
-            //16 Prop_WaterAreaFishing
-            if (pms.containsKey("idWaterAreaFishing")) {
-                if (pms.getBoolean("newlife")) {
-                    pms.put("isFirst", 2)
-                    if (pms.getDouble("WaterAreaFishing") != pms.getDouble("oldWaterAreaFishing"))
-                        fillProperties(true, "Prop_WaterAreaFishing", pms)
-                } else {
-                    if (pms.getDouble("WaterAreaFishing") == 0) {
-                        deleteData(pms.getLong("idWaterAreaFishing"))
-                    } else if (pms.getDouble("WaterAreaFishing") != pms.getDouble("oldWaterAreaFishing"))
-                        updateProperties("Prop_WaterAreaFishing", pms)
-                }
-            } else if (pms.containsKey("WaterAreaFishing")) {
-                pms.put("isFirst", 1)
-                fillProperties(true, "Prop_WaterAreaFishing", pms)
-            }
-
-            //17 Prop_WaterAreaLittoral
-            if (pms.containsKey("idWaterAreaLittoral")) {
-                if (pms.getBoolean("newlife")) {
-                    pms.put("isFirst", 2)
-                    if (pms.getDouble("WaterAreaLittoral") != pms.getDouble("oldWaterAreaLittoral"))
-                        fillProperties(true, "Prop_WaterAreaLittoral", pms)
-                } else {
-                    if (pms.getDouble("WaterAreaLittoral") == 0) {
-                        deleteData(pms.getLong("idWaterAreaLittoral"))
-                    } else if (pms.getDouble("WaterAreaLittoral") != pms.getDouble("oldWaterAreaLittoral"))
-                        updateProperties("Prop_WaterAreaLittoral", pms)
-                }
-            } else if (pms.containsKey("WaterAreaLittoral")) {
-                pms.put("isFirst", 1)
-                fillProperties(true, "Prop_WaterAreaLittoral", pms)
-            }
-
-            //18 Prop_ReservoirHydroLevel
-            if (pms.containsKey("idReservoirHydroLevel")) {
-                if (pms.getBoolean("newlife")) {
-                    pms.put("isFirst", 2)
-                    if (pms.getDouble("ReservoirHydroLevel") != pms.getDouble("oldReservoirHydroLevel"))
-                        fillProperties(true, "Prop_ReservoirHydroLevel", pms)
-                } else {
-                    if (pms.getDouble("ReservoirHydroLevel") == 0) {
-                        deleteData(pms.getLong("idReservoirHydroLevel"))
-                    } else if (pms.getDouble("ReservoirHydroLevel") != pms.getDouble("oldReservoirHydroLevel"))
-                        updateProperties("Prop_ReservoirHydroLevel", pms)
-                }
-            } else if (pms.containsKey("ReservoirHydroLevel")) {
-                pms.put("isFirst", 1)
-                fillProperties(true, "Prop_ReservoirHydroLevel", pms)
-            }
-*/
-
-        }
-        return loadReservors_old([codTyp: "", isRec: true, idObj: own,
-                              dte   : pms.getString("dte"), periodType: pms.getString("periodType")] as Map<String, Object>)
-    }
-
-    @DaoMethod
     Store saveReservoirPropertiesMeter(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         pms.put("own", UtCnv.toLong(params.get("obj")))
 
-        if (pms.getString("mode")=="ins") {
+        if (pms.getString("mode") == "ins") {
             //Prop_WaterArea
             if (pms.containsKey("WaterArea")) {
                 validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),
@@ -541,7 +545,7 @@ class DataDao extends BaseMdbUtils {
             }
         } else {
             //Prop_WaterArea
-            if (pms.getLong("idWaterArea")>0) {
+            if (pms.getLong("idWaterArea") > 0) {
                 updateProperties("Prop_WaterArea", pms)
             } else {
                 validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),
@@ -549,7 +553,7 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_WaterArea", pms)
             }
             //Prop_WaterAreaFishing
-            if (pms.getLong("idWaterAreaFishing")>0) {
+            if (pms.getLong("idWaterAreaFishing") > 0) {
                 updateProperties("Prop_WaterAreaFishing", pms)
             } else {
                 validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),
@@ -558,7 +562,7 @@ class DataDao extends BaseMdbUtils {
             }
 
             //Prop_WaterAreaLittoral
-            if (pms.getLong("idWaterAreaLittoral")>0) {
+            if (pms.getLong("idWaterAreaLittoral") > 0) {
                 updateProperties("Prop_WaterAreaLittoral", pms)
             } else {
                 validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),
@@ -567,7 +571,7 @@ class DataDao extends BaseMdbUtils {
             }
 
             //Prop_ReservoirHydroLevel
-            if (pms.getLong("idReservoirHydroLevel")>0) {
+            if (pms.getLong("idReservoirHydroLevel") > 0) {
                 updateProperties("Prop_ReservoirHydroLevel", pms)
             } else {
                 validatePropsMeter(pms.getLong("own"), pms.getLong("periodType"),
@@ -578,7 +582,7 @@ class DataDao extends BaseMdbUtils {
         }
         //
         return loadReservors_old([codTyp: "", isRec: true, idObj: pms.getLong("obj"),
-                              dte   : pms.getString("dte"), periodType: pms.getString("periodType")] as Map<String, Object>)
+                                  dte   : pms.getString("dte"), periodType: pms.getString("periodType")] as Map<String, Object>)
     }
 
     //---------------- 2 SamplingStation ----------------//
@@ -589,7 +593,7 @@ class DataDao extends BaseMdbUtils {
 
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         String whe = "o.id=${idObj}"
-        if (idObj==0) {
+        if (idObj == 0) {
             Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
             whe = "o.cls = ${map1.get(codCls)}"
         }
@@ -667,7 +671,7 @@ class DataDao extends BaseMdbUtils {
 
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         String whe = "o.id=${idObj}"
-        if (idObj==0) {
+        if (idObj == 0) {
             Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
             whe = "o.cls in (${idsCls.join(",")})"
         }
@@ -756,7 +760,7 @@ class DataDao extends BaseMdbUtils {
 
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         String whe = "o.id=${idObj}"
-        if (idObj==0) {
+        if (idObj == 0) {
             Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
             whe = "o.cls in (${idsCls.join(",")})"
         }
@@ -1125,18 +1129,26 @@ class DataDao extends BaseMdbUtils {
         } else if (codTypOrProp.startsWith("Prop_")) {
             Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codTypOrProp, "")
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
-                select cls
+                select cls, id as propval
                 from PropVal
                 where prop=${mapProp.get(codTypOrProp)} and cls is not null
             """, "")
+            StoreIndex indProp = stProp.getIndex("cls")
 
             Set<Object> idsCls = stProp.getUniqueValues("cls")
 
-            return mdb.loadQuery("""
-                select *
+            Store stObj = mdb.loadQuery("""
+                select o.id as obj, o.cls, null as id, v.name
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
             """)
+            for (StoreRecord r in stObj) {
+                StoreRecord rec = indProp.get(r.getLong("cls"))
+                if (rec != null) {
+                    r.set("id", r.getString("obj") + "_" + rec.getString("propval"))
+                }
+            }
+            return stObj
 
         } else {
             throw new XError("Неверный параметр")
@@ -1225,10 +1237,10 @@ class DataDao extends BaseMdbUtils {
 */
 
 
-
     /*
         delete Owner with properties
     */
+
     @DaoMethod
     void deleteOwnerWithProperties(long id, int isObj) {
         String tableName = isObj == 1 ? "Obj" : "RelObj"
@@ -1317,8 +1329,8 @@ class DataDao extends BaseMdbUtils {
                 where v.obj=${id}
             """)
             if (stTmp.size() > 0) {
-                String nm = "Объект ["+ stTmp.get(0).getString("nm1") + "]"
-                String objOrRelObj = stTmp.get(0).getInt("isObj")==1 ? "объекта" : "отношения"
+                String nm = "Объект [" + stTmp.get(0).getString("nm1") + "]"
+                String objOrRelObj = stTmp.get(0).getInt("isObj") == 1 ? "объекта" : "отношения"
                 String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
                 if (stTmp.get(0).getLong("periodType") > 0) {
                     PeriodGenerator pg = new PeriodGenerator()
@@ -1327,7 +1339,7 @@ class DataDao extends BaseMdbUtils {
                 Store stProp = loadSqlMeta("""
                     select name from Prop where id=${stTmp.get(0).getLong("prop")}
                 """, "")
-                throw new XError(nm + " является значением свойства [" + stProp.get(0).getString("name") + "] "+ objOrRelObj + " [" + stTmp.get(0).getString("nm2") + "]" + periodName)
+                throw new XError(nm + " является значением свойства [" + stProp.get(0).getString("name") + "] " + objOrRelObj + " [" + stTmp.get(0).getString("nm2") + "]" + periodName)
             }
 
         } else {
@@ -1366,8 +1378,8 @@ class DataDao extends BaseMdbUtils {
                 where v.relobj=${id}
             """)
             if (stTmp.size() > 0) {
-                String nm = "Отношение ["+ stTmp.get(0).getString("nm1") + "]"
-                String objOrRelObj = stTmp.get(0).getInt("isObj")==1 ? "объекта" : "отношения"
+                String nm = "Отношение [" + stTmp.get(0).getString("nm1") + "]"
+                String objOrRelObj = stTmp.get(0).getInt("isObj") == 1 ? "объекта" : "отношения"
                 String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
                 if (stTmp.get(0).getLong("periodType") > 0) {
                     PeriodGenerator pg = new PeriodGenerator()
@@ -1376,7 +1388,7 @@ class DataDao extends BaseMdbUtils {
                 Store stProp = loadSqlMeta("""
                     select name from Prop where id=${stTmp.get(0).getLong("prop")}
                 """, "")
-                throw new XError(nm + " является значением свойства [" + stProp.get(0).getString("name") + "] "+ objOrRelObj + " [" + stTmp.get(0).getString("nm2") + "]" + periodName)
+                throw new XError(nm + " является значением свойства [" + stProp.get(0).getString("name") + "] " + objOrRelObj + " [" + stTmp.get(0).getString("nm2") + "]" + periodName)
             }
         }
     }
@@ -1820,7 +1832,7 @@ class DataDao extends BaseMdbUtils {
             and v.dbeg='${d1}' and v.dend='${d2}' and d.prop=${map.get(codProp)}
         """)
         if (st.size() > 0) {
-            throw new XError(codProp+": на указанную дату существует значение")
+            throw new XError(codProp + ": на указанную дату существует значение")
         }
     }
 
@@ -1962,15 +1974,27 @@ class DataDao extends BaseMdbUtils {
 
         long idDP = 0
         String dend = "3333-12-31"
+        //
+        String whePeriod = "and d.periodType is null"
         if (periodType > 0) {
-            idDP = UtCnv.toLong(params.get("did" + keyValue))
-            if (idDP == 0) {
-                idDP = getIdDataProp(stProp, isObj, own, prop, periodType)
-            }
-        } else {
+            whePeriod = "and d.periodType=${periodType}"
+        }
+        Store stDP = mdb.loadQuery("""
+            select d.id 
+            from DataProp d, DataPropVal v
+            where d.id=v.dataprop and d.isobj=1 and d.prop=${prop} and d.objorrelobj=${own} ${whePeriod}
+            order by dbeg desc, dend
+        """)
+        if (stDP.size() > 0)
+            idDP = stDP.get(0).getLong("id")
+        else
+            idDP = getIdDataProp(stProp, isObj, own, prop, periodType)
+
+        //Изменился условия, при повторном использовании надо анализировать
+        if (periodType = 0) {
             if (params.keySet().contains("isFirst")) {
                 if (UtCnv.toInt(params.get("isFirst")) == 1) {
-                        Store st = mdb.loadQuery("""
+                    Store st = mdb.loadQuery("""
                         select v.id, d.id as did, v.dbeg, v.dend 
                         from DataProp d, DataPropVal v
                         where d.id=v.dataprop and d.isobj=1 and d.prop=${prop} and d.objorrelobj=${own}
@@ -1990,8 +2014,6 @@ class DataDao extends BaseMdbUtils {
                 } else {
                     idDP = UtCnv.toLong(params.get("did" + keyValue))
                 }
-            } else {
-                idDP = getIdDataProp(stProp, isObj, own, prop, periodType)
             }
         }
 
@@ -2003,7 +2025,7 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_Coordinate") ||
                     cod.equalsIgnoreCase("Prop_FishSpawPeriod") ||
                     cod.equalsIgnoreCase("Prop_FishSpawFrequency")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else {
@@ -2015,7 +2037,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_RegDocumentsLifeDoc") ||
                     cod.equalsIgnoreCase("Prop_SampleDate") ||
                     cod.equalsIgnoreCase("Prop_ResearchDate")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else
@@ -2023,7 +2045,7 @@ class DataDao extends BaseMdbUtils {
         }
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_Description")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
                 }
             } else {
@@ -2032,9 +2054,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Region") ||
-                    cod.equalsIgnoreCase("Prop_Branch") ||
-                    cod.equalsIgnoreCase("Prop_District") ||
+            if (cod.equalsIgnoreCase("Prop_KATO") ||
+                    cod.equalsIgnoreCase("Prop_Branch") /*||
                     cod.equalsIgnoreCase("Prop_ReservoirShore") ||
                     cod.equalsIgnoreCase("Prop_SampleExecutor") ||
                     cod.equalsIgnoreCase("Prop_StationSampling") ||
@@ -2042,7 +2063,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_ResearchExecutor") ||
                     cod.equalsIgnoreCase("Prop_FishTyp") ||
                     cod.equalsIgnoreCase("Prop_FishGear") ||
-                    cod.equalsIgnoreCase("Prop_FishZone")) {
+                    cod.equalsIgnoreCase("Prop_FishZone")*/) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -2053,12 +2074,12 @@ class DataDao extends BaseMdbUtils {
         }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (/*cod.equalsIgnoreCase("Prop_ReservoirType") ||
+            if (cod.equalsIgnoreCase("Prop_ReservoirType") ||
                     cod.equalsIgnoreCase("Prop_ReservoirStatus") ||
                     cod.equalsIgnoreCase("Prop_FishFarmingType") ||
-                    cod.equalsIgnoreCase("Prop_FishGender") ||*/
+                    /*cod.equalsIgnoreCase("Prop_FishGender") ||*/
                     cod.equalsIgnoreCase("Prop_FishFamily") ||
-                    cod.equalsIgnoreCase("Prop_FishTyp")) {
+                            cod.equalsIgnoreCase("Prop_FishTyp")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -2267,7 +2288,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_FishFarmingType") ||
                     cod.equalsIgnoreCase("Prop_FishGender") ||*/
                     cod.equalsIgnoreCase("Prop_FishFamily") ||
-                    cod.equalsIgnoreCase("Prop_FishTyp")) {
+                            cod.equalsIgnoreCase("Prop_FishTyp")) {
                 if (propVal > 0)
                     sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
                 else {
