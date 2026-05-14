@@ -261,7 +261,7 @@ export default {
     validSave() {
       let nm = this.form.name
       nm = nm ? nm.trim() : null
-      if (!nm || !this.form.cls || !this.form.objKATO || !this.objBranch ||
+      if (!nm || !this.form.cls || !this.objKATO || !this.objBranch ||
         !this.form.fvReservoirType || !this.form.fvReservoirStatus) return true
     },
 
@@ -293,6 +293,7 @@ export default {
       let nm = this.form.name
       this.form.name = nm.trim()
       this.form.objBranch = this.objBranch
+      this.form.objKATO = this.objKATO
       //this.form.periodType = this.periodType
 
       api

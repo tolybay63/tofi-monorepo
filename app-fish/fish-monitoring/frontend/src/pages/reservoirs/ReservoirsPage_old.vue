@@ -109,9 +109,176 @@
       </template>
 
       <template v-slot:after>
+        <q-banner dense class="text-bold text-white bg-blue-grey-13" inline-actions>
+          <div class="row">
+            {{ $t('other_props') }}
+          </div>
+          <template v-slot:action>
+            <q-btn
+              icon="post_add"
+              dense
+              color="secondary"
+              @click="editRowMeters('ins')"
+            >
+              <q-tooltip transition-show="rotate" transition-hide="rotate">
+                {{ $t('newRecord') }}
+              </q-tooltip>
+            </q-btn>
 
-        <ReservoirsMeter ref="ReservoirsMeter"></ReservoirsMeter>
 
+            <q-btn
+              icon="edit"
+              dense
+              color="secondary"
+              class="q-ml-sm"
+              @click="editRowMeters('upd')"
+            >
+              <q-tooltip transition-show="rotate" transition-hide="rotate">
+                {{ $t('editRecord') }}
+              </q-tooltip>
+            </q-btn>
+
+          </template>
+
+        </q-banner>
+
+        <q-card class="bg-amber-1 text-brown">
+          <q-card-section v-if="selected.length > 0">
+            <!-- F_ReservoirType -->
+<!--            <q-select
+              v-model="recUpd.fvReservoirType"
+              :model-value="recUpd.fvReservoirType"
+              :label="$t('typeReservoir')"
+              :options="optFvReservoirType"
+              dense
+              map-options
+              option-label="name"
+              option-value="id"
+              class="q-ma-sm"
+              readonly
+              stack-label
+            />
+            &lt;!&ndash; F_ReservoirStatus &ndash;&gt;
+            <q-select
+              v-model="recUpd.fvReservoirStatus"
+              :model-value="recUpd.fvReservoirStatus"
+              :label="$t('statusReservoir')"
+              :options="optFvReservoirStatus"
+              dense
+              map-options
+              option-label="name"
+              option-value="id"
+              class="q-ma-sm"
+              readonly
+              stack-label
+            />
+
+            &lt;!&ndash; F_FishFarmingType &ndash;&gt;
+            <q-select
+              v-model="recUpd.fvFishFarmingType"
+              :model-value="recUpd.fvFishFarmingType"
+              :label="$t('fishFarmingType')"
+              :options="optFvFishFarmingType"
+              dense
+              map-options
+              option-label="name"
+              option-value="id"
+              class="q-ma-sm"
+              readonly
+              stack-label
+            />-->
+
+            <!--Prop_WaterArea-->
+            <q-input
+              :model-value="recUpd.WaterArea"
+              stack-label
+              v-model="recUpd.WaterArea"
+              readonly
+              class="q-ma-sm"
+              :label="$t('WaterArea')"
+              type="number"
+              clearable
+              dense
+            >
+              <template v-slot:after>
+                <q-btn round dense flat size="sm" color="purple" icon="help_outline">
+                  <q-menu auto-close>
+                    <div>
+                      <lifi-info :field="'WaterArea'" :rec="recUpd"></lifi-info>
+                    </div>
+                  </q-menu>
+                </q-btn>
+              </template>
+            </q-input>
+
+            <!--Prop_WaterAreaFishing-->
+            <q-input
+              :model-value="recUpd.WaterAreaFishing"
+              stack-label
+              v-model="recUpd.WaterAreaFishing"
+              readonly
+              class="q-ma-sm"
+              :label="$t('WaterAreaFishing')"
+              type="number"
+              dense
+            >
+              <template v-slot:after>
+                <q-btn round dense flat size="sm" color="purple" icon="help_outline">
+                  <q-menu auto-close>
+                    <div>
+                      <lifi-info :field="'WaterAreaFishing'" :rec="recUpd"></lifi-info>
+                    </div>
+                  </q-menu>
+                </q-btn>
+              </template>
+            </q-input>
+
+            <!-- Prop_WaterAreaLittoral-->
+            <q-input
+              :model-value="recUpd.WaterAreaLittoral"
+              stack-label
+              v-model="recUpd.WaterAreaLittoral"
+              readonly
+              class="q-ma-sm"
+              :label="$t('WaterAreaLittoral')"
+              type="number"
+              dense
+            >
+              <template v-slot:after>
+                <q-btn round dense flat size="sm" color="purple" icon="help_outline">
+                  <q-menu auto-close>
+                    <div>
+                      <lifi-info :field="'WaterAreaLittoral'" :rec="recUpd"></lifi-info>
+                    </div>
+                  </q-menu>
+                </q-btn>
+              </template>
+            </q-input>
+
+            <!-- Prop_ReservoirHydroLevel-->
+            <q-input
+              :model-value="recUpd.ReservoirHydroLevel"
+              stack-label
+              v-model="recUpd.ReservoirHydroLevel"
+              readonly
+              class="q-ma-sm"
+              :label="$t('ReservoirHydroLevel')"
+              type="number"
+              dense
+            >
+              <template v-slot:after>
+                <q-btn round dense flat size="sm" color="purple" icon="help_outline">
+                  <q-menu auto-close>
+                    <div>
+                      <lifi-info :field="'ReservoirHydroLevel'" :rec="recUpd"></lifi-info>
+                    </div>
+                  </q-menu>
+                </q-btn>
+              </template>
+            </q-input>
+
+          </q-card-section>
+        </q-card>
       </template>
     </q-splitter>
   </div>
@@ -125,11 +292,10 @@ import {ref} from 'vue'
 import LifiInfo from 'pages/reservoirs/LifiInfo.vue'
 import UpdaterReservoirRefs from 'pages/reservoirs/UpdaterReservoirRefs.vue'
 import UpdaterReservoirMeter from 'pages/reservoirs/UpdaterReservoirMeter.vue'
-import ReservoirsMeter from "pages/reservoirs/ReservoirsMeter.vue";
 
 export default {
   name: 'ReservoirsPage',
-  components: {ReservoirsMeter, LifiInfo},
+  components: {LifiInfo},
   props: [],
 
   data: function () {
@@ -160,6 +326,16 @@ export default {
   methods: {
     hasTarget,
 
+    fnSelectPeriodType(v) {
+      console.log(v, this.periodType)
+      this.periodType = v.id
+      this.loadReservors()
+    },
+
+    fnReqLabel(label) {
+      return this.$t(label) + "*"
+    },
+
     editRowMeters(mode) {
       let data
 
@@ -188,6 +364,8 @@ export default {
           obj: this.recUpd.obj
         }
       }
+
+
       this.$q
         .dialog({
           component: UpdaterReservoirMeter,
@@ -215,21 +393,28 @@ export default {
     },
 
     updateSelected() {
-      let obj = 0
 
       if (this.selected.length > 0) {
         //console.info(this.selected[0]);
-        this.splitterModel = 60
-        obj = this.selected[0].obj
-        //this.name = this.mapReservoir.get(this.selected[0].reservoir) + " - " + this.mapTypeOfFish.get(this.selected[0].typeOfFish)
-      } else {
+        this.splitterModel = 70
+        //this.recUpd = extend(true, {}, this.selected[0], {dte: this.dte})
+        //console.info(this.recUpd);
+      } else
         this.splitterModel = 100
-        obj = 0
-        //this.name = ""
-        this.$refs.ReservoirsMeter.clearData()
-      }
-      this.$refs.ReservoirsMeter.loadReservoirsMeter(obj)
 
+    },
+
+    fnDt(val) {
+      //let dt = date.formatDate(val).isWellFormed()
+      //console.log(val.length)
+      if (val.length === 10 && date.formatDate(val).isWellFormed()) {
+        this.dte = val
+        this.loadReservors()
+
+        if (this.selected.length > 0) {
+          this.recUpd.dte = this.dte
+        }
+      }
     },
 
     editRowRefs(row, mode) {

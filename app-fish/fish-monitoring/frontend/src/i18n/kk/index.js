@@ -131,10 +131,10 @@ export default {
 
   addRegion: 'Аймақты қосу',
   addDistrict: 'Ауданды қосу',
-  Branch: 'Филиал',
-  Branches: 'Филиалдар',
-  KATO: 'Аймақ/Аудан',
-  KATOs: 'Аймақтар/Аудандар',
+
+  kato: "Әкімшілік-аумақтық объектілердің жіктеуіші",
+  struct_enterprise: "Кәсіпорынның ұйымдық құрылымы",
+
   nameCls: 'Құрал түрі',
   attached_files: 'Тіркелген файлдар',
   attach_file: 'Файлды тіркеу',

@@ -1,5 +1,35 @@
 <template>
-  <div class="q-pa-md bg-amber-1" style="font-size: 18px"> {{ this.name }}</div>
+  <div class="q-pa-md row bg-amber-1" >
+    <!--  Date  -->
+    <q-input
+      v-model="dte"
+      :label="$t('date')"
+      :model-value="dte"
+      class="q-ml-lg"
+      dense
+      stack-label
+      style="width: 100px"
+      type="date"
+      @update:model-value="fnDt"
+    />
+
+    <!--  PeriodType  -->
+    <q-select
+      class="q-ml-lg"
+      v-model="periodType"
+      :model-value="periodType"
+      dense
+      options-dense
+      :options="optPeriod"
+      :label="fnReqLabel('periodType')"
+      option-value="id"
+      option-label="text"
+      map-options
+      @update:model-value="fnSelectPeriodType"
+      style="width: 100px"
+    />
+
+  </div>
 
   <div class="q-pt-sm">
     <div
@@ -12,11 +42,17 @@
         >
           <thead class="text-bold text-white bg-blue-grey-13">
           <tr>
-            <th style="font-size: 1.2em; width: 60%">
+            <th style="font-size: 1.2em; width: 50%">
               {{ cols[0].label }}
             </th>
-            <th style="font-size: 1.2em; width: 30%">
+            <th style="font-size: 1.2em; width: 8%">
               {{ cols[1].label }}
+            </th>
+            <th style="font-size: 1.2em; width: 8%">
+              {{ cols[2].label }}
+            </th>
+            <th style="font-size: 1.2em; width: 20%">
+              {{ cols[3].label }}
             </th>
             <th></th>
           </tr>
@@ -41,13 +77,20 @@
                   {{ item.name }}
                 </span>
             </td>
-            <!--isReq-->
+            <!--value-->
             <td :data-th="cols[1].name">
               {{ item.numberval }}
             </td>
-
+            <!--dbeg-->
             <td :data-th="cols[2].name">
+              {{ item.numberval }}
+            </td>
+            <!--dend-->
+            <td :data-th="cols[3].name">
+              {{ item.numberval }}
+            </td>
 
+            <td :data-th="cols[4].name">
               <q-btn
                 class="no-padding no-margin" color="blue" dense flat icon="edit" round
                 size="sm" @click="fnEdit(item)"
@@ -83,9 +126,9 @@
 <script>
 
 import {api} from 'boot/axios'
-import {expandAll, notifyError, notifyInfo, pack} from 'src/utils/jsutils'
+import {expandAll, notifyError, notifyInfo, pack, today} from 'src/utils/jsutils'
 import {ref} from "vue";
-import UpdaterFishFecundity from "pages/piscesreservoirs/UpdaterFishFecundity.vue";
+import {date} from "quasar";
 
 export default {
   props: ['name'],
@@ -95,15 +138,39 @@ export default {
       rows: [],
       cols: [],
       loading: false,
-
       isExpanded: true,
       itemId: null,
-      relobj: 0
+      obj: 0,
+
+      dte: today(),
+      periodType: 41,
+      optPeriod: []
     }
   },
 
 
   methods: {
+
+    fnSelectPeriodType(v) {
+      console.log(v, this.periodType)
+      this.periodType = v.id
+      this.loadReservoirsMeter(this.obj)
+    },
+
+    fnReqLabel(label) {
+      return this.$t(label) + "*"
+    },
+
+    fnDt(val) {
+      //let dt = date.formatDate(val).isWellFormed()
+      //console.log(val.length)
+      if (val.length === 10 && date.formatDate(val).isWellFormed()) {
+        this.dte = val
+        this.this.loadReservoirsMeter(this.obj)
+
+      }
+    },
+
 
     fnDelete(row) {
       let nm = row.name
@@ -119,7 +186,7 @@ export default {
         .onOk(() => {
           api
             .post('', {
-              method: "data/deleteFishFecundity",
+              method: "data/deleteReservoirsMeter",
               params: [row.idval],
             })
             .then(
@@ -145,10 +212,10 @@ export default {
     },
 
     fnEdit(row) {
-      let rec = {relobj: this.relobj, prop: row.id, numberval: row.numberval || "", name: row.name, idval: row.idval};
+      let rec = {obj: this.obj, prop: row.id, numberval: row.numberval || "", name: row.name, idval: row.idval};
       this.$q
         .dialog({
-          component: UpdaterFishFecundity,
+          component: UpdaterReservoirsMeter,
           componentProps: {
             data: rec,
           },
@@ -244,17 +311,31 @@ export default {
           style: "font-size: 1.2em; width: 50%",
         },
         {
+          name: "dbeg",
+          label: this.$t("fldDbegShort"),
+          field: "dbeg",
+          align: "left",
+          style: "font-size: 1.2em; width: 8%",
+        },
+        {
+          name: "dend",
+          label: this.$t("fldDendShort"),
+          field: "dend",
+          align: "left",
+          style: "font-size: 1.2em; width: 8%",
+        },
+        {
           name: "numberval",
           label: this.$t("val"),
           field: "numberval",
           align: "center",
-          style: "font-size: 1.2em; width: 30%",
+          style: "font-size: 1.2em; width: 20%",
         },
         {
           name: "cmd",
           field: "cmd",
           align: "center",
-          style: "font-size: 1.2em; width: 20%",
+          style: "font-size: 1.2em; width: 14%",
         }
       ];
     },
@@ -263,13 +344,13 @@ export default {
       this.rows = [];
     },
 
-    loadFishFecundity(relobj) {
+    loadReservoirsMeter(obj) {
       this.loading = true
-      this.relobj = relobj
+      this.obj = obj
       api
         .post('', {
-          method: 'data/loadFishFecundity',
-          params: [relobj, 0],
+          method: 'data/loadReservoirsMeter',
+          params: [obj, 0],
         })
         .then(
           (response) => {
