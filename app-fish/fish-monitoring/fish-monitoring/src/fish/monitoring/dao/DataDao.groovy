@@ -42,13 +42,9 @@ import java.nio.file.Paths
 class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
-
     ApinatorApi apiMetaFish() { return app.bean(ApinatorService).getApi("meta") }
-
     ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
-
-    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
-
+    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }                 //todo
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
 
@@ -184,7 +180,6 @@ class DataDao extends BaseMdbUtils {
         return loadKato(Map.of("idObj", (Object) id))
     }
 */
-
 
     Store loadObj(String codTyp, long idObj) {
         String whe = "o.id=${idObj}"
@@ -327,6 +322,136 @@ class DataDao extends BaseMdbUtils {
 
 
     @DaoMethod
+    Store loadReservoirsMeter(long obj, long prop) {
+        if (prop > 0) {
+            return mdb.loadQuery("""
+                select d.prop as id, v.numberval, v.dbeg, v.dend, v.id as idval
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=0 and d.objorrelobj=${obj} and d.prop=${prop}
+            """)
+        } else {
+            if (obj == 0)
+                return mdb.createStore()
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Water%")
+            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Reservoir%")
+            map.putAll(map1)
+            Store st = apiMeta().get(ApiMeta).loadSqlWithParams("""
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                from Prop p, Measure m
+                where p.id=:Prop_WaterArea and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                from Prop p, Measure m
+                where p.id=:Prop_WaterLevel and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                from Prop p, Measure m
+                where p.id=:Prop_WaterLength and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                from Prop p, Measure m
+                where p.id=:Prop_ReservoirWidth and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                from Prop p, Measure m
+                where p.parent=:Prop_ReservoirWidth and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                from Prop p, Measure m
+                where p.id=:Prop_ReservoirDepth and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                from Prop p, Measure m
+                where p.parent=:Prop_ReservoirDepth and p.measure=m.id
+            """, "", map as Map<String, Object>)
+            Set<Object> idsProp = st.getUniqueValues("id")
+
+            Store stData = mdb.loadQuery("""
+                select d.prop as prop, v.numberval, v.dbeg, v.dend, v.id
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=1 and d.objorrelobj=${obj} and d.prop in (0${idsProp.join(",")})
+            """)
+            StoreIndex indData = stData.getIndex("prop")
+            for (StoreRecord r in st) {
+                StoreRecord rec = indData.get(r.getLong("id"))
+                if (rec != null) {
+                    r.set("idval", rec.getLong("id"))
+                    r.set("numberval", rec.getDouble("numberval"))
+                    r.set("dbeg", rec.getString("dbeg"))
+                    r.set("dend", rec.getString("dend"))
+                }
+            }
+            return st
+        }
+    }
+
+
+    @DaoMethod
+    Store saveReservoirMeter(Map<String, Object> rec) {
+        long obj = UtCnv.toLong(rec.get("obj"))
+        long prop = UtCnv.toLong(rec.get("prop"))
+        long idVal = UtCnv.toLong(rec.get("idval"))
+        boolean hasValue = rec.containsKey("numberval")
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        boolean dependperiod = UtCnv.toInt(rec.get("dependperiod")==1)
+        long pt = UtCnv.toLong(rec.get("pt"))
+        String dt = UtCnv.toString(rec.get("dt"))
+        String dbeg = "1800-01-01"
+        String dend = "3333-12-01"
+        if (dependperiod) {
+            UtPeriod up = new UtPeriod()
+            dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+            dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+        }
+
+        if (idVal > 0) {
+            if (hasValue) {
+                String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+                mdb.execQueryNative("""
+                    update DataPropVal set numberval=${value}, dbeg='${dbeg}', dend='${dend}', timestamp='${tm}'
+                    where id=${idVal}
+                """)
+            } else {
+                mdb.execQueryNative("""
+                    delete from DataPropVal
+                    where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${obj});
+                    delete from DataProp where id in (
+                            select id from dataprop
+                            except
+                            select dataProp as id from DataPropVal
+                    );
+                """)
+            }
+        } else if (hasValue) {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", 1)
+            recDP.set("objorrelobj", obj)
+            recDP.set("prop", prop)
+            if (pt > 0)
+                recDP.set("periodType", pt)
+            long idDP = mdb.insertRec("DataProp", recDP)
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", value)
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            recDPV.set("dbeg", dbeg)
+            recDPV.set("dend", dend)
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            mdb.insertRec("DataPropVal", recDPV, false)
+        }
+        return loadReservoirsMeter(obj, 0)
+    }
+
+
+
+    @DaoMethod
     Store saveReservoirPropertiesRef(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
 
@@ -385,74 +510,6 @@ class DataDao extends BaseMdbUtils {
         }
 
         return loadReservors([codTyp: "", idObj: own] as Map<String, Object>)
-/*
-        validatePropertiesRef(pms)
-        long own = getReservoir(params)
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Object> par = new HashMap<>(pms)
-        par.put("fullName", pms.get("name"))
-        par.put("dbeg", pms.get("dte"))
-        if (pms.getString("mode").equalsIgnoreCase("ins")) {
-            if (own > 0) {
-                throw new XError("ExistsReservoirWithProps")
-            }
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-            pms.put("isFirst", 1)
-
-            //1 Prop_Region *
-            fillProperties(true, "Prop_Region", pms)
-            //2 Prop_Branch *
-            fillProperties(true, "Prop_Branch", pms)
-            //3 Prop_ReservoirType
-            if (pms.containsKey("fvReservoirType"))
-                fillProperties(true, "Prop_ReservoirType", pms)
-            //4 Prop_ReservoirStatus
-            if (pms.containsKey("fvReservoirStatus"))
-                fillProperties(true, "Prop_ReservoirStatus", pms)
-            //4_1 Prop_FishFarmingType
-            if (pms.containsKey("fvFishFarmingType"))
-                fillProperties(true, "Prop_FishFarmingType", pms)
-
-        } else {
-            checkForExistReservoir(params)
-            own = pms.getLong("obj")
-            par.put("id", own)
-            eu.updateEntity(par)
-            //
-            pms.put("own", own)
-            pms.put("isFirst", 1)
-
-            //todo isUniq
-            //1 Prop_Region
-            if (params.containsKey("idRegion"))
-                updateProperties("Prop_Region", pms)
-            //2 Prop_Branch
-            if (params.containsKey("idBranch"))
-                updateProperties("Prop_Branch", pms)
-
-            //3 Prop_ReservoirType
-            if (pms.containsKey("idReservoirType"))
-                updateProperties("Prop_ReservoirType", pms)
-            else if (pms.containsKey("pvReservoirType"))
-                fillProperties(true, "Prop_ReservoirType", pms)
-
-            //4 Prop_ReservoirStatus
-            if (pms.containsKey("idReservoirStatus"))
-                updateProperties("Prop_ReservoirStatus", pms)
-            else if (pms.containsKey("pvReservoirStatus"))
-                fillProperties(true, "Prop_ReservoirStatus", pms)
-
-            //4.1 Prop_FishFarmingType
-            if (pms.containsKey("idFishFarmingType"))
-                updateProperties("Prop_FishFarmingType", pms)
-            else if (pms.containsKey("pvFishFarmingType"))
-                fillProperties(true, "Prop_FishFarmingType", pms)
-        }
-        return loadReservors([codTyp: "", idObj: own] as Map<String, Object>)
-*/
-
-
     }
 
 
@@ -614,7 +671,7 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-    @DaoMethod
+    @DaoMethod //Delete
     Store saveReservoirPropertiesMeter(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         pms.put("own", UtCnv.toLong(params.get("obj")))
@@ -987,70 +1044,6 @@ class DataDao extends BaseMdbUtils {
             }
         }
         return st
-    }
-
-    @DaoMethod
-    Store loadReservoirsMeter(long obj, long prop) {
-        if (prop > 0) {
-            return mdb.loadQuery("""
-                select d.prop as id, v.numberval, v.id as idval
-                from DataProp d
-                    left join DataPropVal v on d.id=v.dataProp
-                where d.isObj=0 and d.objorrelobj=${obj} and d.prop=${prop}
-            """)
-        } else {
-            if (obj == 0)
-                return mdb.createStore()
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Water%")
-            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Reservoir%")
-            map.putAll(map1)
-            Store st = apiMeta().get(ApiMeta).loadSqlWithParams("""
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
-                from Prop p, Measure m
-                where p.id=:Prop_WaterArea and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
-                from Prop p, Measure m
-                where p.id=:Prop_WaterLevel and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
-                from Prop p, Measure m
-                where p.id=:Prop_WaterLength and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
-                from Prop p, Measure m
-                where p.id=:Prop_ReservoirWidth and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
-                from Prop p, Measure m
-                where p.parent=:Prop_ReservoirWidth and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
-                from Prop p, Measure m
-                where p.id=:Prop_ReservoirDepth and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as value
-                from Prop p, Measure m
-                where p.parent=:Prop_ReservoirDepth and p.measure=m.id
-            """, "", map as Map<String, Object>)
-            Set<Object> idsProp = st.getUniqueValues("id")
-
-            Store stData = mdb.loadQuery("""
-                select d.prop as id, v.numberval, v.id as idval
-                from DataProp d
-                    left join DataPropVal v on d.id=v.dataProp
-                where d.isObj=0 and d.objorrelobj=${obj} and d.prop in (0${idsProp.join(",")})
-            """)
-            StoreIndex indData = stData.getIndex("id")
-            for (StoreRecord r in st) {
-                StoreRecord rec = indData.get(r.getLong("id"))
-                if (rec != null) {
-                    r.set("numberval", rec.getDouble("numberval"))
-                    r.set("idval", rec.getLong("idval"))
-                }
-            }
-            return st
-        }
     }
 
     @DaoMethod

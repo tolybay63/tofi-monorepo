@@ -42,16 +42,16 @@
         >
           <thead class="text-bold text-white bg-blue-grey-13">
           <tr>
-            <th style="font-size: 1.2em; width: 54%">
+            <th style="font-size: 1.2em; width: 50%">
               {{ cols[0].label }}
             </th>
-            <th style="font-size: 1.2em; width: 8%">
+            <th style="font-size: 1.2em; width: 14%">
               {{ cols[1].label }}
             </th>
-            <th style="font-size: 1.2em; width: 8%">
+            <th style="font-size: 1.2em; width: 14%">
               {{ cols[2].label }}
             </th>
-            <th style="font-size: 1.2em; width: 16%">
+            <th style="font-size: 1.2em; width: 12%">
               {{ cols[3].label }}
             </th>
             <th></th>
@@ -77,19 +77,19 @@
                   {{ item.name }}
                 </span>
             </td>
+            <!--dbeg-->
+            <td :data-th="cols[2].name">
+              {{ item.dbeg }}
+            </td>
+            <!--dend-->
+            <td :data-th="cols[3].name">
+              {{ item.dend }}
+            </td>
             <!--value-->
             <td :data-th="cols[1].name">
               {{ item.numberval }}
             </td>
-            <!--dbeg-->
-            <td :data-th="cols[2].name">
-              {{ item.numberval }}
-            </td>
-            <!--dend-->
-            <td :data-th="cols[3].name">
-              {{ item.numberval }}
-            </td>
-
+            <!--cmd-->
             <td :data-th="cols[4].name">
               <q-btn
                 class="no-padding no-margin" color="blue" dense flat icon="edit" round
@@ -129,6 +129,8 @@ import {api} from 'boot/axios'
 import {expandAll, notifyError, notifyInfo, pack, today} from 'src/utils/jsutils'
 import {ref} from "vue";
 import {date} from "quasar";
+import UpdaterReservoirMeterOld from "pages/reservoirs/UpdaterReservoirMeter_old.vue";
+import UpdaterReservoirMeter from "pages/reservoirs/UpdaterReservoirMeter.vue";
 
 export default {
   props: ['name'],
@@ -171,7 +173,6 @@ export default {
       }
     },
 
-
     fnDelete(row) {
       let nm = row.name
       this.$q
@@ -212,25 +213,54 @@ export default {
     },
 
     fnEdit(row) {
-      let rec = {obj: this.obj, prop: row.id, numberval: row.numberval || "", name: row.name, idval: row.idval};
+      let rec = {
+        obj: this.obj, prop: row.id,
+        name: row.name, idval: row.idval,
+        numberval: row.numberval || "",
+        dependperiod: row.dependperiod,
+        dt: this.dte, pt: this.periodType
+      };
+
       this.$q
         .dialog({
-          component: UpdaterReservoirsMeter,
+          component: UpdaterReservoirMeter,
           componentProps: {
             data: rec,
           },
         })
         .onOk((r) => {
+          console.info("r Update", r);
+          console.info("row Update", row);
 
-          if (row.level === 0) {
-            this.rows[0].idval = r.idval;
-            this.rows[0].numberval = r.numberval;
-          } else {
-            let childs = this.rows[0].children;
-            let index = childs.findIndex((rec) => rec.id === row.id);
-            childs[index].idval = r.idval;
-            childs[index].numberval = r.numberval;
-          }
+          this.rows.forEach(it => {
+            if (it.level === 0) {
+              if (it.id===r.id) {
+                it.idval = r.idval;
+                it.numberval = r.numberval;
+              }
+            } else {
+              let child = it.children;
+              if (child.id===r.id) {
+                child.idval = r.idval;
+                child.numberval = r.numberval;
+              }
+            }
+          })
+
+
+          /*
+                    let rr = []
+                    r.forEach(item => {
+                      if (item.children.size !== 0) {
+                        rr.push(item.children);
+                      } else
+                        rr.push(item);
+                    })
+                    let index = rr.findIndex((rec) => rec.id === row.id);
+                    rr[index].idval = r.idval;
+                    rr[index].numberval = r.numberval;
+          */
+
 
         })
         .onCancel(() => {
@@ -308,7 +338,7 @@ export default {
           label: this.$t("fldName"),
           field: "name",
           align: "left",
-          style: "font-size: 1.2em; width: 50%",
+          style: "font-size: 1.2em; width: 54%",
         },
         {
           name: "dbeg",
@@ -329,7 +359,7 @@ export default {
           label: this.$t("val"),
           field: "numberval",
           align: "center",
-          style: "font-size: 1.2em; width: 20%",
+          style: "font-size: 1.2em; width: 16%",
         },
         {
           name: "cmd",
@@ -354,6 +384,7 @@ export default {
         })
         .then(
           (response) => {
+            console.info("rows", response.data.result["records"]);
             this.rows = pack(response.data.result["records"], "id")
             expandAll(this.rows)
           })
