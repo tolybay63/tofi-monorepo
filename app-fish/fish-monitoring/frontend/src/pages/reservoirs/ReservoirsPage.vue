@@ -3,7 +3,7 @@
     <q-splitter
       v-model="splitterModel"
       :model-value="splitterModel"
-      :limits="[70, 100]"
+      :limits="[60, 100]"
       before-class="overflow-hidden"
       after-class="overflow-hidden q-pl-sm"
       separator-class="bg-red"
@@ -208,18 +208,14 @@ export default {
       let obj = 0
 
       if (this.selected.length > 0) {
-        //console.info(this.selected[0]);
         this.splitterModel = 60
         obj = this.selected[0].obj
-        //this.name = this.mapReservoir.get(this.selected[0].reservoir) + " - " + this.mapTypeOfFish.get(this.selected[0].typeOfFish)
       } else {
         this.splitterModel = 100
         obj = 0
-        //this.name = ""
         this.$refs.ReservoirsMeter.clearData()
       }
       this.$refs.ReservoirsMeter.loadReservoirsMeter(obj)
-
     },
 
     editRowRefs(row, mode) {
