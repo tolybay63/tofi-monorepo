@@ -221,22 +221,8 @@ export default defineComponent({
           link: '/piscesreservoirs',
           target: 'mon:rpv',
         },
-        {
-          title: 'sampling',
-          info: '',
-          icon: 'filter_alt',
-          link: '/sampling',
-          target: 'mon:zp',
-        },
+
 /*
-        {
-          title: 'samplingResults',
-          info: '',
-          icon: 'free_cancellation',
-          link: '/samplingresults',
-          target: 'mon:rzp',
-        },
-*/
         {
           title: 'test',
           info: '',
@@ -244,6 +230,7 @@ export default defineComponent({
           link: '/test',
           target: 'mon:fill',
         },
+*/
       ]
     }
 

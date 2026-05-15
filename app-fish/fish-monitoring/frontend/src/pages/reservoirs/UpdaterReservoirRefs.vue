@@ -90,13 +90,11 @@
               :model-value="form.fvReservoirType"
               :options="optFvReservoirType"
               class="q-ma-md"
-              clearable
               dense
               map-options
               option-label="name"
               option-value="id"
               options-dense
-              @clear="fnClearFvReservoirType"
               @update:model-value="fnSelectFvReservoirType"
             />
           </div>
@@ -108,13 +106,11 @@
               :model-value="form.fvReservoirStatus"
               :options="optFvReservoirStatus"
               class="q-ma-md"
-              clearable
               dense
               map-options
               option-label="name"
               option-value="id"
               options-dense
-              @clear="fnClearFvReservoirStatus"
               @update:model-value="fnSelectFvReservoirStatus"
             />
           </div>
@@ -206,13 +202,6 @@ export default {
   ],
 
   methods: {
-    labDte() {
-      return date.formatDate(this.dte, 'DD.MM.YYYY')
-    },
-
-    labToday() {
-      return date.formatDate(this.today, 'DD.MM.YYYY')
-    },
 
     fmReqLabel(label) {
       return this.$t(label) + '*'
@@ -229,10 +218,6 @@ export default {
       }
     },
 
-    fnClearFvReservoirType() {
-      this.form.fvReservoirType = null
-      this.form.pvReservoirType = null
-    },
 
     fnSelectFvFishFarmingType(v) {
       if (v) {
@@ -251,11 +236,6 @@ export default {
         this.form.fvReservoirStatus = v.id
         this.form.pvReservoirStatus = v["pv"]
       }
-    },
-
-    fnClearFvReservoirStatus() {
-      this.form.fvReservoirStatus = null
-      this.form.pvReservoirStatus = null
     },
 
     validSave() {

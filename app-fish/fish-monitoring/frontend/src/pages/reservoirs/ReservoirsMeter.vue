@@ -129,7 +129,6 @@ import {api, tofi_dbeg, tofi_dend} from 'boot/axios'
 import {expandAll, notifyError, notifyInfo, pack, today} from 'src/utils/jsutils'
 import {ref} from "vue";
 import {date} from "quasar";
-import UpdaterReservoirMeterOld from "pages/reservoirs/UpdaterReservoirMeter_old.vue";
 import UpdaterReservoirMeter from "pages/reservoirs/UpdaterReservoirMeter.vue";
 
 export default {
