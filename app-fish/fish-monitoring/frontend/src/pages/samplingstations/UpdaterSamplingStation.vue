@@ -63,7 +63,7 @@
 
 <script>
 import {api} from 'boot/axios'
-import { notifySuccess} from 'src/utils/jsutils'
+import {notifySuccess} from 'src/utils/jsutils'
 
 export default {
   props: ['mode', 'data'],

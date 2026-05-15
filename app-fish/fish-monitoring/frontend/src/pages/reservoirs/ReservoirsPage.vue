@@ -118,18 +118,16 @@
 </template>
 
 <script>
-import {hasTarget, notifyError, notifyInfo, today} from 'src/utils/jsutils'
+import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
 import {api} from 'boot/axios'
-import {date, extend} from 'quasar'
+import {extend} from 'quasar'
 import {ref} from 'vue'
-import LifiInfo from 'pages/reservoirs/LifiInfo.vue'
 import UpdaterReservoirRefs from 'pages/reservoirs/UpdaterReservoirRefs.vue'
-import UpdaterReservoirMeterOld from 'pages/reservoirs/UpdaterReservoirMeter_old.vue'
 import ReservoirsMeter from "pages/reservoirs/ReservoirsMeter.vue";
 
 export default {
   name: 'ReservoirsPage',
-  components: {ReservoirsMeter, LifiInfo},
+  components: {ReservoirsMeter},
   props: [],
 
   data: function () {
@@ -152,57 +150,11 @@ export default {
         sortBy: 'name'
       }),
 
-
-
     }
   },
 
   methods: {
     hasTarget,
-
-    editRowMeters(mode) {
-      let data
-
-      if (mode === "upd") {
-        data = {
-          didReservoirHydroLevel: this.recUpd.didReservoirHydroLevel,
-          idReservoirHydroLevel: this.recUpd.idReservoirHydroLevel,
-          ReservoirHydroLevel: this.recUpd.ReservoirHydroLevel,
-          didWaterArea: this.recUpd.didWaterArea,
-          idWaterArea: this.recUpd.idWaterArea,
-          WaterArea: this.recUpd.WaterArea,
-          didWaterAreaFishing: this.recUpd.didWaterAreaFishing,
-          idWaterAreaFishing: this.recUpd.idWaterAreaFishing,
-          WaterAreaFishing: this.recUpd.WaterAreaFishing,
-          didWaterAreaLittoral: this.recUpd.didWaterAreaLittoral,
-          idWaterAreaLittoral: this.recUpd.idWaterAreaLittoral,
-          WaterAreaLittoral: this.recUpd.WaterAreaLittoral,
-          obj: this.recUpd.obj
-        }
-      } else {
-        data = {
-          didReservoirHydroLevel: this.recUpd.didReservoirHydroLevel,
-          didWaterArea: this.recUpd.didWaterArea,
-          didWaterAreaFishing: this.recUpd.didWaterAreaFishing,
-          didWaterAreaLittoral: this.recUpd.didWaterAreaLittoral,
-          obj: this.recUpd.obj
-        }
-      }
-      this.$q
-        .dialog({
-          component: UpdaterReservoirMeterOld,
-          componentProps: {
-            mode: mode,
-            data: data,
-            dte: this.dte,
-            periodType: this.periodType
-            // ...
-          }
-        })
-        .onOk(() => {
-          this.loadReservors()
-        })
-    },
 
     updateSelected() {
       let obj = 0
@@ -267,7 +219,7 @@ export default {
             '<div style="color: plum">(' +
             row.name +
             ' - ' +
-            row.nameCls +
+            row.nameBranch +
             ')</div>',
           html: true,
           cancel: true,
@@ -293,7 +245,7 @@ export default {
     },
 
     infoSelected(row) {
-      return row ? ' ' + row.name + ' (' + row.nameCls + ')' : ""
+      return row ? ' ' + row.name + ' (' + row.nameBranch + ')' : ""
     },
 
     getColumns() {
@@ -307,18 +259,6 @@ export default {
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width:20%'
         },
-/*
-        {
-          name: 'nameCls',
-          label: this.$t('vidWaterObject') + '*',
-          field: 'nameCls',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 15%'
-        },
-*/
-
         {
           name: 'nameBranch',
           label: this.$t('struct_enterprise') + '*',

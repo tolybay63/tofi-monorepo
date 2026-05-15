@@ -35,6 +35,7 @@ class DataMultiDao extends BaseMdbUtils {
         return loadSqlMetaWithParams(sqlDMPI, "", params)
     }
 
+/*
     @DaoMethod
     Map<String, Object> colsZooplankton(String codMP, long cls) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("MultiProp", codMP, "")
@@ -75,7 +76,9 @@ class DataMultiDao extends BaseMdbUtils {
         //
         return res
     }
+*/
 
+/*
     @DaoMethod
     Store loadZooplankton(String codMP, long cls, long obj) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("MultiProp", codMP, "")
@@ -168,7 +171,9 @@ class DataMultiDao extends BaseMdbUtils {
 
         return st
     }
+*/
 
+/*
     @DaoMethod
     void saveResultZooplankton(Map<String, Object> params) {
         String codMP = UtCnv.toString(params.get("codMP"))
@@ -242,7 +247,9 @@ class DataMultiDao extends BaseMdbUtils {
             mdb.updateRec("DataMultiPropCell", recDMPC)
         }
     }
+*/
 
+/*
     @DaoMethod
     void deleteZooplankton(long idCell) {
         mdb.execQuery("""
@@ -255,6 +262,7 @@ class DataMultiDao extends BaseMdbUtils {
             );
         """)
     }
+*/
 
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)

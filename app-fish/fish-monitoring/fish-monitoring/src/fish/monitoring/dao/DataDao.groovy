@@ -464,7 +464,6 @@ class DataDao extends BaseMdbUtils {
     Store saveReservoirPropertiesRef(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
 
-        validatePropertiesRef(pms)
         long own = pms.getLong("obj")
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
@@ -637,6 +636,7 @@ class DataDao extends BaseMdbUtils {
         return loadReservors([codTyp: "", idObj: own] as Map<String, Object>)
     }
 
+/*
 
     @DaoMethod
     Store loadReservors_old(Map<String, Object> params) {
@@ -658,7 +658,7 @@ class DataDao extends BaseMdbUtils {
         }
         Store st = mdb.createStore("Obj.reservoirs")
         mdb.loadQuery(st, """
-            select distinct 
+            select distinct
                 o.id as obj, v.id, o.cls, v.name, null as nameCls,
                 v1.id as idRegion, v1.propval as pvRegion, v1.obj as objRegion, null as nameRegion,
                 v1_1.id as idDistrict, v1_1.propval as pvDistrict, v1_1.obj as objDistrict, null as nameDistrict,
@@ -685,7 +685,7 @@ class DataDao extends BaseMdbUtils {
         //mdb.outTable(st)
         Store st2 = mdb.createStore("Obj.reservoirsMeter")
         mdb.loadQuery(st2, """
-            select o.id as obj, 
+            select o.id as obj,
                 d8.id as didWaterArea, v8.id as idWaterArea, v8.numberval as WaterArea, v8.numberval as oldWaterArea,
                 d16.id as didWaterAreaFishing, v16.id as idWaterAreaFishing, v16.numberval as WaterAreaFishing, v16.numberval as oldWaterAreaFishing,
                 d17.id as didWaterAreaLittoral, v17.id as idWaterAreaLittoral, v17.numberval as WaterAreaLittoral, v17.numberval as oldWaterAreaLittoral,
@@ -700,7 +700,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v17 on d17.id=v17.dataprop and v17.dbeg='${d1}' and v17.dend='${d2}' and v17.numberVal is not null
                 left join DataProp d18 on d18.isobj=1 and d18.objorrelobj=o.id and d18.periodType=${periodType} and d18.prop=:Prop_ReservoirHydroLevel   --1078
                 left join DataPropVal v18 on d18.id=v18.dataprop and v18.dbeg='${d1}' and v18.dend='${d2}' and v18.numberVal is not null
-            where '${dte}' between v.dbeg and v.dend and ${whe}                   
+            where '${dte}' between v.dbeg and v.dend and ${whe}
         """, map)
         //mdb.outTable(st2)
         Store st3 = mdb.createStore("Obj.reservoirsMeter")
@@ -763,7 +763,7 @@ class DataDao extends BaseMdbUtils {
 
         Store stObj = loadSql("""
             select o.id, v.name from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsRegion.join(",")}) 
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsRegion.join(",")})
         """, "", "nsidata")
         StoreIndex indStObj = stObj.getIndex("id")
 
@@ -868,6 +868,7 @@ class DataDao extends BaseMdbUtils {
         return loadReservors_old([codTyp: "", isRec: true, idObj: pms.getLong("obj"),
                                   dte   : pms.getString("dte"), periodType: pms.getString("periodType")] as Map<String, Object>)
     }
+*/
 
     //---------------- 2 SamplingStation ----------------//
     @DaoMethod
@@ -1512,34 +1513,9 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-/*
-    @DaoMethod
-    Store loadRegion(String codCls) {
-        return loadObjForSelect(codCls, "Prop_Region")
-    }
-    @DaoMethod
-    Store loadBranchName(String codCls) {
-        return loadObjForSelect(codCls, "Prop_Branch")
-    }
-
-
-    @DaoMethod
-    Store loadFishGearName(String codCls) {
-        return loadObjForSelect(codCls, "Prop_FishGear")
-    }
-
-    private Store loadObjForSelect(String codCls, String codProp) {
-        return apiNSIData().get(ApiNSIData).loadObjForSelect(codCls, codProp)
-    }
-
-
-*/
-
-
     /*
         delete Owner with properties
     */
-
     @DaoMethod
     void deleteOwnerWithProperties(long id, int isObj) {
         String tableName = isObj == 1 ? "Obj" : "RelObj"
@@ -1742,95 +1718,7 @@ class DataDao extends BaseMdbUtils {
 
 */
 
-    @DaoMethod
-    Store loadClsForSelect(String codTyp) {
-        return apiMeta().get(ApiMeta).loadClsForSelect(codTyp)
-    }
-
-
-    @DaoMethod
-    Store loadAttachedFiles(long obj) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_RegDocumentsFile", "")
-        if (map.isEmpty())
-            throw new XError("NotFoundCod@Prop_RegDocumentsFile")
-        map.put("id", obj)
-        Store st = mdb.createStore("Obj.file")
-        mdb.loadQuery(st, """
-            select d.objorrelobj as obj, v.id as idDPV, v.fileVal, null as fileName, v.cmt
-            from DataProp d, DataPropVal v 
-            where d.id=v.dataprop and d.isObj=1 and d.objorrelobj=:id and d.prop=:Prop_RegDocumentsFile
-        """, map)
-        Set<Object> ids = st.getUniqueValues("fileVal")
-        if (ids.isEmpty()) ids.add(0L)
-        String whe = ids.join(",")
-        Store stFS = apiMeta().get(ApiMeta).loadSql("""
-            select id, originalfilename as filename from DbFileStorage where id in (${whe})
-        """, "")
-        StoreIndex indFS = stFS.getIndex("id")
-        for (StoreRecord r : st) {
-            StoreRecord rr = indFS.get(r.getLong("fileVal"))
-            if (rr != null) {
-                r.set("fileName", rr.getString("filename"))
-            }
-        }
-        return st
-    }
-
-    @DaoMethod
-    void deleteFileValue(Map<String, Object> rec) {
-        String path
-        try {
-            path = mdb.getApp().bean(DataDirService.class).getPath("dbfilestorage")
-        } catch (Exception e) {
-            path = ""
-            e.printStackTrace()
-        }
-
-        String bucketName = ""
-        if (path == "") {
-            try {
-                Conf conf2 = mdb.getApp().getConf().getConf("datadir/minio")
-                bucketName = conf2.getString("bucketName")
-            } catch (Exception e) {
-                bucketName = ""
-                e.printStackTrace()
-            }
-        }
-
-        if (path != "" && bucketName == "") {
-            deleteFileValueFS(rec)
-        } else if (path == "" && bucketName != "") {
-            deleteFileValueMinio(rec)
-        } else {
-            throw new XError("FileStorage не настроен!")
-        }
-    }
-
-    private void deleteFileValueFS(Map<String, Object> params) {
-        long fileId = UtCnv.toLong(params.get("fileVal"))
-        long id = UtCnv.toLong(params.get("idDPV"))
-
-        try {
-            DbFileStorageService dfsrv = apiMeta().get(ApiMeta).getDbFileStorageService()
-            dfsrv.setModelName(UtCnv.toString(params.get("model")))
-            dfsrv.removeFile(fileId)
-        } finally {
-            String sql = """
-                delete from DataPropVal where id=${id};
-                with d as (
-                    select id from DataProp
-                    except
-                    select dataProp as id from DataPropVal
-                )
-                delete from DataProp where id in (select id from d);
-            """
-            execSql(sql, UtCnv.toString(params.get("model")))
-        }
-    }
-
-    private static void deleteFileValueMinio(Map<String, Object> params) {
-        throw new XError("MinIO не настроен!")
-    }
+/*
 
     //todo Delete!
     @DaoMethod
@@ -1882,7 +1770,9 @@ class DataDao extends BaseMdbUtils {
         }
         return st
     }
+*/
 
+/*
     @DaoMethod
     Store loadTypeOfFishForRes(long objResSampling, String codProp) {
         String whe1 = "o.id=${objResSampling}"
@@ -1992,7 +1882,9 @@ class DataDao extends BaseMdbUtils {
 
         return st
     }
+*/
 
+/*
     @DaoMethod
     Store loadTypeOfFishForSelect(String codCls) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
@@ -2019,7 +1911,9 @@ class DataDao extends BaseMdbUtils {
             order by v.name
         """, map)
     }
+*/
 
+    /*
     @DaoMethod
     Store loadFishingArea(Map<String, Object> params) {
         String codCls = UtCnv.toString(params.get("codCls"))
@@ -2048,15 +1942,14 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-    @DaoMethod
+
+    @DaoMethod  //
     Map<Long, String> mapFvNameFromId() {
         return apiMeta().get(ApiMeta).mapFvNameFromId()
     }
+*/
 
-    private static void validatePropertiesRef(VariantMap pms) {
 
-
-    }
 
     private long getReservoir(Map<String, Object> params) {
         String name = UtCnv.toString(params.get("name")).toLowerCase().trim()
@@ -2084,6 +1977,7 @@ class DataDao extends BaseMdbUtils {
         }
     }
 
+/*
     private void checkForExistReservoir(Map<String, Object> params) {
         String name = UtCnv.toString(params.get("name")).toLowerCase().trim()
         long own = UtCnv.toLong(params.get("obj"))
@@ -2105,6 +1999,7 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Такой водоем уже существует")
         }
     }
+*/
 
     void validatePropsMeter(long own, long periodType, String dte, String codProp) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codProp, "")
@@ -2137,7 +2032,7 @@ class DataDao extends BaseMdbUtils {
             )
         """)
     }
-
+/*
     @DaoMethod
     Store saveTypesFishProperties(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -2192,6 +2087,7 @@ class DataDao extends BaseMdbUtils {
         return loadFishFamily([codCls: "", isRec: true, idObj: own] as Map<String, Object>)
     }
 
+
     @DaoMethod
     Store saveFishingArea(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -2219,6 +2115,7 @@ class DataDao extends BaseMdbUtils {
         }
         return loadFishingArea([codCls: "", isRec: true, idObj: own] as Map<String, Object>)
     }
+*/
 
     private long getIdDataProp(Store stProp, boolean isObj, long own, long prop, long periodType) {
         StoreRecord recDP = mdb.createStoreRecord("DataProp")
@@ -2707,6 +2604,7 @@ class DataDao extends BaseMdbUtils {
     }
 */
 
+/*
 
     @DaoMethod
     Store loadExecutor(String codTyp, String codProp) {
@@ -2730,8 +2628,9 @@ class DataDao extends BaseMdbUtils {
 
         return st
     }
+*/
 
-    @DaoMethod
+  /*  @DaoMethod
     Store loadAreaSampling(long reservoir) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
         Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_FishingArea", "")
@@ -2769,7 +2668,8 @@ class DataDao extends BaseMdbUtils {
         """, "", "userdata")
         return st.getUniqueValues("fullName").join(", ")
     }
-
+*/
+/*
     @DaoMethod
     Map<String, Object> loadSampling(long cls, boolean isRec, long obj, String gridMode) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
@@ -2889,6 +2789,7 @@ class DataDao extends BaseMdbUtils {
         rez.put("rows", st)
         return rez
     }
+*/
 
     private void validateRec(VariantMap pms) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
@@ -2922,6 +2823,7 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Забор пробы с такими атрибутами уже существует")
     }
 
+/*
     @DaoMethod
     Map<String, Object> saveSamplingProperties(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -3030,12 +2932,16 @@ class DataDao extends BaseMdbUtils {
         //
         return loadSampling(pms.getLong("cls"), true, own, pms.getString("gridMode"))
     }
+*/
 
-    @DaoMethod
+/*
+    @DaoMethod  //???
     Map<String, Object> measureInfo() {
         return apiMeta().get(ApiMeta).measureInfo()
     }
+*/
 
+/*
     @DaoMethod
     Store loadSampleNumber(String codCls) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_SampleNumber", "")
@@ -3069,7 +2975,9 @@ class DataDao extends BaseMdbUtils {
 
         return st
     }
+*/
 
+/*
     @DaoMethod
     Store loadResultSampling(long cls, boolean isRec, long obj) {
         Map<String, Long> map = apiMeta().get(ApiMeta)
@@ -3183,7 +3091,10 @@ class DataDao extends BaseMdbUtils {
         }
         return loadResultSampling(pms.getLong("cls"), true, own)
     }
+*/
 
+
+/*
     @DaoMethod
     Store loadResultSamplingChild(long parent, boolean isRec, long obj) {
         Map<String, Long> map = apiMeta().get(ApiMeta)
@@ -3224,7 +3135,8 @@ class DataDao extends BaseMdbUtils {
 
         return st
     }
-
+*/
+/*
     @DaoMethod
     Store saveResultSamplingPropertiesChild(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -3286,6 +3198,7 @@ class DataDao extends BaseMdbUtils {
         }
         return loadResultSamplingChild(0, true, own)
     }
+
 
     @DaoMethod
     Store loadResultHydrochemistry(long parent, boolean isRec, long obj) {
@@ -3356,7 +3269,9 @@ class DataDao extends BaseMdbUtils {
         """, map)
         return st
     }
+*/
 
+/*
     @DaoMethod
     Store saveResultHydrochemistryChild(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -3425,7 +3340,8 @@ class DataDao extends BaseMdbUtils {
 
         return loadResultHydrochemistry(0, true, pms.getLong("obj"))
     }
-
+*/
+/*
     @DaoMethod
     Store loadReservorLife(Map<String, Object> params) {
         String codProp = UtCnv.toString(params.get("codProp"))
@@ -3897,6 +3813,7 @@ class DataDao extends BaseMdbUtils {
         }
     }
 
+
     @DaoMethod
     void saveSamplingTab1(Map<String, Object> params) {
         long prop = UtCnv.toLong(params["prop"])
@@ -3925,7 +3842,9 @@ class DataDao extends BaseMdbUtils {
         }
 
     }
+*/
 
+/*
     @DaoMethod
     void deleteSamplingTab1(long id, Map<String, Object> params) {
         try {
@@ -3950,6 +3869,7 @@ class DataDao extends BaseMdbUtils {
             saveCalcedProp_FishRatio(params)
         }
     }
+*/
 
     //-------------------------
 

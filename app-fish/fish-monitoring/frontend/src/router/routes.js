@@ -37,17 +37,6 @@ const routes = [
         component: () => import('pages/piscesreservoirs/PiscesReservoirsPage.vue'),
       },
 
-      {
-        path: '/sampling',
-        name: 'SamplingPageTabs',
-        component: () => import('pages/sampling/SamplingPageTabs.vue'),
-      },
-      {
-        path: '/samplingresults',
-        name: 'SamplingResPageTabs',
-        component: () => import('pages/samplingresults/SamplingResPageTabs.vue'),
-      },
-
       { path: '/test', name: 'TestPage', component: () => import('pages/test/TestPage.vue') },
     ],
   },

@@ -57,7 +57,7 @@
           v-if="hasTarget('nsi:kato:del')"
           dense
           icon="delete"
-          color="secondary"
+          color="red"
           class="q-ml-sm"
           @click="fnDel(currentNode)"
           :disable="currentNode == null"
@@ -257,6 +257,7 @@ export default defineComponent({
                 this.currentNode = null
               })
             .catch((error) => {
+/*
               if (error.response.data.error.message.includes("@")) {
                 let msgs = error.response.data.error.message.split("@")
                 let m1 = this.$t(`${msgs[0]}`)
@@ -266,6 +267,7 @@ export default defineComponent({
               } else {
                 notifyError(this.$t("hasChild"))
               }
+*/
             })
         })
     },

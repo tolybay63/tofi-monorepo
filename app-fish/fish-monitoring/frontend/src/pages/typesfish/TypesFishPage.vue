@@ -102,7 +102,7 @@
 <script>
 import {extend} from 'quasar'
 import {api} from 'boot/axios'
-import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
+import {hasTarget, notifyInfo} from 'src/utils/jsutils'
 import UpdaterTypesFish from "pages/typesfish/UpdaterTypesFish.vue";
 
 export default {
