@@ -14,9 +14,13 @@ import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.apinator.ApinatorApi
+import tofi.apinator.ApinatorService
 
 
 class ApiMonitoringDataImpl extends BaseMdbUtils implements ApiMonitoringData {
+
+    ApinatorApi apiMeta() {return app.bean(ApinatorService).getApi("meta")}
 
     @Override
     Store loadSql(String sql, String domain) {

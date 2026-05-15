@@ -86,7 +86,7 @@ public class UploadAction extends BaseAction {
         String fnOrg = params.getString("filename");
         try {
             DbFileStorageService fsService = apiMeta().get(ApiMeta.class).getDbFileStorageService();
-            fsService.setModelName(params.getString("model"));
+            fsService.setModelName("monitoringdata");
             DbFileStorageItem dfi = fsService.addFile(fle, fnOrg);
             long idFile = dfi.getId();
             //
