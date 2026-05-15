@@ -18,11 +18,6 @@
                   class="tofi.api.dta.impl.ApiUserDataImpl"/>
         </api>
 
-        <api name="nsidata" invoker="model" model="nsidata">
-            <item name="tofi.api.dta.ApiNSIData"
-                  class="tofi.api.dta.impl.ApiNSIDataImpl"/>
-        </api>
-
         <api name="monitoringdata" invoker="model" model="monitoringdata">
             <item name="tofi.api.dta.ApiMonitoringData"
                   class="tofi.api.dta.impl.ApiMonitoringDataImpl"/>

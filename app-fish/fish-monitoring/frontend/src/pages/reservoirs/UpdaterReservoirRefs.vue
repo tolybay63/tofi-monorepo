@@ -171,7 +171,6 @@
 <script>
 import {api} from 'boot/axios'
 import {notifySuccess, today} from 'src/utils/jsutils'
-import {date} from 'quasar'
 
 export default {
   props: ['mode', 'data'],
