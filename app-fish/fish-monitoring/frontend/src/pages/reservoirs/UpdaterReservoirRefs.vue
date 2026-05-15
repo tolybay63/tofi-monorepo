@@ -294,7 +294,6 @@ export default {
       this.form.name = nm.trim()
       this.form.objBranch = this.objBranch
       this.form.objKATO = this.objKATO
-      //this.form.periodType = this.periodType
 
       api
         .post('', {
