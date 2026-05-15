@@ -17,10 +17,7 @@ import tofi.apinator.ApinatorService
 
 class ApiUserDataImpl extends BaseMdbUtils implements ApiUserData {
 
-    ApinatorApi apiMeta() {
-        return app.bean(ApinatorService).getApi("meta")
-    }
-
+    ApinatorApi apiMeta() {return app.bean(ApinatorService).getApi("meta")}
 
     @Override
     Store infoUser(Map<String, Long> mapCods, long authuser, String idsCls, String idsUser = "0") {
