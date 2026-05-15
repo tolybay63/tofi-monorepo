@@ -9,8 +9,6 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
-import tofi.api.dta.ApiMonitoringData
-import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta

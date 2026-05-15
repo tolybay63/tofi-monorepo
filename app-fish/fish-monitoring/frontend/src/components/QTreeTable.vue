@@ -1,43 +1,8 @@
 <template>
 
-<!--
-  <span class="q-pa-sm-sm">
-    <q-btn
-        dense
-        icon="expand_more"
-        color="secondary"
-        @click="fnExpand()"
-        style="margin-bottom: 5px"
-    >
-      <q-tooltip transition-show="rotate" transition-hide="rotate">
-        {{ $t("expandAll") }}
-      </q-tooltip>
-    </q-btn>
-    <q-btn
-        dense
-        icon="expand_less"
-        color="secondary"
-        class="q-ml-sm"
-        @click="fnCollapse()"
-        style="margin-bottom: 5px"
-    >
-      <q-tooltip transition-show="rotate" transition-hide="rotate">
-        {{ $t("collapseAll") }}
-      </q-tooltip>
-    </q-btn>
-    <span v-if="checked_visible">
-      <span style="color: #1976d2; margin-left: 5px">
-        {{ $t("selectedNode") }}:
-      </span>
-      {{ this.nodeInfo() }}
-    </span>
-  </span>
--->
-
   <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
 
     <q-inner-loading :showing="visible" color="secondary"/>
-
 
     <table class="q-table q-table--cell-separator q-table--bordered q-table--dense wrap ">
       <thead class="text-bold text-white bg-blue-grey-13" >

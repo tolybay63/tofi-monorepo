@@ -9,12 +9,13 @@ import jandcode.commons.variant.VariantMap;
 import jandcode.core.std.DataDirService;
 import jandcode.core.web.HttpError;
 import jandcode.core.web.action.BaseAction;
-import tofi.api.dta.ApiNSIData;
+import tofi.api.dta.ApiMonitoringData;
 import tofi.api.mdl.ApiMeta;
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageItem;
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
+
 import java.io.File;
 import java.util.Objects;
 
@@ -24,8 +25,8 @@ public class UploadAction extends BaseAction {
         return getApp().bean(ApinatorService.class).getApi("meta");
     }
 
-    ApinatorApi apiNSIData() {
-        return getApp().bean(ApinatorService.class).getApi("nsidata");
+    ApinatorApi apiMonitoringData() {
+        return getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
 
 
@@ -91,7 +92,7 @@ public class UploadAction extends BaseAction {
             //
             try {
                 params.put("fileVal", idFile);
-                apiNSIData().get(ApiNSIData.class).attachFile(params);
+                apiMonitoringData().get(ApiMonitoringData.class).attachFile(params);
             } catch (Exception e) {
                 fsService.removeFile(idFile);
                 throw new XError(e.getMessage());

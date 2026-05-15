@@ -21,7 +21,7 @@ public class DownloadAction extends BaseAction {
         IVariantMap params = getReq().getParams();
 
         DbFileStorageService dfsrv = apiMeta().get(ApiMeta.class).getDbFileStorageService();
-        dfsrv.setModelName("nsidata");
+        dfsrv.setModelName("monitoringdata");
         DbFileStorageItem fi = dfsrv.getFile(params.getLong("id"));
         File fs;
 
