@@ -322,7 +322,7 @@ class DataDao extends BaseMdbUtils {
 
 
     @DaoMethod
-    Store loadReservoirsMeter(long obj, long prop) {
+    Store loadReservoirsMeter(long obj, long prop, String dte, long periodType) {
         if (prop > 0) {
             return mdb.loadQuery("""
                 select d.prop as id, v.numberval, v.dbeg, v.dend, v.id as idval
@@ -366,12 +366,20 @@ class DataDao extends BaseMdbUtils {
                 where p.parent=:Prop_ReservoirDepth and p.measure=m.id
             """, "", map as Map<String, Object>)
             Set<Object> idsProp = st.getUniqueValues("id")
+            //
 
             Store stData = mdb.loadQuery("""
                 select d.prop as prop, v.numberval, v.dbeg, v.dend, v.id
                 from DataProp d
                     left join DataPropVal v on d.id=v.dataProp
-                where d.isObj=1 and d.objorrelobj=${obj} and d.prop in (0${idsProp.join(",")})
+                where d.isObj=1 and d.objorrelobj=${obj} and d.periodType=${periodType} and 
+                    '${dte}' between v.dbeg and v.dend and d.prop in (0${idsProp.join(",")})
+                union all
+                select d.prop as prop, v.numberval, v.dbeg, v.dend, v.id
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=1 and d.objorrelobj=${obj} and d.periodType is null and '${dte}' between v.dbeg and v.dend 
+                    and d.prop in (0${idsProp.join(",")})                
             """)
             StoreIndex indData = stData.getIndex("prop")
             for (StoreRecord r in st) {
@@ -399,7 +407,7 @@ class DataDao extends BaseMdbUtils {
         long pt = UtCnv.toLong(rec.get("pt"))
         String dt = UtCnv.toString(rec.get("dt"))
         String dbeg = "1800-01-01"
-        String dend = "3333-12-01"
+        String dend = "3333-12-31"
         if (dependperiod) {
             UtPeriod up = new UtPeriod()
             dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
@@ -429,7 +437,7 @@ class DataDao extends BaseMdbUtils {
             recDP.set("isObj", 1)
             recDP.set("objorrelobj", obj)
             recDP.set("prop", prop)
-            if (pt > 0)
+            if (dependperiod)
                 recDP.set("periodType", pt)
             long idDP = mdb.insertRec("DataProp", recDP)
             StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
@@ -446,7 +454,7 @@ class DataDao extends BaseMdbUtils {
             recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
             mdb.insertRec("DataPropVal", recDPV, false)
         }
-        return loadReservoirsMeter(obj, 0)
+        return loadReservoirsMeter(obj, 0, dt, pt)
     }
 
 
@@ -1047,6 +1055,19 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    void deleteReservoirsMeter(long idDPV) {
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where id=${idDPV};
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+    }
+
+    @DaoMethod
     Store savePiscesReservoir(Map<String, Object> params) {
         VariantMap form = new VariantMap(params)
         long relobj = 0
@@ -1236,7 +1257,7 @@ class DataDao extends BaseMdbUtils {
             recDPV.set("id", idDPV)
             recDPV.set("ord", idDPV)
             recDPV.set("dbeg", "1800-01-01")
-            recDPV.set("dend", "3333-12-01")
+            recDPV.set("dend", "3333-12-31")
             recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
             mdb.insertRec("DataPropVal", recDPV, false)
         }
@@ -2275,7 +2296,7 @@ class DataDao extends BaseMdbUtils {
                 }
             } else {
                 params.putIfAbsent("dbeg", "1800-01-01")
-                params.putIfAbsent("dend", "3333-12-01")
+                params.putIfAbsent("dend", "3333-12-31")
                 recDPV.set("dbeg", params.get("dbeg"))
                 recDPV.set("dend", params.get("dend"))
             }

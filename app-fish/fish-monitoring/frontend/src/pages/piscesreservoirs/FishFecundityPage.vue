@@ -15,7 +15,7 @@
             <th style="font-size: 1.2em; width: 60%">
               {{ cols[0].label }}
             </th>
-            <th style="font-size: 1.2em; width: 30%">
+            <th style="font-size: 1.2em; width: 25%">
               {{ cols[1].label }}
             </th>
             <th></th>
@@ -41,11 +41,11 @@
                   {{ item.name }}
                 </span>
             </td>
-            <!--isReq-->
+            <!--value-->
             <td :data-th="cols[1].name">
               {{ item.numberval }}
             </td>
-
+            <!-- cmd -->
             <td :data-th="cols[2].name">
 
               <q-btn
@@ -241,20 +241,20 @@ export default {
           label: this.$t("fldName"),
           field: "name",
           align: "left",
-          style: "font-size: 1.2em; width: 50%",
+          style: "font-size: 1.2em; width: 60%",
         },
         {
           name: "numberval",
           label: this.$t("val"),
           field: "numberval",
           align: "center",
-          style: "font-size: 1.2em; width: 30%",
+          style: "font-size: 1.2em; width: 25%",
         },
         {
           name: "cmd",
           field: "cmd",
           align: "center",
-          style: "font-size: 1.2em; width: 20%",
+          style: "font-size: 1.2em; width: 15%",
         }
       ];
     },

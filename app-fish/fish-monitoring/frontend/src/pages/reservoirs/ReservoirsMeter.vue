@@ -5,7 +5,7 @@
       v-model="dte"
       :label="$t('date')"
       :model-value="dte"
-      class="q-ml-lg"
+      class="q-mr-lg"
       dense
       stack-label
       style="width: 100px"
@@ -79,11 +79,11 @@
             </td>
             <!--dbeg-->
             <td :data-th="cols[2].name">
-              {{ item.dbeg }}
+              {{ dtFormat(item.dbeg) }}
             </td>
             <!--dend-->
             <td :data-th="cols[3].name">
-              {{ item.dend }}
+              {{ dtFormat(item.dend) }}
             </td>
             <!--value-->
             <td :data-th="cols[1].name">
@@ -125,7 +125,7 @@
 
 <script>
 
-import {api} from 'boot/axios'
+import {api, tofi_dbeg, tofi_dend} from 'boot/axios'
 import {expandAll, notifyError, notifyInfo, pack, today} from 'src/utils/jsutils'
 import {ref} from "vue";
 import {date} from "quasar";
@@ -152,6 +152,9 @@ export default {
 
 
   methods: {
+    dtFormat(v) {
+      return (v <= tofi_dbeg || v >= tofi_dend) ? "..." : date.formatDate(v, "DD.MM.YYYY")
+    },
 
     fnSelectPeriodType(v) {
       console.log(v, this.periodType)
@@ -165,10 +168,10 @@ export default {
 
     fnDt(val) {
       //let dt = date.formatDate(val).isWellFormed()
-      //console.log(val.length)
+      console.log("fbDt", val)
       if (val.length === 10 && date.formatDate(val).isWellFormed()) {
         this.dte = val
-        this.this.loadReservoirsMeter(this.obj)
+        this.loadReservoirsMeter(this.obj)
 
       }
     },
@@ -193,13 +196,21 @@ export default {
             .then(
               () => {
                 if (row.level === 0) {
-                  this.rows[0].idval = null;
-                  this.rows[0].numberval = null;
+                  let index = this.rows.findIndex((rec) => rec.id === row.id);
+                  if (index > -1) {
+                    this.rows[index].idval = null;
+                    this.rows[index].numberval = null;
+                    this.rows[index].dbeg = null;
+                    this.rows[index].dend = null;
+                  }
                 } else {
-                  let childs = this.rows[0].children;
-                  let index = childs.findIndex((rec) => rec.id === row.id);
-                  childs[index].idval = null;
-                  childs[index].numberval = null;
+                  let index = this.rows.findIndex((rec) => rec.id === row.parent);
+                  let child = this.rows[index].children;
+                  let index2 = child.findIndex((rec) => rec.id === row.id);
+                  child[index2].idval = null;
+                  child[index2].numberval = null;
+                  child[index2].dbeg = null;
+                  child[index2].dend = null;
                 }
               },
               (error) => {
@@ -232,36 +243,23 @@ export default {
           console.info("r Update", r);
           console.info("row Update", row);
 
-          this.rows.forEach(it => {
-            if (it.level === 0) {
-              if (it.id===r.id) {
-                it.idval = r.idval;
-                it.numberval = r.numberval;
-              }
-            } else {
-              let child = it.children;
-              if (child.id===r.id) {
-                child.idval = r.idval;
-                child.numberval = r.numberval;
-              }
+          if (row.level === 0) {
+            let index = this.rows.findIndex((rec) => rec.id === r.id);
+            if (index > -1) {
+              this.rows[index].idval = r.idval;
+              this.rows[index].numberval = r.numberval;
+              this.rows[index].dbeg = r.dbeg;
+              this.rows[index].dend = r.dend;
             }
-          })
-
-
-          /*
-                    let rr = []
-                    r.forEach(item => {
-                      if (item.children.size !== 0) {
-                        rr.push(item.children);
-                      } else
-                        rr.push(item);
-                    })
-                    let index = rr.findIndex((rec) => rec.id === row.id);
-                    rr[index].idval = r.idval;
-                    rr[index].numberval = r.numberval;
-          */
-
-
+          } else {
+            let index = this.rows.findIndex((rec) => rec.id === r.parent);
+            let child = this.rows[index].children;
+            let index2 = child.findIndex((rec) => rec.id === r.id);
+            child[index2].idval = r.idval;
+            child[index2].numberval = r.numberval;
+            child[index2].dbeg = r.dbeg;
+            child[index2].dend = r.dend;
+          }
         })
         .onCancel(() => {
           notifyInfo(this.$t("canceled"))
@@ -380,11 +378,11 @@ export default {
       api
         .post('', {
           method: 'data/loadReservoirsMeter',
-          params: [obj, 0],
+          params: [obj, 0, this.dte, this.periodType],
         })
         .then(
           (response) => {
-            console.info("rows", response.data.result["records"]);
+            //console.info("rows", response.data.result["records"]);
             this.rows = pack(response.data.result["records"], "id")
             expandAll(this.rows)
           })

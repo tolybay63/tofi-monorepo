@@ -173,7 +173,7 @@ class DataMultiDao extends BaseMdbUtils {
     void saveResultZooplankton(Map<String, Object> params) {
         String codMP = UtCnv.toString(params.get("codMP"))
         params.putIfAbsent("dbeg", "1800-01-01")
-        params.putIfAbsent("dend", "3333-12-01")
+        params.putIfAbsent("dend", "3333-12-31")
         String d1 = UtCnv.toString(params.get("dbeg"))
         String d2 = UtCnv.toString(params.get("dbeg"))
         //Double val = null
