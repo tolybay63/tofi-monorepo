@@ -291,7 +291,7 @@ import {date, extend} from 'quasar'
 import {ref} from 'vue'
 import LifiInfo from 'pages/reservoirs/LifiInfo.vue'
 import UpdaterReservoirRefs from 'pages/reservoirs/UpdaterReservoirRefs.vue'
-import UpdaterReservoirMeter from 'pages/reservoirs/UpdaterReservoirMeter.vue'
+import UpdaterReservoirMeterOld from 'pages/reservoirs/UpdaterReservoirMeter_old.vue'
 
 export default {
   name: 'ReservoirsPage',
@@ -368,7 +368,7 @@ export default {
 
       this.$q
         .dialog({
-          component: UpdaterReservoirMeter,
+          component: UpdaterReservoirMeterOld,
           componentProps: {
             mode: mode,
             data: data,
