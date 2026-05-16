@@ -21,6 +21,7 @@ import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.model.consts.FD_AttribValType_consts
 import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_PeriodType_consts
 import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageItem
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService
@@ -1404,6 +1405,7 @@ class DataDao extends BaseMdbUtils {
 
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
+        long au = getUser()
         String keyValue = cod.split("_")[1]
         long objRef = UtCnv.toLong(params.get("obj" + keyValue))
         long propVal = UtCnv.toLong(params.get("pv" + keyValue))
@@ -1413,62 +1415,53 @@ class DataDao extends BaseMdbUtils {
         long prop = stProp.get(0).getLong("id")
         long propType = stProp.get(0).getLong("propType")
         long attribValType = stProp.get(0).getLong("attribValType")
-        boolean dependPeriod = stProp.get(0).getInt("dependPeriod") == 1
-        long periodType = 0
-        if (dependPeriod) {
-            periodType = UtCnv.toLong(params.get("periodType"))
-        }
         Integer digit = null
         double koef = stProp.get(0).getDouble("koef")
         if (koef == 0) koef = 1
         if (!stProp.get(0).isValueNull("digit"))
             digit = stProp.get(0).getInt("digit")
 
-        long idDP = 0
-        String dend = "3333-12-31"
-        //
-        String whePeriod = "and d.periodType is null"
-        if (periodType > 0) {
-            whePeriod = "and d.periodType=${periodType}"
+        long idDP
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        String whe = isObj ? "and isObj=1 " : "and isObj=0 "
+        if (stProp.get(0).getLong("statusFactor") > 0) {
+            long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+            whe += "and status = ${fv} "
+        } else {
+            whe += "and status is null "
+        }
+        //todo if (stProp.get(0).getLong("providerTyp") > 0)
+        whe += "and provider is null "
+        if (stProp.get(0).getBoolean("dependPeriod")) {
+            whe += "and periodType=${FD_PeriodType_consts.month} "
+        } else {
+            whe += "and periodType is null "
         }
         Store stDP = mdb.loadQuery("""
-            select d.id 
-            from DataProp d, DataPropVal v
-            where d.id=v.dataprop and d.isobj=1 and d.prop=${prop} and d.objorrelobj=${own} ${whePeriod}
-            order by dbeg desc, dend
+            select * from DataProp
+            where objOrRelObj=${own} and prop=${prop} ${whe}
         """)
-        if (stDP.size() > 0)
+        if (stDP.size() > 0) {
             idDP = stDP.get(0).getLong("id")
-        else
-            idDP = getIdDataProp(stProp, isObj, own, prop, periodType)
-
-        //Изменился условия, при повторном использовании надо анализировать
-        if (periodType = 0) {
-            if (params.keySet().contains("isFirst")) {
-                if (UtCnv.toInt(params.get("isFirst")) == 1) {
-                    Store st = mdb.loadQuery("""
-                        select v.id, d.id as did, v.dbeg, v.dend 
-                        from DataProp d, DataPropVal v
-                        where d.id=v.dataprop and d.isobj=1 and d.prop=${prop} and d.objorrelobj=${own}
-                        order by dbeg desc, dend
-                    """)
-                    if (st.size() > 0) {
-                        String dte = UtCnv.toString(params.get("dte"))
-                        for (StoreRecord r in st) {
-                            if (XDate.create(dte).toJavaLocalDate().isBefore(r.getDate("dbeg").toJavaLocalDate())) {
-                                dend = r.getDate("dbeg").toJavaLocalDate().minusDays(1)
-                                idDP = r.getLong("did")
-                            }
-                        }
-                    } else {
-                        idDP = getIdDataProp(stProp, isObj, own, prop, periodType)
-                    }
-                } else {
-                    idDP = UtCnv.toLong(params.get("did" + keyValue))
-                }
+            recDP.setValues(stDP.get(0))
+        } else {
+            recDP.set("isObj", isObj)
+            recDP.set("objOrRelObj", own)
+            recDP.set("prop", prop)
+            if (stProp.get(0).getLong("statusFactor") > 0) {
+                long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+                recDP.set("status", fv)
             }
+            if (stProp.get(0).getLong("providerTyp") > 0) {
+                //todo
+                // provider
+                //
+            }
+            if (stProp.get(0).getBoolean("dependperiod")) {
+                recDP.set("periodType", FD_PeriodType_consts.month)
+            }
+            idDP = mdb.insertRec("DataProp", recDP, true)
         }
-
         //
         StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
         recDPV.set("dataProp", idDP)
@@ -1550,7 +1543,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_WaterLength") ||
                     cod.equalsIgnoreCase("Prop_ReservoirWidth") ||
                     cod.equalsIgnoreCase("Prop_ReservoirDepth")) {
-                if (params.get(keyValue) != null) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
                     if (digit) v = v.round(digit)
@@ -1560,33 +1553,20 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-
         //
-        if (dependPeriod) {
+        if (recDP.getLong("periodType") > 0) {
             if (!params.containsKey("dte"))
                 params.put("dte", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
-            UtPeriod utPeriod = new UtPeriod()
-            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), periodType, 0)
-            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), periodType, 0)
+            tofi.api.mdl.utils.UtPeriod utPeriod = new tofi.api.mdl.utils.UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
             recDPV.set("dbeg", d1.toString(XDateTimeFormatter.ISO_DATE))
             recDPV.set("dend", d2.toString(XDateTimeFormatter.ISO_DATE))
         } else {
-            if (params.keySet().contains("isFirst")) {
-                if (UtCnv.toInt(params.get("isFirst")) == 1) {
-                    recDPV.set("dbeg", UtCnv.toString(params.get("dte")))
-                    recDPV.set("dend", dend)
-                } else {
-                    updateDbegDend(UtCnv.toInt(isObj), prop, cod, params, recDPV)
-                }
-            } else {
-                params.putIfAbsent("dbeg", "1800-01-01")
-                params.putIfAbsent("dend", "3333-12-31")
-                recDPV.set("dbeg", params.get("dbeg"))
-                recDPV.set("dend", params.get("dend"))
-            }
+            recDPV.set("dbeg", "1800-01-01")
+            recDPV.set("dend", "3333-12-31")
         }
 
-        long au = getUser()
         recDPV.set("authUser", au)
         recDPV.set("inputType", FD_InputType_consts.app)
         long idDPV = mdb.getNextId("DataPropVal")
@@ -1596,46 +1576,20 @@ class DataDao extends BaseMdbUtils {
         mdb.insertRec("DataPropVal", recDPV, false)
     }
 
-    private void updateDbegDend(int isObj, long prop, String codProp, Map<String, Object> params, StoreRecord rec) {
-        String cod = codProp.split("_")[1]
-        long own = UtCnv.toLong(params.get("own"))
-        Store st = mdb.loadQuery("""
-            select v.id, v.dbeg, v.dend 
-            from DataProp d, DataPropVal v
-            where d.id=v.dataprop and d.isobj=${isObj} and d.prop=${prop} and d.objorrelobj=${own}
-            order by dbeg desc, dend
-        """)
-        String dte = UtCnv.toString(params.get("dte"))
-
-        if (st.size() > 0) {
-            for (StoreRecord rr in st) {
-                String dbeg = rr.getString("dbeg")
-                String dend = rr.getString("dend")
-                String dendNew = rr.getString("dend")
-                long idv = rr.getLong("id")
-                if (XDate.create(dte).toJavaLocalDate().plusDays(1).isAfter(XDate.create(dbeg).toJavaLocalDate()) &&
-                        XDate.create(dte).toJavaLocalDate().minusDays(1).isBefore(XDate.create(dend).toJavaLocalDate())) {
-                    if (dbeg == dte) {
-                        throw new XError("ExistsValueOnDate@" + cod)
-                    }
-                    String dendOLd = XDate.create(dte).toJavaLocalDate().minusDays(1)
-                    mdb.execQuery("""
-                        update DataPropVal set dend='${dendOLd}' where id=${idv}
-                    """)
-                    rec.set("dbeg", dte)
-                    rec.set("dend", dendNew)
-                    break
-                }
-            }
-        } else {
-            rec.set("dbeg", dte)
-        }
-    }
-
     void updateProperties(String cod, Map<String, Object> params) {
         VariantMap mapProp = new VariantMap(params)
+        long au = getUser()
         String keyValue = cod.split("_")[1]
         long idVal = mapProp.getLong("id" + keyValue)
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        mdb.loadQueryRecord(recDPV, "select * from DataPropVal where id=${idVal}")
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        mdb.loadQueryRecord(recDP, """
+            select d.* from DataPropVal v, DataProp d where v.id=${idVal} and v.dataProp=d.id
+        """)
+        long idDP = recDP.getLong("id")
+        //
         long objRef = mapProp.getLong("obj" + keyValue)
         long propVal = mapProp.getLong("pv" + keyValue)
         Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
@@ -1648,95 +1602,72 @@ class DataDao extends BaseMdbUtils {
         if (!stProp.get(0).isValueNull("digit"))
             digit = stProp.get(0).getInt("digit")
 
-        String sql = ""
         def tmst = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
-        // For Attrib
+        def strValue = mapProp.getString(keyValue)
+        recDPV.set("authUser", au)
+        recDPV.set("timeStamp", tmst)
+        // For Attrib (str)
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_Coordinate") ||
                     cod.equalsIgnoreCase("Prop_FishSpawPeriod") ||
                     cod.equalsIgnoreCase("Prop_FishSpawFrequency")) {
-                def strValue = mapProp.getString(keyValue)
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
                         delete from DataProp where id in (
                             select id from DataProp
                             except
                             select dataProp as id from DataPropVal
-                        );
-                    """
+                        )
+                    """)
                 } else {
-                    sql = "update DataPropval set strVal='${strValue}', timeStamp='${tmst}' where id=${idVal}"
+                    recDPV.set("strVal", strValue)
+                    mdb.updateRec("DataPropVal", recDPV)
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_RegDocumentsDateApproval") ||
-                    cod.equalsIgnoreCase("Prop_SampleDate") ||
-                    cod.equalsIgnoreCase("Prop_ResearchDate")) {
-                def dtValue = mapProp.getString(keyValue)
-                if (!mapProp.keySet().contains(keyValue) || dtValue.trim() == "") {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
-                        delete from DataProp where id in (
-                            select id from DataProp
-                            except
-                            select dataProp as id from DataPropVal
-                        );
-                    """
-                } else {
-                    sql = "update DataPropval set dateTimeVal='${dtValue}', timeStamp='${tmst}' where id=${idVal}"
-                }
-            } else
-                throw new XError("for dev: [${cod}] отсутствует в реализации")
-        }
+        // For Attrib (multistr)
         if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
             if (cod.equalsIgnoreCase("Prop_Description")) {
-                def str = mapProp.getString(keyValue)
-                if (!mapProp.keySet().contains(keyValue) || str.trim() == "") {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
                         delete from DataProp where id in (
                             select id from DataProp
                             except
                             select dataProp as id from DataPropVal
-                        );
-                    """
+                        )
+                    """)
                 } else {
-                    sql = "update DataPropval set multiStrVal='${str}', timeStamp='${tmst}' where id=${idVal}"
+                    recDPV.set("multiStrVal", strValue)
+                    mdb.updateRec("DataPropVal", recDPV)
                 }
             } else
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
         }
-        // For Typ
-        if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_Region") ||
-                    cod.equalsIgnoreCase("Prop_Branch") ||
-                    cod.equalsIgnoreCase("Prop_District") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirShore") ||
-                    cod.equalsIgnoreCase("Prop_SampleExecutor") ||
-                    cod.equalsIgnoreCase("Prop_LinkToSample") ||
-                    cod.equalsIgnoreCase("Prop_ResearchExecutor") ||
-                    cod.equalsIgnoreCase("Prop_FishTyp") ||
-                    cod.equalsIgnoreCase("Prop_FishGear") ||
-                    cod.equalsIgnoreCase("Prop_FishZone")) {
-                if (objRef > 0)
-                    sql = "update DataPropval set propVal=${propVal}, obj=${objRef}, timeStamp='${tmst}' where id=${idVal}"
-                else {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
+        // For Attrib (dt)
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_RegDocumentsDateApproval")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
                         delete from DataProp where id in (
                             select id from DataProp
                             except
                             select dataProp as id from DataPropVal
-                        );
-                    """
+                        )
+                    """)
+                } else {
+                    recDPV.set("dateTimeVal", strValue)
+                    mdb.updateRec("DataPropVal", recDPV)
                 }
-            } else {
+            } else
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
-            }
         }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
@@ -1746,17 +1677,41 @@ class DataDao extends BaseMdbUtils {
                     /*cod.equalsIgnoreCase("Prop_FishGender") ||*/
                     cod.equalsIgnoreCase("Prop_FishFamily") ||
                     cod.equalsIgnoreCase("Prop_FishTyp")) {
-                if (propVal > 0)
-                    sql = "update DataPropval set propVal=${propVal}, timeStamp='${tmst}' where id=${idVal}"
-                else {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                    mdb.updateRec("DataPropVal", recDPV)
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
                         delete from DataProp where id in (
                             select id from DataProp
                             except
                             select dataProp as id from DataPropVal
-                        );
-                    """
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Measure
+        if ([FD_PropType_consts.measure].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Measure")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                    mdb.updateRec("DataPropVal", recDPV)
+                    //
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
@@ -1777,23 +1732,47 @@ class DataDao extends BaseMdbUtils {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
                     if (digit) v = v.round(digit)
-                    sql = "update DataPropval set numberVal=${v}, timeStamp='${tmst}' where id=${idVal}"
+                    recDPV.set("numberVal", v)
+                    mdb.updateRec("DataPropVal", recDPV)
+                    //
                 } else {
-                    sql = """
-                        delete from DataPropVal where id=${idVal};
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
                         delete from DataProp where id in (
                             select id from DataProp
                             except
                             select dataProp as id from DataPropVal
-                        );
-                    """
+                        )
+                    """)
                 }
             } else {
                 throw new XError("for dev: [${cod}] отсутствует в реализации")
             }
         }
-        mdb.execQueryNative(sql)
-
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_KATO") ||
+                    cod.equalsIgnoreCase("Prop_Branch")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                    mdb.updateRec("DataPropVal", recDPV)
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
     }
 
     private void execSql(String sql, String model) {
