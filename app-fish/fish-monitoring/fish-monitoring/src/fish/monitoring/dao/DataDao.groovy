@@ -1205,10 +1205,6 @@ class DataDao extends BaseMdbUtils {
         return loadFVasStore(codProp)
     }
 
-    private Store loadFvForSelect(String codFactor) {
-        return apiMetaFish().get(ApiMetaFish).loadFvForSelect(codFactor)
-    }
-
     @DaoMethod
     Store loadFVasStore(String codProp) {
         return apiMeta().get(ApiMeta).loadFVasStore(codProp)

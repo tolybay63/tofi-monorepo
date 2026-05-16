@@ -27,13 +27,6 @@ public interface ApiMetaFish {
 
     /**
      *
-     * @param codFactor cod of Factor
-     * @return  store FV from PropVal
-     */
-    Store loadFvForSelect(String codFactor);
-
-    /**
-     *
      * @param relcls id of RelCls
      * @return RelClsMember
      */

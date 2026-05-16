@@ -108,24 +108,4 @@ class ApiMetaFishImpl extends BaseMdbUtils implements ApiMetaFish {
         return ids
     }
 
-    @Override
-    Store loadFvForSelect(String codFactor) {
-        Store st = mdb.loadQuery("""
-            select fv.id, fv.name, 0 as pv
-            from Factor fv
-                inner join Factor f on fv.parent=f.id
-            where f.cod like '${codFactor}'
-            order by fv.ord
-        """)
-
-        if (st.size()==0)
-            throw new XError("NotFoundCod@${codFactor}")
-
-        Map<Long, Long> map = apiMeta().get(ApiMeta).mapEntityIdFromPV("factorVal", false)
-
-        for (StoreRecord rec in st) {
-            rec.set("pv", map.get(rec.getLong("id")))
-        }
-        return st
-    }
 }
