@@ -1,11 +1,14 @@
 package tofi.api.dta.model.utils;
 
-import jandcode.commons.*;
-import jandcode.commons.collect.*;
-import jandcode.commons.error.*;
+import jandcode.commons.UtLang;
+import jandcode.commons.UtString;
+import jandcode.commons.collect.LinkedHashMapNoCase;
+import jandcode.commons.error.XError;
 
-import java.util.*;
-import java.util.regex.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EntityConst {
 

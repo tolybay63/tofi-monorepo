@@ -1,8 +1,8 @@
 package tofi.apinator;
 
-import jandcode.commons.conf.*;
-import jandcode.commons.named.*;
-import jandcode.core.*;
+import jandcode.commons.conf.IConfLink;
+import jandcode.commons.named.NamedList;
+import jandcode.core.Comp;
 
 public interface ApinatorApi extends Comp, IConfLink {
 

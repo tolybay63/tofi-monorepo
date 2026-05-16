@@ -1,9 +1,13 @@
 package tofi.apinator.impl;
 
-import jandcode.commons.error.*;
+import jandcode.commons.error.XError;
+import jandcode.commons.error.XErrorMark;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Сборщик методов для api

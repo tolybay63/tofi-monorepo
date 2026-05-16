@@ -1,6 +1,5 @@
 package tofi.api.mdl;
 
-import jandcode.commons.variant.IVariantMap;
 import jandcode.core.store.Store;
 
 import java.util.Map;

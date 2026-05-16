@@ -1,8 +1,8 @@
 package tofi.apinator;
 
-import jandcode.commons.conf.*;
+import jandcode.commons.conf.Conf;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
 
 /**
  * Исполнитель конкретного метода api

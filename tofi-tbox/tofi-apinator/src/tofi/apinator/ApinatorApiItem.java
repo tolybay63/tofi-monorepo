@@ -1,10 +1,10 @@
 package tofi.apinator;
 
-import jandcode.commons.conf.*;
-import jandcode.commons.named.*;
-import jandcode.core.*;
+import jandcode.commons.conf.IConfLink;
+import jandcode.commons.named.NamedList;
+import jandcode.core.Comp;
 
-import java.util.*;
+import java.util.Set;
 
 public interface ApinatorApiItem extends Comp, IConfLink {
 

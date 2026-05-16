@@ -1,7 +1,10 @@
 package tofi.apinator.std;
 
-import org.slf4j.*;
-import tofi.apinator.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tofi.apinator.ApinatorApi;
+import tofi.apinator.ApinatorContext;
+import tofi.apinator.ApinatorLogger;
 
 public class ApinatorLoggerDefault implements ApinatorLogger {
 

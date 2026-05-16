@@ -1,7 +1,7 @@
 package tofi.apinator;
 
-import jandcode.core.test.*;
-import org.junit.jupiter.api.*;
+import jandcode.core.test.App_Test;
+import org.junit.jupiter.api.Test;
 
 public class ApinatorService_Test extends App_Test {
 

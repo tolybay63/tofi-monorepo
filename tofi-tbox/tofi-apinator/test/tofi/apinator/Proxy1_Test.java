@@ -1,12 +1,13 @@
 package tofi.apinator;
 
-import jandcode.core.test.*;
+import jandcode.core.test.App_Test;
+import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.Proxy;
-import javassist.util.proxy.*;
-import org.junit.jupiter.api.*;
+import javassist.util.proxy.ProxyFactory;
+import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public class Proxy1_Test extends App_Test {
 
