@@ -1,9 +1,10 @@
 package tofi.apinator.impl
 
-import jandcode.core.test.*
-import org.junit.jupiter.api.*
 
-import java.lang.reflect.*
+import jandcode.core.test.App_Test
+import org.junit.jupiter.api.Test
+
+import java.lang.reflect.Method
 
 class MethodGrabberGroovy_Test extends App_Test {
 

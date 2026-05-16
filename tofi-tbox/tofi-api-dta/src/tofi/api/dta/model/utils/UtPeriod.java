@@ -1,12 +1,10 @@
 package tofi.api.dta.model.utils;
 
-import jandcode.commons.datetime.*;
-import jandcode.commons.error.*;
-import tofi.api.mdl.model.consts.*;
+import jandcode.commons.datetime.XDate;
+import jandcode.commons.error.XError;
+import tofi.api.mdl.model.consts.FD_PeriodType_consts;
 
-
-
-import java.time.*;
+import java.time.DayOfWeek;
 
 public class UtPeriod {
 

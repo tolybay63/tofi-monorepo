@@ -4,7 +4,6 @@ import jandcode.commons.datetime.XDate;
 import jandcode.core.store.Store;
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -210,4 +209,12 @@ public interface ApiMeta {
     Store loadFVasStore(String codProp);
 
     Map<Long, String> loadFVasMap(String codProp);
+
+    Map<String, Object> getMeasureInfo(String codRelTyp, boolean isRel);
+
+    long idRelCls(long cls1, long cls2);
+
+    Set<Object> idsChildClses(String codTyp);
+
+    Store loadRelClsMember(long relcls);
 }

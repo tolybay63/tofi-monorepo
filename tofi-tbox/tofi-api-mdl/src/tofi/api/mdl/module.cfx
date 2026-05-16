@@ -23,9 +23,6 @@
             <item name="tofi.api.mdl.ApiMeta"
                   class="tofi.api.mdl.impl.ApiMetaImpl"/>
 
-            <item name="tofi.api.mdl.ApiMetaFish"
-                  class="tofi.api.mdl.impl.ApiMetaFishImpl"/>
-
             <item name="tofi.api.mdl.ApiMetaData"
                   class="tofi.api.mdl.impl.ApiMetaDataImpl"/>
 

@@ -1,9 +1,12 @@
 package tofi.apinator.impl;
 
-import jandcode.commons.named.*;
-import tofi.apinator.*;
+import jandcode.commons.named.DefaultNamedList;
+import jandcode.commons.named.NamedList;
+import tofi.apinator.ApinatorMethod;
+import tofi.apinator.ApinatorMethodParam;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 public class ApinatorMethodImpl implements ApinatorMethod {
 

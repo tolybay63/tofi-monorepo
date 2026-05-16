@@ -1,8 +1,8 @@
 package tofi.apinator;
 
-import jandcode.core.*;
+import jandcode.core.Comp;
 
-import java.util.*;
+import java.util.Set;
 
 public interface ApinatorExcludeMethodsService extends Comp {
 

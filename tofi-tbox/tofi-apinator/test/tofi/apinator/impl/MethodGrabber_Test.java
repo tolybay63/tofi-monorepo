@@ -1,10 +1,10 @@
 package tofi.apinator.impl;
 
-import jandcode.core.test.*;
-import org.junit.jupiter.api.*;
+import jandcode.core.test.App_Test;
+import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.Map;
 
 public class MethodGrabber_Test extends App_Test {
 

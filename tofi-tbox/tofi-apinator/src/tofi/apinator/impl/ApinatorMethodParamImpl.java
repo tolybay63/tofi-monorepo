@@ -1,8 +1,8 @@
 package tofi.apinator.impl;
 
-import tofi.apinator.*;
+import tofi.apinator.ApinatorMethodParam;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Parameter;
 
 public class ApinatorMethodParamImpl implements ApinatorMethodParam {
 

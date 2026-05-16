@@ -1,8 +1,8 @@
 package tofi.apinator;
 
-import jandcode.commons.named.*;
+import jandcode.commons.named.INamed;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Parameter;
 
 /**
  * Описание параметра метода

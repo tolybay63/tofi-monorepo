@@ -1,7 +1,7 @@
 package tofi.apinator;
 
-import jandcode.commons.named.*;
-import jandcode.core.*;
+import jandcode.commons.named.NamedList;
+import jandcode.core.Comp;
 
 public interface ApinatorService extends Comp {
 

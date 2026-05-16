@@ -1,7 +1,8 @@
 package tofi.apinator.impl;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Набор методов, которые не должны попадать в api

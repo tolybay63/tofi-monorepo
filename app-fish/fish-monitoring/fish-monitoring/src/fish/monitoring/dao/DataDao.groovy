@@ -19,7 +19,6 @@ import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
-import tofi.api.mdl.ApiMetaFish
 import tofi.api.mdl.model.consts.FD_AttribValType_consts
 import tofi.api.mdl.model.consts.FD_InputType_consts
 import tofi.api.mdl.model.consts.FD_PropType_consts
@@ -35,7 +34,6 @@ import java.nio.file.Paths
 class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
-    ApinatorApi apiMetaFish() { return app.bean(ApinatorService).getApi("meta") }
     ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
 
 
@@ -175,7 +173,7 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         String whe = "o.id=${idObj}"
         if (idObj == 0) {
-            Set<Object> ids = apiMetaFish().get(ApiMetaFish).idsChildClses(codTyp)
+            Set<Object> ids = apiMeta().get(ApiMeta).idsChildClses(codTyp)
             whe = "o.cls in (0${ids.join(",")})"
         }
         Store st = mdb.createStore("Obj.reservoirs")
@@ -917,7 +915,7 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("exists@${stTmp.get(0).getString("name")}")
             }
             //
-            long relCls = apiMetaFish().get(ApiMetaFish).idRelCls(form.getLong("cls1"), form.getLong("cls2"))
+            long relCls = apiMeta().get(ApiMeta).idRelCls(form.getLong("cls1"), form.getLong("cls2"))
             Map<String, Object> pms = new HashMap<>()
             pms.put("relCls", relCls)
             String n1 = mdb.loadQuery(
@@ -931,7 +929,7 @@ class DataDao extends BaseMdbUtils {
             EntityMdbUtils eu = new EntityMdbUtils(mdb, "RelObj")
             relobj = eu.insertEntity(pms)
             //
-            Store stRCM = apiMetaFish().get(ApiMetaFish).loadRelClsMember(relCls)
+            Store stRCM = apiMeta().get(ApiMeta).loadRelClsMember(relCls)
 
             StoreRecord recROM = mdb.createStoreRecord("RelObjMember")
             recROM.set("relObj", relobj)
