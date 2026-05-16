@@ -381,23 +381,6 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
-    Store loadFactorVals(String codFactor) {
-        Store st = mdb.createStore("Factor.select")
-        mdb.loadQuery(st,"""
-            select fv.*
-            from Factor f
-                left join Factor fv on f.id=fv.parent
-            where f.cod like '${codFactor}'
-            order by fv.ord
-        """)
-        if (st.size()==0) {
-            if (st.size() == 0)
-                throw new XError("NotFoundCod@${codFactor}");
-        }
-        return st
-    }
-
-    @Override
     Map<String, Store> infoFlatTable(String ft_cod) {
         Store stFt = mdb.loadQuery("""
                     select distinct p.flattable, f.nametable
@@ -465,52 +448,6 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         mapRez.put("stFt", stFt)
         mapRez.put("stProp", stProp)
         return mapRez
-    }
-
-    //todo Удалить после проверки (есть loadCls)
-    @Override
-    Store loadClsForSelect(String codTyp) {
-        return mdb.loadQuery("""
-            select c.id, v.name
-            from Cls c, ClsVer v, Typ t
-            where c.id=v.ownerver and c.typ=t.id and t.cod like '${codTyp}'
-            order by c.ord
-        """)
-    }
-
-    @Override
-    Map<String, Object> measureInfo() {
-        Store st = mdb.loadQuery("""
-            select p.id, p.cod, m.name, m.kfrombase as kfc, p.digit 
-            from prop p
-                left join Measure m on m.id=p.measure
-            where p.proptype=${FD_PropType_consts.meter} and p.cod like 'Prop_%'
-        """)
-        Map<String, Object> mapRes = new HashMap<>()
-        for (StoreRecord r in st) {
-            Map<String, Object> map = new HashMap<>()
-            map.put("name", r.getString("name"))
-            map.put("kfc", r.getDouble("kfc"))
-            if (!r.isValueNull("digit"))
-                map.put("digit", r.getInt("digit"))
-            mapRes.put(r.getString("cod"), map)
-        }
-        return mapRes
-    }
-
-    @Override
-    Map<Long, String> mapFVforSelect(String codFactor) {
-        Store st = mdb.loadQuery("""
-            select fv.id, fv.name
-            from Factor fv
-                left join Factor f on fv.parent=f.id and f.cod like '${codFactor}'
-            where fv.parent is not null
-        """)
-        Map<Long, String> mapRes = new HashMap<>()
-        for (StoreRecord r in st) {
-            mapRes.put(r.getLong("id"), r.getString("name"))
-        }
-        return mapRes
     }
 
     @Override

@@ -155,33 +155,10 @@ public interface ApiMeta {
 
     /**
      *
-     * @param codFactor Factor
-     * @return Store FactorVals
-     */
-
-    Store loadFactorVals(String codFactor);
-
-    /**
-     *
      * @param ft_cod cod Flat Table
      * @return info of Flat Table
      */
     Map<String, Store> infoFlatTable(String ft_cod);
-
-    /**
-     *
-     * @param codTyp: cod of Typ
-     * @return Store Cls
-     */
-    Store loadClsForSelect(String codTyp);
-
-    /**
-     *
-     * @return info of Measure (name, kFromBase)
-     */
-    Map<String, Object> measureInfo();
-
-    Map<Long, String> mapFVforSelect(String codFactor);
 
     /**
      *
