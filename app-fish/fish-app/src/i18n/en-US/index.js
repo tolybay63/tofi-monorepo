@@ -10,7 +10,7 @@ export default {
   appAdmName: "Administration environment",
   appUserDataName: "User's personal account",
   appDataName: "Data management service",
-  appNSIName: "Normative reference information",
+  appCalcName: "Calculation",
   appMonitoringName: "Балық аулау резервуарларының мониторингі",
 
   appMinIO: "File storage",

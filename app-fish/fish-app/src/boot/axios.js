@@ -6,7 +6,7 @@ const appModelURL = process.env.VITE_PRUDUCT_MODEL_URL
 const appDataUserURL = process.env.VITE_PRUDUCT_DATAUSER_URL
 const appDataURL = process.env.VITE_PRUDUCT_DATA_URL
 const appCubeURL = process.env.VITE_PRUDUCT_CUBE_URL
-const appNsiURL = process.env.VITE_PRUDUCT_NSI_URL
+const appCalcURL = process.env.VITE_PRUDUCT_NSI_URL
 const appMonitoringURL = process.env.VITE_PRUDUCT_MONITORING_URL
 
 const url = 'http://127.0.0.1:8080'
@@ -26,4 +26,4 @@ export default defineBoot(({ app }) => {
 })
 
 export { api, appAdmURL, appModelURL, appDataUserURL, appDataURL,
-  appNsiURL, appCubeURL, appMonitoringURL}
+  appCalcURL, appCubeURL, appMonitoringURL}
