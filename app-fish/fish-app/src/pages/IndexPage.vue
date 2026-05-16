@@ -104,17 +104,17 @@
         </div>
 
         <div class="row q-ma-md justify-center">
-          <!-- Nsi -->
+          <!-- Calc -->
           <q-btn
             rounded
             class="bg-green text-white text-bold q-ma-md"
             style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
-            @click="fnNsi()"
+            @click="fnCalc()"
           >
             <div class="column">
               <div>
-                <q-avatar icon="menu_book" color="orange"></q-avatar>
-                <div>{{ $t("appNSIName") }}</div>
+                <q-avatar icon="functions" color="orange"></q-avatar>
+                <div>{{ $t("appCalcName") }}</div>
               </div>
             </div>
           </q-btn>
@@ -143,10 +143,7 @@
 
 <script>
 import {defineComponent} from "vue";
-import {
-  appAdmURL, appModelURL, appDataUserURL,
-  appDataURL, appNsiURL, appCubeURL, appMonitoringURL
-} from "boot/axios";
+import {appAdmURL, appCubeURL, appDataURL, appDataUserURL, appModelURL, appMonitoringURL} from "boot/axios";
 
 
 export default defineComponent({
@@ -173,8 +170,8 @@ export default defineComponent({
       open(appCubeURL, "_self");
     },
 
-    fnNsi() {
-      open(appNsiURL, "_self");
+    fnCalc() {
+      //open(appCalcURL, "_self");
     },
 
     fnMonitoring() {
