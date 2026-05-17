@@ -114,7 +114,6 @@
 
 <script>
 import {api} from "boot/axios";
-import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils";
 
 export default {

@@ -9,7 +9,8 @@ import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreIndex;
 import jandcode.core.store.StoreRecord;
-import tofi.api.dta.*;
+import tofi.api.dta.ApiMonitoringData;
+import tofi.api.dta.ApiUserData;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.FD_MemberType_consts;
@@ -75,9 +76,6 @@ public class RelClsMdbUtils extends BaseMdbUtils {
             //1
             boolean b = apiUserData().get(ApiUserData.class).checkExistOwners(relcls, false);
             if (b) lstApp.add("userdata");
-            //2
-            b = apiNSIData().get(ApiNSIData.class).checkExistOwners(relcls, false);
-            if (b) lstApp.add("nsidata");
             //3
             b = apiMonitoringData().get(ApiMonitoringData.class).checkExistOwners(relcls, false);
             if (b) lstApp.add("monitoringdata");

@@ -4,7 +4,6 @@ import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
 import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.mdb.BaseMdbUtils;
-import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import tofi.mdl.consts.FD_AccessLevel_consts;

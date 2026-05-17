@@ -4,15 +4,14 @@ import jandcode.commons.UtCnv;
 import jandcode.commons.UtString;
 import jandcode.commons.error.XError;
 import jandcode.commons.variant.VariantMap;
-import jandcode.core.auth.AuthService;
-import jandcode.core.auth.AuthUser;
 import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
-import tofi.api.dta.*;
+import tofi.api.dta.ApiMonitoringData;
+import tofi.api.dta.ApiUserData;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.FD_PropType_consts;
@@ -106,8 +105,6 @@ public class FactorMdbUtils extends BaseMdbUtils {
         if (metaModel.equalsIgnoreCase("fish")) {
             boolean b = apiUserData().get(ApiUserData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("userdata");
-            b = apiNSIData().get(ApiNSIData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
-            if (b) lstApp.add("nsidata");
             b = apiMonitoringData().get(ApiMonitoringData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("monitoringdata");
         }

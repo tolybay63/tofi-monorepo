@@ -192,7 +192,6 @@
 
 <script>
 import QTreeTable from "components/QTreeTable.vue";
-import {ref} from "vue";
 import {api} from "boot/axios";
 import {
   collapsAll,

@@ -82,7 +82,6 @@
 <script>
 import {api} from "boot/axios";
 import {hasTarget, notifyError} from "src/utils/jsutils";
-import {ref} from "vue";
 import UpdateDimMultiPropItemMeter from "pages/multiprop/dim/UpdateDimMultiPropItemMeter.vue";
 import axios from "axios";
 

@@ -12,7 +12,8 @@ import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreIndex;
 import jandcode.core.store.StoreRecord;
-import tofi.api.dta.*;
+import tofi.api.dta.ApiMonitoringData;
+import tofi.api.dta.ApiUserData;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.*;
@@ -188,13 +189,6 @@ public class PropMdbUtils extends BaseMdbUtils {
                     """ + prop, "");
             if (st.size() > 0)
                 throw new XError("NotChangeStructComplexProp@userdata");
-
-            st = apiNSIData().get(ApiNSIData.class).loadSql("""
-                        select v.id from dataprop d, Datapropval v
-                        where d.id=v.dataprop and d.prop=
-                    """ + prop, "");
-            if (st.size() > 0)
-                throw new XError("NotChangeStructComplexProp@nsidata");
 
             st = apiMonitoringData().get(ApiMonitoringData.class).loadSql("""
                         select v.id from dataprop d, Datapropval v
@@ -791,8 +785,6 @@ public class PropMdbUtils extends BaseMdbUtils {
     private Store sqlLoad(String sql, String domain, String model) throws Exception {
         if (model.equalsIgnoreCase("userdata"))
             return apiUserData().get(ApiUserData.class).loadSql(sql, domain);
-        else if (model.equalsIgnoreCase("nsidata"))
-            return apiNSIData().get(ApiNSIData.class).loadSql(sql, domain);
         else if (model.equalsIgnoreCase("monitoringdata"))
             return apiMonitoringData().get(ApiMonitoringData.class).loadSql(sql, domain);
         throw new XError("Unknown model [" + model + "]");
@@ -805,9 +797,6 @@ public class PropMdbUtils extends BaseMdbUtils {
             Store st = apiUserData().get(ApiUserData.class).loadSql(sql, domain);
             if (st.size() > 0)
                 res.put("userdata", st.getUniqueValues("periodType"));
-            st = apiNSIData().get(ApiNSIData.class).loadSql(sql, domain);
-            if (st.size() > 0)
-                res.put("nsidata", st.getUniqueValues("periodType"));
             st = apiMonitoringData().get(ApiMonitoringData.class).loadSql(sql, domain);
             if (st.size() > 0)
                 res.put("monitoringdata", st.getUniqueValues("periodType"));
