@@ -217,4 +217,11 @@ public interface ApiMeta {
     Set<Object> idsChildClses(String codTyp);
 
     Store loadRelClsMember(long relcls);
+
+    /**
+     *
+     * @param codFactor Factor
+     * @return Store FactorVals
+     */
+    Store loadFactorVals(String codFactor);
 }
