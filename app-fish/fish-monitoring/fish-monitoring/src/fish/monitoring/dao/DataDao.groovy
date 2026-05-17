@@ -36,8 +36,6 @@ class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
     ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
-
-
     //-----------------------------------------------------------------------------------------------//
 
     //---------------- Branch ---------------- //
@@ -1126,7 +1124,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadKatoForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp)
+        return loadObjForTreeSelect(codTypOrProp)
     }
 
     @DaoMethod
@@ -1151,7 +1149,7 @@ class DataDao extends BaseMdbUtils {
             Set<Object> idsCls = stProp.getUniqueValues("cls")
 
             Store stObj = mdb.loadQuery("""
-                select o.id as obj, o.cls, null as id, v.name
+                select o.id as obj, o.cls, v.name, null as id
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
             """)
@@ -1159,6 +1157,45 @@ class DataDao extends BaseMdbUtils {
                 StoreRecord rec = indProp.get(r.getLong("cls"))
                 if (rec != null) {
                     r.set("id", r.getString("obj") + "_" + rec.getString("propval"))
+                }
+            }
+            return stObj
+
+        } else {
+            throw new XError("Неверный параметр")
+        }
+    }
+
+    @DaoMethod
+    Store loadObjForTreeSelect(String codTypOrProp) {
+        if (codTypOrProp.startsWith("Typ_")) {
+            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
+            idsCls.add(0)
+            return mdb.loadQuery("""
+                select o.id, o.cls, v.name, v.objParent as parent
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            """)
+        } else if (codTypOrProp.startsWith("Prop_")) {
+            Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codTypOrProp, "")
+            Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select cls, id as propval
+                from PropVal
+                where prop=${mapProp.get(codTypOrProp)} and cls is not null
+            """, "")
+            StoreIndex indProp = stProp.getIndex("cls")
+
+            Set<Object> idsCls = stProp.getUniqueValues("cls")
+
+            Store stObj = mdb.loadQuery("""
+                select o.id, o.cls, v.name, v.objParent as parent, null as key
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
+            """)
+            for (StoreRecord r in stObj) {
+                StoreRecord rec = indProp.get(r.getLong("cls"))
+                if (rec != null) {
+                    r.set("key", r.getString("id") + "_" + rec.getString("propval"))
                 }
             }
             return stObj

@@ -598,13 +598,15 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     @Override
     long idRelCls(long cls1, long cls2) {
         Store st = mdb.loadQuery("""
-            select r.relcls from relclsmember r
-                left join relclsmember r2 on r.relcls=r2.relcls and r2.cls=${cls2}
+            select r.relcls 
+            from relclsmember r
+                inner join relclsmember r2 on r.relcls=r2.relcls and r2.cls=${cls2}
             where r.membertype=3 and r.cls=${cls1}
             order by r2.id
         """)
-        if (st.size()==0)
-            throw new XError("Not Found relcls[${cls1},${cls2}]")
+        if (st.size()==0) {
+            throw new XError("Не создан отношения классов [${cls1},${cls2}]")
+        }
 
         return st.get(0).getLong("relcls")
     }

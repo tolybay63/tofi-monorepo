@@ -28,10 +28,6 @@ public class RelClsMdbUtils extends BaseMdbUtils {
     ApinatorApi apiUserData() {
         return  getMdb().getApp().bean(ApinatorService.class).getApi("userdata");
     }
-    ApinatorApi apiNSIData() {
-        return getMdb().getApp().bean(ApinatorService.class).getApi("nsidata");
-    }
-
     //---------------------------------------------------
 
     @DaoMethod
@@ -75,9 +71,6 @@ public class RelClsMdbUtils extends BaseMdbUtils {
             //1
             boolean b = apiUserData().get(ApiUserData.class).checkExistOwners(relcls, false);
             if (b) lstApp.add("userdata");
-            //2
-            b = apiNSIData().get(ApiNSIData.class).checkExistOwners(relcls, false);
-            if (b) lstApp.add("nsidata");
             //3
             b = apiMonitoringData().get(ApiMonitoringData.class).checkExistOwners(relcls, false);
             if (b) lstApp.add("monitoringdata");

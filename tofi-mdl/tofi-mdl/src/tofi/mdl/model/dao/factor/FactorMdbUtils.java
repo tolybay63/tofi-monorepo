@@ -29,9 +29,6 @@ public class FactorMdbUtils extends BaseMdbUtils {
     ApinatorApi apiUserData() {
         return  getMdb().getApp().bean(ApinatorService.class).getApi("userdata");
     }
-    ApinatorApi apiNSIData() {
-        return getMdb().getApp().bean(ApinatorService.class).getApi("nsidata");
-    }
     ApinatorApi apiMonitoringData() {
         return getMdb().getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
@@ -106,8 +103,6 @@ public class FactorMdbUtils extends BaseMdbUtils {
         if (metaModel.equalsIgnoreCase("fish")) {
             boolean b = apiUserData().get(ApiUserData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("userdata");
-            b = apiNSIData().get(ApiNSIData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
-            if (b) lstApp.add("nsidata");
             b = apiMonitoringData().get(ApiMonitoringData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("monitoringdata");
         }

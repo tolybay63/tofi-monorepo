@@ -56,7 +56,9 @@
               class="q-ma-md"
               dense emit-value
               map-options
-              multiple
+              multiple use-chips
+              color="blue"
+              options-selected-class="text-blue"
               option-label="name"
               option-value="id"
               options-dense
@@ -65,17 +67,22 @@
 
           <div class="col">
             <!-- KATO -->
-            <q-select
+            <q-item-label class="text-grey-7" style="font-size: 0.8em">
+              {{ fmReqLabel('kato') }}
+            </q-item-label>
+            <treeselect
               v-model="objKATO"
-              :label="fmReqLabel('kato')"
+              :clear-on-select="true"
+              :default-expand-level="2"
+              :flat="true"
+              :multiple="true"
+              :noChildrenText="$t('noChilds')"
+              :noOptionsText="$t('noResult')"
+              :noResultsText="$t('noResult')"
+              :normalizer="normalizer"
               :options="optKATO"
-              class="q-ma-md"
-              dense emit-value
-              map-options
-              multiple
-              option-label="name"
-              option-value="id"
-              options-dense
+              :placeholder="$t('select')"
+              class="q-ma-sm"
             />
           </div>
 
@@ -145,6 +152,7 @@
             />
           </div>
         </div>
+
         <div class="row">
           <div class="col">
             <!-- Description -->
@@ -169,10 +177,13 @@
 </template>
 
 <script>
+import {Treeselect} from "vue3-treeselect";
+import "vue3-treeselect/dist/vue3-treeselect.css";
 import {api} from 'boot/axios'
-import {notifySuccess, today} from 'src/utils/jsutils'
+import {notifySuccess, pack, today} from 'src/utils/jsutils'
 
 export default {
+  components: {treeselect: Treeselect},
   props: ['mode', 'data'],
 
   data() {
@@ -201,6 +212,12 @@ export default {
   ],
 
   methods: {
+    normalizer(node) {
+      return {
+        id: node.key,
+        label: node.name,
+      };
+    },
 
     fmReqLabel(label) {
       return this.$t(label) + '*'
@@ -352,8 +369,9 @@ export default {
       })
       .then(
         (response) => {
-          this.optKATO = response.data.result.records
-          //console.info("optKATO", this.optKATO)
+          this.optKATO = pack(response.data.result.records, "id")
+
+          console.info("optKATO", this.optKATO)
         })
       .finally(() => {
         this.loading = false
