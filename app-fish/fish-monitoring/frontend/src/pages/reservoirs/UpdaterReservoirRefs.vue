@@ -51,7 +51,7 @@
             <q-select
               v-model="objBranch"
               :model-value="objBranch"
-              :label="fmReqLabel('struct_enterprise')"
+              :label="fmReqLabel('struct_enterprise2')"
               :options="optBranch"
               class="q-ma-md"
               dense emit-value
@@ -68,7 +68,7 @@
           <div class="col">
             <!-- KATO -->
             <q-item-label class="text-grey-7" style="font-size: 0.8em">
-              {{ fmReqLabel('kato') }}
+              {{ fmReqLabel('kato2') }}
             </q-item-label>
             <treeselect
               v-model="objKATO"

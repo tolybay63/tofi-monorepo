@@ -135,10 +135,11 @@ export default {
   addRegion: 'Add the region',
   addDistrict: 'Add the district',
 
-  Branch: 'Branch',
-  Branches: 'Branches',
   kato: "Classifier of administrative-territorial objects",
   struct_enterprise: "Organizational structure of the enterprise",
+
+  kato2: "Region/District",
+  struct_enterprise2: "Branch",
 
   nameCls: 'Type of gun',
   attached_files: 'Attached files',

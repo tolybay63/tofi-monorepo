@@ -261,7 +261,7 @@ export default {
         },
         {
           name: 'nameBranch',
-          label: this.$t('struct_enterprise') + '*',
+          label: this.$t('struct_enterprise2') + '*',
           field: 'nameBranch',
           align: 'left',
           sortable: true,
@@ -271,7 +271,7 @@ export default {
 
         {
           name: 'nameKATO',
-          label: this.$t('kato') + '*',
+          label: this.$t('kato2') + '*',
           field: 'nameKATO',
           align: 'left',
           sortable: true,

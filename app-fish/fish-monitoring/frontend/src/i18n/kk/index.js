@@ -136,6 +136,8 @@ export default {
 
   kato: "Әкімшілік-аумақтық объектілердің жіктеуіші",
   struct_enterprise: "Кәсіпорынның ұйымдық құрылымы",
+  kato2: "Аймақ/Аудан",
+  struct_enterprise2: "Филиал",
 
   nameCls: 'Құрал түрі',
   attached_files: 'Тіркелген файлдар',
