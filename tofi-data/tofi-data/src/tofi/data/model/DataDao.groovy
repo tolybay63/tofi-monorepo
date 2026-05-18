@@ -20,7 +20,6 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiMonitoringData
-import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.mdl.ApiMeta
@@ -70,12 +69,6 @@ class DataDao extends BaseMdbUtils {
                 if (b) lstApp.add("userdata")
             }
             //
-            clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_dataOld(owner, "obj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("nsidata")
-            }
-            //
             if (modelMeta == "fish") {
                 clsORrelcls = apiMonitoringData().get(ApiMonitoringData).getClsOrRelCls(owner, isObj)
                 if (mapPV.containsKey(clsORrelcls)) {
@@ -88,12 +81,6 @@ class DataDao extends BaseMdbUtils {
             if (mapPV.containsKey(clsORrelcls)) {
                 boolean b = apiUserData().get(ApiUserData).is_exist_entity_as_dataOld(owner, "relobj", mapPV.get(clsORrelcls))
                 if (b) lstApp.add("userdata")
-            }
-            //
-            clsORrelcls = apiNSIData().get(ApiNSIData).getClsOrRelCls(owner, isObj)
-            if (mapPV.containsKey(clsORrelcls)) {
-                boolean b = apiNSIData().get(ApiNSIData).is_exist_entity_as_dataOld(owner, "relobj", mapPV.get(clsORrelcls))
-                if (b) lstApp.add("nsidata")
             }
             //
             if (modelMeta == "fish") {
@@ -118,9 +105,7 @@ class DataDao extends BaseMdbUtils {
         String tableName = isObj == 1 ? "Obj" : "RelObj"
         if (model == "userdata") {
             apiUserData().get(ApiUserData).deleteEntity(id, tableName)
-        } else if (model == "nsidata") {
-            apiNSIData().get(ApiNSIData).deleteEntity(id, tableName)
-        } else if (metaModel == "fish") {
+        }else if (metaModel == "fish") {
             if (model == "monitoringdata") {
                 apiMonitoringData().get(ApiMonitoringData).deleteEntity(id, tableName)
             }
@@ -1742,8 +1727,6 @@ class DataDao extends BaseMdbUtils {
         if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).createOwner(params)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).createOwner(params)
             else if (model.equalsIgnoreCase("monitoringdata"))
                 return apiMonitoringData().get(ApiMonitoringData).createOwner(params)
             else
@@ -1834,8 +1817,6 @@ class DataDao extends BaseMdbUtils {
         if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).updateTable(tableName, params)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).updateTable(tableName, params)
             else if (model.equalsIgnoreCase("monitoringdata"))
                 return apiMonitoringData().get(ApiMonitoringData).updateTable(tableName, params)
             else
@@ -1848,8 +1829,6 @@ class DataDao extends BaseMdbUtils {
         if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).deleteTable(tableName, id)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).deleteTable(tableName, id)
             else if (model.equalsIgnoreCase("monitoringdata"))
                 return apiMonitoringData().get(ApiMonitoringData).deleteTable(tableName, id)
             else
@@ -1862,8 +1841,6 @@ class DataDao extends BaseMdbUtils {
         if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).insertRecToTable(tableName, params, generateId)
             else if (model.equalsIgnoreCase("monitoringdata"))
                 return apiMonitoringData().get(ApiMonitoringData).insertRecToTable(tableName, params, generateId)
             else
@@ -1878,8 +1855,6 @@ class DataDao extends BaseMdbUtils {
         if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).insertRecToTable(tableName, params, generateId)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).insertRecToTable(tableName, params, generateId)
             else if (model.equalsIgnoreCase("monitoringdata"))
                 return apiMonitoringData().get(ApiMonitoringData).insertRecToTable(tableName, params, generateId)
             else
@@ -1908,8 +1883,6 @@ class DataDao extends BaseMdbUtils {
     private void execSql(String sql, String model) {
         if (model.equalsIgnoreCase("userdata"))
             apiUserData().get(ApiUserData).execSql(sql)
-        else if (model.equalsIgnoreCase("nsidata"))
-            apiNSIData().get(ApiNSIData).execSql(sql)
         else if (model.equalsIgnoreCase("monitoringdata"))
             apiMonitoringData().get(ApiMonitoringData).execSql(sql)
         else
@@ -1924,8 +1897,6 @@ class DataDao extends BaseMdbUtils {
         if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).loadSql(sql, domain)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
             else if (model.equalsIgnoreCase("monitoringdata"))
                 return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
             else
@@ -1938,8 +1909,6 @@ class DataDao extends BaseMdbUtils {
         if (metamodel == "fish") {
             if (model.equalsIgnoreCase("userdata"))
                 return apiUserData().get(ApiUserData).loadSqlWithParams(sql, params, domain)
-            else if (model.equalsIgnoreCase("nsidata"))
-                return apiNSIData().get(ApiNSIData).loadSqlWithParams(sql, params, domain)
             else if (model.equalsIgnoreCase("monitoringdata"))
                 return apiMonitoringData().get(ApiMonitoringData).loadSqlWithParams(sql, params, domain)
             else

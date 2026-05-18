@@ -2,11 +2,8 @@ package tofi.mdl.model.dao.attrib;
 
 import jandcode.commons.UtCnv;
 import jandcode.commons.error.XError;
-import jandcode.core.auth.AuthService;
-import jandcode.core.auth.AuthUser;
 import jandcode.core.dao.DaoMethod;
 import jandcode.core.dbm.mdb.BaseMdbUtils;
-import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.dbm.sql.SqlText;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;

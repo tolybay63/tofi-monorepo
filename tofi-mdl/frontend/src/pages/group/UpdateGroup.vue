@@ -118,7 +118,7 @@
 import {api} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 
-import { Treeselect } from "vue3-treeselect";
+import {Treeselect} from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
 
 export default {

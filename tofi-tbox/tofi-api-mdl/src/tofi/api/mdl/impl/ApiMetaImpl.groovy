@@ -632,4 +632,22 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
         """)
     }
 
+    @Override
+    Store loadFactorVals(String codFactor) {
+        Store st = mdb.createStore("Factor.select")
+        mdb.loadQuery(st,"""
+            select fv.*
+            from Factor f
+                left join Factor fv on f.id=fv.parent
+            where f.cod like '${codFactor}'
+            order by fv.ord
+        """)
+        if (st.size()==0) {
+            if (st.size() == 0)
+                throw new XError("NotFoundCod@${codFactor}");
+        }
+        return st
+    }
+
+
 }
