@@ -13,13 +13,14 @@ class P extends ProjectScript {
         include(JavaProject).with {
             moduleDef("tofi.auth").with {
                 depends.prod(
-                      "java-jwt",
-                        "jandcode.core.auth",
-                        "jandcode.core.web",
-                        "tofi-apinator",
-                        "tofi-api-adm",
-                        "tofi-api-dta",
-                        "tofi-api-mdl",
+			"java-jwt",
+			"argon2-jvm",
+			"jandcode.core.auth",
+			"jandcode.core.web",
+			"tofi-apinator",
+			"tofi-api-adm",
+			"tofi-api-dta",
+			"tofi-api-mdl",
                 )
                 depends.dev(
                 )

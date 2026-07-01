@@ -33,6 +33,7 @@ dependencies {
     //implementation(group: 'org.apache.curator', name: 'curator-recipes', version: v) {}
 
     implementation("com.auth0:java-jwt:4.5.0")
+    implementation("de.mkammerer:argon2-jvm:2.12")
 
 }
 
