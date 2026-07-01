@@ -263,6 +263,11 @@ export default defineComponent({
   created() {
   },
 
+  mounted() {
+    if (getUserName !== "" )
+      this.loadDataBase()
+  }
+
 })
 </script>
 
