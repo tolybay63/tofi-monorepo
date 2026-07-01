@@ -144,7 +144,7 @@ export default defineComponent({
       getUserName,
       dataType: {id: "std", text: this.$t("dataStd")},
       dataTypeOpt: this.getDataTyp(),
-      dataBase: null,
+      dataBase: {},
       dataBaseOpt: [],
       loading: ref(false),
       params: {
@@ -165,21 +165,33 @@ export default defineComponent({
       ]
     },
 
-/*    fnRefresh() {
-      this.$router.push("/")
-      setTimeout(()=> {
-        this.toMainPage()
-      }, 100)
-    },*/
+    loadDataBase() {
+      api.post('', {
+        method: "data/loadDataBase",
+        params: [],
+      })
+        .then((response) => {
+          this.dataBaseOpt = response.data.result.store.records
+          this.dataBaseOpt.unshift({id: 0, name: this.$t("notChosen")})
+
+          this.dataBase = this.dataBaseOpt[0]
+          this.params.dataBase = this.dataBaseOpt[0].id
+          this.params.model = this.dataBaseOpt[0].modelname
+          this.params.metamodel = response.data.result.metamodel
+          setStoreParams(this.params)
+
+        })
+        .finally(() => {
+        })
+    },
 
     fnSelectDataType(val) {
       this.$router.push("/")
       this.params.dataType = val.id
       setStoreParams(this.params)
-
       setTimeout(()=> {
         this.toMainPage()
-      }, 100)
+      }, 50)
     },
 
     fnSelectDataBase(val) {
@@ -189,7 +201,7 @@ export default defineComponent({
       setStoreParams(this.params)
       setTimeout(()=> {
         this.toMainPage()
-      }, 100)
+      }, 50)
     },
 
     mainApp() {
@@ -197,26 +209,7 @@ export default defineComponent({
     },
 
     toMainPage() {
-      //this.$router["push"]("/"+this.dataType.id)
-
-      api.post('', {
-        method: "data/loadDataBase",
-        params: [],
-      })
-        .then((response) => {
-          this.dataBaseOpt = response.data.result.store.records
-          this.dataBase = this.dataBaseOpt[0]
-          this.params.dataBase = this.dataBaseOpt[0].id
-          this.params.model = this.dataBaseOpt[0].modelname
-          this.params.metamodel = response.data.result.metamodel
-          setStoreParams(this.params)
-        })
-        .then(()=> {
-          this.$router["push"]("/" + this.dataType.id)
-        })
-        .finally(() => {
-        })
-
+      this.$router["push"]("/"+this.dataType.id)
     },
 
     loginOnOff() {
@@ -238,7 +231,7 @@ export default defineComponent({
               })
               .then(() => {
                 setTimeout(()=> {
-                  this.toMainPage()
+                  this.loadDataBase()
                 }, 100)
               })
               .catch(()=> {
@@ -267,7 +260,8 @@ export default defineComponent({
 
   },
 
-  created() {},
+  created() {
+  },
 
 })
 </script>
