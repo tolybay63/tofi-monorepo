@@ -2,6 +2,7 @@ package tofi.adm
 
 import de.mkammerer.argon2.Argon2
 import de.mkammerer.argon2.Argon2Factory
+import jandcode.commons.UtString
 import jandcode.core.apx.test.Apx_Test
 import org.junit.jupiter.api.Test
 
@@ -20,5 +21,14 @@ class Permis_Test extends Apx_Test {
 
 
     }
+
+    @Test
+    void test2() {
+        String psw = "Qwerty123!"
+        String pswHash = UtString.md5Str(psw)
+        println(pswHash)
+
+    }
+
 
 }
