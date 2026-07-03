@@ -33,7 +33,7 @@ public class BaseTofiAuthProcessor extends BaseComp implements AuthProcessor {
 
         // 2. Генерируем JWT, упаковывая туда ВСЕ атрибуты
         CfgService cfgSvc = getApp().bean(CfgService.class);
-        String secret = cfgSvc.getConf().getString("auth/main/jwt", "default-key");
+        String secret = cfgSvc.getConf().getString("auth/main/jwt");
         String jwtToken = JwtUtils.createToken(fullAttrs, secret);
 
         // 3. Устанавливаем ПОЛНОГО пользователя в ThreadLocal сервера

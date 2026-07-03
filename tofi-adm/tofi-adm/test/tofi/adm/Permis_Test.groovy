@@ -18,7 +18,8 @@ class Permis_Test extends Apx_Test {
         //String psw = "Qwerty123!"
         String pswHash = argon2.hash(3, 65536, 4, psw.toCharArray());
         println(pswHash)
-
+//$argon2id$v=19$m=65536,t=3,p=4$IRaAm4sXLb4MNFuDR9ouzw$o8ohVPblvfwvBr3Fz79IrF9d2wuf/qqLiqp19vTRa1Y
+//$argon2id$v=19$m=65536,t=3,p=4$II2ZubTT5wObDQmI5LCD0w$YnJTvpAx3iRbVNP0ogCMv430VPMa8HYRVAbykoS1STI
 
     }
 
