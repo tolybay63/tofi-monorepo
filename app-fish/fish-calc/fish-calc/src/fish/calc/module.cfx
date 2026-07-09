@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <web>
+        <mount-module/>
+
+        <action name="root"
+                class = "fish.calc.action.RootAction"
+        />
+
+        <action name="auth"
+                class="tofi.auth.TofiAuthAction"/>
+
+
+        <filter name="jc-auth-engine"
+                class="jandcode.core.apx.auth.AuthFilter"
+                type="*" weight="-110"/>
+    </web>
+
+    <dbm>
+        <model name="default" instance="tofi.api.dta.model">
+            <x-include path="dao/Domains.cfx"/>
+        </model>
+        <model name="meta" instance="tofi.api.mdl.model"/>
+        <model name="adm" instance="tofi.api.adm.model"/>
+        <model name="monitoringdata" instance="tofi.api.dta.model"/>
+        <model name="userdata" instance="tofi.api.dta.model"/>
+
+    </dbm>
+
+
+    <x-include path="dao/index.cfx"/>
+
+</root>
