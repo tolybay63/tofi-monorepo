@@ -1,11 +1,11 @@
 <template>
-  <h1>CalcA</h1>
+  <h1>Calculation B</h1>
 </template>
 
 
 <script>
 export default {
-  name: "Calculation B",
+  name: "CalculationB",
 
   data: function() {
     return {
