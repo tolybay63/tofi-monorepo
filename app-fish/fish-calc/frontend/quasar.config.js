@@ -2,7 +2,6 @@ import {defineConfig} from '#q-app/wrappers'
 import {fileURLToPath} from 'node:url'
 
 let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
-
 export default defineConfig((ctx) => {
   //***********************************
   const SERVICE_NAME = 'calc';
@@ -10,7 +9,6 @@ export default defineConfig((ctx) => {
 
   return {
     boot: ['i18n', 'axios', 'auth-init'],
-
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: ['app.scss'],
 
@@ -40,9 +38,7 @@ export default defineConfig((ctx) => {
       vueRouterBase: ctx.modeName === 'spa' && ctx.prod ? `/fish/${SERVICE_NAME}/` : '',
       // vueDevtools,
       // vueOptionsAPI: false,
-
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
-
       // publicPath: '/',
       publicPath: ctx.modeName === 'spa' && ctx.prod ? `/fish/${SERVICE_NAME}/` : '',
       extendViteConf(viteConf, { isServer, isClient }) {

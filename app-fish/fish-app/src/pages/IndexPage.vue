@@ -143,7 +143,7 @@
 
 <script>
 import {defineComponent} from "vue";
-import {appAdmURL, appCubeURL, appDataURL, appDataUserURL, appModelURL, appMonitoringURL} from "boot/axios";
+import {appAdmURL, appCalcURL, appCubeURL, appDataURL, appDataUserURL, appModelURL, appMonitoringURL} from "boot/axios";
 
 
 export default defineComponent({
@@ -171,7 +171,7 @@ export default defineComponent({
     },
 
     fnCalc() {
-      //open(appCalcURL, "_self");
+      open(appCalcURL, "_self");
     },
 
     fnMonitoring() {

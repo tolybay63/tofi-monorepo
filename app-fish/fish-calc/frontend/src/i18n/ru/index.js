@@ -6,7 +6,7 @@
 export default {
   lang: 'ru',
   appName: 'Платформа ТОФИ',
-  appCalcName: 'Расчет',
+  appCalcName: 'Расчеты запаса и ПДУ',
   company: 'ТОО "Компания системных исследований "Фактор"',
   tofi: "ТОФИ",
 

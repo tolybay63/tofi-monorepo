@@ -5,7 +5,7 @@
 export default {
   lang: 'kk',
   appName: 'ТНФӨ платформасы',
-  appMonitoringName: 'Өндірістік су қоймаларының мониторингі',
+  appMonitoringName: 'Қорларды және рұқсат етілген шекті деңгейлерді есептеу',
   company: 'ЖШС "Фактор" жүйелі зерттеулер компаниясы"',
   tofi: "ТНФӨ",
   chooseLanguage: 'Тіл таңдау',
