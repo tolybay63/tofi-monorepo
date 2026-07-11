@@ -31,55 +31,62 @@ public class UploadAction extends BaseAction {
 
 
     protected void onExec() throws Exception {
-
-        String tempDir = UtCnv.toString(getReq().getHttpServlet().getServletContext().getAttribute("javax.servlet.context.tempdir"));
-        if (tempDir==null) {
-            throw new HttpError(404);
-        }
-
-        //Оригинальное имя файла
-
+        // 1. Извлекаем параметры метаданных
         IVariantMap params = UtJson.fromJson(getReq().getParams().getString("params"), VariantMap.class);
         String fnOrg = params.getString("filename");
 
-        //Сгенирированный файл
-        File fle = findFile(tempDir);
+        javax.servlet.http.Part filePart = getReq().getPart("file");
 
-        if (fle != null) {
+        if (filePart == null) {
+            throw new XError("File not found in request payload");
+        }
 
-            params.put("filePath", fle.getAbsolutePath());
-            String path;
-            try {
-                path = getApp().bean(DataDirService.class).getPath("dbfilestorage");
-            } catch (Exception e) {
-                path = "";
-            }
+        // 3. Создаем временный файл, привязанный строго к этому потоку выполнения
+        File fle = File.createTempFile("upload_", ".tmp");
+        try (java.io.InputStream input = filePart.getInputStream()) {
+            java.nio.file.Files.copy(input, fle.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
 
-            String bucketName;
-            try {
-                Conf conf2 = getApp().getConf().getConf("datadir/minio");
-                bucketName = conf2.getString("bucketName");
-            } catch (Exception e) {
-                bucketName = "";
-            }
+        // 4. Стандартная логика маршрутизации хранилища
+        params.put("filePath", fle.getAbsolutePath());
 
-            if (!path.isEmpty() && bucketName.isEmpty()) {
-                uploadFS(fle, params);
-            } else if (path.isEmpty() && !bucketName.isEmpty()) {
-                uploadMinio(params);
-            } else {
-                throw new XError("FileStorage не настроен!");
+        String path = "";
+        try {
+            path = getApp().bean(DataDirService.class).getPath("dbfilestorage");
+        } catch (Exception e) {
+            path = "";
+        }
+
+        String bucketName;
+        try {
+            Conf conf2 = getApp().getConf().getConf("datadir/minio");
+            bucketName = conf2.getString("bucketName");
+        } catch (Exception e) {
+            bucketName = "";
+        }
+
+        // Временно форсируем работу ТОЛЬКО через FileSystem, пока MinIO на стадии разработки
+        if (!path.isEmpty()) {
+            uploadFS(fle, params);
+            // Обязательно чистим временный файл после успешного импорта
+            if (fle.exists()) {
+                fle.delete();
             }
         } else {
-            throw  new XError("File not found");
+            // Если путь к локальному хранилищу FS пуст — вот тогда жестко сигнализируем
+            if (fle.exists()) {
+                fle.delete();
+            }
+            throw new XError("Критическая ошибка: Локальное FileStorage не настроено в конфигурации системы!");
         }
-        //
+
         getReq().render("FileName: " + fnOrg);
 
     }
 
     private void uploadMinio(IVariantMap params) throws Exception {
         System.out.println(params);
+        throw new XError("На стадии разработки");
     }
 
     private void uploadFS(File fle, IVariantMap params) throws Exception {
@@ -100,20 +107,6 @@ public class UploadAction extends BaseAction {
         } catch (Exception e) {
             throw new XError(e.getMessage());
         }
-    }
-
-
-    private File findFile(String path) throws Exception {
-        File dir = new File(path);
-        for(File item : Objects.requireNonNull(dir.listFiles())){
-            if (!item.isDirectory()){
-                if (item.getName().startsWith("undertow") &&
-                        item.getName().endsWith("upload")) {
-                    return item;
-                }
-            }
-        }
-         return null;
     }
 
 }
