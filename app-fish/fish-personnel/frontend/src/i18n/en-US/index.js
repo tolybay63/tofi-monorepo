@@ -62,6 +62,22 @@ export default {
   offAll: 'Turn off everything',
   countAll: 'Total',
 
+  personnel: 'Personnel',
+  UserFirstName: "FirstName",
+  UserSecondName: "SecondName",
+  UserMiddleName: "MiddleName",
+
+  fio: 'FIO',
+  UserSex: "Gender",
+  UserPosition: "Employee's Position",
+  UserOrg: "Employee's Organization",
+  UserDateBirth: "Туған күні",
+  UserEmail: "Email",
+  UserPhone: "Phone",
+  UserId: "System User",
+
+
+
   fldDbeg: 'Life interval start',
   fldDend: 'Life interval end',
   fldDbegShort: 'Start',

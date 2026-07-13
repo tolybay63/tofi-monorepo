@@ -323,6 +323,10 @@ export default {
       this.fetchData(requestParam);
     },
 
+    infoSelected(row) {
+      return " " + row.name;
+    },
+
     getColumns() {
       return [
         {
@@ -367,13 +371,7 @@ export default {
 
   computed: {},
 
-  setup() {
-    return {
-      infoSelected(row) {
-        return " " + row.name;
-      },
-    };
-  },
+  setup() {},
 };
 </script>
 

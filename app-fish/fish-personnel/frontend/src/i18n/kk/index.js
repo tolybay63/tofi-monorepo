@@ -63,6 +63,21 @@ export default {
   offAll: 'Барлығын алып тастау',
   countAll: 'Барлығы',
 
+  personnel: 'Қызметкерлер',
+  UserFirstName: "Аты",
+  UserSecondName: "Тегі",
+  UserMiddleName: "Әкесінің аты",
+
+  fio: 'ТАӘ',
+  UserSex: "Жынысы",
+  UserPosition: "Қызметкердің лауазымы",
+  UserOrg: "Қызметкердің ұйымы",
+  UserDateBirth: "Туған күні",
+  UserEmail: "Электрондық пошта",
+  UserPhone: "Телефон",
+  UserId: "Жүйе пайдаланушысы",
+
+
   fldDbeg: 'Өмір аралығының басталуы',
   fldDend: 'Өмір аралығының аяқталуы',
   fldDbegShort: 'Басталуы',

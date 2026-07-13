@@ -1,8 +1,6 @@
 // This is just an example,
 // so you can safely delete all default props below
 // noinspection AllyPlainJsInspection
-//todo Анализировать!!!
-
 export default {
   lang: 'ru',
   appName: 'Платформа ТОФИ',
@@ -63,6 +61,23 @@ export default {
   onAll: 'Включить все',
   offAll: 'Выключить все',
   countAll: 'Всего',
+
+  personnel: 'Персонал',
+
+  UserFirstName: "Имя",
+  UserSecondName: "Фамилия",
+  UserMiddleName: "Отчество",
+
+  fio: 'ФИО',
+  UserSex: "Пол",
+  UserPosition: "Должность сотрудника",
+  UserOrg: "Организация сотрудника",
+  UserDateBirth: "Дата рождения",
+  UserEmail: "Электронная почта",
+  UserPhone: "Телефон",
+  UserId: "Пользовател системы",
+
+
 
   fldDbeg: 'Начало интервала жизни',
   fldDend: 'Конец интервала жизни',
@@ -190,7 +205,6 @@ export default {
   FishFamily: 'Семейство рыб',
   FishType: 'Тип рыбы',
   FishFarmingType: 'Вид ведения рыбного хозяйства',
-
   sampleNumber: 'Номер пробы',
   dateSampling: 'Дата забора пробы',
   executor: 'Исполнитель',
@@ -248,3 +262,5 @@ export default {
   nothing_here: 'Упс. Здесь ничего...',
   home: 'Домой',
 }
+
+//todo Анализировать!!!

@@ -1,6 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
+    <domain name="Personnel" parent="id">
+        <field name="own" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="idUserSecondName" parent="long"/>
+        <field name="UserSecondName" parent="string"/>
+        <field name="idUserFirstName" parent="long"/>
+        <field name="UserFirstName" parent="string"/>
+        <field name="idUserMiddleName" parent="long"/>
+        <field name="UserMiddleName" parent="string"/>
+
+        <field name="idUserDateBirth" parent="long"/>
+        <field name="UserDateBirth" parent="date"/>
+        <field name="idUserEmail" parent="long"/>
+        <field name="UserEmail" parent="string"/>
+        <field name="idUserPhone" parent="long"/>
+        <field name="UserPhone" parent="string"/>
+
+        <field name="idUserSex" parent="long"/>
+        <field name="pvUserSex" parent="long"/>
+        <field name="fvUserSex" parent="long"/>
+        <field name="nameUserSex" parent="string"/>
+
+        <field name="idUserPosition" parent="long"/>
+        <field name="pvUserPosition" parent="long"/>
+        <field name="fvUserPosition" parent="long"/>
+        <field name="nameUserPosition" parent="string"/>
+
+        <field name="idUserOrg" parent="long"/>
+        <field name="objUserOrg" parent="long"/>
+        <field name="nameUserOrg" parent="string"/>
+    </domain>
 
 
 </root>
