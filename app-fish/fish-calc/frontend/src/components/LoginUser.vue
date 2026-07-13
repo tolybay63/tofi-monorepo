@@ -94,8 +94,8 @@
 </template>
 <script>
 import {ref} from "vue";
-import {api, authURL} from "boot/axios.js";
-import ForgetPsw from "components/ForgetPsw.vue";
+import {api, authURL} from "../boot/axios.js";
+import ForgetPsw from "../components/ForgetPsw.vue";
 
 export default {
   props: [],

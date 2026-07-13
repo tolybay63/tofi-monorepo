@@ -4,7 +4,7 @@
 export default {
   lang: 'en',
   appName: 'TOFI platform',
-  appMonitoringName: 'Stock and maximum allowable catch calculations',
+  appCalcName: 'Stock and maximum allowable catch calculations',
   company: 'LLP "Systems research company "Factor"',
   tofi: "TOFI",
   chooseLanguage: 'Language selection',
