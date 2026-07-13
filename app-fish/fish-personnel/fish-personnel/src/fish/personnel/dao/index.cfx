@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+    <dao>
+
+        <holder name="api">
+
+            <item name="auth" method="*" invoker="model:default"
+                  class="fish.personnel.dao.AuthDao"/>
+
+            <item name="data" method="*" invoker="model:default"
+                  class="fish.personnel.dao.DataDao"/>
+
+        </holder>
+
+    </dao>
+
+</root>

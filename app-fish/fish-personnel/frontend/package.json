@@ -1,0 +1,39 @@
+{
+  "name": "frontend",
+  "version": "0.0.1",
+  "description": "Fish Calculation & Quasar Project",
+  "productName": "Fish Calculation",
+  "author": "Tolybay Kuanov <tolybay.zh@gmail.com>",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{js,cjs,mjs,vue}\"",
+    "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
+    "test": "echo \"No test specified\" && exit 0",
+    "dev": "quasar dev",
+    "build": "quasar build",
+    "postinstall": "quasar prepare"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.18.0",
+    "axios": "^1.16.1",
+    "pinia": "^3.0.4",
+    "quasar": "^2.19.3",
+    "vue": "^3.5.34",
+    "vue-i18n": "^11.4.2",
+    "vue-router": "^5.0.7"
+  },
+  "devDependencies": {
+    "@intlify/unplugin-vue-i18n": "^11.2.3",
+    "@quasar/app-vite": "^2.6.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.14",
+    "prettier": "^3.8.3",
+    "vite": "^8.0.13"
+  },
+  "engines": {
+    "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}
