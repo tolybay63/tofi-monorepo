@@ -14,17 +14,17 @@
          <field name="dataMultiPropCell" parent="DataMultiPropCell/ref"/>
          <field name="sign" parent="f.sign"/>
          <field name="cls" parent="ref"/>
-         <field name="obj" parent="Obj/ref"/>
+         <field name="obj" parent="ref"/>
          <field name="relCls" parent="ref"/>
-         <field name="relObj" parent="RelObj/ref"/>
+         <field name="relObj" parent="ref"/>
          <field name="prop" parent="ref"/>
          <field name="status" parent="ref"/>
          <field name="statusMissing" parent="ref"/>
-         <field name="provider" parent="Obj/ref"/>
+         <field name="provider" parent="ref"/>
          <field name="providerMissing" parent="ref"/>
 
          <field name="periodType" parent="ref"/>
-         <field name="dbeg" parent="ref"/>
+         <field name="dbeg" parent="f.dbeg"/>
 
      </domain>
 

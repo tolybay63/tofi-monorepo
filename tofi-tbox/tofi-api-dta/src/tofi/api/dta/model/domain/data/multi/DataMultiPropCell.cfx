@@ -14,9 +14,9 @@
          <field name="dateTimeVal" parent="datetime"/>
          <field name="factorVal" parent="ref"/>
          <field name="cls" parent="ref"/>
-         <field name="obj" parent="Obj/ref"/>
+         <field name="obj" parent="ref"/>
          <field name="relCls" parent="ref"/>
-         <field name="relObj" parent="Obj/ref"/>
+         <field name="relObj" parent="ref"/>
          <field name="algAsgn" parent="ref"/>
          <field name="algVars" parent="ref"/>
          <field name="dbeg" parent="f.dbeg"/>

@@ -11,7 +11,7 @@
         <field name="status" parent="ref">
             <!-- Ссылка на таблицу Factor(parent not null)-->
         </field>
-        <field name="provider" parent="Obj/ref"/>
+        <field name="provider" parent="ref"/>
         <field name="periodType" parent="ref"/>
 
         <field name="multiPropCond" parent="string" size="8000">
