@@ -493,7 +493,7 @@ export default {
     fnPhone(val) {
       return (
         "+7 " +
-        val.substring(0, 4) +
+        val.substring(0, 3) +
         " " +
         val.substring(3, 6) +
         " " +
