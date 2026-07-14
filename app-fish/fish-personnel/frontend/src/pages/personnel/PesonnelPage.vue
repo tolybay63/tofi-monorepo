@@ -5,7 +5,7 @@
       :limits="[60, 100]"
       :model-value="splitterModel"
       after-class="overflow-hidden q-pl-sm"
-      before-class="overflow-hidden q-pl-sm"
+      before-class="overflow-hidden q-pr-sm"
       separator-class="bg-red"
       style="height: calc(100vh - 150px); width: 100%"
     >
