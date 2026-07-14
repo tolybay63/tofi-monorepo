@@ -70,7 +70,7 @@ class DataDao extends BaseMdbUtils {
                 join DataProp d6 on d6.isObj=1 and d6.objOrRelobj=o.id and d6.prop=:Prop_UserOrg
                 join DataPropVal v6 on d6.id=v6.dataProp
                 join ObjVer ov6 on ov6.ownerVer=v6.obj and ov6.lastVer=1 
-            where o.cls=:ClsPersonnel
+            where o.cls=:Cls_Personnel
             order by v1.strVal
         """;
         sqlText = getMdb().createSqlText(sql);
