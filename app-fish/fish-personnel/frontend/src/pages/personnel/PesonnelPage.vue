@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <q-splitter
       v-model="splitterModel"
-      :limits="[60, 100]"
+      :limits="[80, 100]"
       :model-value="splitterModel"
       after-class="overflow-hidden q-pl-sm"
       before-class="overflow-hidden q-pr-sm"
@@ -114,16 +114,22 @@
       </template>
       <template v-slot:after>
 
-<q-card class="bg-amber-1 full-height">
+        <q-card class="bg-amber-1 full-height">
           <q-card-section>
 
-            <q-input model-value="form.a"></q-input>
+              <q-input :label="fnLabel('UserSecondName', true)" readonly v-model="form.UserSecondName"/>
+              <q-input :label="fnLabel('UserFirstName', true)" readonly v-model="form.UserFirstName"/>
+              <q-input :label="fnLabel('UserMiddleName', false)" readonly v-model="form.UserMiddleName"/>
+              <q-input :label="fnLabel('UserDateBirth', false)" readonly v-model="form.UserDateBirth"/>
+              <q-input :label="fnLabel('UserEmail', false)" readonly v-model="form.UserEmail"/>
+              <q-input :label="fnLabel('UserPhone', false)" readonly v-model="form.UserPhone"/>
+              <q-input :label="fnLabel('UserId', false)" readonly v-model="form.UserId"/>
 
-            <q-input model-value="form.b"></q-input>
+
 
           </q-card-section>
 
-</q-card>
+        </q-card>
 
       </template>
 
@@ -157,8 +163,6 @@ export default {
       rows: [],
       filter: "",
       loading: false,
-      maxLen: 0,
-      role_id: 0,
 
       pagination: {
         sortBy: null,
@@ -168,12 +172,22 @@ export default {
         rowsNumber: 0,
       },
       selected: [],
-      dense: true,
+      form: {UserSecondName: null, UserFirstName: null, UserMiddleName: null,
+        UserDateBirth: null, UserEmail: null, UserPhone: null, UserId: null},
+      optUserSex: []
+
     };
   },
 
   methods: {
     hasTarget,
+
+    fnLabel(txt, req) {
+      if (req)
+        return this.$t(txt) + "*";
+      else
+        return this.$t(txt);
+    },
 
     removeRow(rec) {
       this.$q
@@ -404,11 +418,13 @@ export default {
 
 
 
+
   &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
   /* prevent scrolling behind sticky top row on focus */
+
 
 
 

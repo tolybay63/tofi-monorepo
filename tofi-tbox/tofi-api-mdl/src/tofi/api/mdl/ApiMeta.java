@@ -62,6 +62,13 @@ public interface ApiMeta {
 
     /**
      *
+     * @param codProp: cod of Prop
+     * @return  set of ids Cls
+     */
+    Set<Object> setIdsOfClsFromPV(String codProp);
+
+    /**
+     *
      * @param codRelTyp: cod of RelTyp
      * @return  set of ids RelCls
      */

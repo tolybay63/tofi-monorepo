@@ -21,9 +21,8 @@
         <q-input
           :model-value="form.UserSecondName"
           v-model="form.UserSecondName"
-          autofocus
-          @blur="onBlurName"
-          :label="$t('UserSecondName')"
+          autofocus dense
+          :label="fnLabel('UserSecondName', true)"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
         </q-input>
@@ -31,7 +30,8 @@
         <q-input
           :model-value="form.UserFirstName"
           v-model="form.UserFirstName"
-          :label="$t('UserFirstName')"
+          :label="fnLabel('UserFirstName', true)"
+          dense
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
         </q-input>
@@ -39,17 +39,83 @@
         <q-input
           :model-value="form.UserMiddleName"
           v-model="form.UserMiddleName"
-          :label="$t('UserMiddleName')"
+          :label="fnLabel('UserMiddleName', false)"
+          dense
         >
         </q-input>
-        <!-- cmt -->
+        <!-- UserSex -->
+        <q-select
+          v-model="form.UserSex"
+          :label="fnLabel('UserSex', true)"
+          :options="optUserSex"
+          map-options
+          option-label="name"
+          option-value="id"
+          use-input
+          @filter="filterUserSex"
+          @update:model-value="fnSelectUserSex"
+        />
+        <!-- UserPosition -->
+        <q-select
+          v-model="form.UserPosition"
+          :label="fnLabel('UserPosition', true)"
+          :options="optUserPosition"
+          map-options
+          option-label="name"
+          option-value="id"
+          use-input
+          @filter="filterUserPosition"
+          @update:model-value="fnSelectUserPosition"
+        />
+        <!-- UserOrg -->
+        <q-select
+          v-model="form.UserOrg"
+          :label="fnLabel('UserOrg', true)"
+          :options="optUserOrganization"
+          map-options
+          option-label="name"
+          option-value="id"
+          use-input
+          @filter="filterUserOrg"
+          @update:model-value="fnSelectUserOrg"
+        />
+
+        <!-- UserDateBirth  -->
         <q-input
-          :model-value="form.cmt"
-          v-model="form.cmt"
-          type="textarea"
-          :label="$t('fldCmt')"
+          v-model="form.UserDateBirth"
+          :label="fnLabel('UserDateBirth', false)"
+          stack-label
+          type="date"
+          @update:model-value="fnSelectUserDateBirth"
+        />
+        <!-- UserEmail -->
+
+        <q-input
+          v-model="form.UserEmail"
+          type="email"
+          :label="fnLabel('UserEmail', false)"
+          :rules="[val => emailTest(val) || 'Ошибка формата']"
         >
         </q-input>
+
+        <!-- UserPhone -->
+        <q-input
+          v-model="form.UserPhone"
+          unmasked-value
+          :label="fnLabel('UserPhone', false)"
+          prefix="+7"
+          mask="### ### ####"
+          fill-mask="_"
+          bottom-slots
+          @update:model-value="isValidPhone"
+        >
+          <template v-slot:error>
+            Please use 10 characters.
+          </template>
+        </q-input>
+
+
+
         <!---->
       </q-card-section>
 
@@ -59,7 +125,7 @@
           icon="save"
           :label="$t('save')"
           @click="onOKClick"
-          :disable="validName()"
+          :disable="validSave()"
         />
         <q-btn
           color="primary"
@@ -82,7 +148,13 @@ export default {
   data() {
     return {
       form: this.data,
-      options: [],
+      optUserSex: [],
+      optUserSexOrg: [],
+      optUserPosition: [],
+      optUserPositionOrg: [],
+      optUserOrganization: [],
+      optUserOrganizationOrg: [],
+
     };
   },
 
@@ -93,17 +165,101 @@ export default {
   ],
 
   methods: {
-    onBlurName() {
-      if (this.form.name) {
-        if (this.form.fullName === "")
-          this.form.fullName = this.form.name.trim();
-      }
+    fnLabel(txt, req) {
+      if (req)
+        return this.$t(txt) + "*";
+      else
+        return this.$t(txt);
     },
 
-    validName() {
-      if (!this.form.name) return true;
-      else if (this.form.name.trim().length === 0) return true;
-      return false;
+    fnSelectUserDateBirth(v) {
+      console.log("UserDateBirth", v)
+      if (v.length === 10 && date.formatDate(v).isWellFormed()) {
+        this.UserDateBirth = v
+      }
+
+    },
+
+    fnSelectUserSex(v) {
+      this.form.fvUserSex = v.id
+      this.form.pvUserSex = v.pv
+    },
+
+    filterUserSex(val, update) {
+      if (val === null || val === '') {
+        update(() => {
+          this.optUserSex = this.optUserSexOrg
+        })
+        return
+      }
+      update(() => {
+        if (this.optUserSexOrg.length < 2) return
+        const needle = val.toLowerCase()
+        let name = 'name'
+        this.optUserSex = this.optUserSexOrg.filter((v) => {
+          return v[name].toLowerCase().indexOf(needle) > -1
+        })
+      })
+    },
+
+    fnSelectUserPosition(v) {
+      this.form.fvUserPosition = v.id
+      this.form.pvUserPosition = v.pv
+    },
+
+    filterUserPosition(val, update) {
+      if (val === null || val === '') {
+        update(() => {
+          this.optUserPosition = this.optUserPositionOrg
+        })
+        return
+      }
+      update(() => {
+        if (this.optUserPositionOrg.length < 2) return
+        const needle = val.toLowerCase()
+        let name = 'name'
+        this.optUserPosition = this.optUserPositionOrg.filter((v) => {
+          return v[name].toLowerCase().indexOf(needle) > -1
+        })
+      })
+    },
+
+    fnSelectUserOrg(v) {
+      this.form.fvUserOrg = v.id
+      this.form.clsUserOrg = v.cls
+    },
+
+    filterUserOrg(val, update) {
+      if (val === null || val === '') {
+        update(() => {
+          this.optUserOrganization = this.optUserOrganizationOrg
+        })
+        return
+      }
+      update(() => {
+        if (this.optUserOrganizationOrg.length < 2) return
+        const needle = val.toLowerCase()
+        let name = 'name'
+        this.optUserOrganization = this.optUserOrganizationOrg.filter((v) => {
+          return v[name].toLowerCase().indexOf(needle) > -1
+        })
+      })
+    },
+
+    emailTest: function (v) {
+      if (!v)
+        return true
+      else
+        return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(v);
+    },
+
+    isValidPhone: function (v) {
+      return this.form.UserPhone.length === 10
+    },
+
+    validSave() {
+      return !this.form.UserSecondName || !this.form.UserFirstName || !this.form.UserSex ||
+        !this.form.UserPosition || !this.form.UserOrg;
     },
 
     // following method is REQUIRED
@@ -158,7 +314,53 @@ export default {
     },
   },
   created() {
-    return {};
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/selectFV',
+        params: ['Prop_UserSex'],
+      })
+      .then(
+        (response) => {
+          this.optUserSex = response.data.result.records
+          this.optUserSexOrg = response.data.result.records
+        })
+      .finally(() => {
+        this.loading = false
+      })
+    //
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/selectFV',
+        params: ['Prop_UserPosition'],
+      })
+      .then(
+        (response) => {
+          this.optUserPosition = response.data.result.records
+          this.optUserPositionOrg = response.data.result.records
+        })
+      .finally(() => {
+        this.loading = false
+      })
+    //
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/selectObj',
+        params: ['Prop_UserOrg'],
+      })
+      .then(
+        (response) => {
+          this.optUserOrganization = response.data.result.records
+          this.optUserOrganizationOrg = response.data.result.records
+        })
+      .finally(() => {
+        this.loading = false
+      })
+
+
+
   },
 };
 </script>

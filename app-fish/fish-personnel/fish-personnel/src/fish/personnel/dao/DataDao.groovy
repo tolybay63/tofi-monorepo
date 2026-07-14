@@ -8,6 +8,7 @@ import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.dbm.sql.SqlText
 import jandcode.core.store.Store
+import tofi.api.dta.ApiMonitoringData
 import tofi.api.mdl.ApiMeta
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
@@ -16,6 +17,7 @@ import tofi.apinator.ApinatorService
 class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
+    ApinatorApi apiMonitoring() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
 
     @DaoMethod
@@ -109,7 +111,20 @@ class DataDao extends BaseMdbUtils {
         return mapRes
     }
 
+    @DaoMethod
+    Store selectFV(String codProp) {
+        return apiMeta().get(ApiMeta).storePropValForSelectFV(codProp)
+    }
 
+    @DaoMethod
+    Store selectObj(String codProp) {
+        Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfClsFromPV(codProp)
+        return apiMonitoring().get(ApiMonitoringData).loadSql("""
+            select o.id, o.cls, v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${setCls.join(",")})
+        """, "")
+    }
 
 //-----------------------------------------------------------------------------------------------//
     private Store loadSqlMeta(String sql, String domain) {

@@ -208,6 +208,19 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
+    Set<Object> setIdsOfClsFromPV(String codProp) {
+        Map<String, Long> map = getIdFromCodOfEntity("Prop", codProp, "" )
+        Store st = mdb.loadQuery("""
+            select cls 
+            from PropVal
+            where cls is not null and prop=:prop
+        """, [prop: map.get(codProp)])
+        if (st.size()==0)
+            throw new XError("Не найден возможные значения [${codProp}]")
+        return st.getUniqueValues("cls")
+    }
+
+    @Override
     Set<Object> setIdsOfRelCls(String codRelTyp) {
         long al = getAccessLevel()
         Store st = mdb.loadQuery("""
