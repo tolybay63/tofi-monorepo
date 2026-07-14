@@ -1,104 +1,134 @@
 <template>
-  <q-page class="q-pa-md" style="height: calc(100vh - 140px);">
-    <q-table
-      v-model:pagination="pagination"
-      v-model:selected="selected"
-      :columns="cols"
-      :dense="dense"
-      :filter="filter"
-      :loading="loading"
-      :max="pagesNumber"
-      :rows="rows"
-      :rows-per-page-options="[25, 0]"
-      :table-colspan="4"
-      :wrap-cells="true"
-      card-class="bg-amber-1"
-      class="sticky-header-table"
-      color="primary"
-      row-key="id"
-      selection="single"
-      separator="cell"
-      style="width: 100%"
-      table-header-class="text-bold text-white bg-blue-grey-13"
-      @request="requestData"
+  <q-page class="q-pa-md">
+    <q-splitter
+      v-model="splitterModel"
+      :limits="[60, 100]"
+      :model-value="splitterModel"
+      after-class="overflow-hidden q-pl-sm"
+      before-class="overflow-hidden q-pl-sm"
+      separator-class="bg-red"
+      style="height: calc(100vh - 150px); width: 100%"
     >
-      <template #bottom-row>
-        <q-td v-if="selected.length > 0" colspan="100%">
-          <span class="text-blue"> {{ $t("selectedRow") }}: </span>
-          <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
-        </q-td>
-        <q-td v-else-if="this.rows.length > 0" class="text-bold" colspan="100%">
-          {{ $t("infoRow") }}
-        </q-td>
-      </template>
 
-      <template v-slot:top>
-        <div style="font-size: 1.2em; font-weight: bold">
-          <q-avatar color="black" icon="groups" text-color="white"/>
-          {{ $t("personnel") }}
-        </div>
+      <template v-slot:before>
 
-        <q-space/>
-        <q-btn
-          v-if="hasTarget('pers:ins')"
+        <q-table
+          v-model:pagination="pagination"
+          v-model:selected="selected"
+          :columns="cols"
           :dense="dense"
-          :disable="loading"
-          color="secondary"
-          icon="post_add"
-          @click="editRow(null, 'ins')"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("newRecord") }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('pers:upd')"
-          :dense="dense"
-          :disable="loading || selected.length === 0"
-          class="q-ml-sm"
-          color="secondary"
-          icon="edit"
-          @click="editRow(selected[0], 'upd')"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("editRecord") }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('pers:del')"
-          :dense="dense"
-          :disable="loading || selected.length === 0"
-          class="q-ml-sm"
-          color="red"
-          icon="delete"
-          @click="removeRow(selected[0])"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("deletingRecord") }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-space/>
-        <q-input
-          v-model="filter"
-          :dense="dense"
-          :label="$t('txt_filter')"
-          :model-value="filter"
+          :filter="filter"
+          :loading="loading"
+          :max="pagesNumber"
+          :rows="rows"
+          :rows-per-page-options="[25, 0]"
+          :table-colspan="4"
+          :wrap-cells="true"
+          card-class="bg-amber-1"
+          class="sticky-header-table"
           color="primary"
-          debounce="300"
+          row-key="id"
+          selection="single"
+          separator="cell"
+          table-header-class="text-bold text-white bg-blue-grey-13"
+          @request="requestData"
         >
-          <template v-slot:append>
-            <q-icon name="search"/>
+          <template #bottom-row>
+            <q-td v-if="selected.length > 0" colspan="100%">
+              <span class="text-blue"> {{ $t("selectedRow") }}: </span>
+              <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+            </q-td>
+            <q-td v-else-if="this.rows.length > 0" class="text-bold" colspan="100%">
+              {{ $t("infoRow") }}
+            </q-td>
           </template>
-        </q-input>
+
+          <template v-slot:top>
+            <div style="font-size: 1.2em; font-weight: bold">
+              <q-avatar color="black" icon="groups" text-color="white"/>
+              {{ $t("personnel") }}
+            </div>
+
+            <q-space/>
+            <q-btn
+              v-if="hasTarget('pers:ins')"
+              :dense="dense"
+              :disable="loading"
+              color="secondary"
+              icon="post_add"
+              @click="editRow(null, 'ins')"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ $t("newRecord") }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('pers:upd')"
+              :dense="dense"
+              :disable="loading || selected.length === 0"
+              class="q-ml-sm"
+              color="secondary"
+              icon="edit"
+              @click="editRow(selected[0], 'upd')"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ $t("editRecord") }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('pers:del')"
+              :dense="dense"
+              :disable="loading || selected.length === 0"
+              class="q-ml-sm"
+              color="red"
+              icon="delete"
+              @click="removeRow(selected[0])"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ $t("deletingRecord") }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-space/>
+            <q-input
+              v-model="filter"
+              :dense="dense"
+              :label="$t('txt_filter')"
+              :model-value="filter"
+              color="primary"
+              debounce="300"
+            >
+              <template v-slot:append>
+                <q-icon name="search"/>
+              </template>
+            </q-input>
+          </template>
+
+          <template #loading>
+            <q-inner-loading color="secondary" showing></q-inner-loading>
+          </template>
+        </q-table>
+
+      </template>
+      <template v-slot:after>
+
+<q-card class="bg-amber-1 full-height">
+          <q-card-section>
+
+            <q-input model-value="form.a"></q-input>
+
+            <q-input model-value="form.b"></q-input>
+
+          </q-card-section>
+
+</q-card>
+
       </template>
 
-      <template #loading>
-        <q-inner-loading color="secondary" showing></q-inner-loading>
-      </template>
-    </q-table>
+    </q-splitter>
+
   </q-page>
 </template>
 
@@ -122,6 +152,7 @@ export default {
 
   data() {
     return {
+      splitterModel: 100,
       cols: [],
       rows: [],
       filter: "",
@@ -359,7 +390,7 @@ export default {
 <style lang="sass">
 .sticky-header-table
   /* height or max-height is important */
-  height: calc(100vh - 140px)
+  height: calc(100vh - 150px)
 
   thead tr th
     position: sticky
@@ -371,11 +402,15 @@ export default {
   /* this is when the loading indicator appears */
 
 
+
+
   &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
   /* prevent scrolling behind sticky top row on focus */
+
+
 
 
   tbody

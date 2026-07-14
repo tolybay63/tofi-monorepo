@@ -17,25 +17,31 @@
       </q-bar>
 
       <q-card-section>
-        <!-- name -->
+        <!-- UserSecondName -->
         <q-input
-          :model-value="form.name"
-          v-model="form.name"
+          :model-value="form.UserSecondName"
+          v-model="form.UserSecondName"
           autofocus
           @blur="onBlurName"
-          :label="$t('fldName')"
+          :label="$t('UserSecondName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
         </q-input>
-        <!-- fullName-->
+        <!-- UserFirstName-->
         <q-input
-          :model-value="form.fullName"
-          v-model="form.fullName"
-          :label="$t('fldFullName')"
+          :model-value="form.UserFirstName"
+          v-model="form.UserFirstName"
+          :label="$t('UserFirstName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
         </q-input>
-
+        <!-- UserMiddleName-->
+        <q-input
+          :model-value="form.UserMiddleName"
+          v-model="form.UserMiddleName"
+          :label="$t('UserMiddleName')"
+        >
+        </q-input>
         <!-- cmt -->
         <q-input
           :model-value="form.cmt"
