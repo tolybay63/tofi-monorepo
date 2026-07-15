@@ -177,8 +177,6 @@ export default {
       form: {UserSecondName: null, UserFirstName: null, UserMiddleName: null,
         UserDateBirth: null, UserEmail: null, UserPhone: null, UserId: null},
       optUserSex: [],
-      mapFV: new Map()
-
     };
   },
 
@@ -384,7 +382,6 @@ export default {
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em",
           style: "width: 10%",
-          //format: v => this.mapFV ? this.mapFV[v] : null
         },
         {
           name: "nameUserPosition",
@@ -394,12 +391,11 @@ export default {
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em",
           style: "width: 20%",
-          //format: v => this.mapFV ? this.mapFV[v] : null
         },
         {
-          name: "objUserOrg",
+          name: "nameUserOrg",
           label: this.$t("UserOrg"),
-          field: "objUserOrg",
+          field: "nameUserOrg",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em",
@@ -413,25 +409,6 @@ export default {
   },
 
   created() {
-    //mapFvNameFromId
-/*
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/mapFvNameFromId',
-        params: [],
-      })
-      .then(
-        (response) => {
-          this.mapFV = response.data.result
-          console.info("mapFV", this.mapFV)
-        })
-      .finally(() => {
-        this.loading = false
-      })
-*/
-
-
     this.cols = this.getColumns();
     this.fetchData(requestParam);
   },

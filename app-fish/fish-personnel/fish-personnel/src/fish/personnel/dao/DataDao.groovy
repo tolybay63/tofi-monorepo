@@ -64,7 +64,7 @@ class DataDao extends BaseMdbUtils {
         sqlText.setSql(sql)
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("""
-                v1.strVal like '%' + filter + '%' or v2.strVal like '%' + filter + '%'
+                v1.strVal like '%${filter}%' or v2.strVal like '%${filter}%'
             """)
         int total = mdb.loadQuery(sqlText as String, mapProp as Map<String, Object>).get(0).getInt("cnt")
         //
@@ -125,7 +125,7 @@ class DataDao extends BaseMdbUtils {
 
         if (!filter.isEmpty())
             sqlText = sqlText.addWhere("""
-                v1.strVal like '%" + filter + "%' or v2.strVal like '%" + filter + "%'
+                v1.strVal like '%${filter}%' or v2.strVal like '%${filter}%'
             """)
 
         Store st = getMdb().createStore("Personnel")
@@ -133,6 +133,13 @@ class DataDao extends BaseMdbUtils {
         //
         Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
         StoreIndex indFV = stFV.getIndex("propval")
+        Set<Object> objIds = st.getUniqueValues("objUserOrg")
+        Store stObj = apiMonitoring().get(ApiMonitoringData).loadSql("""
+            select o.id, v.name from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${objIds.join(",")})
+        """, "")
+        StoreIndex indObj = stObj.getIndex("id")
+        //
         for (StoreRecord r in st) {
             StoreRecord rec = indFV.get(r.getLong("pvUserSex"))
             if (rec != null) {
@@ -144,6 +151,9 @@ class DataDao extends BaseMdbUtils {
                 r.set("fvUserPosition", rec.getLong("factorval"))
                 r.set("nameUserPosition", rec.getString("name"))
             }
+            rec = indObj.get(r.getLong("objUserOrg"))
+            if (rec != null)
+                r.set("nameUserOrg", rec.getString("name"))
         }
         //
         Map<String, Object> meta = new HashMap<>()
@@ -204,11 +214,15 @@ class DataDao extends BaseMdbUtils {
         StoreIndex indFV = stFV.getIndex("propval")
         for (StoreRecord r in st) {
             StoreRecord rec = indFV.get(r.getLong("pvUserSex"))
-            if (rec != null)
+            if (rec != null) {
                 r.set("fvUserSex", rec.getLong("factorval"))
+                r.set("nameUserSex", rec.getString("name"))
+            }
             rec = indFV.get(r.getLong("pvUserPosition"))
-            if (rec != null)
+            if (rec != null) {
                 r.set("fvUserPosition", rec.getLong("factorval"))
+                r.set("nameUserPosition", rec.getString("name"))
+            }
         }
 
         return st
