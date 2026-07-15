@@ -16,7 +16,7 @@
           v-model:pagination="pagination"
           v-model:selected="selected"
           :columns="cols"
-          :dense="dense"
+          dense
           :filter="filter"
           :loading="loading"
           :max="pagesNumber"
@@ -27,10 +27,11 @@
           card-class="bg-amber-1"
           class="sticky-header-table"
           color="primary"
-          row-key="id"
+          row-key="own"
           selection="single"
           separator="cell"
           table-header-class="text-bold text-white bg-blue-grey-13"
+          @update:selected="updateSelected"
           @request="requestData"
         >
           <template #bottom-row>
@@ -65,7 +66,7 @@
 
             <q-btn
               v-if="hasTarget('pers:upd')"
-              :dense="dense"
+              dense
               :disable="loading || selected.length === 0"
               class="q-ml-sm"
               color="secondary"
@@ -79,7 +80,7 @@
 
             <q-btn
               v-if="hasTarget('pers:del')"
-              :dense="dense"
+              dense
               :disable="loading || selected.length === 0"
               class="q-ml-sm"
               color="red"
@@ -94,7 +95,7 @@
             <q-space/>
             <q-input
               v-model="filter"
-              :dense="dense"
+              dense
               :label="$t('txt_filter')"
               :model-value="filter"
               color="primary"
@@ -143,6 +144,7 @@ import {ref} from "vue";
 import {api,} from "../../boot/axios";
 import {hasTarget, notifyInfo, notifySuccess} from "../../utils/jsutils.js";
 import UpdaterPersonnel from "./UpdaterPersonnel.vue";
+import { extend } from 'quasar'
 
 const requestParam = {
   page: 1,
@@ -174,13 +176,27 @@ export default {
       selected: [],
       form: {UserSecondName: null, UserFirstName: null, UserMiddleName: null,
         UserDateBirth: null, UserEmail: null, UserPhone: null, UserId: null},
-      optUserSex: []
+      optUserSex: [],
+      mapFV: new Map()
 
     };
   },
 
   methods: {
     hasTarget,
+
+    updateSelected() {
+
+
+      if (this.selected.length > 0) {
+        this.splitterModel = 80
+        extend(true, this.form, this.selected[0])
+        this.form.UserPhone = "+7 " + this.form.UserPhone.substring(0, 3) + " " + this.form.UserPhone.substring(3, 6) + " " + this.form.UserPhone.substring(6, 10)
+      } else {
+        this.splitterModel = 100
+        this.form = []
+      }
+    },
 
     fnLabel(txt, req) {
       if (req)
@@ -230,19 +246,23 @@ export default {
     },
 
     editRow(rec, mode) {
-      let data = {
-        id: 0,
-        name: "",
-        fullName: "",
-        cmt: null,
-      };
-      if (mode === "upd") {
-        data = {
-          id: rec.id,
-          name: rec.name,
-          fullName: rec.fullName,
-          cmt: rec.cmt,
-        };
+      let data = {};
+      if (mode === "ins") {
+        this.loading = true;
+        api
+          .post('', {
+            method: "data/newRec",
+            params: [],
+          })
+          .then(
+            (response) => {
+              data = response.data.result.records[0];
+            })
+          .finally(() => {
+            this.loading = false;
+          });
+      } else {
+        extend(true, data, rec)
       }
 
       this.$q
@@ -296,9 +316,10 @@ export default {
             this.pagination.page = meta.page;
             this.pagination.rowsPerPage = meta.limit === meta.total ? 0 : meta.limit;
             this.pagination.rowsNumber = meta.total;
-            this.maxLen = this.rows.length;
             //
             this.selected = ref([]);
+            //
+            console.info("Loading personnel",this.rows);
           },
           (error) => {
             //this.$router["push"]("/");
@@ -356,27 +377,29 @@ export default {
           headerStyle: "font-size: 1.2em; width: 40%",
         },
         {
-          name: "UserSex",
+          name: "nameUserSex",
           label: this.$t("UserSex"),
-          field: "UserSex",
+          field: "nameUserSex",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em",
           style: "width: 10%",
+          //format: v => this.mapFV ? this.mapFV[v] : null
         },
         {
-          name: "UserPosition",
+          name: "nameUserPosition",
           label: this.$t("UserPosition"),
-          field: "UserPosition",
+          field: "nameUserPosition",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em",
           style: "width: 20%",
+          //format: v => this.mapFV ? this.mapFV[v] : null
         },
         {
-          name: "UserOrg",
+          name: "objUserOrg",
           label: this.$t("UserOrg"),
-          field: "UserOrg",
+          field: "objUserOrg",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em",
@@ -390,6 +413,25 @@ export default {
   },
 
   created() {
+    //mapFvNameFromId
+/*
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/mapFvNameFromId',
+        params: [],
+      })
+      .then(
+        (response) => {
+          this.mapFV = response.data.result
+          console.info("mapFV", this.mapFV)
+        })
+      .finally(() => {
+        this.loading = false
+      })
+*/
+
+
     this.cols = this.getColumns();
     this.fetchData(requestParam);
   },

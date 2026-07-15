@@ -278,7 +278,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     @Override
     Store storePropValForSelectFV(String codProp) {
         Store st = mdb.loadQuery("""
-            select f.id as fv, pv.factorval as id, f.name, pv.id as propval
+            select f.id as fv, pv.factorval as id, f.name, pv.id as pv
             from propval pv
                 left join Prop p on pv.prop=p.id
                 left join Factor f on pv.factorval=f.id
@@ -292,9 +292,10 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     @Override
     Store storeFVfromPropVal() {
         Store st = mdb.loadQuery("""
-            select factorval, id as propval
-            from propval
-            where factorval is not null
+            select p.factorval, p.id as propval, fv.name
+            from propval p
+                left join Factor fv on fv.id=p.factorval 
+            where p.factorval is not null
         """)
         return st
     }

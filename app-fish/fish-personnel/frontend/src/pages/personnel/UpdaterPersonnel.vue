@@ -45,7 +45,7 @@
         </q-input>
         <!-- UserSex -->
         <q-select
-          v-model="form.UserSex"
+          v-model="form.fvUserSex"
           :label="fnLabel('UserSex', true)"
           :options="optUserSex"
           map-options
@@ -57,7 +57,7 @@
         />
         <!-- UserPosition -->
         <q-select
-          v-model="form.UserPosition"
+          v-model="form.fvUserPosition"
           :label="fnLabel('UserPosition', true)"
           :options="optUserPosition"
           map-options
@@ -69,7 +69,7 @@
         />
         <!-- UserOrg -->
         <q-select
-          v-model="form.UserOrg"
+          v-model="form.objUserOrg"
           :label="fnLabel('UserOrg', true)"
           :options="optUserOrganization"
           map-options
@@ -113,7 +113,18 @@
             Please use 10 characters.
           </template>
         </q-input>
-
+        <!-- UserId -->
+        <q-select
+          v-model="form.UserId"
+          :label="fnLabel('UserId', false)"
+          :options="optUserId"
+          map-options
+          option-label="name"
+          option-value="id"
+          use-input
+          @filter="filterUserId"
+          @update:model-value="fnSelectUserId"
+        />
 
 
         <!---->
@@ -139,8 +150,8 @@
 </template>
 
 <script>
-import {api, } from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+import {api, } from "../../boot/axios";
+import {notifyError, notifySuccess} from "../../utils/jsutils";
 
 export default {
   props: ["data", "mode"],
@@ -154,7 +165,8 @@ export default {
       optUserPositionOrg: [],
       optUserOrganization: [],
       optUserOrganizationOrg: [],
-
+      optUserId: [],
+      optUserIdOrg: [],
     };
   },
 
@@ -225,8 +237,8 @@ export default {
     },
 
     fnSelectUserOrg(v) {
-      this.form.fvUserOrg = v.id
-      this.form.clsUserOrg = v.cls
+      this.form.objUserOrg = v.id
+      this.form.pvUserOrg = v.pv
     },
 
     filterUserOrg(val, update) {
@@ -246,6 +258,28 @@ export default {
       })
     },
 
+    fnSelectUserId(v) {
+      this.form.UserId = v.id
+    },
+
+    filterUserId(val, update) {
+      if (val === null || val === '') {
+        update(() => {
+          this.optUserId = this.optUserIdOrg
+        })
+        return
+      }
+      update(() => {
+        if (this.optUserIdOrg.length < 2) return
+        const needle = val.toLowerCase()
+        let name = 'name'
+        this.optUserId = this.optUserIdOrg.filter((v) => {
+          return v[name].toLowerCase().indexOf(needle) > -1
+        })
+      })
+    },
+
+
     emailTest: function (v) {
       if (!v)
         return true
@@ -258,8 +292,8 @@ export default {
     },
 
     validSave() {
-      return !this.form.UserSecondName || !this.form.UserFirstName || !this.form.UserSex ||
-        !this.form.UserPosition || !this.form.UserOrg;
+      return !this.form.UserSecondName || !this.form.UserFirstName || !this.form.fvUserSex ||
+        !this.form.fvUserPosition || !this.form.objUserOrg;
     },
 
     // following method is REQUIRED
@@ -285,13 +319,10 @@ export default {
       // emit "ok" event (with optional payload)
       // before hiding the QDialog
 
-      const method = this.mode === "ins" ? "insert" : "update";
-
       api
         .post("", {
-          id: this.form.id,
-          method: "role/" + method,
-          params: [{ rec: this.form }],
+           method: "data/savePersonnel",
+          params: [this.mode, this.form ],
         })
         .then(
           (response) => {
@@ -358,6 +389,24 @@ export default {
       .finally(() => {
         this.loading = false
       })
+    //
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/selectUser',
+        params: [],
+      })
+      .then(
+        (response) => {
+          console.log("UserId", response.data.result.records);
+          this.optUserId = response.data.result.records
+          this.optUserIdOrg = response.data.result.records
+        })
+      .finally(() => {
+        this.loading = false
+      })
+    //
+    console.info("data", this.data)
 
 
 
