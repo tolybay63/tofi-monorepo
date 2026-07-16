@@ -9,6 +9,7 @@ import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
+import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.dbm.sql.SqlText
@@ -39,7 +40,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Map<String, Object> loadPersonnel(Map<String, Object> params) throws Exception {
-        //checkTarget("adm:role");
+        checkTarget("personnel");
         String filter = UtCnv.toString(params.get("filter")).trim()
         Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_User%")
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
@@ -741,6 +742,34 @@ class DataDao extends BaseMdbUtils {
         if (au == 0)
             throw new XError("notLoginned")
         return au
+    }
+
+    @DaoMethod
+    void checkTarget(String target) {
+        AuthService authService = getModel().getApp().bean(AuthService.class);
+        AuthUser usr = authService.getCurrentUser();
+
+        if (getApp().getEnv().isDev()) {
+            System.out.println("--- DEBUG ---");
+            System.out.println("Target: " + target);
+            System.out.println("User ID from Attrs: " + usr.getAttrs().getLong("id"));
+            System.out.println("User Login: " + usr.getAttrs().getString("login"));
+            System.out.println("-------------");
+        }
+
+        if (usr.getAttrs().getLong("id") == 1) return;
+
+        if (usr.getAttrs().getLong("id") == 0)
+            throw new XError("notLoginned");
+
+        String userTargets = usr.getAttrs().getString("target", "");
+        String [] targets = userTargets.trim().split("\\s*,\\s*");
+        if (!Arrays.asList(targets).contains(target)) {
+            if (Arrays.asList("dtj", "adm", "meta", "nsi").contains(target)) {
+                throw new XError("notAccessService");
+            }
+            throw new XError("notAccess");
+        }
     }
 
 
