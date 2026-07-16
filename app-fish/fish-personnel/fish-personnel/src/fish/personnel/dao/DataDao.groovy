@@ -236,6 +236,24 @@ class DataDao extends BaseMdbUtils {
         return st.add()
     }
 
+    private void checkUser(long user, long own) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
+        long cls = map.get("Cls_Personnel")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
+        map.put("cls", cls)
+        Store st = mdb.loadQuery("""
+            select v1.strVal::numeric::bigint as user, o.id as own
+            from Obj o
+                left join DataProp d1 on d1.isObj=1 and d1.objOrRelobj=o.id and d1.prop=:Prop_UserId
+                left join DataPropVal v1 on d1.id=v1.dataProp
+            where o.cls=:cls
+        """, map)
+        for (StoreRecord r in st) {
+            if (r.getLong("user")==user && r.getLong("own") != own) {
+                throw new XError("Указанный пользователь уже назначен другому сотруднику")
+            }
+        }
+    }
 
     @DaoMethod
     Store savePersonnel(String mode, Map<String, Object> params) {
@@ -253,6 +271,7 @@ class DataDao extends BaseMdbUtils {
         par.put("fullName", fn)
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
         par.put("cls", mapCls.get("Cls_Personnel"))
+        checkUser(pms.getLong("UserId"), own)
         if (mode=="ins") {
             own = eu.insertEntity(par)
             pms.put("own", own)
@@ -364,19 +383,10 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store selectUser() {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
-        Store st = apiMonitoring().get(ApiMonitoringData).loadSql("""
-            select v1.strVal::numeric::bigint as user
-            from Obj o
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelobj=o.id and d1.prop=3349
-                join DataPropVal v1 on d1.id=v1.dataProp
-            where o.cls=${map.get("Cls_Personnel")}
-        """, "")
-        Set<Object> setUser = st.getUniqueValues("user")
         return apiAdm().get(ApiAdm).loadSql("""
             select id, fullName as name
             from AuthUser
-            where id<>1 and locked<>1 and id not in (0${setUser.join(",")})
+            where id<>1 and locked<>1
         """, "")
     }
 

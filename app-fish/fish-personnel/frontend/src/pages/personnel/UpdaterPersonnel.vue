@@ -328,8 +328,7 @@ export default {
             notifySuccess(this.$t("success"));
           },
           (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            notifyError(error.response.data.error.message);
+            console.error(error.response.data.error.message);
           }
         )
         .finally(() => {
