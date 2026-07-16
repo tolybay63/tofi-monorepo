@@ -169,6 +169,7 @@ import {
   appMonitoringURL,
   appPersonnelURL
 } from "boot/axios";
+import {Notify} from "quasar";
 
 
 export default defineComponent({
@@ -204,7 +205,14 @@ export default defineComponent({
     },
 
     fnCalc() {
-      open(appCalcURL, "_self");
+      //open(appCalcURL, "_self");
+      Notify.create({
+        type: 'negative',
+        message: "На стадии реализации",
+        position: 'top',
+        timeout: 5000,
+        actions: [{ icon: 'close', color: 'white' }]
+      });
     },
 
   },
