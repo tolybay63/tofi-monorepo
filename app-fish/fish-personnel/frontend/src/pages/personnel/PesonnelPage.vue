@@ -16,7 +16,6 @@
           v-model:pagination="pagination"
           v-model:selected="selected"
           :columns="cols"
-          dense
           :filter="filter"
           :loading="loading"
           :max="pagesNumber"
@@ -27,12 +26,13 @@
           card-class="bg-amber-1"
           class="sticky-header-table"
           color="primary"
+          dense
           row-key="own"
           selection="single"
           separator="cell"
           table-header-class="text-bold text-white bg-blue-grey-13"
-          @update:selected="updateSelected"
           @request="requestData"
+          @update:selected="updateSelected"
         >
           <template #bottom-row>
             <q-td v-if="selected.length > 0" colspan="100%">
@@ -66,10 +66,10 @@
 
             <q-btn
               v-if="hasTarget('pers:upd')"
-              dense
               :disable="loading || selected.length === 0"
               class="q-ml-sm"
               color="secondary"
+              dense
               icon="edit"
               @click="editRow(selected[0], 'upd')"
             >
@@ -80,10 +80,10 @@
 
             <q-btn
               v-if="hasTarget('pers:del')"
-              dense
               :disable="loading || selected.length === 0"
               class="q-ml-sm"
               color="red"
+              dense
               icon="delete"
               @click="removeRow(selected[0])"
             >
@@ -95,11 +95,11 @@
             <q-space/>
             <q-input
               v-model="filter"
-              dense
               :label="$t('txt_filter')"
               :model-value="filter"
               color="primary"
               debounce="300"
+              dense
             >
               <template v-slot:append>
                 <q-icon name="search"/>
@@ -118,15 +118,21 @@
         <q-card class="bg-amber-1 full-height">
           <q-card-section>
 
-              <q-input :label="fnLabel('UserSecondName', true)" readonly v-model="form.UserSecondName"/>
-              <q-input :label="fnLabel('UserFirstName', true)" readonly v-model="form.UserFirstName"/>
-              <q-input :label="fnLabel('UserMiddleName', false)" readonly v-model="form.UserMiddleName"/>
-              <q-input :label="fnLabel('UserDateBirth', false)" readonly v-model="form.UserDateBirth"/>
-              <q-input :label="fnLabel('UserEmail', false)" readonly v-model="form.UserEmail"/>
-              <q-input :label="fnLabel('UserPhone', false)" readonly v-model="form.UserPhone"/>
-              <q-input :label="fnLabel('UserId', false)" readonly v-model="form.UserId"/>
-
-
+            <q-input v-model="form.UserSecondName" :label="fnLabel('UserSecondName', true)" readonly/>
+            <q-input v-model="form.UserFirstName" :label="fnLabel('UserFirstName', true)" readonly/>
+            <q-input v-model="form.UserMiddleName" :label="fnLabel('UserMiddleName', false)" readonly/>
+            <q-input v-model="form.UserDateBirth" :label="fnLabel('UserDateBirth', false)" readonly/>
+            <q-input v-model="form.UserEmail" :label="fnLabel('UserEmail', false)" readonly/>
+            <q-input v-model="form.UserPhone" :label="fnLabel('UserPhone', false)" readonly/>
+            <q-select
+              v-model="form.UserId"
+              :label="fnLabel('UserId', false)"
+              :options="optUserId"
+              map-options
+              option-label="name"
+              option-value="id"
+              readonly
+            />
 
           </q-card-section>
 
@@ -144,7 +150,7 @@ import {ref} from "vue";
 import {api,} from "../../boot/axios";
 import {hasTarget, notifyInfo, notifySuccess} from "../../utils/jsutils.js";
 import UpdaterPersonnel from "./UpdaterPersonnel.vue";
-import { extend } from 'quasar'
+import {extend} from 'quasar'
 
 const requestParam = {
   page: 1,
@@ -174,9 +180,11 @@ export default {
         rowsNumber: 0,
       },
       selected: [],
-      form: {UserSecondName: null, UserFirstName: null, UserMiddleName: null,
-        UserDateBirth: null, UserEmail: null, UserPhone: null, UserId: null},
-      optUserSex: [],
+      form: {
+        UserSecondName: null, UserFirstName: null, UserMiddleName: null,
+        UserDateBirth: null, UserEmail: null, UserPhone: null, UserId: null
+      },
+      optUserId: [],
     };
   },
 
@@ -184,15 +192,15 @@ export default {
     hasTarget,
 
     updateSelected() {
-
-
+      this.form = []
       if (this.selected.length > 0) {
         this.splitterModel = 80
         extend(true, this.form, this.selected[0])
         this.form.UserPhone = "+7 " + this.form.UserPhone.substring(0, 3) + " " + this.form.UserPhone.substring(3, 6) + " " + this.form.UserPhone.substring(6, 10)
+        if (this.form.UserId)
+          this.form.UserId = parseInt(this.form.UserId, 10)
       } else {
         this.splitterModel = 100
-        this.form = []
       }
     },
 
@@ -232,8 +240,8 @@ export default {
               },
               (error) => {
                 let msg = error.message;
-                if (error.response) msg = error.response.data.error.message;
-
+                if (error.response)
+                  msg = error.response.data.error.message;
                 console.error(msg);
               }
             );
@@ -261,6 +269,8 @@ export default {
           });
       } else {
         extend(true, data, rec)
+        if (data.UserId)
+          data.UserId = parseInt(data.UserId, 10)
       }
 
       this.$q
@@ -273,10 +283,9 @@ export default {
           },
         })
         .onOk((r) => {
+          this.selected = [];
           if (mode === "ins") {
             this.rows.push(r);
-            this.selected = [];
-            this.selected.push(r);
           } else {
             for (let key in r) {
               if (r.hasOwnProperty(key)) {
@@ -284,6 +293,8 @@ export default {
               }
             }
           }
+          this.selected.push(r);
+          this.updateSelected()
         });
     },
 
@@ -315,9 +326,8 @@ export default {
             this.pagination.rowsPerPage = meta.limit === meta.total ? 0 : meta.limit;
             this.pagination.rowsNumber = meta.total;
             //
-            this.selected = ref([]);
+            this.selected = [];
             //
-            console.info("Loading personnel",this.rows);
           },
           (error) => {
             //this.$router["push"]("/");
@@ -360,7 +370,7 @@ export default {
     },
 
     infoSelected(row) {
-      return " " + row.name;
+      return " " + row.fio;
     },
 
     getColumns() {
@@ -409,6 +419,20 @@ export default {
   },
 
   created() {
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/selectUser',
+        params: [],
+      })
+      .then(
+        (response) => {
+          this.optUserId = response.data.result.records
+        })
+      .finally(() => {
+        this.loading = false
+      })
+    //
     this.cols = this.getColumns();
     this.fetchData(requestParam);
   },
@@ -438,11 +462,13 @@ export default {
 
 
 
+
   &.q-table--loading thead tr:last-child th
     /* height of all previous header rows */
     top: 48px
 
   /* prevent scrolling behind sticky top row on focus */
+
 
 
 

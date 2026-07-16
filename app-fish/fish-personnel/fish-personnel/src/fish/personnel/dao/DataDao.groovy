@@ -239,7 +239,7 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store savePersonnel(String mode, Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
-        long own = pms.getLong("obj")
+        long own = pms.getLong("own")
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
         String fn = pms.getString("UserSecondName") + " " + pms.getString("UserFirstName") + " " + pms.getString("UserMiddleName")
@@ -284,7 +284,55 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_UserId", pms)
 
         } else if (mode=="upd") {
-
+            par.put("id", own)
+            eu.updateEntity(par)
+            pms.put("own", own)
+            //
+            //1 Prop_UserSecondName
+            updateProperties("Prop_UserSecondName", pms)
+            //2 Prop_UserFirstName
+            updateProperties("Prop_UserFirstName", pms)
+            //3 UserMiddleName
+            if (pms.getLong("idUserMiddleName") > 0)
+                updateProperties( "Prop_UserMiddleName", pms)
+            else {
+                if (!pms.getString("UserMiddleName").isEmpty())
+                    fillProperties(true, "Prop_UserMiddleName", pms)
+            }
+            //4 Prop_UserSex
+            updateProperties( "Prop_UserSex", pms)
+            //5 Prop_UserPosition
+            updateProperties( "Prop_UserPosition", pms)
+            //6 Prop_UserOrg
+            updateProperties( "Prop_UserOrg", pms)
+            //7 UserDateBirth
+            if (pms.getLong("idUserDateBirth") > 0)
+                updateProperties( "Prop_UserDateBirth", pms)
+            else {
+                if (!pms.getString("UserDateBirth").isEmpty())
+                    fillProperties(true, "Prop_UserDateBirth", pms)
+            }
+            //8 UserEmail
+            if (pms.getLong("idUserEmail") > 0)
+                updateProperties( "Prop_UserEmail", pms)
+            else {
+                if (!pms.getString("UserEmail").isEmpty())
+                    fillProperties(true, "Prop_UserEmail", pms)
+            }
+            //9 UserPhone
+            if (pms.getLong("idUserPhone") > 0)
+                updateProperties( "Prop_UserPhone", pms)
+            else {
+                if (!pms.getString("UserPhone").isEmpty())
+                    fillProperties(true, "Prop_UserPhone", pms)
+            }
+            //10 UserId
+            if (pms.getLong("idUserId") > 0)
+                updateProperties( "Prop_UserId", pms)
+            else {
+                if (!pms.getString("UserId").isEmpty())
+                    fillProperties(true, "Prop_UserId", pms)
+            }
         } else {
             throw new XError("Не известный режим ввода [${mode}]")
         }
@@ -315,10 +363,19 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store selectUser() {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
+        Store st = apiMonitoring().get(ApiMonitoringData).loadSql("""
+            select v1.strVal::numeric::bigint as user
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelobj=o.id and d1.prop=3349
+                join DataPropVal v1 on d1.id=v1.dataProp
+            where o.cls=${map.get("Cls_Personnel")}
+        """, "")
+        Set<Object> setUser = st.getUniqueValues("user")
         return apiAdm().get(ApiAdm).loadSql("""
             select id, fullName as name
             from AuthUser
-            where id<>1 and locked<>1
+            where id<>1 and locked<>1 and id not in (0${setUser.join(",")})
         """, "")
     }
 

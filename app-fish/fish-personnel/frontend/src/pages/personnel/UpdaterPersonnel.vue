@@ -121,7 +121,7 @@
           map-options
           option-label="name"
           option-value="id"
-          use-input
+          use-input clearable
           @filter="filterUserId"
           @update:model-value="fnSelectUserId"
         />
@@ -189,7 +189,6 @@ export default {
       if (v.length === 10 && date.formatDate(v).isWellFormed()) {
         this.UserDateBirth = v
       }
-
     },
 
     fnSelectUserSex(v) {
@@ -278,7 +277,6 @@ export default {
         })
       })
     },
-
 
     emailTest: function (v) {
       if (!v)
