@@ -9,9 +9,29 @@
           </q-tooltip>
         </q-btn>
 
+        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer()">
+          <q-tooltip transition-show="rotate" transition-hide="rotate">
+            {{ $t('menu') }}
+          </q-tooltip>
+        </q-btn>
+
         <q-toolbar-title class="text-center">
           {{ $t('appPersonnelName') }}
         </q-toolbar-title>
+
+        <!--Home -->
+        <q-btn
+          class="q-pa-md-sm"
+          rounded
+          color="primary"
+          dense
+          icon="home"
+          @click="this.$router['push']('/')"
+        >
+          <q-tooltip transition-show="rotate" transition-hide="rotate">
+            {{ $t('mainPage') }}
+          </q-tooltip>
+        </q-btn>
 
         <!-- login user-->
         <div class="q-pa-md q-gutter-sm">
@@ -60,6 +80,35 @@
       </q-toolbar>
     </q-footer>
 
+    <q-drawer :width="230" v-model="leftDrawerOpen" show-if-above bordered elevated class="q-pa-sm">
+      <h6 class="q-pa-md text-red text-bold" v-if="reqAuth()">
+        {{ $t('notLoginned') }}
+      </h6>
+      <h6 class="q-pa-md text-red text-bold" v-else-if="notAccess()">
+        {{ $t('notAccess') }}
+      </h6>
+
+      <q-list v-for="link in essentialLinks" :key="link.title">
+        <q-item
+          class="q-table--bordered bg-blue-1"
+          v-if="hasTarget(link.target)"
+          clickable
+          tag="a"
+          :to="link.link"
+          active-class="text-bold text-blue"
+        >
+          <q-item-section v-if="link.icon" avatar>
+            <q-icon :name="link.icon" size="32px" />
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label>{{ $t(link.title) }}</q-item-label>
+            <q-item-label caption>{{ link.info }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-drawer>
+
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -76,6 +125,7 @@ import {useUserStore} from '../stores/user-store'
 import {storeToRefs} from 'pinia'
 import {useRouter} from "vue-router";
 import {Notify} from "quasar";
+import {hasTarget} from "../utils/jsutils.js";
 
 export default defineComponent({
   name: 'MainLayout',
@@ -86,6 +136,7 @@ export default defineComponent({
   },
 
   methods: {
+    hasTarget,
     mainApp() {
       open(urlMainApp, '_self')
     },
@@ -109,37 +160,49 @@ export default defineComponent({
   },
 
   mounted() {
-    const store = useUserStore()
-    const { isSysAdmin, getUserName, getTarget } = storeToRefs(store)
-
-    if (getUserName.value === '') {
-      Notify.create({
-        type: 'negative',
-        message: this.$t("notLoginned"),
-        position: 'top',
-        timeout: 5000,
-        actions: [{ icon: 'close', color: 'white' }]
-      });
-    } else if (getTarget.length === 0 && !isSysAdmin.value) {
-      Notify.create({
-        type: 'negative',
-        message: this.$t("notAccess"),
-        position: 'top',
-        timeout: 5000,
-        actions: [{ icon: 'close', color: 'white' }]
-      });
-    }
   },
 
   setup() {
     console.info('Setup!')
     const store = useUserStore()
-    const { getUserName } = storeToRefs(store)
+    const { getUserName, isSysAdmin, getTarget } = storeToRefs(store)
     const { setUserStore, clearUserStore } = store
     const router = useRouter()
 
+    let getLinks = () => {
+      return [
+        {
+          title: "struct_enterprise",
+          info: "",
+          icon: "apartment",
+          link: "/struct_enterprise",
+          target: "personnel:ose",
+        },
+        {
+          title: "personnel",
+          info: "",
+          icon: "group",
+          link: "/personnel",
+          target: "personnel:pers",
+        },
+      ]
+    }
+
+    let essentialLinks = getLinks()
+
+
     return {
       getUserName,
+      essentialLinks,
+
+      reqAuth() {
+        return getUserName.value === ''
+      },
+
+      notAccess() {
+        return getTarget.value.length === 0 && !isSysAdmin.value
+      },
+
       nameIcon() {
         if (getUserName.value === '') return 'login'
         else return 'logout'
@@ -156,7 +219,7 @@ export default defineComponent({
             })
             .onOk((res) => {
               setUserStore(res)
-              router.push('/main')
+              router.push('/')
             })
         } else {
           api
@@ -178,7 +241,7 @@ export default defineComponent({
                 })
                 .onOk((res) => {
                   setUserStore(res)
-                  router.push('/main')
+                  router.push('/')
                 })
             })
         }

@@ -167,6 +167,7 @@ export default {
       optUserOrganizationOrg: [],
       optUserId: [],
       optUserIdOrg: [],
+      loading: false,
     };
   },
 
@@ -316,7 +317,8 @@ export default {
       // on OK, it is REQUIRED to
       // emit "ok" event (with optional payload)
       // before hiding the QDialog
-
+      this.loading = true
+      let err = false
       api
         .post("", {
            method: "data/savePersonnel",
@@ -328,19 +330,22 @@ export default {
             notifySuccess(this.$t("success"));
           },
           (error) => {
+            err = true
             console.error(error.response.data.error.message);
           }
         )
         .finally(() => {
-          this.hide();
+          if (!err) this.hide();
         });
     },
 
     onCancelClick() {
       // we just need to hide the dialog
+      this.loading = false
       this.hide();
     },
   },
+
   created() {
     this.loading = true
     api

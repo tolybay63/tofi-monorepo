@@ -121,19 +121,17 @@
             <q-input v-model="form.UserSecondName" :label="fnLabel('UserSecondName', true)" readonly/>
             <q-input v-model="form.UserFirstName" :label="fnLabel('UserFirstName', true)" readonly/>
             <q-input v-model="form.UserMiddleName" :label="fnLabel('UserMiddleName', false)" readonly/>
+            <q-select
+              v-model="form.fvUserSex" :label="fnLabel('UserSex', true)"
+              :options="optUserSex" map-options option-label="name" option-value="id" readonly
+            />
             <q-input v-model="form.UserDateBirth" :label="fnLabel('UserDateBirth', false)" readonly/>
             <q-input v-model="form.UserEmail" :label="fnLabel('UserEmail', false)" readonly/>
             <q-input v-model="form.UserPhone" :label="fnLabel('UserPhone', false)" readonly/>
             <q-select
-              v-model="form.UserId"
-              :label="fnLabel('UserId', false)"
-              :options="optUserId"
-              map-options
-              option-label="name"
-              option-value="id"
-              readonly
+              v-model="form.UserId" :label="fnLabel('UserId', false)"
+              :options="optUserId" map-options option-label="name" option-value="id" readonly
             />
-
           </q-card-section>
 
         </q-card>
@@ -185,6 +183,7 @@ export default {
         UserDateBirth: null, UserEmail: null, UserPhone: null, UserId: null
       },
       optUserId: [],
+      optUserSex: []
     };
   },
 
@@ -218,7 +217,7 @@ export default {
           message:
             this.$t("deleteRecord") +
             '<div style="color: plum">(' +
-            rec.name +
+            rec.fio +
             ")</div>",
           html: true,
           cancel: true,
@@ -229,8 +228,8 @@ export default {
           let index = this.rows.findIndex((row) => row.id === rec.id);
           api
             .post("", {
-              method: "data/delete",
-              params: [{rec: rec}],
+              method: "data/deletePersonnel",
+              params: [rec.own],
             })
             .then(
               () => {
@@ -385,22 +384,13 @@ export default {
           headerStyle: "font-size: 1.2em; width: 40%",
         },
         {
-          name: "nameUserSex",
-          label: this.$t("UserSex"),
-          field: "nameUserSex",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 10%",
-        },
-        {
           name: "nameUserPosition",
           label: this.$t("UserPosition"),
           field: "nameUserPosition",
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em",
-          style: "width: 20%",
+          style: "width: 25%",
         },
         {
           name: "nameUserOrg",
@@ -409,7 +399,7 @@ export default {
           align: "left",
           classes: "bg-blue-grey-1",
           headerStyle: "font-size: 1.2em",
-          style: "width: 30%",
+          style: "width: 35%",
         },
       ];
     },
@@ -419,6 +409,20 @@ export default {
   },
 
   created() {
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/selectFV',
+        params: ['Prop_UserSex'],
+      })
+      .then(
+        (response) => {
+          this.optUserSex = response.data.result.records
+        })
+      .finally(() => {
+        this.loading = false
+      })
+    //
     this.loading = true
     api
       .post('', {
