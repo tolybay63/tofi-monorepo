@@ -104,17 +104,17 @@
         </div>
 
         <div class="row q-ma-md justify-center">
-          <!-- Calc -->
+          <!-- Personnel -->
           <q-btn
             rounded
             class="bg-green text-white text-bold q-ma-md"
             style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
-            @click="fnCalc()"
+            @click="fnPersonnel()"
           >
             <div class="column">
               <div>
-                <q-avatar icon="functions" color="orange"></q-avatar>
-                <div>{{ $t("appCalcName") }}</div>
+                <q-avatar icon="groups" color="orange"></q-avatar>
+                <div>{{ $t("appPersonnelName") }}</div>
               </div>
             </div>
           </q-btn>
@@ -133,6 +133,22 @@
               </div>
             </div>
           </q-btn>
+
+          <!-- Calc -->
+          <q-btn
+            rounded
+            class="bg-green text-white text-bold q-ma-md"
+            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
+            @click="fnCalc()"
+          >
+            <div class="column">
+              <div>
+                <q-avatar icon="functions" color="orange"></q-avatar>
+                <div>{{ $t("appCalcName") }}</div>
+              </div>
+            </div>
+          </q-btn>
+
         </div>
 
       </div>
@@ -143,7 +159,16 @@
 
 <script>
 import {defineComponent} from "vue";
-import {appAdmURL, appCalcURL, appCubeURL, appDataURL, appDataUserURL, appModelURL, appMonitoringURL} from "boot/axios";
+import {
+  appAdmURL,
+  appCalcURL,
+  appCubeURL,
+  appDataURL,
+  appDataUserURL,
+  appModelURL,
+  appMonitoringURL,
+  appPersonnelURL
+} from "boot/axios";
 
 
 export default defineComponent({
@@ -170,12 +195,16 @@ export default defineComponent({
       open(appCubeURL, "_self");
     },
 
-    fnCalc() {
-      open(appCalcURL, "_self");
+    fnPersonnel() {
+      open(appPersonnelURL, "_self");
     },
 
     fnMonitoring() {
       open(appMonitoringURL, "_self");
+    },
+
+    fnCalc() {
+      open(appCalcURL, "_self");
     },
 
   },

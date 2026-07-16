@@ -11,7 +11,8 @@ export default {
   appUserDataName: "User's personal account",
   appDataName: "Data management service",
   appCalcName: "Calculation",
-  appMonitoringName: "Балық аулау резервуарларының мониторингі",
+  appMonitoringName: "Monitoring of fishing tanks",
+  appPersonnelName: "Personnel",
 
   appMinIO: "File storage",
   appCubesName: "Cube management service",
