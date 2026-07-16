@@ -42,7 +42,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, } from "boot/axios";
+import {api,} from "boot/axios";
 import RoleDesc from "pages/roles/RoleDesc.vue";
 import RolePermis from "pages/roles/RolePermis.vue";
 import {notifyError} from "src/utils/jsutils";

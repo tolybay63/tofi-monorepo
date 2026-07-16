@@ -45,7 +45,7 @@
 
 <script>
 
-import {api, } from "boot/axios";
+import {api,} from "boot/axios";
 import UpdaterUserRole from "pages/users/UpdaterUserRole.vue";
 import {hasTarget} from "src/utils/jsutils.js";
 

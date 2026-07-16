@@ -204,7 +204,7 @@
 </template>
 
 <script>
-import {api, } from "boot/axios";
+import {api,} from "boot/axios";
 import {expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
 import QTreeTable from "components/QTreeTable.vue";
 import UpdateGroup from "pages/users/UpdateGroup.vue";

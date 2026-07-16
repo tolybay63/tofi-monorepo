@@ -76,7 +76,7 @@
   </q-dialog>
 </template>
 <script>
-import {api, } from "boot/axios.js";
+import {api,} from "boot/axios.js";
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils.js";
 

@@ -136,7 +136,7 @@
 </template>
 
 <script>
-import {api, } from "boot/axios";
+import {api,} from "boot/axios";
 import {ref} from "vue";
 import {collapsAll, expandAll, notifyError, pack,} from "src/utils/jsutils";
 import UpdateAccessLevel from "pages/roles/UpdateAccessLevel.vue";

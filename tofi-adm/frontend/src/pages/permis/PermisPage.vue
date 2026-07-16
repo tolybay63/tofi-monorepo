@@ -155,7 +155,7 @@
 import {ref} from "vue";
 import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
 import UpdaterPermis from "pages/permis/UpdaterPermis.vue";
-import {api, } from "boot/axios";
+import {api,} from "boot/axios";
 import {exportFile} from "quasar";
 
 export default {

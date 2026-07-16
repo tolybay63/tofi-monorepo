@@ -88,7 +88,7 @@
 <script>
 import {ref} from "vue";
 import {collapsAll, expandAll, hasTarget, pack,} from "src/utils/jsutils";
-import {api, } from "boot/axios";
+import {api,} from "boot/axios";
 import UpdaterRolePermis from "pages/roles/UpdaterRolePermis.vue";
 
 

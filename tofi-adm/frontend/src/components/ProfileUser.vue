@@ -153,7 +153,7 @@
   </q-dialog>
 </template>
 <script>
-import {api, authURL } from "boot/axios.js";
+import {api, authURL} from "boot/axios.js";
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils.js";
 import UpdaterPsw from "components/UpdaterPsw.vue";

@@ -118,7 +118,7 @@
 
 <script>
 import {ref} from "vue";
-import {api, } from "boot/axios";
+import {api,} from "boot/axios";
 import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
 import UpdateRole from "pages/roles/UpdaterRole.vue";
 

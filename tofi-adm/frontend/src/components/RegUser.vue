@@ -145,7 +145,7 @@
 <script>
 import {ref} from "vue";
 import {notifyError} from "src/utils/jsutils";
-import {api, } from "boot/axios";
+import {api,} from "boot/axios";
 
 export default {
   props: ["lg"],
