@@ -168,13 +168,6 @@ export default defineComponent({
     let getLinks = () => {
       return [
         {
-          title: "struct_enterprise",
-          info: "",
-          icon: "apartment",
-          link: "/struct_enterprise",
-          target: "nsi:ose",
-        },
-        {
           title: "kato",
           info: "",
           icon: "home_work",
