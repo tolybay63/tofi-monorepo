@@ -195,8 +195,9 @@ export default {
       if (this.selected.length > 0) {
         this.splitterModel = 80
         extend(true, this.form, this.selected[0])
-        this.form.UserPhone = "+7 " + this.form.UserPhone.substring(0, 3) + " " + this.form.UserPhone.substring(3, 6) + " " + this.form.UserPhone.substring(6, 10)
-        if (this.form.UserId)
+        if (this.form.UserPhone !== undefined && this.form.UserPhone.length === 10)
+          this.form.UserPhone = "+7 " + this.form.UserPhone.substring(0, 3) + " " + this.form.UserPhone.substring(3, 6) + " " + this.form.UserPhone.substring(6, 10)
+        if (this.form.UserId !== null)
           this.form.UserId = parseInt(this.form.UserId, 10)
       } else {
         this.splitterModel = 100
