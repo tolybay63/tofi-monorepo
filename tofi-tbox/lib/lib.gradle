@@ -33,7 +33,33 @@ dependencies {
     //implementation(group: 'org.apache.curator', name: 'curator-recipes', version: v) {}
 
     implementation("com.auth0:java-jwt:4.5.0")
+    implementation("com.sun.mail:jakarta.mail:2.0.1")
     implementation("de.mkammerer:argon2-jvm:2.12")
+
+
+// Принудительно обновляем Jackson до безопасной версии
+    constraints {
+        implementation('com.fasterxml.jackson.core:jackson-databind:2.17.1') {
+            because 'security fix CVE-2023-35116'
+        }
+        implementation('com.fasterxml.jackson.core:jackson-core:2.17.1')
+        implementation('com.fasterxml.jackson.core:jackson-annotations:2.17.1')
+
+        implementation('io.undertow:undertow-core:2.2.39.Final')
+        implementation('io.undertow:undertow-servlet:2.2.39.Final')
+        implementation('commons-io:commons-io:2.14.0')
+        implementation('org.apache.commons:commons-lang3:3.18.0')
+        implementation('org.apache.commons:commons-vfs2:2.10.0')
+
+        implementation('com.google.guava:guava:33.5.0-jre')
+        implementation('ch.qos.logback:logback-classic:1.5.32')
+        implementation('ch.qos.logback:logback-core:1.5.32')
+        implementation('commons-io:commons-io:2.14.0')
+        implementation('org.apache.commons:commons-lang3:3.18.0')
+        implementation('org.apache.commons:commons-vfs2:2.10.0')
+
+    }
+
 
 }
 
