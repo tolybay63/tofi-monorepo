@@ -1,6 +1,5 @@
 package tofi.auth;
 
-import jandcode.commons.error.XError;
 import jandcode.core.auth.AuthService;
 import jandcode.core.auth.AuthUser;
 import jandcode.core.auth.DefaultAuthUser;
@@ -15,7 +14,6 @@ public class TofiSecurityFilter extends BaseFilter {
 
     @Override
     public void execFilter(FilterType type, Request request) {
-        // Выполняем проверку только ПЕРЕД выполнением действия (action)
         if (type != FilterType.beforeAction) {
             return;
         }
@@ -24,56 +22,92 @@ public class TofiSecurityFilter extends BaseFilter {
         if (path == null) path = "";
         String normPath = path.startsWith("/") ? path.substring(1) : path;
 
-        // 1. Пропускаем публичные пути (логин, статика и т.д.)
-        if (normPath.isEmpty() || normPath.startsWith("auth/login") ||
-                normPath.startsWith("auth/logout") || normPath.startsWith("data")) {
+        // Извлекаем метод только штатными средствами
+        String rpcMethod = request.getParams().getString("method", "");
+        if (rpcMethod == null) rpcMethod = "";
+
+        // Определяем, относится ли запрос к экшену сброса пароля
+        boolean isResetPasswdAction = normPath.contains("psw/") || rpcMethod.contains("psw/");
+
+        // ПУБЛИЧНЫЕ ЭНДПОИНТЫ: Пропускаем без проверки токенов
+        boolean isPublicRpc = rpcMethod.contains("forgetPasswd") || rpcMethod.contains("confirmPasswd");
+
+        if (normPath.isEmpty() || isResetPasswdAction ||
+                normPath.startsWith("auth/login") || normPath.startsWith("api/auth/login") ||
+                normPath.startsWith("auth/forgetPasswd") || normPath.startsWith("api/auth/forgetPasswd") ||
+                "auth/forceChangePsw".equals(rpcMethod) || isPublicRpc) {
+
+            if (isResetPasswdAction || isPublicRpc) {
+                jandcode.core.auth.AuthUser guestUser = new jandcode.core.auth.DefaultAuthUser(new java.util.HashMap<>());
+                getApp().bean(AuthService.class).setCurrentUser(guestUser);
+            }
             return;
         }
 
+        // ЗАЩИЩЕННЫЕ ЭНДПОИНТЫ: Восстановление пользователя из токена
         AuthService authService = getApp().bean(AuthService.class);
-
-        // 2. Пытаемся восстановить пользователя из токена для текущего запроса
         AuthUser user = restoreUserFromToken(request);
 
         if (user != null) {
-            // Если токен валидный, сохраняем его в ThreadLocal текущего потока
-            // Теперь CheckTargets(target) найдет все права внутри этого объекта
             authService.setCurrentUser(user);
             return;
         }
 
-        // 3. Если пользователь не опознан и путь защищенный — блокируем доступ
-/*
-        if (normPath.startsWith("api") || normPath.startsWith("admin") || normPath.startsWith("meta") ||
-                normPath.startsWith("monitoring") || normPath.startsWith("calc") || normPath.startsWith("personnel")) {
-            // Возвращаем 401 ошибку, чтобы фронтенд (Quasar) мог сделать редирект на логин
-            //throw new XError("401: Unauthorized", 401);
-            throw new XError("lifetime_expired");
-        }
-*/
+        // АВТОМАТИЧЕСКАЯ ОЧИСТКА JSESSIONID ПРИ ПРОТУХАНИИ ТОКЕНА
+        String authHeader = request.getHttpRequest().getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            System.out.println("=== JWT SECURITY: Токен просрочен! Очищаем контекст пользователя ===");
 
+            // 1. Стираем пользователя из текущего потока JAndCode
+            authService.setCurrentUser(null);
+
+            // 2. МЯГКОЕ РЕШЕНИЕ: Вместо invalidate() просто удаляем пользователя из сессии
+            try {
+                var httpSession = request.getHttpRequest().getSession(false);
+                if (httpSession != null) {
+                    // JAndCode хранит пользователя в атрибутах сессии.
+                    // Удаляем всё, что связано с авторизацией, чтобы JSESSIONID стал "пустым"
+                    java.util.Enumeration<String> attrNames = httpSession.getAttributeNames();
+                    while (attrNames.hasMoreElements()) {
+                        String attrName = attrNames.nextElement();
+                        if (attrName.toLowerCase().contains("auth") || attrName.toLowerCase().contains("user")) {
+                            httpSession.removeAttribute(attrName);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // Игнорируем возможные проблемы с многопоточностью
+            }
+
+            // 3. Выходим. Рантайм JAndCode увидит анонима и вернет валидный JSON-ответ (200 OK),
+            // фронтенд Quasar без проблем запустит рефреш.
+            return;
+        }
     }
 
-    /**
-     * Извлекает JWT из заголовка Authorization и превращает его в AuthUser
-     */
     private AuthUser restoreUserFromToken(Request request) {
         String authHeader = request.getHttpRequest().getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
 
         String token = authHeader.substring(7);
         CfgService cfgSvc = getApp().bean(CfgService.class);
-
-        String secret = cfgSvc.getConf().getString("auth/main/jwt", "default-key-change-me");
+        String secret = cfgSvc.getConf().getString("auth/main/jwt");
 
         try {
-            Map<String, Object> userAttrs = JwtUtils.decode(token, secret);
-
-            if (userAttrs == null || userAttrs.isEmpty()) {
+            Map<String, Object> tokenData = JwtUtils.decode(token, secret);
+            if (tokenData == null || tokenData.isEmpty()) {
                 return null;
             }
 
+            // Достаем мапу, которую JwtUtils упаковал под именем "attrs"
+            Map<String, Object> userAttrs = (Map<String, Object>) tokenData.get("attrs");
+
+            if (userAttrs == null) {
+                userAttrs = tokenData;
+            }
+
             return new DefaultAuthUser(userAttrs);
+
         } catch (Exception e) {
             return null;
         }
