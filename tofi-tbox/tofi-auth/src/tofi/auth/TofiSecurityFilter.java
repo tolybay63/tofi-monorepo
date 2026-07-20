@@ -43,12 +43,15 @@ public class TofiSecurityFilter extends BaseFilter {
         }
 
         // 3. Если пользователь не опознан и путь защищенный — блокируем доступ
-        if (normPath.startsWith("api") || normPath.startsWith("meta") ||
-                normPath.startsWith("monitoring") || normPath.startsWith("admin")) {
+/*
+        if (normPath.startsWith("api") || normPath.startsWith("admin") || normPath.startsWith("meta") ||
+                normPath.startsWith("monitoring") || normPath.startsWith("calc") || normPath.startsWith("personnel")) {
             // Возвращаем 401 ошибку, чтобы фронтенд (Quasar) мог сделать редирект на логин
             //throw new XError("401: Unauthorized", 401);
             throw new XError("lifetime_expired");
         }
+*/
+
     }
 
     /**
