@@ -1,5 +1,7 @@
 package tofi.adm.model.dao.usr;
 
+import de.mkammerer.argon2.Argon2;
+import de.mkammerer.argon2.Argon2Factory;
 import jandcode.commons.UtCnv;
 import jandcode.commons.UtString;
 import jandcode.commons.error.XError;
@@ -10,6 +12,7 @@ import jandcode.core.dbm.mdb.BaseMdbUtils;
 import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
+import tofi.api.adm.utils.PasswordGenerator;
 import tofi.api.dta.ApiUserData;
 import tofi.api.mdl.ApiMeta;
 import tofi.api.mdl.model.consts.FD_AccessLevel_consts;
@@ -27,6 +30,8 @@ public class UsrMdbUtils extends BaseMdbUtils {
     ApinatorApi apiUserData() {
         return getApp().bean(ApinatorService.class).getApi("userdata");
     }
+
+    private final Argon2 argon2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id);
 
     String checkAccount(long id) throws Exception {
         Map<String, Long> mapCods = apiMeta().get(ApiMeta.class).getIdFromCodOfEntity("Prop", "", "Prop_");
@@ -142,15 +147,40 @@ public class UsrMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public Store insert(Map<String, Object> rec) throws Exception {
+        checkTarget("adm:usr:gr:usr:ins");
         Store st = getMdb().createStore("AuthUser");
         StoreRecord record = st.add(rec);
-        record.set("passwd", UtString.md5Str(record.getString("passwd")));
+
+        // 1. Получаем сырой пароль
+        String rawPassword = record.getString("passwd").replaceAll("", "");
+
+        if (UtString.empty(rawPassword)) {
+            throw new XError("password_cannot_be_empty");
+        }
+        //
+        if (!PasswordGenerator.checkPasswd(rawPassword))
+            throw new XError("Пароль должен состоять не менее чем из 8 знаков, содержать цифры, заглавные и прописные буквы латинского алфавита и специальные знаки (!@#^&_)");
+
+        //
+        try {
+            // 2. Хэшируем через Argon2id с параметрами под сервер (3 итерации, 64МБ памяти, 4 потока)
+            String argon2Hash = argon2.hash(3, 65536, 4, rawPassword.toCharArray());
+
+            // 3. Записываем новый хэш и маркер алгоритма в запись
+            record.set("passwd", argon2Hash);
+            record.set("passwd_algo", "argon2id");
+        } finally {
+            // Очищаем массив символов в памяти в целях безопасности
+            argon2.wipeArray(rawPassword.toCharArray());
+        }
+
         record.set("id", null);
         long id = getMdb().insertRec("AuthUser", record, true);
+
         st = getMdb().createStore("AuthUser");
         getMdb().loadQuery(st, "select * from AuthUser where id=:id", Map.of("id", id));
-        getMdb().resolveDicts(st);
         return st;
+
     }
 
     @DaoMethod
@@ -170,6 +200,7 @@ public class UsrMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public void delete(long id) throws Exception {
+        checkTarget("adm:usr:gr:usr:del");
         CfgService cfgSvc = getApp().bean(CfgService.class);
         String idmodel = cfgSvc.getConf().getString("dbsource/meta/id");
         if (Objects.equals(idmodel, "test")) {
@@ -179,9 +210,17 @@ public class UsrMdbUtils extends BaseMdbUtils {
             if (!str.isEmpty()) {
                 throw new XError("Существует аккаунт пользователя [" + str + "]");
             }
-            getMdb().deleteRec("AuthUser", id);
-        }
 
+            try {
+                getMdb().execQuery("""
+                    delete from AuthRoleUser where authUser=:id;
+                    delete from AuthUserPermis where authUser=:id;
+                    delete from UserRefreshToken where authUser=:id;
+                """, Map.of("id", id));
+            } finally {
+                getMdb().deleteRec("AuthUser", id);
+            }
+        }
     }
 
     @DaoMethod
@@ -344,7 +383,7 @@ public class UsrMdbUtils extends BaseMdbUtils {
         String userTargets = usr.getAttrs().getString("target", "");
         String [] targets = userTargets.trim().split("\\s*,\\s*");
         if (!Arrays.asList(targets).contains(target)) {
-            if (Arrays.asList("dtj", "adm", "meta", "nsi").contains(target)) {
+            if (Objects.equals(target, "adm")) {
                 throw new XError("notAccessService");
             }
             throw new XError("notAccess");

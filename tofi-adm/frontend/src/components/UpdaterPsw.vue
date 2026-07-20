@@ -1,11 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-down"
-      transition-hide="slide-down"
+    ref="dialog"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-down"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar class="text-white bg-primary">
@@ -14,74 +14,93 @@
 
       <q-card-section>
         <q-input
-            dense
-            v-model="form.passwdold"
-            :model-value="form.passwdold"
-            label="Старый пароль *"
-            autofocus
-            :type="isPwd ? 'password' : 'text'"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+          v-if="!force"
+          dense
+          v-model="form.passwdold"
+          label="Старый пароль *"
+          autofocus
+          :type="isPwd ? 'password' : 'text'"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
           <template v-slot:append>
             <q-icon
-                dense
-                :name="isPwd ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="isPwd = !isPwd"
+              dense
+              :name="isPwd ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="isPwd = !isPwd"
             />
           </template>
         </q-input>
 
         <q-input
-            dense
-            v-model="form.passwd"
-            :model-value="form.passwd"
-            label="Новый пароль *"
-            :type="isPwd ? 'password' : 'text'"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        ></q-input>
+          dense
+          v-model="form.passwd"
+          :model-value="form.passwd"
+          label="Новый пароль *"
+          :type="isPwd ? 'password' : 'text'"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        >
+          <template v-slot:append>
+            <q-icon
+              dense
+              :name="isPwd ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="isPwd = !isPwd"
+            />
+          </template>
+        </q-input>
 
-        <!-- psw2 -->
         <q-input
-            dense
-            v-model="form.passwd2"
-            :model-value="form.passwd2"
-            label="Подтверждение *"
-            :type="isPwd ? 'password' : 'text'"
-            :rules="[(val) => pswTest(val) || $t('errorPassword')]"
-        ></q-input>
+          dense
+          v-model="form.passwd2"
+          :model-value="form.passwd2"
+          label="Подтверждение *"
+          :type="isPwd ? 'password' : 'text'"
+          :rules="[(val) => pswTest(val) || $t('errorPassword')]"
+        >
+          <template v-slot:append>
+            <q-icon
+              dense
+              :name="isPwd ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="isPwd = !isPwd"
+            />
+          </template>
+        </q-input>
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            :loading="loading"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :loading="loading"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
             <q-spinner-hourglass color="white"/>
           </template>
         </q-btn>
         <q-btn
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onCancelClick"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
+
 <script>
-import {api,} from "boot/axios.js";
-import {ref} from "vue";
-import {notifyError} from "src/utils/jsutils.js";
+import { api } from "src/boot/axios.js";
 
 export default {
-  props: ["lg", "id"],
+  props: {
+    login: String,
+    force: Boolean
+  },
 
   data() {
     return {
@@ -90,10 +109,8 @@ export default {
         passwd: "",
         passwd2: "",
       },
-      lang: this.lg,
-      loading: ref(false),
-
-      isPwd: ref(true),
+      loading: false,
+      isPwd: true, // Сделали обычным булевым флагом для Options API
     };
   },
 
@@ -101,11 +118,13 @@ export default {
 
   methods: {
     validSave() {
+      // Если смена принудительная, старый пароль проверять не нужно
+      const oldPswValid = this.force ? false : (this.form.passwdold === "");
       return (
-          this.form.passwdold === "" ||
-          this.form.passwd.trim() === "" ||
-          (this.form.passwd.trim() !== "" &&
-              this.form.passwd.trim() !== this.form.passwd2.trim())
+        oldPswValid ||
+        this.form.passwd.trim() === "" ||
+        (this.form.passwd.trim() !== "" &&
+          this.form.passwd.trim() !== this.form.passwd2.trim())
       );
     },
 
@@ -114,10 +133,10 @@ export default {
     },
 
     show() {
-      this.$refs.dialog.show();
+      this.$refs.dialog["show"]();
     },
     hide() {
-      this.$refs.dialog.hide();
+      this.$refs.dialog["hide"]();
     },
 
     onDialogHide() {
@@ -125,45 +144,56 @@ export default {
     },
 
     onOKClick() {
-      this.form.id = this.id;
-      //console.log("new Form", this.newForm);
+      this.loading = true;
+      let err = false
 
-      let err = false;
-      this.loading = ref(true);
-      api
-          .post("", {
-            method: "auth/savePsw",
-            params: [this.form],
-          })
-          .then(
-              (response) => {
-                //console.log("response saveInfo", response.data)
-                this.$emit("ok", {res: true});
-                this.hide();
-              },
-              (error) => {
-                err = true;
-                let msg = error.response.data.error.message
-                    ? error.response.data.error.message
-                    : error.message;
-                msg = this.$t(msg);
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            this.loading = ref(false);
-            if (!err) location.reload();
+      // Если это принудительный перехват (force), шлем именованный объект на новый метод бэка
+      // Если обычная смена из профиля — шлем стандартный savePsw
+      const requestPromise = this.force
+        ? api.post('?method=auth/forceChangePsw', {
+          method: "auth/forceChangePsw",
+          params: [this.login, this.form.passwd]
+        })
+        : api.post('', { method: "auth/savePsw", params: [this.form] });
+
+      requestPromise
+        .then(() => {
+          // Зелёное уведомление успеха
+          this.$q.notify({
+            type: 'positive',
+            message: 'Пароль успешно изменен! Вход в систему...',
+            position: 'top',
+            timeout: 2000
           });
-    },
 
-    mounted() {
+          // Генерируем событие OK для LoginUser.vue
+          this.$emit("ok", { res: true });
+        })
+        .catch((error) => {
+          err = true
+          console.error(error);
+        })
+        .finally(() => {
+          this.loading = false;
+
+          // Закрываем диалог смены пароля
+          if (!err)
+            this.$emit("hide");
+
+          // КРИТИЧЕСКИЙ ФИКС: Перезагружаем вкладку приложения ТОЛЬКО
+          // если пользователь менял пароль у себя в профиле самостоятельно.
+          // При force-входе релоад делать НЕЛЬЗЯ, иначе сотрется оперативная память Pinia!
+          if (!this.force) {
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          }
+        });
     },
 
     onCancelClick() {
       this.hide();
     },
-  },
-  created() {
-  },
+  }
 };
 </script>

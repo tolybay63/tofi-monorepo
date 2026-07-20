@@ -30,6 +30,7 @@
 
     <dbm>
         <model name="default" instance="tofi.adm.model"/>
+        <model name="adm" instance="tofi.api.adm.model"/>
         <model name="meta" instance="tofi.api.mdl.model"/>
         <model name="userdata" instance="tofi.api.dta.model"/>
     </dbm>

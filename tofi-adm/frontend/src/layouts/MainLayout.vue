@@ -169,6 +169,7 @@ import SetLocale from 'components/SetLocale.vue'
 import {api, authURL, urlMainApp} from 'boot/axios'
 import {notifyError, notifySuccess} from 'src/utils/jsutils'
 import {useQuasar} from 'quasar'
+import axios from "axios";
 
 // Composables
 const router = useRouter()
@@ -245,24 +246,28 @@ const loginOnOff = () => {
       .onOk((res) => {
         setUserStore(res)
         router.push('/')
+
         api
           .post("", {
-            method: "auth/checkTarget",
+            method: "usr/checkTarget",
             params: ["adm"],
           })
       })
   } else {
-    api
-      .post(authURL + '/logout', {
-        params: {},
-      })
+    axios
+      .post(authURL + '/logout', new URLSearchParams()) // <-- Склеиваем динамически со слэшем!
       .then(() => {
+        clearUserStore()
+      })
+      .catch((err) => {
+        console.error("Ошибка при logout на сервере:", err)
         clearUserStore()
       })
       .finally(() => {
         router.push('/')
       })
   }
+
 }
 
 const regUser = async () => {
