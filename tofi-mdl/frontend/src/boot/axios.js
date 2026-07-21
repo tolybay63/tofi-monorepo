@@ -1,55 +1,97 @@
-import {defineBoot} from '#q-app/wrappers'
+import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
-import {LoadingBar, Notify} from 'quasar'
-import {useUserStore} from "stores/user-store.js"
+import { LoadingBar, Notify } from 'quasar'
+import { useUserStore } from "stores/user-store.js"
 
-// 1. Константы и базовые настройки
-let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP
+// =========================================================================
+// 1. Настройка базовых URL (Одинаково для DEV и PROD)
+// =========================================================================
 const SERVICE_NAME = 'meta';
-const url = 'http://127.0.0.1:8080'
-let authURL = url + "/auth"
-let baseURL = url + "/api"
+let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP;
 
-// Настройка путей для PROD
-if (import.meta.env.PROD) {
-  const currentPath = window.location.pathname;
-  if (currentPath.includes(`/fish/${SERVICE_NAME}/`)) {
-    baseURL = `/fish/${SERVICE_NAME}/api/`;
-  } else {
-    baseURL = "/api";
-  }
-  authURL = "/auth";
+let authURL = "/auth";
+let baseURL = "/api";
+
+// Если это ПРОД (сборка через Nginx или запуск без портов в браузере)
+if (process.env.NODE_ENV === 'production' || (typeof window !== 'undefined' && !window.location.port)) {
+  baseURL = `/fish/${SERVICE_NAME}/api/`;
+  authURL = `/fish/${SERVICE_NAME}/auth`; // С закрывающим слэшем для идеальной работы proxy_cookie_path
 }
 
-// 2. Создание экземпляра API
+// 2. Изолированный экземпляр для системных данных (всегда шлет JSON)
 const api = axios.create({
   baseURL: baseURL,
-  headers: { 'Accept': 'application/json' }
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
 })
 
-// 3. Настройка LoadingBar
-LoadingBar.setDefaults({ color: 'amber-14', size: '10px', position: 'top' })
+// Автоматический перехватчик: вытаскивает токен из сессии НАПРЯМУЮ перед КАЖДЫМ запросом
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('fish_token');
+    if (token && token !== 'null' && token !== 'undefined') {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
-// 4. Глобальный заголовок авторизации
-const token = localStorage.getItem('fish_token')
-if (token && typeof token === 'string' && token !== 'null') {
-  api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+// 3. Изолированный экземпляр строго для авторизации и рефреша
+const authApi = axios.create({
+  withCredentials: true // Куки для работы с токенами привязываются только сюда
+})
+
+// Очередь для предотвращения многократного обновления токена
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  failedQueue = []
 }
 
-// 5. ИНТЕРЦЕПТОР ЗАПРОСА
+// Настройка LoadingBar
+LoadingBar.setDefaults({ color: 'amber-14', size: '10px', position: 'top' })
+
+// =========================================================================
+// ИНТЕРЦЕПТОРЫ (ПЕРЕХВАТЧИКИ)
+// =========================================================================
+
+// ИНТЕРЦЕПТОР ЗАПРОСА
 api.interceptors.request.use((config) => {
   LoadingBar.start()
+
+  const token = localStorage.getItem('fish_token')
+  if (token && typeof token === 'string' && token !== 'null') {
+    config.headers['Authorization'] = `Bearer ${token}`
+  }
+
   return config
+}, (error) => {
+  return Promise.reject(error)
 })
 
 export default defineBoot(({ app, router }) => {
   const userStore = useUserStore();
 
-  if (token && token.length > 10) {
+  // Автоматическая инициализация сессии при перезагрузке страницы
+  const currentToken = localStorage.getItem('fish_token')
+  if (currentToken && currentToken.length > 10 && currentToken !== 'null') {
     userStore.initFromToken();
   }
 
-  // 6. ИНТЕРЦЕПТОР ОТВЕТА (Исправленный и усиленный)
+  // ИНТЕРЦЕПТОР ОТВЕТА
   api.interceptors.response.use(
     (response) => {
       LoadingBar.stop()
@@ -60,12 +102,11 @@ export default defineBoot(({ app, router }) => {
 
       const status = error.response?.status;
       const data = error.response?.data;
+      const originalRequest = error.config;
 
-      // Дефолтное значение кода ошибки
       let errorCode = 'unknownError';
       let table = "";
 
-      // Извлекаем текст ответа для поиска ключей XError
       let textContent = '';
       if (data) {
         if (typeof data === 'string') {
@@ -74,13 +115,11 @@ export default defineBoot(({ app, router }) => {
           textContent = new TextDecoder().decode(data);
         } else if (typeof data === 'object') {
           textContent = JSON.stringify(data);
-          // Если это чистый JSON с ошибкой от API
           errorCode = data.error?.message || data.message || errorCode;
         }
       }
 
-      // --- ПОИСК ТЕХНИЧЕСКИХ КЛЮЧЕЙ (для Jandcode 2 XError) ---
-      // Ищем вхождение ключей в любом формате (JSON или HTML стек)
+      // Ваши системные парсеры ошибок Jandcode
       if (textContent.includes('invalid_user_passwd')) {
         errorCode = 'invalid_user_passwd';
       } else if (textContent.includes('login_temporarily_blocked')) {
@@ -91,7 +130,7 @@ export default defineBoot(({ app, router }) => {
         errorCode = "networkError";
       }
 
-      // Обработка внешних ключей (FK) если errorCode еще не определен нашими ключами
+      // Работа с внешними ключами через сохраненную функцию findForeignKey
       if (errorCode === 'unknownError' || errorCode.length > 50) {
         let fk = findForeignKey(textContent);
         if (fk) {
@@ -104,32 +143,73 @@ export default defineBoot(({ app, router }) => {
         }
       }
 
-      // Отработка спец-символов в ключе
       if (errorCode.includes("@")) {
         table = ": [" + errorCode.split('@')[1] + "]";
         errorCode = errorCode.split("@")[0];
       }
 
-      // --- ЛОГИКА АВТОРИЗАЦИИ ---
-      if (status === 401 || errorCode === 'notLoginned' || errorCode === 'lifetime_expired') {
-        userStore.clearUserStore();
-        if (router) router.push("/");
-        return Promise.reject(error);
+      const isAuthError = status === 401 || errorCode === 'notLoginned' || errorCode === 'lifetime_expired';
+
+      // Обработка протухания токена (Refresh Token)
+      if (isAuthError && !originalRequest._retry) {
+
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject })
+          })
+            .then(token => {
+              originalRequest.headers['Authorization'] = `Bearer ${token}`
+              return api(originalRequest)
+            })
+            .catch(err => Promise.reject(err))
+        }
+
+        originalRequest._retry = true
+        isRefreshing = true
+
+        return new Promise((resolve, reject) => {
+          // Вызываем рефреш через изолированный authApi, чтобы не сломать заголовки данных
+          authApi.post(`${authURL}/refresh`, {})
+            .then(({ data }) => {
+              const newToken = data?.result?.token || data?.token;
+
+              if (newToken) {
+                userStore.updateTokenOnly(newToken);
+                api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+                originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+
+                processQueue(null, newToken);
+                resolve(api(originalRequest));
+              } else {
+                throw new Error('No token in response');
+              }
+            })
+            .catch((refreshError) => {
+              processQueue(refreshError, null);
+              userStore.clearUserStore();
+              if (router) router.push("/");
+              reject(refreshError);
+            })
+            .finally(() => {
+              isRefreshing = false;
+            });
+        });
       }
 
-      // --- ВЫВОД УВЕДОМЛЕНИЯ NOTIFY ---
-      // Пытаемся перевести errorCode через i18n
-      const msg = app.config.globalProperties.$t(errorCode) || errorCode;
-      const msg_tr = msg + table;
+      // Вывод всплывающих уведомлений для обычных ошибок данных
+      if (!isAuthError) {
+        const msg = app.config.globalProperties.$t(errorCode) || errorCode;
+        const msg_tr = msg + table;
 
-      Notify.create({
-        type: 'negative',
-        message: msg_tr,
-        position: 'bottom-right',
-        timeout: 5000,
-        progress: true,
-        actions: [{ icon: 'close', color: 'white' }]
-      });
+        Notify.create({
+          type: 'negative',
+          message: msg_tr,
+          position: 'bottom-right',
+          timeout: 5000,
+          progress: true,
+          actions: [{ icon: 'close', color: 'white' }]
+        });
+      }
 
       return Promise.reject(error);
     }
@@ -139,6 +219,7 @@ export default defineBoot(({ app, router }) => {
   app.config.globalProperties.$api = api
 })
 
+// Восстановленная утилита поиска FK
 function findForeignKey(str) {
   if (!str || typeof str !== 'string') return null;
   const match = str.match(/\bfk_\w+/);
@@ -148,4 +229,5 @@ function findForeignKey(str) {
 const tofi_dbeg = "1800-01-01";
 const tofi_dend = "3333-12-31";
 
-export { api, authURL, urlMainApp, tofi_dbeg, tofi_dend };
+// Полный набор всех старых и новых экспортов для совместимости со всем проектом
+export { api, authApi, authURL, urlMainApp, tofi_dbeg, tofi_dend };

@@ -17,7 +17,6 @@
           </q-tooltip>
         </q-btn>
 
-
         <q-btn dense flat icon="menu" round @click="toggleLeftDrawer">
           <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("menu") }}
@@ -162,6 +161,7 @@ import {storeToRefs} from "pinia";
 import {useRouter} from "vue-router";
 import {useQuasar} from "quasar";
 import {hasTarget} from "src/utils/jsutils.js";
+import axios from "axios";
 
 
 export default defineComponent({
@@ -235,9 +235,8 @@ export default defineComponent({
 
 
       loginOnOff() {
-        //console.info("OnOff")
-        if (userName.value === "") {
-          leftDrawerOpen.value = true;
+        if (getUserName.value === '') {
+          leftDrawerOpen.value = true
           $q
             .dialog({
               component: LoginUser,
@@ -248,21 +247,24 @@ export default defineComponent({
             .onOk((res) => {
               setUserStore(res)
               router.push('/')
+
               api
                 .post("", {
-                  method: "auth/checkTarget",
+                  method: "usr/checkTarget",
                   params: ["meta"],
                 })
-            });
-        } else {
-          api
-            .post(authURL + "/logout", {
-              params: [],
             })
+        } else {
+          axios
+            .post(authURL + '/logout', new URLSearchParams()) // <-- Склеиваем динамически со слэшем!
             .then(() => {
               clearUserStore()
             })
-            .finally(()=> {
+            .catch((err) => {
+              console.error("Ошибка при logout на сервере:", err)
+              clearUserStore()
+            })
+            .finally(() => {
               router.push('/')
             })
         }

@@ -267,7 +267,6 @@ const loginOnOff = () => {
         router.push('/')
       })
   }
-
 }
 
 const regUser = async () => {

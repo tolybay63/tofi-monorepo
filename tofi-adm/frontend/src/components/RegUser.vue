@@ -214,6 +214,7 @@ export default {
       //const data = JSON.parse(JSON.stringify(this.form));
 
       this.loading = true;
+      let err = false
 
       api
           .post("", {
@@ -223,18 +224,19 @@ export default {
           .then(
               () => {
                 this.$emit("ok", {res: true});
-                this.hide();
               },
               (error) => {
+                err = true
                 let msg = error.message;
                 if (error.response)
                   msg = this.$t(error.response.data.error.message);
 
-                notifyError(msg);
+                console.error(msg);
               }
           )
           .finally(() => {
             this.loading = false;
+            if (!err) this.hide();
           });
     },
 

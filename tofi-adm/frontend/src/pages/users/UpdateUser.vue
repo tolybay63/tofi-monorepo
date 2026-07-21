@@ -239,6 +239,7 @@ export default {
 
       this.loading = true;
       let method = this.mode === "ins" ? "insert" : "update";
+      let err = false
 
       api
         .post("", {
@@ -250,15 +251,16 @@ export default {
             this.$emit("ok", {res: true});
           },
           (error) => {
+            err = true;
             let msg = error.message;
             if (error.response)
               msg = this.$t(error.response.data.error.message);
-            notifyError(msg);
+            console.log(msg);
           }
         )
         .finally(() => {
           this.loading = false;
-          this.hide();
+          if (!err) this.hide();
         });
     },
 
