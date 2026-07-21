@@ -250,7 +250,7 @@ export default defineComponent({
 
               api
                 .post("", {
-                  method: "usr/checkTarget",
+                  method: "auth/checkTarget",
                   params: ["meta"],
                 })
             })

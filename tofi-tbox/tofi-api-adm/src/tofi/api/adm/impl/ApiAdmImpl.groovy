@@ -244,7 +244,7 @@ class ApiAdmImpl extends BaseMdbUtils implements ApiAdm {
         String confirmLink = url + ":8181/admin/#/confirm-pws?login=" + login;
 
         if (!getMdb().getApp().getEnv().isDev())
-            confirmLink = url + "/dtj/admin/#/confirm-pws?login=" + login;
+            confirmLink = url + "/fish/admin/#/confirm-pws?login=" + login;
 
         send("Сброс пароля",
                 "Ваш разовый пароль: " + newPasswd +

@@ -543,12 +543,11 @@ export default defineComponent({
                 this.selected = ref([]);
               },
               (error) => {
-
                 let msg = error.message;
                 if (error.response)
                   msg = this.$t(error.response.data.error.message);
 
-                notifyError(msg);
+                console.error(msg);
               }
           )
           .finally(() => {
@@ -726,10 +725,10 @@ export default defineComponent({
     return {
       cols: [],
       rows: [],
-      FD_AccessLevel: null,
-      FD_AttribValType: null,
-      FD_EntityType: null,
-      FD_PeriodType: null,
+      FD_AccessLevel: new Map(),
+      FD_AttribValType: new Map(),
+      FD_EntityType: new Map(),
+      FD_PeriodType: new Map(),
 
       filter: "",
       loading: false,
@@ -765,7 +764,6 @@ export default defineComponent({
 
   created() {
     this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.cols = this.getColumns();
     //
     api
@@ -774,7 +772,6 @@ export default defineComponent({
           params: [{dict: "FD_AccessLevel"}],
         })
         .then((response) => {
-          this.FD_AccessLevel = new Map();
           response.data.result.records.forEach((it) => {
             this.FD_AccessLevel.set(it["id"], it["text"]);
           });
@@ -786,7 +783,6 @@ export default defineComponent({
           params: [{dict: "FD_AttribValType"}],
         })
         .then((response) => {
-          this.FD_AttribValType = new Map();
           response.data.result.records.forEach((it) => {
             this.FD_AttribValType.set(it["id"], it["text"]);
           });
@@ -798,7 +794,6 @@ export default defineComponent({
           params: [{dict: "FD_EntityType"}],
         })
         .then((response) => {
-          this.FD_EntityType = new Map();
           response.data.result.records.forEach((it) => {
             this.FD_EntityType.set(it["id"], it["text"]);
           });
@@ -810,7 +805,6 @@ export default defineComponent({
           params: [{dict: "FD_PeriodType"}],
         })
         .then((response) => {
-          this.FD_PeriodType = new Map();
           response.data.result.records.forEach((it) => {
             this.FD_PeriodType.set(["id"], it["text"]);
           });
