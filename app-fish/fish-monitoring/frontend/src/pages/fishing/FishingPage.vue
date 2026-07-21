@@ -124,8 +124,8 @@
 import {api} from 'boot/axios'
 import {hasTarget, notifyInfo} from 'src/utils/jsutils'
 import {extend} from 'quasar'
-import UpdaterPiscesReservoir from 'pages/piscesreservoirs/UpdaterPiscesReservoir.vue'
 import FishFecundityPage from "pages/piscesreservoirs/FishFecundityPage.vue";
+import UpdaterFishingRefs from "pages/fishing/UpdaterFishingRefs.vue";
 
 export default {
   name: 'PiscesReservoirsPage',
@@ -143,30 +143,31 @@ export default {
       loading: false,
       name: "",
 
-      mapReservoir: new Map(),
-      mapTypeOfFish: new Map(),
+      mapFishLocation: new Map(),
+      mapFishGear: new Map(),
+      mapFishManager: new Map(),
+      mapFishParticipants: new Map(),
+
     }
   },
 
   methods: {
     hasTarget,
     updateSelected() {
-      let relobj = 0
+      let obj = 0
 
       if (this.selected.length > 0) {
         //console.info(this.selected[0]);
         this.splitterModel = 70
-        relobj = this.selected[0].relobj
-        this.name = this.mapReservoir.get(this.selected[0].reservoir) + " - " + this.mapTypeOfFish.get(this.selected[0].typeOfFish)
-        //this.recUpd = extend(true, {}, this.selected[0], {dte: this.dte})
-        //console.info(this.recUpd);
+        obj = this.selected[0].obj
+        this.name = this.selected[0].nameCls + " - " + this.selected[0].StartDate
       } else {
         this.splitterModel = 100
-        relobj = 0
+        obj = 0
         this.name = ""
         this.$refs.FishFecundity.clearData()
       }
-      this.$refs.FishFecundity.loadFishFecundity(relobj)
+      this.$refs.FishFecundity.loadFishFecundity(obj)
 
     },
 
@@ -178,7 +179,7 @@ export default {
 
       this.$q
         .dialog({
-          component: UpdaterPiscesReservoir,
+          component: UpdaterFishingRefs,
           componentProps: {
             mode: mode,
             data: data,
@@ -248,8 +249,8 @@ export default {
       this.loading = true
       api
         .post('', {
-          method: 'data/loadPiscesReservoir',
-          params: [{codRelTyp: 'RelTyp_FishReservoir'}],
+          method: 'data/loadFishing',
+          params: [0],
         })
         .then(
           (response) => {
@@ -351,34 +352,23 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadReservoir',
-        params: ["Typ_WaterBodies"],
+        method: 'data/loadFishLocationForSelect',
+        params: ["Prop_FishLocation"],
       })
       .then(
         (response) => {
           response.data.result.records.forEach((it) => {
-            this.mapReservoir.set(it["id"], it["name"])
+            this.mapFishLocation.set(it["id"], it["name"])
           })
+          console.info("mapFishLocation", this.mapFishLocation)
         })
       .finally(() => {
         this.loading = false
       })
     //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadTypeOfFish',
-        params: ['Typ_Fish'],
-      })
-      .then(
-        (response) => {
-          response.data.result.records.forEach((it) => {
-            this.mapTypeOfFish.set(it["id"], it["name"])
-          })
-        })
-      .finally(() => {
-        this.loading = false
-      })
+
+
+
     //
     setTimeout(() => {
       this.loadData()

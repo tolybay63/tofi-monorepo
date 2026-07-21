@@ -1345,18 +1345,75 @@ class DataDao extends BaseMdbUtils {
     //---------------- 6 Fishing ----------------//
 
     @DaoMethod
+    Store loadFishLocationForSelect(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp)
+    }
+
+    @DaoMethod
+    Store loadFishGearForSelect(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp)
+    }
+
+    @DaoMethod
+    Store loadFishManagerForSelect(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp)
+    }
+
+    @DaoMethod
+    Store loadFishParticipantsForSelect(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp)
+    }
+
+    @DaoMethod
     Store loadFishing(long obj) {
         String whe = "o.id=${obj}"
 
         if (obj == 0) {
             Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
             if (setCls.isEmpty()) setCls.add(0L)
-            whe = setCls.join(",")
+            whe = "o.cls in (${setCls.join(",")})"
         }
 
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         Store st = mdb.createStore("Obj.Fishing")
+        mdb.loadQuery(st, """
+            select o.id as obj, o.cls, null as nameCls,
+                v1.id as idStartDate, v1.dateTimeVal::date as StartDate,
+                v2.id as idFishLocation, v2.propVal as pvFishLocation, v2.obj as objFishLocation, 
+                v3.id as idAreaOfTon, v3.numberVal as AreaOfTon,
+                v4.id as idFishGear, v4.propVal as pvFishGear, v4.obj as objFishGear,
+                v5.id as idFishManager, v5.propVal as pvFishManager, v5.obj as objFishManager,
+                v6.id as idFishParticipants, v6.propVal as pvFishParticipants, v6.obj as objFishParticipants
+            from Obj o
+                join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_StartDate
+                join DataPropVal v1 on d1.id=v1.dataprop 
+                join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FishLocation
+                join DataPropVal v2 on d2.id=v2.dataprop
+                join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_AreaOfTon
+                join DataPropVal v3 on d3.id=v3.dataprop
+                join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FishGear
+                join DataPropVal v4 on d4.id=v4.dataprop
+                join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_FishManager
+                join DataPropVal v5 on d5.id=v5.dataprop
+                join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FishParticipants
+                join DataPropVal v6 on d6.id=v6.dataprop
+            where ${whe}
+        """, map)
+
+        Set<Object> idsCls = st.getUniqueValues("cls")
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select c.id, name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null)
+                r.set("nameCls", rec.getString("name"))
+        }
 
 
+        return st
 
     }
 
