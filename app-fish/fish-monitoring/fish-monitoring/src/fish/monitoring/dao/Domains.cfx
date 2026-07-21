@@ -179,10 +179,6 @@
         <field name="dend" parent="string"/>
         <field name="periodName" parent="string"/>
 
-<!--
-        <field name="idSampleExecutor" parent="long"/>
-        <field name="pvSampleExecutor" parent="long"/>
--->
         <field name="objsSampleExecutor" parent="string"/>
         <field name="nameSampleExecutor" parent="string"/>
 
@@ -288,6 +284,36 @@
         <field name="Mineralization" parent="double"/>
     </domain>
 
+    <domain name="Obj.Fishing" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="nameCls" parent="string"/>
+
+        <field name="idStartDate" parent="long"/>
+        <field name="StartDate" parent="long"/>
+
+        <field name="idFishLocation" parent="long"/>
+        <field name="pvFishLocation" parent="long"/>
+        <field name="objFishLocation" parent="long"/>
+
+        <field name="idAreaOfTon" parent="long"/>
+        <field name="AreaOfTon" parent="double"/>
+
+        <field name="idFishGear" parent="long"/>
+        <field name="pvFishGear" parent="long"/>
+        <field name="objFishGear" parent="long"/>
+
+        <field name="idFishManager" parent="long"/>
+        <field name="pvFishManager" parent="long"/>
+        <field name="objFishManager" parent="long"/>
+
+        <field name="idFishParticipants" parent="long"/>
+        <field name="pvFishParticipants" parent="long"/>
+        <field name="objFishParticipants" parent="long"/>
+    </domain>
+
+
+    <!-- ***************************************** -->
     <domain name="Analis.input" parent="base">
         <field name="namePeriod" parent="string"/>
         <field name="dbeg" parent="string"/>

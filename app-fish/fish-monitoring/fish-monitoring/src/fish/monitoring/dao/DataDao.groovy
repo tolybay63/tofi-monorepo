@@ -1190,7 +1190,6 @@ class DataDao extends BaseMdbUtils {
     /*
         delete Owner with properties
     */
-
     @DaoMethod
     void deleteOwnerWithProperties(long id, int isObj) {
         String tableName = isObj == 1 ? "Obj" : "RelObj"
@@ -1343,6 +1342,23 @@ class DataDao extends BaseMdbUtils {
         }
     }
 
+    //---------------- 6 Fishing ----------------//
+
+    @DaoMethod
+    Store loadFishing(long obj) {
+        String whe = "o.id=${obj}"
+
+        if (obj == 0) {
+            Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
+            if (setCls.isEmpty()) setCls.add(0L)
+            whe = setCls.join(",")
+        }
+
+        Store st = mdb.createStore("Obj.Fishing")
+
+
+
+    }
 
 //************************************************************************//
 

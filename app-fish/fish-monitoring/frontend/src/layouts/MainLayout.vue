@@ -166,7 +166,7 @@ export default defineComponent({
     const { isSysAdmin, getUserName, getTarget } = storeToRefs(store)
     const { setUserStore, clearUserStore } = store
     const router = useRouter()
-    const $q = useQuasar();
+    //const $q = useQuasar();
 
 
     let getLinks = () => {
@@ -217,6 +217,13 @@ export default defineComponent({
           target: 'mon:rpv',
         },
 
+        {
+          title: 'fishing',
+          info: '',
+          icon: 'location_on',
+          link: '/fishing',
+          target: 'mon:fish',
+        },
 /*
         {
           title: 'test',
@@ -257,7 +264,7 @@ export default defineComponent({
       loginOnOff() {
         if (getUserName.value === '') {
           leftDrawerOpen.value = true
-          $q
+          this.$q
             .dialog({
               component: LoginUser,
               componentProps: {
@@ -271,7 +278,7 @@ export default defineComponent({
               api
                 .post("", {
                   method: "auth/checkTarget",
-                  params: ["meta"],
+                  params: ["monitoring"],
                 })
             })
         } else {

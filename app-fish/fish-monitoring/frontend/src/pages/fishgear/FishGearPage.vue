@@ -32,7 +32,7 @@
       <template v-slot:top>
         <div style="font-size: 1.2em; font-weight: bold">
           <q-avatar color="black" text-color="white" icon="phishing"> </q-avatar>
-          {{ $t('FishGear') }}
+          {{ $t('FishGear_') }}
         </div>
 
         <q-space />

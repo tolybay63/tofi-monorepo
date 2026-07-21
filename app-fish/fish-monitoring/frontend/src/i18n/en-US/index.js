@@ -130,6 +130,15 @@ export default {
   fisArea: 'Place',
   enterprise: 'Enterprise',
 
+  fishing: "Fishing",
+  fishingType: "Fishing Type",
+  StartDate: "Fishing Start Date",
+  FishLocation: "Fishing Location",
+  AreaOfTon: "Fishing Area, ha",
+  FishGear: 'Fishing Gear',
+  fishManager: "Fishing Supervisor",
+  FishParticipants: "Fishing Participants",
+
   region: "Region",
   district: "District",
   addRegion: 'Add the region',
@@ -171,7 +180,6 @@ export default {
   CurrentSpeed: 'The speed of the current, m/s',
   SplitLife: 'Cannot split life span',
   ExistsValueOnDate: 'There is a value on the specified date',
-  AreaOfTon: "Area of the ton, ha",
   AreaOfTonShort: "Area, ha",
 
   reservoirDepth_maxGRavg: 'Error (The depth of the reservoir): maximum value >= average value',
@@ -203,7 +211,7 @@ export default {
   FishWeight: 'Weight',
   FishLength: 'Length',
 
-  FishGear: 'Fishing tools',
+  FishGear_: 'Fishing tools',
   FishGearType: 'Type of fishing gear',
   FishGender: 'Fish Gender',
 

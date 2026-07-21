@@ -130,6 +130,16 @@ export default {
   fishingArea: 'Место (Рыбопромысловый район, участок)',
   fishArea: 'Место',
 
+  fishing: "Вылов рыбы",
+  fishingType: "Тип ловли",
+  StartDate: "Дата начала вылова",
+  FishLocation: "Место вылова",
+  AreaOfTon: "Площадь тони, га",
+  FishGear: 'Орудие лова',
+  fishManager: "Руководитель вылова",
+  FishParticipants: "Участники вылова",
+
+
   enterprise: 'Предприятия',
 
   region: "Область",
@@ -174,7 +184,7 @@ export default {
   ReservoirHydroLevel: 'Гидрологический уровень водоема (мБС)',
   SplitLife: 'Невозможно расщеплять интервал жизни',
   ExistsValueOnDate: 'На указанную дату существует значение',
-  AreaOfTon: "Площадь тони, га",
+
   AreaOfTonShort: "Площадь, га",
 
 
@@ -204,7 +214,7 @@ export default {
   FishWeight: 'Масса',
   FishLength: 'Длина',
 
-  FishGear: 'Орудия лова',
+  FishGear_: 'Орудия лова',
   FishGearType: 'Тип орудия лова',
   FishGender: 'Пол рыбы',
 
@@ -248,3 +258,4 @@ export default {
   nothing_here: 'Упс. Здесь ничего...',
   home: 'Домой',
 }
+

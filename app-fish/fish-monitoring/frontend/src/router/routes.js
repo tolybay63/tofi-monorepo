@@ -38,6 +38,12 @@ const routes = [
         component: () => import('pages/piscesreservoirs/PiscesReservoirsPage.vue'),
       },
 
+      {
+        path: '/fishing',
+        name: 'FishingPage',
+        component: () => import('pages/fishing/FishingPage.vue'),
+      },
+
       { path: '/test', name: 'TestPage', component: () => import('pages/test/TestPage.vue') },
     ],
   },

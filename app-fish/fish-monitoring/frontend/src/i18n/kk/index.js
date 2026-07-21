@@ -129,6 +129,15 @@ export default {
   fishArea: 'Орын',
   enterprise: 'Кәсіпорын',
 
+  fishing: "Балық аулау",
+  fishingType: "Балық аулау түрі",
+  StartDate: "Балық аулаудың басталу күні",
+  FishLocation: "Балық аулау орны",
+  AreaOfTon: "Балық аулау аймағы, га",
+  FishGear: 'Балық аулау құралы',
+  fishManager: "Балық аулау супервайзері",
+  FishParticipants: "Балық аулауға қатысушылар",
+
   region: "Аймақ",
   district: "Аудан",
   addRegion: 'Аймақты қосу',
@@ -169,7 +178,6 @@ export default {
   CurrentSpeed: 'Ағыс жылдамдығы, м/с',
   SplitLife: 'Өмір аралығын бөлу мүмкін емес',
   ExistsValueOnDate: 'Көрсетілген күнде мән бар',
-  AreaOfTon: "Тони ауданы, га",
   AreaOfTonShort: "Ауданы, га",
 
   reservoirDepth_maxGRavg: 'Қателік (Резервуардың тереңдігі): жоғарғы мәні>= орташа мәні',
@@ -196,7 +204,7 @@ export default {
   FishWeight: 'Салмағы',
   FishLength: 'Ұзындығы',
 
-  FishGear: 'Балық аулау құралы',
+  FishGear_: 'Балық аулау құралдары',
   FishGearType: 'Балық аулау құралдарының түрі',
   FishGender: 'Балық жынысы',
 
