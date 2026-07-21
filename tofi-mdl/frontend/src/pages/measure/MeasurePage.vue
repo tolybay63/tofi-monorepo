@@ -98,12 +98,12 @@ export default {
 
   data: function () {
     return {
-      selected: ref([]),
-      FD_AccessLevel: null,
+      selected: [],
+      FD_AccessLevel: new Map(),
       cols: [],
       rows: [],
       currentNode: null,
-      visible: ref(false),
+      visible: false,
     };
   },
 
@@ -119,7 +119,7 @@ export default {
     },
 
     fetchData() {
-      this.visible = ref(true);
+      this.visible = true;
       api
         .post("", {
           method: "measure/load",
@@ -131,16 +131,16 @@ export default {
             expandAll(this.rows);
           },
           (error) => {
-            let msg
+            let msg = error.message;
             if (error.response)
               msg = this.$t(error.response.data.error.message);
-            else msg = error.message;
-            notifyError(msg);
+
+            console.error(msg);
           }
         )
         .finally(() => {
           //setTimeout(() => {
-          this.visible = ref(false);
+          this.visible = false;
           //}, 3000)
         });
     },
@@ -324,7 +324,6 @@ export default {
         params: [{dict: "FD_AccessLevel"}],
       })
       .then((response) => {
-        this.FD_AccessLevel = new Map();
         response.data.result.records.forEach((it) => {
           this.FD_AccessLevel.set(it["id"], it["text"]);
         });

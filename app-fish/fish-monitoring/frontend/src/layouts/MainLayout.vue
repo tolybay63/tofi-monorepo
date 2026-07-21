@@ -124,6 +124,8 @@ import {api, authURL, urlMainApp} from 'boot/axios'
 import {useUserStore} from 'stores/user-store'
 import {storeToRefs} from 'pinia'
 import {useRouter} from "vue-router";
+import axios from "axios";
+import {useQuasar} from "quasar";
 
 export default defineComponent({
   name: 'MainLayout',
@@ -164,6 +166,8 @@ export default defineComponent({
     const { isSysAdmin, getUserName, getTarget } = storeToRefs(store)
     const { setUserStore, clearUserStore } = store
     const router = useRouter()
+    const $q = useQuasar();
+
 
     let getLinks = () => {
       return [
@@ -251,10 +255,9 @@ export default defineComponent({
       },
 
       loginOnOff() {
-        //console.info("OnOff")
         if (getUserName.value === '') {
           leftDrawerOpen.value = true
-          this.$q
+          $q
             .dialog({
               component: LoginUser,
               componentProps: {
@@ -264,13 +267,21 @@ export default defineComponent({
             .onOk((res) => {
               setUserStore(res)
               router.push('/')
+
+              api
+                .post("", {
+                  method: "auth/checkTarget",
+                  params: ["meta"],
+                })
             })
         } else {
-          api
-            .post(authURL + '/logout', {
-              params: {},
-            })
+          axios
+            .post(authURL + '/logout', new URLSearchParams()) // <-- Склеиваем динамически со слэшем!
             .then(() => {
+              clearUserStore()
+            })
+            .catch((err) => {
+              console.error("Ошибка при logout на сервере:", err)
               clearUserStore()
             })
             .finally(() => {
