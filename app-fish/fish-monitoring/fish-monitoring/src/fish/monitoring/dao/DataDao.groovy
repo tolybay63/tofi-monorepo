@@ -14,6 +14,8 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiMonitoringData
+import tofi.api.dta.ApiPersonnelData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.PeriodGenerator
@@ -36,6 +38,8 @@ class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
     ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
+    ApinatorApi apiPersonnelData() { return app.bean(ApinatorService).getApi("personneldata") }
+    ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
 
     //---------------- KATO ---------------- //
@@ -1024,7 +1028,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadReservoir(String codTyp) {
-        Store st = loadObjForSelect(codTyp)
+        Store st = loadObjForSelect(codTyp, "monitoringdata")
         Set<Object> idsCls = st.getUniqueValues("cls")
         Store stCls = apiMeta().get(ApiMeta).loadSql("""
             select c.id, v.name from Cls c, ClsVer v 
@@ -1042,12 +1046,12 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadTypeOfFish(String codTyp) {
-        return loadObjForSelect(codTyp)
+        return loadObjForSelect(codTyp, "monitoringdata")
     }
 
     @DaoMethod
     Store loadBranchForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp)
+        return loadObjForSelect(codTypOrProp, "monitoringdata")
     }
 
     @DaoMethod
@@ -1056,15 +1060,15 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadObjForSelect(String codTypOrProp) {
+    Store loadObjForSelect(String codTypOrProp, String model) {
         if (codTypOrProp.startsWith("Typ_")) {
             Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
             idsCls.add(0)
-            return mdb.loadQuery("""
+            return loadSqlService("""
                 select o.id, o.cls, v.name
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
-            """)
+            """, "", model)
         } else if (codTypOrProp.startsWith("Prop_")) {
             Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codTypOrProp, "")
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
@@ -1076,11 +1080,11 @@ class DataDao extends BaseMdbUtils {
 
             Set<Object> idsCls = stProp.getUniqueValues("cls")
 
-            Store stObj = mdb.loadQuery("""
+            Store stObj = loadSqlService("""
                 select o.id as obj, o.cls, v.name, null as id
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
-            """)
+            """, "", model)
             for (StoreRecord r in stObj) {
                 StoreRecord rec = indProp.get(r.getLong("cls"))
                 if (rec != null) {
@@ -1088,7 +1092,6 @@ class DataDao extends BaseMdbUtils {
                 }
             }
             return stObj
-
         } else {
             throw new XError("Неверный параметр")
         }
@@ -1346,22 +1349,22 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadFishLocationForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp)
+        return loadObjForSelect(codTypOrProp, "monitoringdata")
     }
 
     @DaoMethod
     Store loadFishGearForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp)
+        return loadObjForSelect(codTypOrProp, "monitoringdata")
     }
 
     @DaoMethod
     Store loadFishManagerForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp)
+        return loadObjForSelect(codTypOrProp, "personneldata")
     }
 
     @DaoMethod
     Store loadFishParticipantsForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp)
+        return loadObjForSelect(codTypOrProp, "personneldata")
     }
 
     @DaoMethod
@@ -1816,6 +1819,21 @@ class DataDao extends BaseMdbUtils {
     private void execSql(String sql, String model) {
         if (model.equalsIgnoreCase("userdata"))
             apiUserData().get(ApiUserData).execSql(sql)
+        else if (model.equalsIgnoreCase("personneldata"))
+            apiPersonnelData().get(ApiPersonnelData).execSql(sql)
+        else if (model.equalsIgnoreCase("monitoringdata"))
+            apiMonitoringData().get(ApiMonitoringData).execSql(sql)
+        else
+            throw new XError("Unknown model [${model}]")
+    }
+
+    private Store loadSqlService(String sql, String domain, String model) {
+        if (model.equalsIgnoreCase("userdata"))
+            return apiUserData().get(ApiUserData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("personneldata"))
+            return apiPersonnelData().get(ApiPersonnelData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("monitoringdata"))
+            return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }

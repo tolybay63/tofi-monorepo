@@ -23,6 +23,10 @@
                   class="tofi.api.dta.impl.ApiMonitoringDataImpl"/>
         </api>
 
+        <api name="personneldata" invoker="model" model="personneldata">
+            <item name="tofi.api.dta.ApiPersonnelData"
+                  class="tofi.api.dta.impl.ApiPersonnelDataImpl"/>
+        </api>
 
     </apinator>
 
