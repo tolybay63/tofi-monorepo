@@ -106,11 +106,11 @@
           :options="optFishParticipants"
           class="q-ma-md"
           color="blue"
-          dense multiple
-          map-options
+          options-dense
+          dense map-options
+          multiple use-chips
           option-label="name"
           option-value="id"
-          options-dense
           options-selected-class="text-blue"
         />
 

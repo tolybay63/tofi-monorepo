@@ -162,7 +162,7 @@ export default {
     onOKClick: function () {
       let err = false
       let params = new URLSearchParams();
-      params.append("username", this.form.login);
+      params.append("username", this.form.login + ":::admin-quasar");
       params.append("password", this.form.psw);
 
       api
@@ -173,7 +173,9 @@ export default {
         })
         .then(
           (res) => {
-            const token = res.data.token;
+            const token = res.data.result.token;
+console.info("data", res.data)
+            console.info("token", token)
             localStorage.setItem('fish_token', token);
             api.defaults.headers.common['Authorization'] = 'Bearer ' + token;
             this.$emit("ok", token);

@@ -109,6 +109,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void deletePersonnel(long id) {
+        checkForExistData(id, 1)
         deleteOwnerWithProperties(id, 1)
     }
 
@@ -280,7 +281,7 @@ class DataDao extends BaseMdbUtils {
         mapProp.put("obj", id)
         String sql = """
             select
-                (v1.strVal || ' ' || v2.strVal || case when v3.strVal='' then '' else ' ' || v3.strVal end) as fio,
+                (v1.strVal || ' ' || v2.strVal || case when coalesce(v3.strVal, '')='' then '' else ' ' || v3.strVal end) as fio,
                 o.id as own, o.cls, 
                 v1.strVal as UserSecondName, v1.id as idUserSecondName,  
                 v2.strVal as UserFirstName, v2.id as idUserFirstName,
@@ -317,8 +318,15 @@ class DataDao extends BaseMdbUtils {
         """
         Store st = getMdb().createStore("Personnel")
         mdb.loadQuery(st, sql, mapProp)
+        //
         Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
         StoreIndex indFV = stFV.getIndex("propval")
+        Set<Object> setObj = st.getUniqueValues("objUserOrg")
+        Store stObj = mdb.loadQuery("""
+            select o.id, v.name from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${setObj.join(",")})
+        """)
+        StoreIndex indObj = stObj.getIndex("id")
         for (StoreRecord r in st) {
             StoreRecord rec = indFV.get(r.getLong("pvUserSex"))
             if (rec != null) {
@@ -330,6 +338,10 @@ class DataDao extends BaseMdbUtils {
                 r.set("fvUserPosition", rec.getLong("factorval"))
                 r.set("nameUserPosition", rec.getString("name"))
             }
+            //
+            rec = indObj.get(r.getLong("objUserOrg"))
+            if (rec != null)
+                r.set("nameUserOrg", rec.getString("name"))
         }
 
         return st
@@ -367,17 +379,21 @@ class DataDao extends BaseMdbUtils {
         long own = pms.getLong("own")
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         Map<String, Object> par = new HashMap<>(pms)
-        String fn = pms.getString("UserSecondName") + " " + pms.getString("UserFirstName") + " " + pms.getString("UserMiddleName")
-        fn = fn.trim()
+        String fn = pms.getString("UserSecondName").trim() + " " + pms.getString("UserFirstName").trim()
+        if (!pms.getString("UserMiddleName").trim().isEmpty())
+            fn = fn + " " + pms.getString("UserMiddleName").trim()
+
+
         String mn = pms.getString("UserMiddleName").trim()
-        String nm = pms.getString("UserSecondName").trim() + " " + UtString.capFirst(pms.getString("UserFirstName").trim()) + "."
+        String nm = pms.getString("UserSecondName").trim() + " " + UtString.capFirst(pms.getString("UserFirstName").trim()).substring(0,1) + "."
         if (!mn.isEmpty())
-            nm = nm + UtString.capFirst(mn) + "."
+            nm = nm + UtString.capFirst(mn).substring(0,1) + "."
         par.put("name", nm)
         par.put("fullName", fn)
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
         par.put("cls", mapCls.get("Cls_Personnel"))
-        checkUser(pms.getLong("UserId"), own)
+        if (own > 0 && pms.getLong("UserId") > 0)
+            checkUser(pms.getLong("UserId"), own)
         if (mode == "ins") {
             own = eu.insertEntity(par)
             pms.put("own", own)

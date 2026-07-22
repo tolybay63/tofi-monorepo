@@ -197,7 +197,7 @@ export default {
         extend(true, this.form, this.selected[0])
         if (this.form.UserPhone !== undefined && this.form.UserPhone.length === 10)
           this.form.UserPhone = "+7 " + this.form.UserPhone.substring(0, 3) + " " + this.form.UserPhone.substring(3, 6) + " " + this.form.UserPhone.substring(6, 10)
-        if (this.form.UserId !== null)
+        if (this.form.UserId)
           this.form.UserId = parseInt(this.form.UserId, 10)
       } else {
         this.splitterModel = 100
@@ -283,6 +283,7 @@ export default {
           },
         })
         .onOk((r) => {
+          console.info("After Ok", r)
           this.selected = [];
           if (mode === "ins") {
             this.rows.push(r);
