@@ -136,7 +136,7 @@ export default {
   FishLocation: "Место вылова",
   AreaOfTon: "Площадь тони, га",
   FishGear: 'Орудие лова',
-  fishManager: "Руководитель вылова",
+  FishManager: "Руководитель вылова",
   FishParticipants: "Участники вылова",
 
 

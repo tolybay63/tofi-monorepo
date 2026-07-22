@@ -308,6 +308,7 @@
         <field name="objFishManager" parent="long"/>
 
         <field name="idFishParticipants" parent="long"/>
+        <field name="FishParticipants" parent="string"/>
         <field name="pvFishParticipants" parent="long"/>
         <field name="objFishParticipants" parent="long"/>
     </domain>

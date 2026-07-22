@@ -135,7 +135,7 @@ export default {
   FishLocation: "Балық аулау орны",
   AreaOfTon: "Балық аулау аймағы, га",
   FishGear: 'Балық аулау құралы',
-  fishManager: "Балық аулау супервайзері",
+  FishManager: "Балық аулау супервайзері",
   FishParticipants: "Балық аулауға қатысушылар",
 
   region: "Аймақ",

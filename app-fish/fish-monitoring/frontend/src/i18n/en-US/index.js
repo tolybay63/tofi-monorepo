@@ -136,7 +136,7 @@ export default {
   FishLocation: "Fishing Location",
   AreaOfTon: "Fishing Area, ha",
   FishGear: 'Fishing Gear',
-  fishManager: "Fishing Supervisor",
+  FishManager: "Fishing Supervisor",
   FishParticipants: "Fishing Participants",
 
   region: "Region",

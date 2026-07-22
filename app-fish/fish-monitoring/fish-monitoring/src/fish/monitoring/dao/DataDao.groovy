@@ -1415,8 +1415,77 @@ class DataDao extends BaseMdbUtils {
                 r.set("nameCls", rec.getString("name"))
         }
 
-
         return st
+
+    }
+
+    @DaoMethod
+    Store saveFishingPropertiesRef(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        //
+        Store stTmp = loadSqlMeta("""
+            select name from ClsVer where ownerVer=${pms.getLong("cls")} and lastVer=1
+        """, "")
+        String nm = stTmp.get(0).getString("name")
+        stTmp = mdb.loadQuery("""
+            select name from ObjVer where ownerVer=${pms.getLong("objFishLocation")} and lastVer=1
+        """)
+        nm = nm + "_" + pms.getString("StartDate")+"_"+stTmp.get(0).getString("name")
+        //
+        par.put("name", nm)
+        par.put("fullName", nm)
+        if (pms.getString("mode").equalsIgnoreCase("ins")) {
+            par.put("cls", params.get("cls"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //
+            //Prop_StartDate
+            if (pms.containsKey("StartDate"))
+                fillProperties(true, "Prop_StartDate", pms)
+            else
+                throw new XError("Не указан [StartDate]")
+            //Prop_FishLocation
+            if (pms.containsKey("objFishLocation"))
+                fillProperties(true, "Prop_FishLocation", pms)
+            else
+                throw new XError("Не указан [objFishLocation]")
+            //Prop_AreaOfTon
+            if (pms.containsKey("AreaOfTon"))
+                fillProperties(true, "Prop_AreaOfTon", pms)
+            else
+                throw new XError("Не указан [AreaOfTon]")
+            //Prop_FishGear
+            if (pms.containsKey("objFishGear"))
+                fillProperties(true, "Prop_FishGear", pms)
+            else
+                throw new XError("Не указан [objFishGear]")
+            //Prop_FishManager
+            if (pms.containsKey("objFishManager"))
+                fillProperties(true, "Prop_FishManager", pms)
+            else
+                throw new XError("Не указан [objFishManager]")
+            //Prop_FishParticipants
+            List<String> lstFishParticipants = UtCnv.toList(pms.get("FishParticipants"))
+            for (String it in lstFishParticipants) {
+                String[] arr = it.split("_")
+                pms.put("objFishParticipants", UtCnv.toLong(arr[0]))
+                pms.put("pvFishParticipants", UtCnv.toLong(arr[1]))
+                fillProperties(true, "Prop_FishParticipants", pms)
+            }
+        } else {
+            own = pms.getLong("own")
+            par.put("id", own)
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //Prop_Description
+
+
+        }
+        return loadFishing(own)
 
     }
 
@@ -1522,7 +1591,8 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_RegDocumentsDateApproval") ||
                     cod.equalsIgnoreCase("Prop_RegDocumentsLifeDoc") ||
                     cod.equalsIgnoreCase("Prop_SampleDate") ||
-                    cod.equalsIgnoreCase("Prop_ResearchDate")) {
+                    cod.equalsIgnoreCase("Prop_ResearchDate") ||
+                    cod.equalsIgnoreCase("Prop_StartDate")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -1541,14 +1611,16 @@ class DataDao extends BaseMdbUtils {
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_KATO") ||
-                    cod.equalsIgnoreCase("Prop_Branch") /*||
-                    cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    cod.equalsIgnoreCase("Prop_Branch") ||
+                    cod.equalsIgnoreCase("Prop_FishLocation") ||
+                    cod.equalsIgnoreCase("Prop_FishGear") ||
+                    cod.equalsIgnoreCase("Prop_FishManager") ||
+                    cod.equalsIgnoreCase("Prop_FishParticipants")/*||
                     cod.equalsIgnoreCase("Prop_SampleExecutor") ||
                     cod.equalsIgnoreCase("Prop_StationSampling") ||
                     cod.equalsIgnoreCase("Prop_LinkToSample") ||
                     cod.equalsIgnoreCase("Prop_ResearchExecutor") ||
                     cod.equalsIgnoreCase("Prop_FishTyp") ||
-                    cod.equalsIgnoreCase("Prop_FishGear") ||
                     cod.equalsIgnoreCase("Prop_FishZone")*/) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)

@@ -122,8 +122,8 @@
 
 <script>
 import {api} from 'boot/axios'
-import {hasTarget, notifyInfo} from 'src/utils/jsutils'
-import {extend} from 'quasar'
+import {hasTarget, notifyInfo, today} from 'src/utils/jsutils'
+import {date, extend} from 'quasar'
 import FishFecundityPage from "pages/piscesreservoirs/FishFecundityPage.vue";
 import UpdaterFishingRefs from "pages/fishing/UpdaterFishingRefs.vue";
 
@@ -172,7 +172,7 @@ export default {
     },
 
     editRow(row, mode) {
-      let data = {accessLevel: 1}
+      let data = {accessLevel: 1, StartDate: new Date().toLocaleDateString()}
       if (mode === 'upd') {
         data = extend(true, {}, row)
       }

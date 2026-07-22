@@ -7,7 +7,7 @@
     transition-show="slide-up"
     @hide="onDialogHide"
   >
-    <q-card class="q-dialog-plugin" style="min-width: 60%">
+    <q-card class="q-dialog-plugin" style="min-width: 40%">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
         <div>{{ $t('newRecord') }}</div>
       </q-bar>
@@ -35,19 +35,19 @@
 
         <!-- StartDate -->
         <q-input
-          v-model="form.StartDate"
+          v-model="dte"
           :label="fmReqLabel('StartDate')"
-          :model-value="form.StartDate"
+          :model-value="dte"
           type="date"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-          class="q-ma-md"
-          dense
+          class="q-ma-md" dense
+          @update:model-value="fnSelectDte"
         />
 
 
         <q-select
-          v-model="form['objFishLocation']"
-          :model-value="form['objFishLocation']"
+          v-model="FishLocation"
+          :model-value="FishLocation"
           :label="fmReqLabel('FishLocation')"
           :options="optFishLocation"
           class="q-ma-md"
@@ -58,6 +58,7 @@
           option-value="id"
           options-dense
           options-selected-class="text-blue"
+          @update:model-value="fnSelectFishLocation"
         />
 
         <!-- AreaOfTon -->
@@ -70,8 +71,8 @@
         />
 
         <q-select
-          v-model="form['objFishGear']"
-          :model-value="form['objFishGear']"
+          v-model="FishGear"
+          :model-value="FishGear"
           :label="fmReqLabel('FishGear')"
           :options="optFishGear"
           class="q-ma-md"
@@ -82,11 +83,12 @@
           option-value="id"
           options-dense
           options-selected-class="text-blue"
+          @update:model-value="fnSelectFishGear"
         />
 
         <q-select
-          v-model="form['objFishManager']"
-          :model-value="form['objFishManager']"
+          v-model="FishManager"
+          :model-value="FishManager"
           :label="fmReqLabel('FishManager')"
           :options="optFishManager"
           class="q-ma-md"
@@ -97,11 +99,12 @@
           option-value="id"
           options-dense
           options-selected-class="text-blue"
+          @update:model-value="fnSelectFishManager"
         />
 
         <q-select
-          v-model="form['objFishParticipants']"
-          :model-value="form['objFishParticipants']"
+          v-model="FishParticipants"
+          :model-value="FishParticipants"
           :label="fmReqLabel('FishParticipants')"
           :options="optFishParticipants"
           class="q-ma-md"
@@ -136,8 +139,11 @@
 import "vue3-treeselect/dist/vue3-treeselect.css";
 import {api} from 'boot/axios'
 import {notifySuccess, pack, today} from 'src/utils/jsutils'
+import {date} from "quasar";
+import {matElectricalServices} from "@quasar/extras/material-icons";
 
 export default {
+
   props: ['mode', 'data'],
 
   data() {
@@ -145,13 +151,22 @@ export default {
       form: this.data,
       optCls: [],
 
+      FishLocation: null,
       optFishLocation: [],
+
+      FishGear: null,
       optFishGear: [],
+
+      FishManager: null,
       optFishManager: [],
+
+      FishParticipants: [],
       optFishParticipants: [],
 
       loading: false,
-      today: today(),
+
+      dte: today(),
+
     }
   },
 
@@ -162,12 +177,6 @@ export default {
   ],
 
   methods: {
-    normalizer(node) {
-      return {
-        id: node.key,
-        label: node.name,
-      };
-    },
 
     fmReqLabel(label) {
       return this.$t(label) + '*'
@@ -177,38 +186,43 @@ export default {
       this.form.cls = val.id
     },
 
-    fnSelectFvReservoirType(v) {
+    fnSelectDte(val) {
+      this.form.StartDate = val
+    },
+
+    fnSelectFishLocation(v) {
       if (v) {
-        this.form.fvReservoirType = v.id
-        this.form.pvReservoirType = v["pv"]
+        this.form.objFishLocation = parseInt(v.id.split("_")[0], 10)
+        this.form.pvFishLocation = parseInt(v.id.split("_")[1], 10)
+      }
+    },
+
+    fnSelectFishGear(v) {
+      if (v) {
+        this.form.objFishGear = parseInt(v.id.split("_")[0], 10)
+        this.form.pvFishGear = parseInt(v.id.split("_")[1], 10)
       }
     },
 
 
-    fnSelectFvFishFarmingType(v) {
+    fnSelectFishManager(v) {
       if (v) {
-        this.form.fvFishFarmingType = v.id
-        this.form.pvFishFarmingType = v["pv"]
+        this.form.objFishManager = parseInt(v.id.split("_")[0], 10)
+        this.form.pvFishManager = parseInt(v.id.split("_")[1], 10)
       }
     },
 
-    fnClearFvFishFarmingType() {
-      this.form.fvFishFarmingType = null
-      this.form.pvFishFarmingType = null
-    },
 
-    fnSelectFvReservoirStatus(v) {
-      if (v) {
-        this.form.fvReservoirStatus = v.id
-        this.form.pvReservoirStatus = v["pv"]
-      }
-    },
 
     validSave() {
-      let nm = this.form.name
-      nm = nm ? nm.trim() : null
-      if (!nm || !this.form.cls || !this.objKATO || !this.objBranch ||
-        !this.form.fvReservoirType || !this.form.fvReservoirStatus) return true
+      console.info("form", this.form)
+
+      if (!this.form.cls || !this.form.AreaOfTon ||
+          !this.FishLocation || !this.FishGear || !this.FishManager || this.FishParticipants.length===0)
+        return true
+      else
+        return false
+
     },
 
     // following method is REQUIRED
@@ -236,14 +250,16 @@ export default {
 
       let err = false
       this.form.mode = this.mode
-      let nm = this.form.name
-      this.form.name = nm.trim()
-      this.form.objBranch = this.objBranch
-      this.form.objKATO = this.objKATO
+
+      console.info("FishParticipants", this.FishParticipants)
+      this.form.FishParticipants = []
+      this.FishParticipants.forEach(it=> {
+        this.form.FishParticipants.push(it.id)
+      })
 
       api
         .post('', {
-          method: 'data/saveReservoirPropertiesRef',
+          method: 'data/saveFishingPropertiesRef',
           params: [this.form],
         })
         .then(
