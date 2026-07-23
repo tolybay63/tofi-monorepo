@@ -1054,7 +1054,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadBranchForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp, "monitoringdata")
+        return loadObjForSelectMulti(codTypOrProp, "monitoringdata")
     }
 
     @DaoMethod

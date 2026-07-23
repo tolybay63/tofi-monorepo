@@ -18,6 +18,8 @@ import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.adm.ApiAdm
 import tofi.api.dta.ApiMonitoringData
+import tofi.api.dta.ApiPersonnelData
+import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.dta.model.utils.UtPeriod
@@ -34,6 +36,10 @@ class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
     ApinatorApi apiAdm() { return app.bean(ApinatorService).getApi("adm") }
+    ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
+    ApinatorApi apiPersonnelData() { return app.bean(ApinatorService).getApi("personneldata") }
+    ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
+
     //----------------------------------------------------------------------------//
 
     //---------------------------------- Branch --------------------------------- //
@@ -109,7 +115,21 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void deletePersonnel(long id) {
-        checkForExistData(id, 1)
+        //checkForExistData(id, 1)
+        Store st = loadSqlService("""
+            select distinct v.name 
+            from Obj o
+            join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+            join DataProp d1 on d1.objorrelobj=o.id-- and d1.prop in (1047,1048)
+            join DataPropVal v1 on d1.id=v1.dataProp
+            where v1.obj=${id}
+        """, "", "monitoringdata")
+
+        if (st.size() > 0) {
+            String msg = st.getUniqueValues("name").join(";\n\r")
+            throw new XError("Cотрудник используется в следующих ловлах:\n\r${msg}")
+        }
+
         deleteOwnerWithProperties(id, 1)
     }
 
@@ -859,6 +879,18 @@ class DataDao extends BaseMdbUtils {
             }
         }
     }
+
+    private Store loadSqlService(String sql, String domain, String model) {
+        if (model.equalsIgnoreCase("userdata"))
+            return apiUserData().get(ApiUserData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("personneldata"))
+            return apiPersonnelData().get(ApiPersonnelData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("monitoringdata"))
+            return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
+        else
+            throw new XError("Unknown model [${model}]")
+    }
+
 
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
