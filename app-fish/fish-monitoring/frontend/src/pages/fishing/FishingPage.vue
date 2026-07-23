@@ -18,7 +18,7 @@
           color="primary"
           dense
           card-class="bg-amber-1 text-brown"
-          row-key="relobj"
+          row-key="obj"
           :columns="cols"
           :rows="rows"
           :wrap-cells="true"
@@ -146,7 +146,7 @@ export default {
       mapFishLocation: new Map(),
       mapFishGear: new Map(),
       mapFishManager: new Map(),
-      mapFishParticipants: new Map(),
+      //mapFishParticipants: new Map(),
 
     }
   },
@@ -293,12 +293,13 @@ export default {
           //format: (v) => (this.mapTypeOfFish ? this.mapTypeOfFish.get(v) : null),
         },
         {
-          name: 'FishLocation',
+          name: 'objFishLocation',
           label: this.$t('FishLocation'),
-          field: 'FishLocation',
+          field: 'objFishLocation',
           align: 'left',
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 10%',
+          format: (v) => (this.mapFishLocation ? this.mapFishLocation.get(v) : null),
         },
         {
           name: 'AreaOfTon',
@@ -309,12 +310,13 @@ export default {
           headerStyle: 'font-size: 1.2em; width: 10%',
         },
         {
-          name: 'FishGear',
+          name: 'objFishGear',
           label: this.$t('FishGear'),
-          field: 'FishGear',
+          field: 'objFishGear',
           align: 'left',
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 10%',
+          format: (v) => (this.mapFishGear ? this.mapFishGear.get(v) : null),
         },
         {
           name: 'objFishManager',
@@ -323,6 +325,7 @@ export default {
           align: 'left',
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 20%',
+          format: (v) => (this.mapFishManager ? this.mapFishManager.get(v) : null),
         },
         {
           name: 'nameFishParticipants',
@@ -339,16 +342,15 @@ export default {
     infoSelected(row) {
       return (
         ' ' +
-        this.mapReservoir.get(row.reservoir) +
-        ' (' +
-        this.mapTypeOfFish.get(row.typeoffish) +
-        ')'
+        this.mapFishLocation.get(row.objFishLocation) +
+        ' (' + row.nameCls + ')'
       )
     },
   },
 
   created() {
     this.cols = this.getColumns()
+    //
     this.loading = true
     api
       .post('', {
@@ -366,9 +368,39 @@ export default {
         this.loading = false
       })
     //
-
-
-
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/loadFishGearForSelect',
+        params: ["Prop_FishGear"],
+      })
+      .then(
+        (response) => {
+          response.data.result.records.forEach((it) => {
+            this.mapFishGear.set(it["id"], it["name"])
+          })
+          console.info("mapFishGear", this.mapFishGear)
+        })
+      .finally(() => {
+        this.loading = false
+      })
+    //
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/loadFishManagerForSelect',
+        params: ["Prop_FishManager"],
+      })
+      .then(
+        (response) => {
+          response.data.result.records.forEach((it) => {
+            this.mapFishManager.set(it["id"], it["name"])
+          })
+          console.info("mapFishManager", this.mapFishManager)
+        })
+      .finally(() => {
+        this.loading = false
+      })
     //
     setTimeout(() => {
       this.loadData()

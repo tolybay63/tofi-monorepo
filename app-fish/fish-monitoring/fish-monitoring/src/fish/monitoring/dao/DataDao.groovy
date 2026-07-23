@@ -1081,14 +1081,14 @@ class DataDao extends BaseMdbUtils {
             Set<Object> idsCls = stProp.getUniqueValues("cls")
 
             Store stObj = loadSqlService("""
-                select o.id as obj, o.cls, v.name, null as id
+                select o.id, o.cls, v.name, null as pv
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
             """, "", model)
             for (StoreRecord r in stObj) {
                 StoreRecord rec = indProp.get(r.getLong("cls"))
                 if (rec != null) {
-                    r.set("id", r.getString("obj") + "_" + rec.getString("propval"))
+                    r.set("pv", rec.getLong("propval"))
                 }
             }
             return stObj
@@ -1426,13 +1426,14 @@ class DataDao extends BaseMdbUtils {
             String[] arr0 = lstParticipants.split(",")
             List<Object> idsObj = new ArrayList<>()
             for (String it in arr0) {
+                if (it.isEmpty()) continue
                 String[] arr1 = it.split("_")
                 objFishParticipants.add(arr1[1] + "_" + arr1[2])
                 idsObj.add(arr1[1])
             }
             r.set("objFishParticipants", objFishParticipants.join(","))
             Store stObj = loadSqlService("""
-                select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObj.join(",")})
+                select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObj.join(",")})
             """, "", "personneldata")
             r.set("nameFishParticipants", stObj.getUniqueValues("name").join("; "))
             //
@@ -1441,6 +1442,7 @@ class DataDao extends BaseMdbUtils {
                 r.set("nameCls", rec.getString("name"))
         }
 
+        mdb.outTable(st)
         return st
 
     }

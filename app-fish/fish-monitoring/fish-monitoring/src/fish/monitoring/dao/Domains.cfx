@@ -290,7 +290,7 @@
         <field name="nameCls" parent="string"/>
 
         <field name="idStartDate" parent="long"/>
-        <field name="StartDate" parent="long"/>
+        <field name="StartDate" parent="string"/>
 
         <field name="idFishLocation" parent="long"/>
         <field name="pvFishLocation" parent="long"/>
