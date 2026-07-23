@@ -1555,15 +1555,12 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_AreaOfTon", pms)
 
             //Prop_FishGear
-            if (pms.containsKey("objFishGear"))
-                fillProperties(true, "Prop_FishGear", pms)
-            else
-                throw new XError("Не указан [objFishGear]")
+            if (pms.containsKey("objFishGear") && pms.getLong("idFishGear") > 0)
+                updateProperties( "Prop_FishGear", pms)
+
             //Prop_FishManager
-            if (pms.containsKey("objFishManager"))
-                fillProperties(true, "Prop_FishManager", pms)
-            else
-                throw new XError("Не указан [objFishManager]")
+            if (pms.containsKey("objFishManager") && pms.getLong("idFishManager") > 0)
+                updateProperties("Prop_FishManager", pms)
 
 
 
