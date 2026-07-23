@@ -273,9 +273,9 @@ export default {
     getColumns() {
       return [
         {
-          name: 'fishingType',
+          name: 'nameCls',
           label: this.$t('fishingType') + "*",
-          field: 'fishingType',
+          field: 'nameCls',
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
@@ -317,17 +317,17 @@ export default {
           headerStyle: 'font-size: 1.2em; width: 10%',
         },
         {
-          name: 'fishManager',
-          label: this.$t('fishManager'),
-          field: 'fishManager',
+          name: 'objFishManager',
+          label: this.$t('FishManager'),
+          field: 'objFishManager',
           align: 'left',
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 20%',
         },
         {
-          name: 'FishParticipants',
+          name: 'nameFishParticipants',
           label: this.$t('FishParticipants'),
-          field: 'FishParticipants',
+          field: 'nameFishParticipants',
           align: 'left',
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 30%',

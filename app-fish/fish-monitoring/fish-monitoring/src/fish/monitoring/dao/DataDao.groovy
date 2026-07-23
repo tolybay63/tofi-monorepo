@@ -1369,38 +1369,49 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadFishing(long obj) {
-        String whe = "o.id=${obj}"
+        String whe = "id=${obj}"
 
         if (obj == 0) {
             Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
             if (setCls.isEmpty()) setCls.add(0L)
-            whe = "o.cls in (${setCls.join(",")})"
+            whe = "cls in (${setCls.join(",")})"
         }
 
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         Store st = mdb.createStore("Obj.Fishing")
         mdb.loadQuery(st, """
-            select o.id as obj, o.cls, null as nameCls,
+            with ob as (
+            select
+                id, cls from Obj               
+                where ${whe}
+            )
+            select ob.id as obj, ob.cls, null as nameCls,
                 v1.id as idStartDate, v1.dateTimeVal::date as StartDate,
                 v2.id as idFishLocation, v2.propVal as pvFishLocation, v2.obj as objFishLocation, 
                 v3.id as idAreaOfTon, v3.numberVal as AreaOfTon,
                 v4.id as idFishGear, v4.propVal as pvFishGear, v4.obj as objFishGear,
                 v5.id as idFishManager, v5.propVal as pvFishManager, v5.obj as objFishManager,
-                v6.id as idFishParticipants, v6.propVal as pvFishParticipants, v6.obj as objFishParticipants
-            from Obj o
-                join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_StartDate
+                t1.lstFishParticipants
+            from Obj ob
+                join DataProp d1 on d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
                 join DataPropVal v1 on d1.id=v1.dataprop 
-                join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FishLocation
+                join DataProp d2 on d2.objorrelobj=ob.id and d2.prop=:Prop_FishLocation
                 join DataPropVal v2 on d2.id=v2.dataprop
-                join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_AreaOfTon
+                join DataProp d3 on d3.objorrelobj=ob.id and d3.prop=:Prop_AreaOfTon
                 join DataPropVal v3 on d3.id=v3.dataprop
-                join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_FishGear
+                join DataProp d4 on d4.objorrelobj=ob.id and d4.prop=:Prop_FishGear
                 join DataPropVal v4 on d4.id=v4.dataprop
-                join DataProp d5 on d5.objorrelobj=o.id and d5.prop=:Prop_FishManager
+                join DataProp d5 on d5.objorrelobj=ob.id and d5.prop=:Prop_FishManager
                 join DataPropVal v5 on d5.id=v5.dataprop
-                join DataProp d6 on d6.objorrelobj=o.id and d6.prop=:Prop_FishParticipants
-                join DataPropVal v6 on d6.id=v6.dataprop
-            where ${whe}
+                left join (
+                    select d6.objorrelobj, d6.prop,
+                    STRING_AGG (cast(v6.id||'_'||v6.obj||'_'||v6.propval as varchar(2000)), ',' order by v6.id) as lstFishParticipants
+                    from ob
+                        left join DataProp d6  on d6.isobj=1 and d6.objorrelobj=ob.id and d6.prop=:Prop_FishParticipants
+                        left join DataPropVal v6 on d6.id=v6.dataprop
+                    where 0=0
+                    group by d6.objorrelobj, d6.prop
+                    ) t1 on t1.objorrelobj=ob.id and t1.prop=:Prop_FishParticipants
         """, map)
 
         Set<Object> idsCls = st.getUniqueValues("cls")
@@ -1410,6 +1421,21 @@ class DataDao extends BaseMdbUtils {
         StoreIndex indCls = stCls.getIndex("id")
 
         for (StoreRecord r in st) {
+            List<String> objFishParticipants = new ArrayList<>()
+            String lstParticipants = r.getString("lstFishParticipants")
+            String[] arr0 = lstParticipants.split(",")
+            List<Object> idsObj = new ArrayList<>()
+            for (String it in arr0) {
+                String[] arr1 = it.split("_")
+                objFishParticipants.add(arr1[1] + "_" + arr1[2])
+                idsObj.add(arr1[1])
+            }
+            r.set("objFishParticipants", objFishParticipants.join(","))
+            Store stObj = loadSqlService("""
+                select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObj.join(",")})
+            """, "", "personneldata")
+            r.set("nameFishParticipants", stObj.getUniqueValues("name").join("; "))
+            //
             StoreRecord rec = indCls.get(r.getLong("cls"))
             if (rec != null)
                 r.set("nameCls", rec.getString("name"))

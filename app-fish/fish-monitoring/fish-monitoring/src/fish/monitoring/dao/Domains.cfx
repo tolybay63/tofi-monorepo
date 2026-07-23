@@ -39,8 +39,8 @@
 
 
         <field name="lstBranch" parent="string"/>
-        <field name="objBranch" parent="string"/>
         <field name="nameBranch" parent="string"/>
+        <field name="objBranch" parent="string"/>
         <field name="idBranch" parent="long"/>
         <field name="pvBranch" parent="long"/>
 
@@ -307,8 +307,9 @@
         <field name="pvFishManager" parent="long"/>
         <field name="objFishManager" parent="long"/>
 
+        <field name="lstFishParticipants" parent="string"/>
+        <field name="nameFishParticipants" parent="string"/>
         <field name="idFishParticipants" parent="long"/>
-        <field name="FishParticipants" parent="string"/>
         <field name="pvFishParticipants" parent="long"/>
         <field name="objFishParticipants" parent="long"/>
     </domain>
