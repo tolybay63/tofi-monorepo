@@ -1424,7 +1424,7 @@ class DataDao extends BaseMdbUtils {
                 v4.id as idFishGear, v4.propVal as pvFishGear, v4.obj as objFishGear,
                 v5.id as idFishManager, v5.propVal as pvFishManager, v5.obj as objFishManager,
                 t1.lstFishParticipants
-            from Obj ob
+            from ob
                 join DataProp d1 on d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
                 join DataPropVal v1 on d1.id=v1.dataprop 
                 join DataProp d2 on d2.objorrelobj=ob.id and d2.prop=:Prop_FishLocation
@@ -1474,7 +1474,8 @@ class DataDao extends BaseMdbUtils {
                 r.set("nameCls", rec.getString("name"))
         }
 
-        mdb.outTable(st)
+        //println(whe)
+        //mdb.outTable(st)
         return st
 
     }
@@ -1536,17 +1537,45 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_FishParticipants", pms)
             }
         } else {
-            own = pms.getLong("own")
+            own = pms.getLong("obj")
             par.put("id", own)
             eu.updateEntity(par)
             //
             pms.put("own", own)
-            //Prop_Description
+            //Prop_StartDate
+            if (pms.containsKey("StartDate") && pms.getLong("idStartDate") > 0)
+                updateProperties("Prop_StartDate", pms)
+
+            //Prop_FishLocation
+            if (pms.getLong("idFishLocation") > 0)
+                updateProperties("Prop_FishLocation", pms)
+
+            //Prop_AreaOfTon
+            if (pms.containsKey("AreaOfTon") && pms.getLong("idAreaOfTon") > 0)
+                updateProperties("Prop_AreaOfTon", pms)
+
+            //Prop_FishGear
+            if (pms.containsKey("objFishGear"))
+                fillProperties(true, "Prop_FishGear", pms)
+            else
+                throw new XError("Не указан [objFishGear]")
+            //Prop_FishManager
+            if (pms.containsKey("objFishManager"))
+                fillProperties(true, "Prop_FishManager", pms)
+            else
+                throw new XError("Не указан [objFishManager]")
+
 
 
         }
         return loadFishing(own)
 
+    }
+
+    @DaoMethod
+    void deleteFishing(long id) {
+        //checkForExistData(id, 0)
+        deleteOwnerWithProperties(id, 1)
     }
 
     @DaoMethod
@@ -1570,7 +1599,7 @@ class DataDao extends BaseMdbUtils {
                 select d.prop as id, v.numberval, v.id as idval
                 from DataProp d
                     left join DataPropVal v on d.id=v.dataProp
-                where d.isObj=0 and d.objorrelobj=${obj} and d.prop in (0${idsProp.join(",")})
+                where d.isObj=1 and d.objorrelobj=${obj} and d.prop in (0${idsProp.join(",")})
             """)
         StoreIndex indData = stData.getIndex("id")
         for (StoreRecord r in st) {
@@ -1580,8 +1609,69 @@ class DataDao extends BaseMdbUtils {
                 r.set("idval", rec.getLong("idval"))
             }
         }
+        //mdb.outTable(st)
         return st
 
+    }
+
+    @DaoMethod
+    void deleteFishingMeters(long idDPV) {
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where id=${idDPV};
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+    }
+
+    @DaoMethod
+    Store saveFishingMeters(Map<String, Object> rec) {
+        long obj = UtCnv.toLong(rec.get("obj"))
+        long prop = UtCnv.toLong(rec.get("prop"))
+        long idVal = UtCnv.toLong(rec.get("idval"))
+        boolean hasValue = rec.containsKey("numberval")
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        if (idVal > 0) {
+            if (hasValue) {
+                String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+                mdb.execQueryNative("""
+                    update DataPropVal set numberval=${value}, timestamp='${tm}' where id=${idVal}
+                """)
+            } else {
+                mdb.execQueryNative("""
+                    delete from DataPropVal
+                    where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${obj});
+                    delete from DataProp where id in (
+                            select id from dataprop
+                            except
+                            select dataProp as id from DataPropVal
+                    );
+                """)
+            }
+        } else if (hasValue) {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", 1)
+            recDP.set("objorrelobj", obj)
+            recDP.set("prop", prop)
+            long idDP = mdb.insertRec("DataProp", recDP)
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", value)
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            recDPV.set("dbeg", "1800-01-01")
+            recDPV.set("dend", "3333-12-31")
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            mdb.insertRec("DataPropVal", recDPV, false)
+        }
+        return loadFishingMeters(obj)
     }
 
 //************************************************************************//
@@ -1683,11 +1773,7 @@ class DataDao extends BaseMdbUtils {
             }
         }
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_RegDocumentsDateApproval") ||
-                    cod.equalsIgnoreCase("Prop_RegDocumentsLifeDoc") ||
-                    cod.equalsIgnoreCase("Prop_SampleDate") ||
-                    cod.equalsIgnoreCase("Prop_ResearchDate") ||
-                    cod.equalsIgnoreCase("Prop_StartDate")) {
+            if (cod.equalsIgnoreCase("Prop_StartDate")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
                 }
@@ -1710,13 +1796,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_FishLocation") ||
                     cod.equalsIgnoreCase("Prop_FishGear") ||
                     cod.equalsIgnoreCase("Prop_FishManager") ||
-                    cod.equalsIgnoreCase("Prop_FishParticipants")/*||
-                    cod.equalsIgnoreCase("Prop_SampleExecutor") ||
-                    cod.equalsIgnoreCase("Prop_StationSampling") ||
-                    cod.equalsIgnoreCase("Prop_LinkToSample") ||
-                    cod.equalsIgnoreCase("Prop_ResearchExecutor") ||
-                    cod.equalsIgnoreCase("Prop_FishTyp") ||
-                    cod.equalsIgnoreCase("Prop_FishZone")*/) {
+                    cod.equalsIgnoreCase("Prop_FishParticipants")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -1730,7 +1810,6 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_ReservoirType") ||
                     cod.equalsIgnoreCase("Prop_ReservoirStatus") ||
                     cod.equalsIgnoreCase("Prop_FishFarmingType") ||
-                    /*cod.equalsIgnoreCase("Prop_FishGender") ||*/
                     cod.equalsIgnoreCase("Prop_FishFamily") ||
                     cod.equalsIgnoreCase("Prop_FishTyp")) {
                 if (propVal > 0) {
@@ -1742,15 +1821,9 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_FishStartPuberty") ||
-                    cod.equalsIgnoreCase("Prop_FishEndPuberty") ||
-                    cod.equalsIgnoreCase("Prop_FishFecundity") ||
-                    cod.equalsIgnoreCase("Prop_AreaOfTon") ||
-                    cod.equalsIgnoreCase("Prop_WaterArea") ||
-                    cod.equalsIgnoreCase("Prop_WaterLevel") ||
-                    cod.equalsIgnoreCase("Prop_WaterLength") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirWidth") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirDepth")) {
+            if (cod.equalsIgnoreCase("Prop_AreaOfTon") ||
+                    cod.equalsIgnoreCase("Prop_FishStartPuberty") ||
+                    cod.equalsIgnoreCase("Prop_FishEndPuberty")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -1859,7 +1932,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For Attrib (dt)
         if ([FD_AttribValType_consts.dt].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_RegDocumentsDateApproval")) {
+            if (cod.equalsIgnoreCase("Prop_StartDate")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     mdb.deleteRec("DataPropVal", idVal)
                     //
@@ -1882,7 +1955,6 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_ReservoirType") ||
                     cod.equalsIgnoreCase("Prop_ReservoirStatus") ||
                     cod.equalsIgnoreCase("Prop_FishFarmingType") ||
-                    /*cod.equalsIgnoreCase("Prop_FishGender") ||*/
                     cod.equalsIgnoreCase("Prop_FishFamily") ||
                     cod.equalsIgnoreCase("Prop_FishTyp")) {
                 if (propVal > 0) {
@@ -1927,15 +1999,9 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_FishStartPuberty") ||
-                    cod.equalsIgnoreCase("Prop_FishEndPuberty") ||
-                    cod.equalsIgnoreCase("Prop_FishFecundity") ||
-                    cod.equalsIgnoreCase("Prop_AreaOfTon") ||
-                    cod.equalsIgnoreCase("Prop_WaterArea") ||
-                    cod.equalsIgnoreCase("Prop_WaterLevel") ||
-                    cod.equalsIgnoreCase("Prop_WaterLength") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirWidth") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirDepth")) {
+            if (cod.equalsIgnoreCase("Prop_AreaOfTon") ||
+                    cod.equalsIgnoreCase("Prop_FishStartPuberty") ||
+                    cod.equalsIgnoreCase("Prop_FishEndPuberty")) {
                 if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
@@ -1961,7 +2027,11 @@ class DataDao extends BaseMdbUtils {
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_KATO") ||
-                    cod.equalsIgnoreCase("Prop_Branch")) {
+                    cod.equalsIgnoreCase("Prop_Branch") ||
+                    cod.equalsIgnoreCase("Prop_FishLocation") ||
+                    cod.equalsIgnoreCase("Prop_FishGear") ||
+                    cod.equalsIgnoreCase("Prop_FishManager") ||
+                    cod.equalsIgnoreCase("Prop_FishParticipants")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)

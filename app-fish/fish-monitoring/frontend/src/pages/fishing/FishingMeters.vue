@@ -1,12 +1,7 @@
 <template>
   <div class="q-pa-md bg-amber-1" style="font-size: 18px"> {{ this.name }}</div>
 
-  <div class="q-pt-sm">
-    <div
-      class="q-table-container q-table--dense wrap bg-orange-1"
-      style="height: 100%"
-    >
-      <div class="q-table-middle scroll">
+  <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
         <table
           class="q-table q-table--cell-separator q-table--bordered wrap"
         >
@@ -73,9 +68,6 @@
           </tr>
           </tbody>
         </table>
-      </div>
-    </div>
-
   </div>
 
 </template>
@@ -297,3 +289,33 @@ export default {
   },
 }
 </script>
+
+
+<style scoped>
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 95%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
+</style>

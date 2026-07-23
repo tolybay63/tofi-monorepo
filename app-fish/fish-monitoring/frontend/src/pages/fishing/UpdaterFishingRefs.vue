@@ -32,7 +32,6 @@
           @update:model-value="fnSelectCls"
         />
 
-
         <!-- StartDate -->
         <q-input
           v-model="form.StartDate"
@@ -44,8 +43,8 @@
           @update:model-value="fnSelectDte"
         />
 
-
         <q-select
+          :disable="mode==='upd'"
           v-model="objFishLocation"
           :model-value="objFishLocation"
           :label="fmReqLabel('FishLocation')"
@@ -69,8 +68,9 @@
           class="q-ma-md"
           dense
         />
-
+        <!-- objFishGear -->
         <q-select
+          :disable="mode==='upd'"
           v-model="objFishGear"
           :model-value="objFishGear"
           :label="fmReqLabel('FishGear')"
@@ -85,8 +85,9 @@
           options-selected-class="text-blue"
           @update:model-value="fnSelectFishGear"
         />
-
+        <!-- objFishManager -->
         <q-select
+          :disable="mode==='upd'"
           v-model="objFishManager"
           :model-value="objFishManager"
           :label="fmReqLabel('FishManager')"
@@ -102,7 +103,9 @@
           @update:model-value="fnSelectFishManager"
         />
 
+        <!-- FishParticipants -->
         <q-select
+          :disable="mode==='upd'"
           v-model="FishParticipants"
           :model-value="FishParticipants"
           :label="fmReqLabel('FishParticipants')"
@@ -116,7 +119,6 @@
           option-value="id"
           options-selected-class="text-blue"
         />
-
       </q-card-section>
 
       <q-card-actions align="right">
@@ -211,12 +213,11 @@ export default {
     },
 
 
-
     validSave() {
       //console.info("form", this.form)
 
       if (!this.form.cls || !this.form.AreaOfTon ||
-          !this.objFishLocation || !this.FishGear || !this.FishManager || this.FishParticipants.length===0)
+        !this.objFishLocation || !this.objFishGear || !this.objFishManager || this.FishParticipants.length === 0)
         return true
       else
         return false
@@ -251,7 +252,7 @@ export default {
 
       //console.info("FishParticipants", this.FishParticipants)
       this.form.FishParticipants = []
-      this.FishParticipants.forEach(it=> {
+      this.FishParticipants.forEach(it => {
         this.form.FishParticipants.push(it.id)
       })
 
@@ -262,25 +263,13 @@ export default {
         })
         .then(
           (response) => {
-            //console.log("recResoirvor", response.data.result.records[0]);
             err = false
             this.$emit('ok', response.data.result.records[0])
             notifySuccess(this.$t('success'))
           },
           (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
+            console.error(error.message)
             err = true
-            /*
-                        if (error.response.data.error.message.includes('@')) {
-                          let msgs = error.response.data.error.message.split('@')
-                          let m1 = this.$t(`${msgs[0]}`)
-                          let m2 = msgs.length > 1 ? ' [' + this.$t(msgs[1]) + ']' : ''
-                          let msg = m1 + m2
-                          notifyError(msg)
-                        } else {
-                          notifyError(this.$t(error.response.data.error.message))
-                        }
-            */
           }
         )
         .finally(() => {
@@ -319,7 +308,6 @@ export default {
       .then(
         (response) => {
           this.optFishLocation = response.data.result.records
-          console.info("optFishLocation", this.optFishLocation)
         })
       .finally(() => {
         this.loading = false
@@ -366,18 +354,30 @@ export default {
       .finally(() => {
         this.loading = false
       })
+      .then(() => {
+        if (this.mode === "upd") {
+          this.objFishLocation = this.data.objFishLocation
+          this.objFishGear = this.data.objFishGear
+          this.objFishManager = this.data.objFishManager
+
+          this.FishParticipants = []
+          let lstData = this.data.lstFishParticipants
+
+          lstData.split(",").forEach(id => {
+            let arr = id.split("_")
+            let key = arr[1] + "_" + arr[2]
+            for (let i = 0; i < this.optFishParticipants.length; i++) {
+              const it = this.optFishParticipants[i];
+              if (key === it.id) {
+                this.FishParticipants.push({id: id, name: it.name})
+              }
+            }
+          })
+        }
+      })
     //
 
-    console.info("data", this.data)
-    if (this.mode === "upd") {
-      this.objFishLocation = this.data.objFishLocation
-      this.objFishGear = this.data.objFishGear
-      this.objFishManager = this.data.objFishManager
 
-      this.FishParticipants = this.data.lstFishParticipants.split(",")
-
-
-    }
   },
 }
 </script>

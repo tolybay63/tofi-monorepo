@@ -156,7 +156,6 @@ export default {
       let obj = 0
 
       if (this.selected.length > 0) {
-        //console.info(this.selected[0]);
         this.splitterModel = 70
         obj = this.selected[0].obj
         this.name = this.mapFishLocation.get(this.selected[0].objFishLocation) +
@@ -199,14 +198,6 @@ export default {
                 row[key] = r[key]
               }
             }
-            if (r["FishSpawPeriod"] !== null)
-              row["FishSpawPeriod"] = r["FishSpawPeriod"]
-            if (r["FishStartPuberty"] !== null)
-              row["FishStartPuberty"] = r["FishStartPuberty"]
-            if (r["FishEndPuberty"] !== null)
-              row["FishEndPuberty"] = r["FishEndPuberty"]
-            if (r["FishSpawFrequency"] !== null)
-              row["FishSpawFrequency"] = r["FishSpawFrequency"]
           }
         })
     },
@@ -218,9 +209,8 @@ export default {
           message:
             this.$t('deleteRecord') +
             '<div style="color: plum">(' +
-            this.mapReservoir.get(row.reservoir) +
-            ' - ' +
-            this.mapTypeOfFish.get(row.typeoffish) +
+            this.mapFishLocation.get(row.objFishLocation) +
+            ' (' + row.nameCls + ' - ' + date.formatDate(row.StartDate, 'DD.MM.YYYY') + ')' +
             ')</div>',
           html: true,
           cancel: true,
@@ -230,12 +220,13 @@ export default {
         .onOk(() => {
           api
             .post('', {
-              method: 'data/deletePiscesReservoir',
-              params: [row.relobj],
+              method: 'data/deleteFishing',
+              params: [row.obj],
             })
             .then(() => {
               this.loadData()
               this.selected = []
+              this.updateSelected()
             })
             .catch((error) => {
               console.log(error.message)
@@ -256,6 +247,7 @@ export default {
         .then(
           (response) => {
             this.rows = response.data.result["records"]
+            //console.info("load", this.rows)
           })
         .finally(() => {
           //setTimeout(()=> {
@@ -264,13 +256,6 @@ export default {
         })
     },
 
-    //fishingType: "Тип ловли",
-    //StartDate: "Дата начала вылова",
-    //FishLocation: "Место вылова",
-    //AreaOfTon: "Площадь тони, га",
-    //FishGear: 'Орудие лова',
-    //fishManager: "Руководитель вылова",
-    //FishParticipants: "Участники вылова",
     getColumns() {
       return [
         {
@@ -363,7 +348,6 @@ export default {
           response.data.result.records.forEach((it) => {
             this.mapFishLocation.set(it["id"], it["name"])
           })
-          console.info("mapFishLocation", this.mapFishLocation)
         })
       .finally(() => {
         this.loading = false
@@ -380,7 +364,6 @@ export default {
           response.data.result.records.forEach((it) => {
             this.mapFishGear.set(it["id"], it["name"])
           })
-          console.info("mapFishGear", this.mapFishGear)
         })
       .finally(() => {
         this.loading = false
@@ -397,7 +380,6 @@ export default {
           response.data.result.records.forEach((it) => {
             this.mapFishManager.set(it["id"], it["name"])
           })
-          console.info("mapFishManager", this.mapFishManager)
         })
       .finally(() => {
         this.loading = false
