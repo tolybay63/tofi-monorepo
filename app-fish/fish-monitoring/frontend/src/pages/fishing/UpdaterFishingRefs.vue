@@ -35,9 +35,9 @@
 
         <!-- StartDate -->
         <q-input
-          v-model="dte"
+          v-model="form.StartDate"
+          :model-value="form.StartDate"
           :label="fmReqLabel('StartDate')"
-          :model-value="dte"
           type="date"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
           class="q-ma-md" dense
@@ -46,8 +46,8 @@
 
 
         <q-select
-          v-model="FishLocation"
-          :model-value="FishLocation"
+          v-model="objFishLocation"
+          :model-value="objFishLocation"
           :label="fmReqLabel('FishLocation')"
           :options="optFishLocation"
           class="q-ma-md"
@@ -71,8 +71,8 @@
         />
 
         <q-select
-          v-model="FishGear"
-          :model-value="FishGear"
+          v-model="objFishGear"
+          :model-value="objFishGear"
           :label="fmReqLabel('FishGear')"
           :options="optFishGear"
           class="q-ma-md"
@@ -87,8 +87,8 @@
         />
 
         <q-select
-          v-model="FishManager"
-          :model-value="FishManager"
+          v-model="objFishManager"
+          :model-value="objFishManager"
           :label="fmReqLabel('FishManager')"
           :options="optFishManager"
           class="q-ma-md"
@@ -139,7 +139,7 @@
 import "vue3-treeselect/dist/vue3-treeselect.css";
 import {api} from 'boot/axios'
 import {notifySuccess, pack, today} from 'src/utils/jsutils'
-import {date} from "quasar";
+import {date, format} from "quasar";
 import {matElectricalServices} from "@quasar/extras/material-icons";
 
 export default {
@@ -151,21 +151,19 @@ export default {
       form: this.data,
       optCls: [],
 
-      FishLocation: null,
+      objFishLocation: null,
       optFishLocation: [],
 
-      FishGear: null,
+      objFishGear: null,
       optFishGear: [],
 
-      FishManager: null,
+      objFishManager: null,
       optFishManager: [],
 
       FishParticipants: [],
       optFishParticipants: [],
 
       loading: false,
-
-      dte: today(),
 
     }
   },
@@ -187,38 +185,38 @@ export default {
     },
 
     fnSelectDte(val) {
-      this.form.StartDate = val
+      //this.form.StartDate = val
     },
 
     fnSelectFishLocation(v) {
       if (v) {
-        this.form.objFishLocation = parseInt(v.id.split("_")[0], 10)
-        this.form.pvFishLocation = parseInt(v.id.split("_")[1], 10)
+        this.form.objFishLocation = v.id
+        this.form.pvFishLocation = v.pv
       }
     },
 
     fnSelectFishGear(v) {
       if (v) {
-        this.form.objFishGear = parseInt(v.id.split("_")[0], 10)
-        this.form.pvFishGear = parseInt(v.id.split("_")[1], 10)
+        this.form.objFishGear = v.id
+        this.form.pvFishGear = v.pv
       }
     },
 
 
     fnSelectFishManager(v) {
       if (v) {
-        this.form.objFishManager = parseInt(v.id.split("_")[0], 10)
-        this.form.pvFishManager = parseInt(v.id.split("_")[1], 10)
+        this.form.objFishManager = v.id
+        this.form.pvFishManager = v.pv
       }
     },
 
 
 
     validSave() {
-      console.info("form", this.form)
+      //console.info("form", this.form)
 
       if (!this.form.cls || !this.form.AreaOfTon ||
-          !this.FishLocation || !this.FishGear || !this.FishManager || this.FishParticipants.length===0)
+          !this.objFishLocation || !this.FishGear || !this.FishManager || this.FishParticipants.length===0)
         return true
       else
         return false
@@ -251,7 +249,7 @@ export default {
       let err = false
       this.form.mode = this.mode
 
-      console.info("FishParticipants", this.FishParticipants)
+      //console.info("FishParticipants", this.FishParticipants)
       this.form.FishParticipants = []
       this.FishParticipants.forEach(it=> {
         this.form.FishParticipants.push(it.id)
@@ -321,7 +319,7 @@ export default {
       .then(
         (response) => {
           this.optFishLocation = response.data.result.records
-          //console.info("optFishLocation", this.optFishLocation)
+          console.info("optFishLocation", this.optFishLocation)
         })
       .finally(() => {
         this.loading = false
@@ -370,7 +368,14 @@ export default {
       })
     //
 
+    console.info("data", this.data)
     if (this.mode === "upd") {
+      this.objFishLocation = this.data.objFishLocation
+      this.objFishGear = this.data.objFishGear
+      this.objFishManager = this.data.objFishManager
+
+      this.FishParticipants = this.data.lstFishParticipants.split(",")
+
 
     }
   },

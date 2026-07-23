@@ -4,7 +4,7 @@
     <q-splitter
       v-model="splitterModel"
       :model-value="splitterModel"
-      :limits="[70, 100]"
+      :limits="[60, 100]"
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
       separator-class="bg-red"
@@ -110,7 +110,7 @@
       </template>
 
       <template v-slot:after>
-        <FishFecundityPage ref="FishFecundity" :name="name"></FishFecundityPage>
+        <FishingMeters ref="FishingMeters" :name="name"></FishingMeters>
 
       </template>
 
@@ -121,15 +121,15 @@
 </template>
 
 <script>
-import {api} from 'boot/axios'
+import {api, tofi_dbeg, tofi_dend} from 'boot/axios'
 import {hasTarget, notifyInfo, today} from 'src/utils/jsutils'
 import {date, extend} from 'quasar'
-import FishFecundityPage from "pages/piscesreservoirs/FishFecundityPage.vue";
 import UpdaterFishingRefs from "pages/fishing/UpdaterFishingRefs.vue";
+import FishingMeters from "pages/fishing/FishingMeters.vue";
 
 export default {
-  name: 'PiscesReservoirsPage',
-  components: {FishFecundityPage},
+  name: 'FishingPage',
+  components: {FishingMeters},
   props: [],
 
   data: function () {
@@ -146,7 +146,6 @@ export default {
       mapFishLocation: new Map(),
       mapFishGear: new Map(),
       mapFishManager: new Map(),
-      //mapFishParticipants: new Map(),
 
     }
   },
@@ -160,21 +159,23 @@ export default {
         //console.info(this.selected[0]);
         this.splitterModel = 70
         obj = this.selected[0].obj
-        this.name = this.selected[0].nameCls + " - " + this.selected[0].StartDate
+        this.name = this.mapFishLocation.get(this.selected[0].objFishLocation) +
+          ' (' + this.selected[0].nameCls + ' - ' + date.formatDate(this.selected[0].StartDate, 'DD.MM.YYYY') + ')'
       } else {
         this.splitterModel = 100
         obj = 0
         this.name = ""
-        this.$refs.FishFecundity.clearData()
+        this.$refs.FishingMeters.clearFishingData()
       }
-      this.$refs.FishFecundity.loadFishFecundity(obj)
+      this.$refs.FishingMeters.loadFishingMeters(obj)
 
     },
 
     editRow(row, mode) {
-      let data = {accessLevel: 1, StartDate: new Date().toLocaleDateString()}
+
+      let data = {accessLevel: 1, StartDate: today()}
       if (mode === 'upd') {
-        data = extend(true, {}, row)
+        extend(true, data, row)
       }
 
       this.$q
@@ -280,7 +281,6 @@ export default {
           sortable: true,
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 10%',
-          //format: (v) => (this.mapReservoir ? this.mapReservoir.get(v) : null),
         },
         {
           name: 'StartDate',
@@ -290,7 +290,8 @@ export default {
           sortable: true,
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 10%',
-          //format: (v) => (this.mapTypeOfFish ? this.mapTypeOfFish.get(v) : null),
+          format: (val) =>
+            val <= tofi_dbeg || val >= tofi_dend ? '...' : date.formatDate(val, 'DD.MM.YYYY'),
         },
         {
           name: 'objFishLocation',
@@ -343,7 +344,7 @@ export default {
       return (
         ' ' +
         this.mapFishLocation.get(row.objFishLocation) +
-        ' (' + row.nameCls + ')'
+        ' (' + row.nameCls + ' - ' + date.formatDate(row.StartDate, 'DD.MM.YYYY') + ')'
       )
     },
   },

@@ -37,8 +37,11 @@ import java.nio.file.Paths
 class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
+
     ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
+
     ApinatorApi apiPersonnelData() { return app.bean(ApinatorService).getApi("personneldata") }
+
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
 
@@ -1098,6 +1101,35 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadObjForSelectMulti(String codProp, String model) {
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codProp, "")
+        if (mapProp.size()==0)
+            throw new XError("Не найден код свойств [${codProp}]")
+
+        Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select cls, id as propval
+                from PropVal
+                where prop=${mapProp.get(codProp)} and cls is not null
+            """, "")
+        StoreIndex indProp = stProp.getIndex("cls")
+
+        Set<Object> idsCls = stProp.getUniqueValues("cls")
+
+        Store stObj = loadSqlService("""
+                select o.id as obj, o.cls, v.name, null as id
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
+            """, "", model)
+        for (StoreRecord r in stObj) {
+            StoreRecord rec = indProp.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("id", r.getLong("obj") + "_" + rec.getLong("propval"))
+            }
+        }
+        return stObj
+    }
+
+    @DaoMethod
     Store loadObjForTreeSelect(String codTypOrProp) {
         if (codTypOrProp.startsWith("Typ_")) {
             Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
@@ -1363,8 +1395,8 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadFishParticipantsForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp, "personneldata")
+    Store loadFishParticipantsForSelect(String codProp) {
+        return loadObjForSelectMulti(codProp, "personneldata")
     }
 
     @DaoMethod
@@ -1461,7 +1493,7 @@ class DataDao extends BaseMdbUtils {
         stTmp = mdb.loadQuery("""
             select name from ObjVer where ownerVer=${pms.getLong("objFishLocation")} and lastVer=1
         """)
-        nm = nm + "_" + pms.getString("StartDate")+"_"+stTmp.get(0).getString("name")
+        nm = nm + "_" + pms.getString("StartDate") + "_" + stTmp.get(0).getString("name")
         //
         par.put("name", nm)
         par.put("fullName", nm)
@@ -1514,6 +1546,41 @@ class DataDao extends BaseMdbUtils {
 
         }
         return loadFishing(own)
+
+    }
+
+    @DaoMethod
+    Store loadFishingMeters(long obj) {
+        if (obj == 0)
+            return mdb.createStore()
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        String whe = """
+            ${map.get("Prop_NumberFishCaught")},${map.get("Prop_NumberFishBio")},${map.get("Prop_NumberEggs")},
+            ${map.get("Prop_FishAverageWeight")},${map.get("Prop_FishArea")},${map.get("Prop_WorkDuration")},${map.get("Prop_NumberNet")}
+        """
+
+        Store st = loadSqlMeta("""
+                select id, parent, name, null as numberval, null as idval 
+                from Prop where id in (${whe}) or parent in (${whe})
+                order by id
+            """, "")
+        Set<Object> idsProp = st.getUniqueValues("id")
+
+        Store stData = mdb.loadQuery("""
+                select d.prop as id, v.numberval, v.id as idval
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=0 and d.objorrelobj=${obj} and d.prop in (0${idsProp.join(",")})
+            """)
+        StoreIndex indData = stData.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indData.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("numberval", rec.getDouble("numberval"))
+                r.set("idval", rec.getLong("idval"))
+            }
+        }
+        return st
 
     }
 
