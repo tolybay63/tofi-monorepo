@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import {defineComponent} from 'vue'
+import {defineComponent, ref} from 'vue'
 import LoginUser from '../components/LoginUser.vue'
 import SetLocale from '../components/SetLocale.vue'
 import {api, authURL, urlMainApp} from '../boot/axios'
@@ -126,6 +126,7 @@ import {storeToRefs} from 'pinia'
 import {useRouter} from "vue-router";
 import {Notify} from "quasar";
 import {hasTarget} from "../utils/jsutils.js";
+import axios from "axios";
 
 export default defineComponent({
   name: 'MainLayout',
@@ -164,6 +165,8 @@ export default defineComponent({
 
   setup() {
     console.info('Setup!')
+    const leftDrawerOpen = ref(true)
+
     const store = useUserStore()
     const { getUserName, isSysAdmin, getTarget } = storeToRefs(store)
     const { setUserStore, clearUserStore } = store
@@ -209,7 +212,9 @@ export default defineComponent({
       },
 
       loginOnOff() {
+
         if (getUserName.value === '') {
+          leftDrawerOpen.value = true
           this.$q
             .dialog({
               component: LoginUser,
@@ -220,31 +225,33 @@ export default defineComponent({
             .onOk((res) => {
               setUserStore(res)
               router.push('/')
+
+              api
+                .post("", {
+                  method: "auth/checkTarget",
+                  params: ["personnel"],
+                })
             })
         } else {
-          api
-            .post(authURL + '/logout', {
-              params: {},
-            })
+          axios
+            .post(authURL + '/logout', new URLSearchParams()) // <-- Склеиваем динамически со слэшем!
             .then(() => {
+              clearUserStore()
+            })
+            .catch((err) => {
+              console.error("Ошибка при logout на сервере:", err)
               clearUserStore()
             })
             .finally(() => {
               router.push('/')
-              //
-              this.$q
-                .dialog({
-                  component: LoginUser,
-                  componentProps: {
-                    // ...
-                  },
-                })
-                .onOk((res) => {
-                  setUserStore(res)
-                  router.push('/')
-                })
             })
         }
+
+      },
+
+      leftDrawerOpen,
+      toggleLeftDrawer() {
+        leftDrawerOpen.value = !leftDrawerOpen.value
       },
     }
   },

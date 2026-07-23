@@ -89,7 +89,7 @@ export default defineConfig((ctx) => {
       open: true, // opens browser window automatically
       proxy: {
         '/api': {
-          target: url + '/api',
+          target: url,
           changeOrigin: true,
         },
         '/auth': {
@@ -117,7 +117,7 @@ export default defineConfig((ctx) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: ["Dialog", "Notify", "LocalStorage", 'LoadingBar', 'Loading'],
+      plugins: ["Dialog", "Notify", "LocalStorage", "SessionStorage", 'LoadingBar', 'Loading'],
 
     },
 

@@ -53,7 +53,7 @@
             <q-space/>
             <q-btn
               v-if="hasTarget('pers:ins')"
-              :dense="dense"
+              dense
               :disable="loading"
               color="secondary"
               icon="post_add"
