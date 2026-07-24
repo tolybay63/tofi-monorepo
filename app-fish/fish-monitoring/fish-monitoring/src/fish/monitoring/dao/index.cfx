@@ -11,6 +11,8 @@
             <item name="data" method="*" invoker="model:default"
                   class="fish.monitoring.dao.DataDao"/>
 
+            <item name="fill" method="*" invoker="model:default"
+                  class="fish.monitoring.dao.FillDao"/>
 
             <item name="psw" class="tofi.auth.TofiPasswordResetAction" method="*"/>
 

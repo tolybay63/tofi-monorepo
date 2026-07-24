@@ -224,7 +224,6 @@ export default defineComponent({
           link: '/fishing',
           target: 'mon:fish',
         },
-/*
         {
           title: 'test',
           info: '',
@@ -232,7 +231,6 @@ export default defineComponent({
           link: '/test',
           target: 'mon:fill',
         },
-*/
       ]
     }
 

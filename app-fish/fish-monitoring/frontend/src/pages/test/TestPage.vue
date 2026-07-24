@@ -2,19 +2,23 @@
   <div class="q-pa-md q-gutter-sm">
     <h6 class="page-header text-weight-bolder">Заливка</h6>
     <hr style="margin-top: -50px" />
-    <div class="q-pa-md q-gutter-sm q-pt-none">1. Водные объекты и их свойства (Ссылочные данные)</div>
+    <div class="q-pa-md q-gutter-sm q-pt-none">1. Вылов рыбы (Ссылочные данные)</div>
     <div>Формат:</div>
     <q-markup-table bordered class="row q-gutter-sm" style="border-color: #0f1010">
       <q-tr>
         <q-td> cls<span class="text-subtitle2 text-red">*</span></q-td>
-        <q-td> name<span class="text-subtitle2 text-red">*</span></q-td>
-        <q-td> Prop_Region<span class="text-subtitle2 text-red">*</span></q-td>
-        <q-td> Prop_District</q-td>
-        <q-td> Prop_Branch<span class="text-subtitle2 text-red">*</span></q-td>
-        <q-td> Prop_WaterArea</q-td>
-        <q-td> Prop_ReservoirType</q-td>
-        <q-td> Prop_Location</q-td>
-        <q-td> Prop_FishFarmingType</q-td>
+        <q-td> Prop_StartDate<span class="text-subtitle2 text-red">*</span></q-td>
+        <q-td> Prop_FishLocation<span class="text-subtitle2 text-red">*</span></q-td>
+        <q-td> Prop_FishGear<span class="text-subtitle2 text-red">*</span></q-td>
+        <q-td> Prop_AreaOfTon<span class="text-subtitle2 text-red">*</span></q-td>
+        <q-td> Prop_1057</q-td>
+        <q-td> Prop_1097</q-td>
+        <q-td> Prop_1137</q-td>
+        <q-td> Prop_1177</q-td>
+        <q-td> Prop_1257</q-td>
+        <q-td> Prop_1217</q-td>
+        <q-td> Prop_1297</q-td>
+        <q-td> Prop_1337</q-td>
       </q-tr>
     </q-markup-table>
 
@@ -69,6 +73,7 @@
 
     <!--  Meter  -->
 
+<!--
     <hr style="margin-top: 50px" />
     <div class="q-pa-md q-gutter-sm q-pt-none">2. Водные объекты и их свойства (Измеритель)</div>
     <div>Формат:</div>
@@ -85,7 +90,6 @@
         <q-td> value <span class="text-subtitle2 text-red">*</span></q-td>
       </q-tr>
     </q-markup-table>
-
     <div class="row">
       <div class="col-9">
         <q-input
@@ -111,7 +115,6 @@
         />
       </div>
     </div>
-
     <div v-if="file2" class="q-pa-md q-gutter-sm">
       <div v-if="!isFill2">
         <div v-if="errTest2">
@@ -139,20 +142,24 @@
         </div>
       </div>
     </div>
+-->
 
 
     <div>
       <q-inner-loading :showing="loading" color="secondary"></q-inner-loading>
     </div>
-    <div>
+
+<!--    <div>
       <q-inner-loading :showing="loading2" color="secondary"></q-inner-loading>
-    </div>
+    </div>-->
+
   </div>
 </template>
 
 <script>
 import {ref} from 'vue'
 import {api} from "boot/axios.js";
+import axios from "axios";
 
 export default {
   name: 'TestPage',
@@ -225,7 +232,7 @@ export default {
       fd.append('fill', fill)
       fd.append('num', 1)
 
-      this.$axios
+      axios
         .post('/filldata', fd, {
           headers: {
             'Content-Type': 'multipart/form-data'

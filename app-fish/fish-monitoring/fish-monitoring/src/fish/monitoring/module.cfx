@@ -17,6 +17,11 @@
         <action name="upload"
                 class = "fish.monitoring.action.UploadAction"
         />
+
+        <action name="filldata"
+                class = "fish.monitoring.action.FillDataAction"
+        />
+
         <type name="fish.monitoring.action.DownFile"
               render="downfile"/>
         <render name="downfile" class="fish.monitoring.action.DownFileRender"/>
