@@ -13,6 +13,7 @@ import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import tofi.api.adm.utils.PasswordGenerator;
+import tofi.api.dta.ApiPersonnelData;
 import tofi.api.dta.ApiUserData;
 import tofi.api.mdl.ApiMeta;
 import tofi.api.mdl.model.consts.FD_AccessLevel_consts;
@@ -26,9 +27,11 @@ public class UsrMdbUtils extends BaseMdbUtils {
     ApinatorApi apiMeta() {
         return getApp().bean(ApinatorService.class).getApi("meta");
     }
-
     ApinatorApi apiUserData() {
         return getApp().bean(ApinatorService.class).getApi("userdata");
+    }
+    ApinatorApi apiPersonnelData() {
+        return getApp().bean(ApinatorService.class).getApi("personneldata");
     }
 
     private final Argon2 argon2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id);
@@ -206,6 +209,23 @@ public class UsrMdbUtils extends BaseMdbUtils {
         if (Objects.equals(idmodel, "test")) {
             getMdb().deleteRec("AuthUser", id);
         } else {
+            // Check Personnel
+            String wheUser = "v1.strval like '"+id+".0'";
+            Map<String, Long> mapProp = apiMeta().get(ApiMeta.class).getIdFromCodOfEntity("Prop", "Prop_UserId", "");
+            Store st = apiPersonnelData().get(ApiPersonnelData.class).loadSql("""
+                    SELECT o.id, v.name
+                    FROM Obj o
+                        JOIN ObjVer v ON o.id = v.ownerVer AND v.lastVer = 1
+                        JOIN DataProp d1 ON d1.objorrelobj = o.id AND d1.prop=
+                    """+ mapProp.get("Prop_UserId") + """
+                        JOIN DataPropVal v1 ON d1.id = v1.dataProp
+                    WHERE
+            """ + wheUser, "");
+
+            if (st.size() > 0) {
+                throw new XError("Пользователь привязан сотруднику "+st.get(0).getString("name"));
+            }
+            //
             String str = checkAccount(id);
             if (!str.isEmpty()) {
                 throw new XError("Существует аккаунт пользователя [" + str + "]");
