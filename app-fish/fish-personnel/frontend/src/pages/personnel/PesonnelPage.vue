@@ -52,7 +52,7 @@
 
             <q-space/>
             <q-btn
-              v-if="hasTarget('pers:ins')"
+              v-if="hasTarget('st:per:ins')"
               dense
               :disable="loading"
               color="secondary"
@@ -65,7 +65,7 @@
             </q-btn>
 
             <q-btn
-              v-if="hasTarget('pers:upd')"
+              v-if="hasTarget('st:per:upd')"
               :disable="loading || selected.length === 0"
               class="q-ml-sm"
               color="secondary"
@@ -79,7 +79,7 @@
             </q-btn>
 
             <q-btn
-              v-if="hasTarget('pers:del')"
+              v-if="hasTarget('st:per:del')"
               :disable="loading || selected.length === 0"
               class="q-ml-sm"
               color="red"

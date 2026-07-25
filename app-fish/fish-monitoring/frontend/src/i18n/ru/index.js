@@ -221,7 +221,7 @@ export default {
   research: 'Исследования',
   researchResults: 'Результаты исследования',
 
-  test: 'Заливка',
+  fill: 'Заливка',
 
   nameDoc: 'Название документа',
   numberDoc: 'Номер документа',

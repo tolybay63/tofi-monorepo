@@ -176,7 +176,7 @@ export default defineComponent({
           info: "",
           icon: "home_work",
           link: "/kato",
-          target: "nsi:kato",
+          target: "mon:kato",
         },
         {
           title: 'reservoirs',
@@ -225,10 +225,10 @@ export default defineComponent({
           target: 'mon:fish',
         },
         {
-          title: 'test',
+          title: 'fill',
           info: '',
           icon: 'download',
-          link: '/test',
+          link: '/fill',
           target: 'mon:fill',
         },
       ]

@@ -179,14 +179,14 @@ export default defineComponent({
           info: "",
           icon: "apartment",
           link: "/struct_enterprise",
-          target: "personnel:ose",
+          target: "st:org",
         },
         {
           title: "personnel",
           info: "",
           icon: "group",
           link: "/personnel",
-          target: "personnel:pers",
+          target: "st:per",
         },
       ]
     }

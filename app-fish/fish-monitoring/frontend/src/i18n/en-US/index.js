@@ -218,7 +218,7 @@ export default {
   research: 'Research',
   researchResults: 'Research results',
 
-  test: 'Заливка',
+  fill: 'Filling',
 
   nameDoc: 'The name of the document',
   numberDoc: 'Document number',

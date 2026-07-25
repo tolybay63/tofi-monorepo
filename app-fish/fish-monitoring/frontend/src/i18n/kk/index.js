@@ -215,7 +215,7 @@ export default {
   WaterAreaLittoral: 'Жағалау аймағының ауданы, га',
   ReservoirHydroLevel: 'Су қоймасының гидрологиялық деңгейі (мБС)',
 
-  test: 'Заливка',
+  fill: 'Толтыру',
 
   nameDoc: 'Құжаттың атауы',
   numberDoc: 'Құжат нөмірі',

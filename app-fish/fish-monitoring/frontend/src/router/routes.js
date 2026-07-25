@@ -44,7 +44,7 @@ const routes = [
         component: () => import('pages/fishing/FishingPage.vue'),
       },
 
-      { path: '/test', name: 'TestPage', component: () => import('pages/test/TestPage.vue') },
+      { path: '/fill', name: 'TestPage', component: () => import('pages/test/TestPage.vue') },
     ],
   },
 

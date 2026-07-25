@@ -124,7 +124,7 @@
 import {defineComponent} from "vue";
 import QTreeTable from "../../components/QTreeTable.vue";
 import {api} from "../../boot/axios";
-import {expandAll, hasTarget, notifyError, notifyInfo, pack} from "../../utils/jsutils";
+import {expandAll, hasTarget, notifyInfo, pack} from "../../utils/jsutils";
 import UpdaterStructEnterprise from "./UpdaterStructEnterprise.vue";
 
 export default defineComponent({
@@ -147,9 +147,9 @@ export default defineComponent({
       parentId: 0,
       parentName: "",
 
-      tagIns: "",
-      tagUpd: "",
-      tagDel: "",
+      tagIns: "st:ent:ins",
+      tagUpd: "st:ent:upd",
+      tagDel: "st:ent:del",
 
     }
   },
@@ -160,25 +160,25 @@ export default defineComponent({
       this.currentNode = data.selected !== undefined ? data.selected : null;
       this.selected2 = []
       let cls = this.currentNode ? this.currentNode["ent"] : 0;
-      if (cls === 1024) {
-        this.tagIns = "nsi:ose:ent:ins"
-        this.tagUpd = "nsi:ose:ent:upd"
-        this.tagDel = "nsi:ose:ent:del"
+      if (cls === 1007) {
+        this.tagIns = "st:ent:ins"
+        this.tagUpd = "st:ent:upd"
+        this.tagDel = "st:ent:del"
       }
-      if (cls === 1025) {
-        this.tagIns = "nsi:ose:otd:ins"
-        this.tagUpd = "nsi:ose:otd:upd"
-        this.tagDel = "nsi:ose:otd:del"
+      if (cls === 1008) {
+        this.tagIns = "st:fil:ins"
+        this.tagUpd = "st:fil:upd"
+        this.tagDel = "st:fil:del"
       }
-      if (cls === 1026) {
-        this.tagIns = "nsi:ose:fil:ins"
-        this.tagUpd = "nsi:ose:fil:upd"
-        this.tagDel = "nsi:ose:fil:del"
+      if (cls === 1009) {
+        this.tagIns = "st:otd:ins"
+        this.tagUpd = "st:otd:upd"
+        this.tagDel = "st:otd:del"
       }
-      if (cls === 1026) {
-        this.tagIns = "nsi:ose:lab:ins"
-        this.tagUpd = "nsi:ose:lab:upd"
-        this.tagDel = "nsi:ose:lab:del"
+      if (cls === 1010) {
+        this.tagIns = "st:lab:ins"
+        this.tagUpd = "st:lab:upd"
+        this.tagDel = "st:lab:del"
       }
       this.loadObj(cls)
     },
