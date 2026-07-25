@@ -1695,6 +1695,7 @@ class DataDao extends BaseMdbUtils {
         return idDP
     }
 
+    @DaoMethod
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         long au = getUser()

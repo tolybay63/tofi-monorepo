@@ -54,11 +54,12 @@
           <div>
             Проверка формата: <span class="text-red"> {{ logs[0]["msg"] }} </span>
           </div>
-          <div>Количество строк: {{ logs[0].cnt }}</div>
+          <div>Количество строк: {{ logs[0].count }}</div>
         </div>
         <div v-else>
           <div>Проверка формата: <span class="text-green"> Успешно </span></div>
-          <div>Количество строк: {{ logs.length > 0 ? logs[0].cnt : '' }}</div>
+          <div>Количество строк: {{ logs.length > 0 ? logs[0].count : '' }}</div>
+          <div>Количество значений: {{ logs.length > 0 ? logs[0].countval : '' }}</div>
         </div>
       </div>
       <div v-else>
@@ -189,9 +190,12 @@ export default {
       this.toSrv(true)
     },
 
+
+/*
     fnGo2() {
       this.toSrv2(true)
     },
+*/
 
     clrFile() {
       this.file = ref(null)
@@ -200,6 +204,7 @@ export default {
       this.logs = []
     },
 
+/*
     clrFile2() {
       this.file2 = ref(null)
       this.errTest2 = false
@@ -207,6 +212,7 @@ export default {
       this.logs2 = ""
       this.logs2Err = []
     },
+*/
 
     updFile(val) {
       if (val !== null) {
@@ -215,12 +221,14 @@ export default {
       }
     },
 
+/*
     updFile2(val) {
       if (val !== null) {
         this.file2 = val[0]
         this.toSrv2()
       }
     },
+*/
 
     toSrv(fill) {
       this.loading = true
@@ -247,12 +255,13 @@ export default {
           this.loading = true
           api
             .post('', {
-              method: 'test/loadLog',
+              method: 'fill/loadLog',
               params: []
             })
             .then((response) => {
               this.logs = response.data.result.records
               this.errTest = this.logs[0].err === 1
+              console.log("logs", this.logs)
             })
             .finally(() => {
               this.loading = false
@@ -268,6 +277,7 @@ export default {
         })
     },
 
+/*
     toSrv2(fill) {
       this.loading2 = true
       this.isFill2 = fill
@@ -319,6 +329,7 @@ export default {
           this.loading2 = false
         })
     },
+*/
 
 
   }
