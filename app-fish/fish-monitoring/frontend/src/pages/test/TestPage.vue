@@ -159,7 +159,7 @@
 
 <script>
 import {ref} from 'vue'
-import {api} from "boot/axios.js";
+import {api, filldataURL} from "boot/axios.js";
 import axios from "axios";
 
 export default {
@@ -241,7 +241,7 @@ export default {
       fd.append('num', 1)
 
       axios
-        .post('/filldata', fd, {
+        .post(filldataURL, fd, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

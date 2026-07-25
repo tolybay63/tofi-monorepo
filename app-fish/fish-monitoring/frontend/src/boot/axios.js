@@ -11,11 +11,13 @@ let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP;
 
 let authURL = "/auth";
 let baseURL = "/api";
+let filldataURL = '/filldata'
 
 // Если это ПРОД (сборка через Nginx или запуск без портов в браузере)
 if (process.env.NODE_ENV === 'production' || (typeof window !== 'undefined' && !window.location.port)) {
   baseURL = `/fish/${SERVICE_NAME}/api/`;
-  authURL = `/fish/${SERVICE_NAME}/auth`; // С закрывающим слэшем для идеальной работы proxy_cookie_path
+  authURL = `/fish/${SERVICE_NAME}/auth`;
+  filldataURL = `/fish/${SERVICE_NAME}/filldata`;
 }
 
 // 2. Изолированный экземпляр для системных данных (всегда шлет JSON)
@@ -230,4 +232,4 @@ const tofi_dbeg = "1800-01-01";
 const tofi_dend = "3333-12-31";
 
 // Полный набор всех старых и новых экспортов для совместимости со всем проектом
-export { api, authApi, authURL, urlMainApp, tofi_dbeg, tofi_dend };
+export { api, authApi, filldataURL, authURL, urlMainApp, tofi_dbeg, tofi_dend };
