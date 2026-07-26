@@ -33,7 +33,7 @@ const api = axios.create({
 LoadingBar.setDefaults({color: 'amber-14',size: '10px',position: 'top'})
 
 // 4. Глобальный заголовок авторизации (ТЕПЕРЬ fish_token)
-const token = localStorage.getItem('fish_token')
+const token = sessionStorage.getItem('fish_token')
 if (token && typeof token === 'string' && token !== 'null') {
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 }

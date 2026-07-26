@@ -31,7 +31,7 @@ export const useUserStore = defineStore("user", {
     setUser(data) { this.user = data; },
 
     initFromToken() {
-      const token = localStorage.getItem('fish_token');
+      const token = sessionStorage.getItem('fish_token');
       if (token) {
         const decoded = parseJwt(token);
         if (decoded && decoded.attrs) {
@@ -50,13 +50,13 @@ export const useUserStore = defineStore("user", {
 
     setUserStore(token) {
       if (token && typeof token === 'string') {
-        localStorage.setItem('fish_token', token);
+        sessionStorage.setItem('fish_token', token);
         this.initFromToken();
       }
     },
 
     clearUserStore() {
-      localStorage.removeItem('fish_token');
+      sessionStorage.removeItem('fish_token');
       delete api.defaults.headers.common['Authorization'];
       this.user = { id: 0, name: "", target: "", metamodel: "" };
     }
