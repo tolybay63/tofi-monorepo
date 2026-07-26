@@ -28,10 +28,10 @@
           <q-btn
             rounded
             class="bg-orange text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
+            style="height: 100px; width: 1110px; font-size: 26px; opacity: 0.7"
             @click="fnAdm()"
           >
-            <div class="column">
+            <div class="column-3">
               <div>
                 <q-avatar icon="manage_accounts" color="green"></q-avatar>
                 {{ $t("appAdmName") }}
@@ -83,20 +83,6 @@
               <div>
                 <q-avatar icon="view_in_ar" color="orange"></q-avatar>
                 {{ $t("appCubesName") }}
-              </div>
-            </div>
-          </q-btn>
-          <!-- User Data -->
-          <q-btn
-            rounded
-            class="bg-blue text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 24px; opacity: 0.7"
-            @click="fnUserData()"
-          >
-            <div class="column">
-              <div>
-                <q-avatar icon="contacts" color="orange"></q-avatar>
-                {{ $t("appUserDataName") }}
               </div>
             </div>
           </q-btn>
@@ -164,7 +150,6 @@ import {
   appCalcURL,
   appCubeURL,
   appDataURL,
-  appDataUserURL,
   appModelURL,
   appMonitoringURL,
   appPersonnelURL
@@ -182,10 +167,6 @@ export default defineComponent({
 
     fnMdl() {
       open(appModelURL, "_self");
-    },
-
-    fnUserData() {
-      open(appDataUserURL, "_self");
     },
 
     fnData() {

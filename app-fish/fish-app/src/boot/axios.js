@@ -3,7 +3,6 @@ import axios from 'axios'
 
 const appAdmURL = process.env.VITE_PRUDUCT_ADM_URL
 const appModelURL = process.env.VITE_PRUDUCT_MODEL_URL
-const appDataUserURL = process.env.VITE_PRUDUCT_DATAUSER_URL
 const appDataURL = process.env.VITE_PRUDUCT_DATA_URL
 const appCubeURL = process.env.VITE_PRUDUCT_CUBE_URL
 const appPersonnelURL = process.env.VITE_PRUDUCT_PERSONNEL_URL
@@ -26,5 +25,5 @@ export default defineBoot(({ app }) => {
   app.config.globalProperties.$api = api
 })
 
-export { api, appAdmURL, appModelURL, appDataUserURL, appDataURL,
+export { api, appAdmURL, appModelURL, appDataURL,
   appCalcURL, appCubeURL, appMonitoringURL, appPersonnelURL}
