@@ -144,6 +144,7 @@ import {api, authURL, urlMainApp} from "boot/axios.js";
 import LoginUser from "components/LoginUser.vue";
 import {useQuasar} from "quasar";
 import {useRouter} from "vue-router";
+import axios from "axios";
 
 const store = useUserStore();
 const {getUserName} = storeToRefs(store);
@@ -191,16 +192,19 @@ const loginOnOff = async () => {
           })
       });
   } else {
-    api
-      .post(authURL + '/logout', {
-        params: {},
-      })
+    axios
+      .post(authURL + '/logout', new URLSearchParams()) // <-- Склеиваем динамически со слэшем!
       .then(() => {
         clearUserStore()
       })
-      .finally(() => {
-        router.push('/')
+      .catch((err) => {
+        console.error("Ошибка при logout на сервере:", err)
+        clearUserStore()
       })
+      .finally(() => {
+        this.$router.push('/')
+      })
+
   }
 }
 

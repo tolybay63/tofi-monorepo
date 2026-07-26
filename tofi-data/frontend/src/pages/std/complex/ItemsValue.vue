@@ -698,8 +698,6 @@ export default {
     },
 
     reload() {
-      this.lang = localStorage.getItem("curLang");
-      this.lang = this.lang === "en-US" ? "en" : this.lang;
       this.cols = this.getColumns();
 
       if (!this.provider && this.status) this.hideProvider();
@@ -715,8 +713,6 @@ export default {
 
   created() {
     //console.log("CREARE RefValue")
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.cols = this.getColumns();
 
     if (!this.provider && this.status) this.hideProvider();
