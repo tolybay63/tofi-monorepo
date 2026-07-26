@@ -106,7 +106,7 @@ export default defineConfig((ctx) => {
       open: true, // opens browser window automatically
       proxy: {
         "/api": {
-          target: url + "/api",
+          target: url,
           changeOrigin: true,
         },
         "/auth": {

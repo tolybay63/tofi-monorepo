@@ -95,7 +95,9 @@
 <script>
 import {ref} from "vue";
 import {api, authURL} from "boot/axios.js";
-import ForgetPsw from "components/ForgetPsw.vue";
+import axios from "axios";
+import UpdaterPsw from "components/UpdaterPsw.vue";
+import {useUserStore} from "stores/user-store.js";
 
 export default {
   props: [],
@@ -112,27 +114,37 @@ export default {
 
   methods: {
     forgetPsw() {
-      this.onCancelClick();
+      this.loading = true;
+      let err = false;
 
-      this.lang = localStorage.getItem("curLang");
+      axios
+        .post(api.defaults.baseURL, {
+          method: "psw/forgetPasswd", // Полный путь через айтем
+          params: [
+            { login: this.form.login } // Оборачиваем мапу в массив [ ] для маппера JAndCode!
+          ]
+        })
+        .then(() => {
+          this.$q.notify({
+            type: 'positive',
+            message: 'Ссылка для подтверждения отправлена на почту',
+            position: 'top',
+          });
+        })
+        .catch((error) => {
+          err = true;
+          console.error(error);
+          this.$q.notify({
+            type: 'negative',
+            message: 'Ошибка при отправке запроса',
+            position: 'top',
+          });
+        })
+        .finally(() => {
+          this.loading = false;
+          if (!err) this.hide();
+        });
 
-      this.$q
-        .dialog({
-          component: ForgetPsw,
-          componentProps: {
-            // ...
-          },
-        })
-        .onOk(() => {
-          try {
-            //console.log("Ok! ForgetPsw");
-            //console.log("reg data", r);
-            //code to save to DB ....
-          } finally {
-            setTimeout(() => {
-            }, 10);
-          }
-        })
     },
 
     /*
@@ -160,31 +172,73 @@ export default {
     },
 
     onOKClick: function () {
-      let err = false
-      let params = new URLSearchParams();
-      params.append("username", this.form.login);
-      params.append("password", this.form.psw);
+      this.loading = true
+      let err = false;
 
-      api
-        .post(authURL + "/login", params,{
+      const params = new URLSearchParams();
+      params.append('password', this.form.psw);
+      params.append('username', this.form.login + ":::admin-quasar");
+
+      axios
+        .post(authURL + "/login", params, {
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type": "application/x-www-form-urlencoded"
           },
+          withCredentials: true
         })
-        .then(
-          (res) => {
-            const token = res.data.token;
-            localStorage.setItem('fish_token', token);
+        .then((res) => {
+          // 1. Извлекаем токен из любого возможного формата ответа бэка
+          const token = res.data?.result?.token || res.data?.token || res.data?.result?.data?.token;
+
+          // 2. Извлекаем флаг принудительной смены пароля
+          const forcePasswordChange = res.data?.result?.forcePasswordChange ??
+            res.data?.forcePasswordChange ??
+            res.data?.result?.force_change ??
+            res.data?.force_change ??
+            res.data?.result?.data?.force_change;
+
+          if (token) {
+            // Инициализируем хранилище и Axios
+            const userStore = useUserStore();
+            userStore.setUserStore(token);
             api.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+            // ПЕРЕХВАТ: Если флаг равен true или 1
+            if (forcePasswordChange === true || forcePasswordChange === 1 || forcePasswordChange === 'true') {
+              // Закрываем окно логина перед вызовом смены пароля
+              if (typeof this.hide === 'function') this.hide();
+              else this.$emit("hide");
+
+              this.$q.dialog({
+                component: UpdaterPsw,
+                componentProps: {
+                  login: this.form.login, // Наш строковый логин
+                  force: true
+                }
+              }).onOk(() => {
+                // Защита: передаем и токен, и объект ответа, чтобы подошло любому родителю
+                this.$emit("ok", token);
+              });
+
+              return;
+            }
+
+            // ОБЫЧНЫЙ УСПЕШНЫЙ ВХОД (Для sysadmin без force_change)
+            // Сначала принудительно гасим модальное окно, чтобы оно не висло
+            if (typeof this.hide === 'function') this.hide();
+            else this.$emit("hide");
+
+            // Отправляем события в обоих форматах (для старой и новой архитектуры)
             this.$emit("ok", token);
-          })
-        .catch(error=> {
-          err = true;
-          console.log("ERROR", error.response?.data );
+          }
         })
-        .finally(() => {
-          if (!err) this.hide()
-        });
+        .catch((error) => {
+          err = true;
+          console.error("ERROR", error);
+        })
+        .finally(()=> {
+          this.loading = false;
+          if (!err) this.hide();
+        })
     },
 
     onCancelClick() {

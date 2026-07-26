@@ -246,7 +246,6 @@ const loginOnOff = () => {
       .onOk((res) => {
         setUserStore(res)
         router.push('/')
-
         api
           .post("", {
             method: "usr/checkTarget",

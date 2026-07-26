@@ -122,10 +122,10 @@ import {useRouter} from 'vue-router'
 import LoginUser from "components/LoginUser.vue";
 import SetLocale from "components/SetLocale.vue";
 import {api, authURL, urlMainApp} from "boot/axios";
-import {notifyError } from "src/utils/jsutils";
 import {useUserStore} from "stores/user-store";
 import {useParamsStore} from "stores/params-store";
 import {storeToRefs} from "pinia";
+import axios from "axios";
 
 const router = useRouter()
 const store = useUserStore()
@@ -234,22 +234,28 @@ export default defineComponent({
                   this.loadDataBase()
                 }, 100)
               })
+              .then(()=> {
+                this.toMainPage()
+              })
               .catch(()=> {
                 clearUserStore()
               })
-
           });
       } else {
-        api
-          .post(authURL + '/logout', {
-            params: [],
-          })
+        axios
+          .post(authURL + '/logout', new URLSearchParams()) // <-- Склеиваем динамически со слэшем!
           .then(() => {
+            clearUserStore()
+          })
+          .catch((err) => {
+            console.error("Ошибка при logout на сервере:", err)
             clearUserStore()
           })
           .finally(() => {
             this.$router.push('/')
+            //router.push('/')
           })
+
       }
     },
 

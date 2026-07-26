@@ -5,7 +5,7 @@ export const useParamsStore = defineStore("params", {
   state: () => {
     let dt = sessionStorage.getItem("datatype") || 'std'
     let db = sessionStorage.getItem("database") || 0
-    let mn = sessionStorage.getItem("model") || "userdata"
+    let mn = sessionStorage.getItem("model") || "personneldata"
     let me = sessionStorage.getItem("metamodel") || "fish"
 
     return {
