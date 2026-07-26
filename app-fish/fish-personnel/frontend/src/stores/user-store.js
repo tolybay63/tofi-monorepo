@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { api } from 'boot/axios'
+import { api } from '../boot/axios'
 
 function parseJwt(token) {
   try {
@@ -31,7 +31,7 @@ export const useUserStore = defineStore("user", {
     setUser(data) { this.user = data; },
 
     initFromToken() {
-      const token = localStorage.getItem('fish_token');
+      const token = sessionStorage.getItem('fish_token');
       if (token && token !== 'null') {
         const decoded = parseJwt(token);
         if (decoded && decoded.attrs) {
@@ -50,7 +50,7 @@ export const useUserStore = defineStore("user", {
 
     setUserStore(token) {
       if (token && typeof token === 'string' && token !== 'null') {
-        localStorage.setItem('fish_token', token);
+        sessionStorage.setItem('fish_token', token);
         this.initFromToken();
       }
     },
@@ -58,7 +58,7 @@ export const useUserStore = defineStore("user", {
     // Новый метод для тихого обновления токена из интерцептора Axios
     updateTokenOnly(newToken) {
       if (newToken && typeof newToken === 'string' && newToken !== 'null') {
-        localStorage.setItem('fish_token', newToken);
+        sessionStorage.setItem('fish_token', newToken);
         const decoded = parseJwt(newToken);
         if (decoded && decoded.attrs) {
           const a = decoded.attrs;
@@ -73,7 +73,7 @@ export const useUserStore = defineStore("user", {
     },
 
     clearUserStore() {
-      localStorage.removeItem('fish_token');
+      sessionStorage.removeItem('fish_token');
       delete api.defaults.headers.common['Authorization'];
       this.user = { id: 0, name: "", target: "", metamodel: "" };
       this.initialized = false;

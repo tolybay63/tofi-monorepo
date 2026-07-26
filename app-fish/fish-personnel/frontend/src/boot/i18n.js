@@ -1,6 +1,7 @@
 import {defineBoot} from '#q-app/wrappers'
 import {createI18n} from 'vue-i18n'
-import messages from 'src/i18n'
+import messages from "@intlify/unplugin-vue-i18n/messages";
+
 
 let lang = localStorage.getItem('curLang')
 if (!lang) {

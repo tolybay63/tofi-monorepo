@@ -1,7 +1,7 @@
 import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
 import { LoadingBar, Notify } from 'quasar'
-import { useUserStore } from "stores/user-store.js"
+import { useUserStore } from "../stores/user-store.js"
 
 // =========================================================================
 // 1. Настройка базовых URL (Одинаково для DEV и PROD)
@@ -30,7 +30,7 @@ const api = axios.create({
 // Автоматический перехватчик: вытаскивает токен из сессии НАПРЯМУЮ перед КАЖДЫМ запросом
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('fish_token');
+    const token = sessionStorage.getItem('fish_token');
     if (token && token !== 'null' && token !== 'undefined') {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -72,7 +72,7 @@ LoadingBar.setDefaults({ color: 'amber-14', size: '10px', position: 'top' })
 api.interceptors.request.use((config) => {
   LoadingBar.start()
 
-  const token = localStorage.getItem('fish_token')
+  const token = sessionStorage.getItem('fish_token')
   if (token && typeof token === 'string' && token !== 'null') {
     config.headers['Authorization'] = `Bearer ${token}`
   }
@@ -86,7 +86,7 @@ export default defineBoot(({ app, router }) => {
   const userStore = useUserStore();
 
   // Автоматическая инициализация сессии при перезагрузке страницы
-  const currentToken = localStorage.getItem('fish_token')
+  const currentToken = sessionStorage.getItem('fish_token')
   if (currentToken && currentToken.length > 10 && currentToken !== 'null') {
     userStore.initFromToken();
   }
