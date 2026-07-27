@@ -214,6 +214,7 @@ export default {
         .then(
           (response) => {
             this.rows = response.data.result["records"]
+            console.info("rows", this.rows)
           })
         .finally(() => {
           this.loading = false
@@ -229,7 +230,7 @@ export default {
           align: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 30%',
+          headerStyle: 'font-size: 1.2em; width: 25%',
         },
         {
           name: 'Coordinate',
@@ -239,13 +240,23 @@ export default {
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width:20%',
         },
+
+        {
+          name: 'nameReservoirShore',
+          label: this.$t('reservoir')+"*",
+          field: 'nameReservoirShore',
+          align: 'left',
+          sortable: true,
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 25%',
+        },
         {
           name: 'AreaOfTon',
           label: this.$t('AreaOfTon')+"*",
           field: 'AreaOfTon',
           align: 'left',
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 15%',
+          headerStyle: 'font-size: 1.2em; width: 10%',
         },
 
         {
@@ -254,7 +265,7 @@ export default {
           field: 'Description',
           align: 'left',
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 35%',
+          headerStyle: 'font-size: 1.2em; width: 25%',
         },
       ]
     },

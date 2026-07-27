@@ -533,15 +533,20 @@ class DataDao extends BaseMdbUtils {
             select o.id as obj, o.cls, v.name, 
                 v1.id as idCoordinate, v1.strVal as Coordinate, 
                 v2.id as idAreaOfTon, v2.numberVal as AreaOfTon,
-                v3.id as idDescription, v3.multiStrVal as Description
+                v3.id as idDescription, v3.multiStrVal as Description,
+                v4.id as idReservoirShore, v4.obj as objReservoirShore, 
+                v4.propVal as pvReservoirShore, ov.name as nameReservoirShore
             from Obj o
-                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
                 left join DataPropVal v1 on d1.id=v1.dataprop 
                 left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_AreaOfTon
                 left join DataPropVal v2 on d2.id=v2.dataprop
                 left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
                 left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirShore
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join ObjVer ov on v4.obj=ov.ownerVer and ov.lastVer=1
             where ${whe}
         """, map)
         return st
@@ -564,6 +569,8 @@ class DataDao extends BaseMdbUtils {
             fillProperties(true, "Prop_AreaOfTon", pms)
             //Prop_Coordinate
             fillProperties(true, "Prop_Coordinate", pms)
+            //Prop_ReservoirShore
+            fillProperties(true, "Prop_ReservoirShore", pms)
             //Prop_Description
             if (!pms.getString("Description").isEmpty())
                 fillProperties(true, "Prop_Description", pms)
@@ -1792,6 +1799,7 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_KATO") ||
                     cod.equalsIgnoreCase("Prop_Branch") ||
                     cod.equalsIgnoreCase("Prop_FishLocation") ||
+                    cod.equalsIgnoreCase("Prop_ReservoirShore") ||
                     cod.equalsIgnoreCase("Prop_FishGear") ||
                     cod.equalsIgnoreCase("Prop_FishManager") ||
                     cod.equalsIgnoreCase("Prop_FishParticipants")) {

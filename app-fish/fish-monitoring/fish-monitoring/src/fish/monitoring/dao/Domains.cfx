@@ -104,6 +104,12 @@
         <field name="idCoordinate" parent="long"/>
         <field name="Coordinate" parent="string"/>
 
+
+        <field name="idReservoirShore" parent="long"/>
+        <field name="objReservoirShore" parent="long"/>
+        <field name="pvReservoirShore" parent="long"/>
+        <field name="nameReservoirShore" parent="string"/>
+
         <field name="idAreaOfTon" parent="long"/>
         <field name="AreaOfTon" parent="double"/>
 

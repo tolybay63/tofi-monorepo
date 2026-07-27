@@ -34,6 +34,23 @@
           class="q-mb-md"
         />
 
+        <!-- Reservoir -->
+        <q-select
+          v-model="form.objReservoirShore"
+          :label="fmReqLabel('reservoir')"
+          :model-value="form.objReservoirShore"
+          :options="optReservoir"
+          class="q-mb-lg"
+          dense
+          map-options
+          option-label="name"
+          option-value="id"
+          use-input
+          @filter="filterReservoir"
+          @update:model-value="fnSelectReservoir"
+        />
+<!--:disable="mode === 'upd'"-->
+
         <!-- AreaOfTon -->
         <q-input
           v-model="form.AreaOfTon"
@@ -71,6 +88,8 @@ export default {
   data() {
     return {
       form: this.data,
+      optReservoir: [],
+      optReservoirOrg: [],
       loading: false,
     }
   },
@@ -87,7 +106,30 @@ export default {
     },
 
     validSave() {
-      if (!this.form.AreaOfTon || !this.form["Coordinate"] || !this.form.name) return true
+      if (!this.form.AreaOfTon || !this.form["Coordinate"] ||
+        !this.form.name || !this.form.objReservoirShore) return true
+    },
+
+    fnSelectReservoir(v) {
+      this.form.objReservoirShore = v.id
+      this.form.pvReservoirShore = v.pv
+    },
+
+    filterReservoir(val, update) {
+      if (val === null || val === '') {
+        update(() => {
+          this.optReservoir = this.optReservoirOrg
+        })
+        return
+      }
+      update(() => {
+        if (this.optReservoirOrg.length < 2) return
+        const needle = val.toLowerCase()
+        let name = 'name'
+        this.optReservoir = this.optReservoirOrg.filter((v) => {
+          return v[name].toLowerCase().indexOf(needle) > -1
+        })
+      })
     },
 
     // following method is REQUIRED
@@ -137,6 +179,22 @@ export default {
     },
   },
   created() {
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/loadReservoir',
+        params: ['Prop_ReservoirShore'],
+        //Typ_WaterBodies
+      })
+      .then(
+        (response) => {
+          this.optReservoir = response.data.result["records"]
+          this.optReservoirOrg = response.data.result["records"]
+        })
+      .finally(() => {
+        this.loading = false
+      })
+
   },
 }
 </script>
