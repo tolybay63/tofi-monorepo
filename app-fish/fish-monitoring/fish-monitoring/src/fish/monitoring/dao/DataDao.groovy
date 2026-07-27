@@ -1430,7 +1430,7 @@ class DataDao extends BaseMdbUtils {
                 v3.id as idAreaOfTon, v3.numberVal as AreaOfTon,
                 v4.id as idFishGear, v4.propVal as pvFishGear, v4.obj as objFishGear,
                 v5.id as idFishManager, v5.propVal as pvFishManager, v5.obj as objFishManager,
-                t1.lstFishParticipants
+                t1.lstFishParticipants, ov6.name as nameReservoir
             from ob
                 join DataProp d1 on d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
                 join DataPropVal v1 on d1.id=v1.dataprop 
@@ -1451,6 +1451,10 @@ class DataDao extends BaseMdbUtils {
                     where 0=0
                     group by d6.objorrelobj, d6.prop
                     ) t1 on t1.objorrelobj=ob.id and t1.prop=:Prop_FishParticipants
+                left join DataProp d6 on d6.objorrelobj=v2.obj and d6.prop=:Prop_ReservoirShore
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join ObjVer ov6 on v6.obj=ov6.ownerVer and ov6.lastVer=1
+
         """, map)
 
         Set<Object> idsCls = st.getUniqueValues("cls")

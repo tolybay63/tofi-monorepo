@@ -295,6 +295,8 @@
         <field name="cls" parent="long"/>
         <field name="nameCls" parent="string"/>
 
+        <field name="nameReservoir" parent="string"/>
+
         <field name="idStartDate" parent="long"/>
         <field name="StartDate" parent="string"/>
 

@@ -280,7 +280,7 @@ export default {
         },
         {
           name: 'objFishLocation',
-          label: this.$t('FishLocation'),
+          label: this.$t('FishLocation') + "*",
           field: 'objFishLocation',
           align: 'left',
           classes: 'bg-blue-grey-1',
@@ -288,8 +288,16 @@ export default {
           format: (v) => (this.mapFishLocation ? this.mapFishLocation.get(v) : null),
         },
         {
+          name: 'nameReservoir',
+          label: this.$t('reservoir') + "*",
+          field: 'nameReservoir',
+          align: 'left',
+          classes: 'bg-blue-grey-1',
+          headerStyle: 'font-size: 1.2em; width: 10%',
+        },
+        {
           name: 'AreaOfTon',
-          label: this.$t('AreaOfTon'),
+          label: this.$t('AreaOfTon') + "*",
           field: 'AreaOfTon',
           align: 'left',
           classes: 'bg-blue-grey-1',
@@ -297,7 +305,7 @@ export default {
         },
         {
           name: 'objFishGear',
-          label: this.$t('FishGear'),
+          label: this.$t('FishGear') + "*",
           field: 'objFishGear',
           align: 'left',
           classes: 'bg-blue-grey-1',
@@ -306,20 +314,20 @@ export default {
         },
         {
           name: 'objFishManager',
-          label: this.$t('FishManager'),
+          label: this.$t('FishManager') + "*",
           field: 'objFishManager',
           align: 'left',
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 20%',
+          headerStyle: 'font-size: 1.2em; width: 15%',
           format: (v) => (this.mapFishManager ? this.mapFishManager.get(v) : null),
         },
         {
           name: 'nameFishParticipants',
-          label: this.$t('FishParticipants'),
+          label: this.$t('FishParticipants') + "*",
           field: 'nameFishParticipants',
           align: 'left',
           classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 30%',
+          headerStyle: 'font-size: 1.2em; width: 25%',
         },
 
       ]
