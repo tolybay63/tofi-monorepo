@@ -32,7 +32,7 @@ export const useUserStore = defineStore("user", {
 
     initFromToken() {
       const token = sessionStorage.getItem('fish_token');
-      if (token) {
+      if (token && token !== 'null') {
         const decoded = parseJwt(token);
         if (decoded && decoded.attrs) {
           const a = decoded.attrs;
@@ -49,9 +49,26 @@ export const useUserStore = defineStore("user", {
     },
 
     setUserStore(token) {
-      if (token && typeof token === 'string') {
+      if (token && typeof token === 'string' && token !== 'null') {
         sessionStorage.setItem('fish_token', token);
         this.initFromToken();
+      }
+    },
+
+    // Новый метод для тихого обновления токена из интерцептора Axios
+    updateTokenOnly(newToken) {
+      if (newToken && typeof newToken === 'string' && newToken !== 'null') {
+        sessionStorage.setItem('fish_token', newToken);
+        const decoded = parseJwt(newToken);
+        if (decoded && decoded.attrs) {
+          const a = decoded.attrs;
+          this.user = {
+            id: a.id || 0,
+            name: a.name || "",
+            target: a.target || "",
+            metamodel: a.metamodel || ""
+          };
+        }
       }
     },
 
@@ -59,6 +76,7 @@ export const useUserStore = defineStore("user", {
       sessionStorage.removeItem('fish_token');
       delete api.defaults.headers.common['Authorization'];
       this.user = { id: 0, name: "", target: "", metamodel: "" };
+      this.initialized = false;
     }
   }
 });
