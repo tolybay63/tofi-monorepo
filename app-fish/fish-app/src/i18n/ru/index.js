@@ -11,9 +11,10 @@ export default {
   appAdmName: "Среда администрирования",
   appUserDataName: "Личный кабинет пользователя",
   appDataName: "Сервис работы с данными",
-  appCalcName: "Расчет",
-  appMonitoringName: "Мониторинг рыбопромысловых водоемов",
-  appPersonnelName: "Персонал",
+  appMonitoringName: "Мониторинг водоемов",
+  appPersonnelName: "Организационная структура субъектов",
+  appCalcName: "Расчет запаса",
+  appAnalyseName: "Анализ запаса",
 
   appMinIO: "Файловое хранилище",
   appCubesName: "Сервис работы с кубами",

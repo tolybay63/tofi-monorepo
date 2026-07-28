@@ -28,7 +28,7 @@
           <q-btn
             rounded
             class="bg-orange text-white text-bold q-ma-md"
-            style="height: 100px; width: 1110px; font-size: 26px; opacity: 0.7"
+            style="height: 100px; width: 730px; font-size: 26px; opacity: 0.7"
             @click="fnAdm()"
           >
             <div class="column-3">
@@ -38,15 +38,11 @@
               </div>
             </div>
           </q-btn>
-        </div>
-
-
-        <div class="row q-ma-md justify-center">
           <!-- model -->
           <q-btn
             rounded
             class="bg-blue text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
+            style="height: 100px; width: 730px; font-size: 26px; opacity: 0.7"
             @click="fnMdl()"
           >
             <div class="column">
@@ -57,37 +53,9 @@
             </div>
           </q-btn>
 
-          <!-- data -->
-          <q-btn
-            rounded
-            class="bg-blue text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
-            @click="fnData()"
-          >
-            <div class="column">
-              <div>
-                <q-avatar icon="edit_note" color="orange"></q-avatar>
-                {{ $t("appDataName") }}
-              </div>
-            </div>
-          </q-btn>
-
-          <!-- cube -->
-          <q-btn
-            rounded
-            class="bg-blue text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
-            @click="fnCube()"
-          >
-            <div class="column">
-              <div>
-                <q-avatar icon="view_in_ar" color="orange"></q-avatar>
-                {{ $t("appCubesName") }}
-              </div>
-            </div>
-          </q-btn>
 
         </div>
+
 
         <div class="row q-ma-md justify-center">
           <!-- Personnel -->
@@ -119,7 +87,6 @@
               </div>
             </div>
           </q-btn>
-
           <!-- Calc -->
           <q-btn
             rounded
@@ -134,7 +101,20 @@
               </div>
             </div>
           </q-btn>
-
+          <!-- Analyse -->
+          <q-btn
+            rounded
+            class="bg-green text-white text-bold q-ma-md"
+            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
+            @click="fnAnalyse()"
+          >
+            <div class="column">
+              <div>
+                <q-avatar icon="biotech" color="orange"></q-avatar>
+                <div>{{ $t("appAnalyseName") }}</div>
+              </div>
+            </div>
+          </q-btn>
         </div>
 
       </div>
@@ -187,6 +167,17 @@ export default defineComponent({
 
     fnCalc() {
       //open(appCalcURL, "_self");
+      Notify.create({
+        type: 'negative',
+        message: "На стадии реализации",
+        position: 'top',
+        timeout: 5000,
+        actions: [{ icon: 'close', color: 'white' }]
+      });
+    },
+
+    fnAnalyse() {
+      //open(appAnalyseURL, "_self");
       Notify.create({
         type: 'negative',
         message: "На стадии реализации",
@@ -282,83 +273,5 @@ export default defineComponent({
   66% { transform: translate(-20px, 20px) rotate(-10deg); }
   100% { transform: translate(0, 0) rotate(0deg); }
 }
-
-/*
-.fish-phantom {
-  !* Создаем маску: переход от прозрачного к черному *!
-  !* Предполагаем, что голова слева, хвост справа *!
-  -webkit-mask-image: linear-gradient(to left, black 33%, transparent 66%);
-  mask-image: linear-gradient(to left, black 33%, transparent 66%);
-
-  -webkit-mask-size: 300% 100%;
-  mask-size: 300% 100%;
-
-  !* Запускаем анимацию *!
-  animation: dissolve-logic 6s ease-in-out infinite;
-}
-
-@keyframes dissolve-logic {
-  0% {
-    !* Рыба полностью видна *!
-    -webkit-mask-position: 0% 0;
-    mask-position: 0% 0;
-  }
-  40% {
-    !* Исчезает: хвост уходит первым (сдвигаем прозрачную часть на рыбу) *!
-    -webkit-mask-position: 70% 0;
-    mask-position: 70% 0;
-  }
-  50%, 60% {
-    !* Полностью растворилась (пауза в небытии) *!
-    -webkit-mask-position: 100% 0;
-    mask-position: 100% 0;
-  }
-  100% {
-    !* Появляется: голова выходит первой из тумана *!
-    -webkit-mask-position: 0% 0;
-    mask-position: 0% 0;
-  }
-}
-*/
-
-/*
-
-.fish-phantom-vertical {
-  !* Градиент сверху вниз: черная область (видимость) сверху *!
-  -webkit-mask-image: linear-gradient(to bottom, black 33%, transparent 66%);
-  mask-image: linear-gradient(to bottom, black 33%, transparent 66%);
-
-  !* Делаем маску высокой (100% ширина, 300% высота) *!
-  -webkit-mask-size: 100% 300%;
-  mask-size: 100% 300%;
-
-  animation: dissolve-vertical 4s ease-in-out infinite;
-}
-
-@keyframes dissolve-vertical {
-  0% {
-    !* Рыба полностью видна (черная часть маски наверху) *!
-    -webkit-mask-position: 0 0%;
-    mask-position: 0 0%;
-  }
-  40% {
-    !* Растворяется снизу вверх: сдвигаем прозрачную часть вверх *!
-    -webkit-mask-position: 0 70%;
-    mask-position: 0 70%;
-  }
-  50%, 60% {
-    !* Полное исчезновение *!
-    -webkit-mask-position: 0 100%;
-    mask-position: 0 100%;
-  }
-  100% {
-    !* Появляется сверху вниз: черная часть возвращается на место *!
-    -webkit-mask-position: 0 0%;
-    mask-position: 0 0%;
-  }
-}
-*/
-
-
 
 </style>
