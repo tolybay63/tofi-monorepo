@@ -4,7 +4,7 @@
 export default {
   lang: 'en',
   appName: 'TOFI platform',
-  appPersonnelName: 'Personnel',
+  appPersonnelName: "Organizational structure of the entities",
   company: 'LLP "Systems research company "Factor"',
   tofi: "TOFI",
   chooseLanguage: 'Language selection',

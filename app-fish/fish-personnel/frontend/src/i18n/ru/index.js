@@ -4,7 +4,7 @@
 export default {
   lang: 'ru',
   appName: 'Платформа ТОФИ',
-  appPersonnelName: 'Персонал',
+  appPersonnelName: 'Организационная структура субъектов',
   company: 'ТОО "Компания системных исследований "Фактор"',
   tofi: "ТОФИ",
 

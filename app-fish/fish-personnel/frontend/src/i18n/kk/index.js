@@ -5,7 +5,7 @@
 export default {
   lang: 'kk',
   appName: 'ТНФӨ платформасы',
-  appPersonnelName: 'Қызметкерлер',
+  appPersonnelName: "Субъектілердің ұйымдастырушылық құрылымы",
   company: 'ЖШС "Фактор" жүйелі зерттеулер компаниясы"',
   tofi: "ТНФӨ",
   chooseLanguage: 'Тіл таңдау',

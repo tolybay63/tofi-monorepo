@@ -175,7 +175,7 @@ export default {
           sortable: true,
           classes: "bg-blue-grey-1",
           headerStyle:
-            "font-size: 1.3em; color: #1976d2; background: antiquewhite; width:25%;",
+            "font-size: 1.3em; width:25%;",
           headerClass: "text-bold text-white bg-blue-grey-13",
           style: "text-align: left; width:25%",
         },
@@ -185,7 +185,7 @@ export default {
           label: this.$t("kfcMeasure"),
           field: "kFromBase",
           headerStyle:
-            "font-size: 1.3em; color: #1976d2; background: antiquewhite; width:10%;",
+            "font-size: 1.3em; width:10%;",
           headerClass: "text-bold text-white bg-blue-grey-13",
           style: "text-align: right; width:10%;",
         },
@@ -195,7 +195,7 @@ export default {
           field: "accessLevel",
           classes: "bg-blue-grey-1",
           headerStyle:
-            "font-size: 1.3em; color: #1976d2; background: antiquewhite; width:10%;",
+            "font-size: 1.3em; width:10%;",
           headerClass: "text-bold text-white bg-blue-grey-13",
           style: "text-align: left; width:10%;",
         },
@@ -205,7 +205,7 @@ export default {
           field: "cmt",
           classes: "bg-blue-grey-1",
           headerStyle:
-            "font-size: 1.3em; color: #1976d2; background: antiquewhite; width:30%",
+            "font-size: 1.3em; width:30%",
           headerClass: "text-bold text-white bg-blue-grey-13",
           style: "text-align: left; width:30%",
         },

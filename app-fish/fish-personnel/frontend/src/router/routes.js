@@ -4,15 +4,16 @@ const routes = [
     component: () => import('../layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('../pages/IndexPage.vue') },
-      { path: '/struct_enterprise', name: "PesonnelPage", component: () => import('../pages/struct_enterprise/StructEnterprise.vue')},
-      { path: '/personnel', name: "StructEnterprisePage", component: () => import('../pages/personnel/PesonnelPage.vue')},
+      { path: '/struct_enterprise', name: "StructEnterprisePage", component: () => import('../pages/struct_enterprise/StructEnterprise.vue')},
+      { path: '/struct_enterprise2', name: "StructEnterprisePage2", component: () => import('../pages/struct_enterprise/StructEnterprise2.vue')},
+      { path: '/personnel', name: "PersonnelPage", component: () => import('../pages/personnel/PesonnelPage.vue')},
 
     ],
   },
 
   {
     path: "/confirm-pws",
-    component: () => import("pages/ConfirmPassword.vue")
+    component: () => import("../pages/ConfirmPassword.vue")
   },
 
 
