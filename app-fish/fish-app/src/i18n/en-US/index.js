@@ -10,9 +10,10 @@ export default {
   appAdmName: "Administration environment",
   appUserDataName: "User's personal account",
   appDataName: "Data management service",
-  appCalcName: "Calculation",
-  appMonitoringName: "Monitoring of fishing tanks",
-  appPersonnelName: "Personnel",
+  appCalcName: "Stock calculation",
+  appMonitoringName: "Water body monitoring",
+  appPersonnelName: "Organizational structure of the entities",
+  appAnalyseName: "Stock analysis",
 
   appMinIO: "File storage",
   appCubesName: "Cube management service",
