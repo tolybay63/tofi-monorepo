@@ -224,6 +224,10 @@ class DataDao extends BaseMdbUtils {
             Store st = apiMeta().get(ApiMeta).loadSqlWithParams("""
                 select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
                 from Prop p, Measure m
+                where (p.id=:Prop_WaterFishAverageWeight or p.parent=:Prop_WaterFishAverageWeight) and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                from Prop p, Measure m
                 where (p.id=:Prop_WaterNumberFishBio or p.parent=:Prop_WaterNumberFishBio) and p.measure=m.id
                 union all
                 select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
@@ -1594,7 +1598,7 @@ class DataDao extends BaseMdbUtils {
             return mdb.createStore()
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         String whe = """
-            ${map.get("Prop_NumberFishCaught")},${map.get("Prop_NumberEggs")},${map.get("Prop_FishAverageWeight")},
+            ${map.get("Prop_NumberFishCaught")},${map.get("Prop_NumberEggs")},
             ${map.get("Prop_FishArea")},${map.get("Prop_WorkDuration")},${map.get("Prop_NumberNet")}
         """
 
