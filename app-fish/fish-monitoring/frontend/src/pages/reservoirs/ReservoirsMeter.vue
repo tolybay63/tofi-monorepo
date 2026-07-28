@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-sm row bg-amber-1" >
+  <div class="q-pa-sm row bg-amber-1">
     <!--  Date  -->
     <q-input
       v-model="dte"
@@ -28,42 +28,41 @@
       @update:model-value="fnSelectPeriodType"
       style="width: 100px"
     />
-
   </div>
 
-  <div class="q-pt-sm">
-    <div
-      class="q-table-container q-table--dense wrap bg-orange-1"
-      style="height: 100%"
-    >
-      <div class="q-table-middle scroll">
-        <table
-          class="q-table q-table--cell-separator q-table--bordered wrap"
-        >
-          <thead class="text-bold text-white bg-blue-grey-13">
-          <tr>
-            <th style="font-size: 1.2em; width: 50%">
-              {{ cols[0].label }}
-            </th>
-            <th style="font-size: 1.2em; width: 14%">
-              {{ cols[1].label }}
-            </th>
-            <th style="font-size: 1.2em; width: 14%">
-              {{ cols[2].label }}
-            </th>
-            <th style="font-size: 1.2em; width: 12%">
-              {{ cols[3].label }}
-            </th>
-            <th></th>
-          </tr>
-          </thead>
 
-          <tbody style="background:  aliceblue">
-          <tr v-for="(item, index) in arrayTreeObj" :key="index">
-            <td
-              :data-th="cols[0].name"
-              @click="toggle(item)"
-            >
+  <div
+    class="q-table-container q-table--dense wrap bg-orange-1"
+    style="height: 100%"
+  >
+    <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
+      <table
+        class="q-table q-table--cell-separator q-table--bordered wrap"
+      >
+        <thead class="text-bold text-white bg-blue-grey-13">
+        <tr>
+          <th style="font-size: 1.2em; width: 50%">
+            {{ cols[0].label }}
+          </th>
+          <th style="font-size: 1.2em; width: 14%">
+            {{ cols[1].label }}
+          </th>
+          <th style="font-size: 1.2em; width: 14%">
+            {{ cols[2].label }}
+          </th>
+          <th style="font-size: 1.2em; width: 12%">
+            {{ cols[3].label }}
+          </th>
+          <th></th>
+        </tr>
+        </thead>
+
+        <tbody style="background:  aliceblue">
+        <tr v-for="(item, index) in arrayTreeObj" :key="index">
+          <td
+            :data-th="cols[0].name"
+            @click="toggle(item)"
+          >
                 <span
                   class="q-tree-link q-tree-label"
                   v-bind:style="setPadding(item)"
@@ -76,50 +75,49 @@
 
                   {{ item.name }}
                 </span>
-            </td>
-            <!--dbeg-->
-            <td :data-th="cols[2].name">
-              {{ dtFormat(item.dbeg) }}
-            </td>
-            <!--dend-->
-            <td :data-th="cols[3].name">
-              {{ dtFormat(item.dend) }}
-            </td>
-            <!--value-->
-            <td :data-th="cols[1].name">
-              {{ item.numberval }}
-            </td>
-            <!--cmd-->
-            <td :data-th="cols[4].name">
-              <q-btn
-                class="no-padding no-margin" color="blue" dense flat icon="edit" round
-                size="sm" @click="fnEdit(item)"
+          </td>
+          <!--dbeg-->
+          <td :data-th="cols[2].name">
+            {{ dtFormat(item.dbeg) }}
+          </td>
+          <!--dend-->
+          <td :data-th="cols[3].name">
+            {{ dtFormat(item.dend) }}
+          </td>
+          <!--value-->
+          <td :data-th="cols[1].name">
+            {{ item.numberval }}
+          </td>
+          <!--cmd-->
+          <td :data-th="cols[4].name">
+            <q-btn
+              class="no-padding no-margin" color="blue" dense flat icon="edit" round
+              size="sm" @click="fnEdit(item)"
+            >
+              <q-tooltip
+                transition-hide="rotate" transition-show="rotate"
               >
-                <q-tooltip
-                  transition-hide="rotate" transition-show="rotate"
-                >
-                  {{ $t("update") }}
-                </q-tooltip>
-              </q-btn>
+                {{ $t("update") }}
+              </q-tooltip>
+            </q-btn>
 
-              <q-btn
-                class="no-padding no-margin" color="red" dense flat icon="delete" round
-                size="sm" @click="fnDelete(item)" :disable="!(item.idval>0)"
+            <q-btn
+              class="no-padding no-margin" color="red" dense flat icon="delete" round
+              size="sm" @click="fnDelete(item)" :disable="!(item.idval>0)"
+            >
+              <q-tooltip
+                transition-hide="rotate" transition-show="rotate"
               >
-                <q-tooltip
-                  transition-hide="rotate" transition-show="rotate"
-                >
-                  {{ $t("deletingRecord") }}
-                </q-tooltip>
-              </q-btn>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
+                {{ $t("deletingRecord") }}
+              </q-tooltip>
+            </q-btn>
+          </td>
+        </tr>
+        </tbody>
+      </table>
     </div>
-
   </div>
+
 
 </template>
 
@@ -144,7 +142,7 @@ export default {
       obj: 0,
 
       dte: today(),
-      periodType: 41,
+      periodType: 11,
       optPeriod: []
     }
   },
@@ -383,7 +381,7 @@ export default {
           (response) => {
             //console.info("rows", response.data.result["records"]);
             this.rows = pack(response.data.result["records"], "id")
-            expandAll(this.rows)
+            //expandAll(this.rows)
           })
         .finally(() => {
           this.loading = false
@@ -419,3 +417,33 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 95%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
+</style>
+

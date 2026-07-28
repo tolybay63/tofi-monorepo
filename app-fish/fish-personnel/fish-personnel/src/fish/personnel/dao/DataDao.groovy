@@ -52,8 +52,11 @@ class DataDao extends BaseMdbUtils {
     Store loadObj(long cls) {
         Store st = mdb.createStore("Obj.full")
         mdb.loadQuery(st, """
-            select o.*, v.name, v.fullName, v.objParent as parent from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.cls=:c
+            select o.*, v.name, v.fullName, v.objParent as parent, ov1.name as namePerent
+            from Obj o
+            join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+            left join ObjVer ov1 on ov1.ownerVer=v.objParent and ov1.lastVer=1 
+            where o.cls=:c
         """, [c: cls])
         return st
     }

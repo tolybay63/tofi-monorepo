@@ -224,6 +224,10 @@ class DataDao extends BaseMdbUtils {
             Store st = apiMeta().get(ApiMeta).loadSqlWithParams("""
                 select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
                 from Prop p, Measure m
+                where (p.id=:Prop_WaterNumberFishBio or p.parent=:Prop_WaterNumberFishBio) and p.measure=m.id
+                union all
+                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                from Prop p, Measure m
                 where p.id=:Prop_WaterArea and p.measure=m.id
                 union all
                 select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
@@ -236,19 +240,11 @@ class DataDao extends BaseMdbUtils {
                 union all
                 select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
                 from Prop p, Measure m
-                where p.id=:Prop_ReservoirWidth and p.measure=m.id
+                where (p.id=:Prop_ReservoirWidth or p.parent=:Prop_ReservoirWidth) and p.measure=m.id
                 union all
                 select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
                 from Prop p, Measure m
-                where p.parent=:Prop_ReservoirWidth and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                from Prop p, Measure m
-                where p.id=:Prop_ReservoirDepth and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                from Prop p, Measure m
-                where p.parent=:Prop_ReservoirDepth and p.measure=m.id
+                where (p.id=:Prop_ReservoirDepth or p.parent=:Prop_ReservoirDepth) and p.measure=m.id
             """, "", map as Map<String, Object>)
             Set<Object> idsProp = st.getUniqueValues("id")
             //
@@ -591,6 +587,12 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_Description", pms)
             else if (!pms.getString("Description").isEmpty())
                 fillProperties(true, "Prop_Description", pms)
+
+            //3 Prop_Description
+            if (pms.getLong("idReservoirShore") > 0)
+                updateProperties("Prop_ReservoirShore", pms)
+            else if (pms.getLong("objReservoirShore") > 0)
+                fillProperties(true, "Prop_ReservoirShore", pms)
         }
         return loadSamplingStations([codCls: "", idObj: own] as Map<String, Object>)
     }
@@ -1592,8 +1594,8 @@ class DataDao extends BaseMdbUtils {
             return mdb.createStore()
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
         String whe = """
-            ${map.get("Prop_NumberFishCaught")},${map.get("Prop_NumberFishBio")},${map.get("Prop_NumberEggs")},
-            ${map.get("Prop_FishAverageWeight")},${map.get("Prop_FishArea")},${map.get("Prop_WorkDuration")},${map.get("Prop_NumberNet")}
+            ${map.get("Prop_NumberFishCaught")},${map.get("Prop_NumberEggs")},${map.get("Prop_FishAverageWeight")},
+            ${map.get("Prop_FishArea")},${map.get("Prop_WorkDuration")},${map.get("Prop_NumberNet")}
         """
 
         Store st = loadSqlMeta("""
@@ -2039,6 +2041,7 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_KATO") ||
                     cod.equalsIgnoreCase("Prop_Branch") ||
                     cod.equalsIgnoreCase("Prop_FishLocation") ||
+                    cod.equalsIgnoreCase("Prop_ReservoirShore") ||
                     cod.equalsIgnoreCase("Prop_FishGear") ||
                     cod.equalsIgnoreCase("Prop_FishManager") ||
                     cod.equalsIgnoreCase("Prop_FishParticipants")) {
