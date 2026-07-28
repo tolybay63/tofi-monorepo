@@ -241,7 +241,10 @@ export default {
   existsResSampling: "Существует результат забора пробы",
   exists: "Существует",
   add: 'Добавить',
-  addChild: 'Добавить дочернюю',
+
+  addEnt: 'Добавить предприятие',
+  addChild: 'Добавить дочерний элемент',
+
   analysis: "Анализ",
   periodType: "Тип периода",
   period: "Период",

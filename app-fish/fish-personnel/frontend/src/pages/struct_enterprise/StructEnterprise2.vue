@@ -1,426 +1,310 @@
 <template>
-  <div class="q-pa-md">
-    <q-splitter
-      v-model="splitterModel"
-      :model-value="splitterModel"
-      after-class="overflow-hidden q-ml-sm"
-      before-class="overflow-hidden q-mr-sm"
-      class="bg-amber-1"
-      separator-class="bg-red"
+  <q-page class="q-pa-md bg-amber-1">
+    <q-banner
+      dense
+      inline-actions
+      class="bg-orange-1"
+      style="margin-bottom: 5px"
     >
-
-      <template v-slot:before>
-
-        <div class="q-mb-lg" style="font-size: 1.2em; font-weight: bold">
-          <q-avatar color="black" icon="apartment" text-color="white">
-          </q-avatar>
-          {{ $t("struct_enterprise") }}
-        </div>
-
-        <div class="scroll" style="height: calc(100vh - 250px); width: 100%">
-          <QTreeTable
-            ref="childComp"
-            :cols="cols"
-            :icon_leaf="''"
-            :rows="rows"
-            checked_visible="true"
-            @updateSelect="onUpdateSelect"
-          />
-        </div>
-      </template>
-
-      <template v-slot:after>
-
-        <q-table
-          v-model:selected="selected2" :columns="cols2"
-          :loading="loading2"
-          :rows="rows2"
-          :rows-per-page-options="[0]"
-          :table-colspan="4"
-          :wrap-cells="true"
-          card-class="bg-amber-1 text-brown"
-          color="primary"
+      <div style="font-size: 1.2em; font-weight: bold;">
+        <q-avatar color="black" text-color="white" icon="apartment"></q-avatar>
+        {{ $t("struct_enterprise") }}
+      </div>
+      <template v-slot:action>
+        <q-btn
+          v-if="hasTarget('mdl:mn_ds:mea:ins')"
           dense
-          row-key="id"
-          selection="single"
-          separator="cell"
-          table-header-class="text-bold text-white bg-blue-grey-13"
+          icon="post_add"
+          color="secondary"
+          class="q-ml-sm"
+          @click="fnIns('ins', false)"
         >
+          <q-tooltip transition-show="rotate" transition-hide="rotate">
+            {{ $t("addEnt") }}
+          </q-tooltip>
+        </q-btn>
 
-          <template v-slot:top>
-            <div v-if="currentNode" style="font-size: 1.2em; font-weight: bold">
-              <q-avatar :icon="currentNode['ent']===1024 ? 'apartment'
-                          : currentNode['ent']===1025 ? 'store'
-                          : currentNode['ent']===1026 ? 'business'
-                          : 'biotech'" color="black"
-                        text-color="white"/>
-              {{ currentNode.name }}
-            </div>
+        <q-btn
+          v-if="hasTarget('mdl:mn_ds:mea:ins')"
+          dense
+          icon="post_add"
+          color="secondary"
+          class="q-ml-sm img-vert"
+          @click="fnIns('ins', true)"
+          :disable="currentNode == null"
+        >
+          <q-tooltip transition-show="rotate" transition-hide="rotate">
+            {{ $t("addChild") }}
+          </q-tooltip>
+        </q-btn>
 
-            <q-space/>
-            <q-btn
-              v-if="hasTarget(tagIns)"
-              :disable="loading || !currentNode ||
-              (currentNode['ent'] !== clsEnterPrise && parentId === 0) ||
-              (currentNode['ent'] === clsEnterPrise && rows2.length===1)"
-              color="secondary"
-              dense
-              icon="post_add"
-              @click="editRow(null, 'ins')"
-            >
-              <q-tooltip transition-hide="rotate" transition-show="rotate">
-                {{ $t("newRecord") }}
-              </q-tooltip>
-            </q-btn>
-            <q-btn
-              v-if="hasTarget(tagUpd)"
-              :disable="loading2 || selected2.length === 0" class="q-ml-sm"
-              color="secondary"
-              dense
-              icon="edit"
-              @click="editRow(selected2[0], 'upd')"
-            >
-              <q-tooltip transition-hide="rotate" transition-show="rotate">
-                {{ $t("editRecord") }}
-              </q-tooltip>
-            </q-btn>
-            <q-btn
-              v-if="hasTarget(tagDel)"
-              :disable="loading2 || selected2.length === 0" class="q-ml-lg"
-              color="red"
-              dense
-              icon="delete"
-              @click="removeRow(selected2[0])"
-            >
-              <q-tooltip transition-hide="rotate" transition-show="rotate">
-                {{ $t("deletingRecord") }}
-              </q-tooltip>
-            </q-btn>
-          </template>
+        <q-btn
+          v-if="hasTarget('mdl:mn_ds:mea:upd')"
+          dense
+          icon="edit"
+          color="secondary"
+          class="q-ml-sm"
+          @click="fnIns('upd', false)"
+          :disable="currentNode == null"
+        >
+          <q-tooltip transition-show="rotate" transition-hide="rotate">
+            {{ $t("editRecord") }}
+          </q-tooltip>
+        </q-btn>
 
-          <template #bottom-row>
-            <q-td v-if="selected2.length > 0" colspan="100%">
-              <span class="text-blue"> {{ $t("selectedRow") }}: </span>
-              <span class="text-bold"> {{ this.infoSelected(selected2[0]) }} </span>
-            </q-td>
-            <q-td v-else-if="this.rows2.length > 0" class="text-bold" colspan="100%">
-              {{ $t("infoRow") }}
-            </q-td>
-          </template>
+        <q-btn
+          v-if="hasTarget('mdl:mn_ds:mea:del')"
+          dense
+          icon="delete"
+          color="red"
+          class="q-ml-sm"
+          @click="fnDel(currentNode)"
+          :disable="currentNode == null"
+        >
+          <q-tooltip transition-show="rotate" transition-hide="rotate">
+            {{ $t("deletingRecord") }}
+          </q-tooltip>
+        </q-btn>
 
-
-        </q-table>
-
+        <q-inner-loading :showing="visible" color="secondary"/>
       </template>
+    </q-banner>
 
-    </q-splitter>
+    <div style="height: calc(100vh - 250px); width: 100%">
+      <QTreeTable
+        :cols="cols"
+        :rows="rows"
+        :icon_leaf="''"
+        @updateSelect="onUpdateSelect"
+        checked_visible="true"
+        ref="childComp"
+      />
+    </div>
 
-  </div>
-
+  </q-page>
 </template>
 
 <script>
-
-import {defineComponent} from "vue";
+import {ref} from "vue";
+import {api} from "../..//boot/axios";
+import {expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "../../utils/jsutils";
 import QTreeTable from "../../components/QTreeTable.vue";
-import {api} from "../../boot/axios";
-import {expandAll, hasTarget, notifyInfo, pack} from "../../utils/jsutils";
-import UpdaterStructEnterprise from "./UpdaterStructEnterprise.vue";
+import UpdaterStructEnterprise2 from "./UpdaterStructEnterprise2.vue";
 
-export default defineComponent({
-  name: "StructEnterprisePage2",
+export default {
+  name: "StructEnterprisePage",
   components: {QTreeTable},
 
-  data() {
+  data: function () {
     return {
-      splitterModel: 20,
+      selected: [],
       cols: [],
       rows: [],
       currentNode: null,
-      clsEnterPrise: 0,
-      loading: false,
-
-      cols2: [],
-      rows2: [],
-      selected2: [],
-      loading2: false,
-      parentId: 0,
-      parentName: "",
-
-      tagIns: "st:ent:ins",
-      tagUpd: "st:ent:upd",
-      tagDel: "st:ent:del",
-
-    }
+      visible: false,
+    };
   },
 
   methods: {
     hasTarget,
+    clearAny() {
+      this.$refs.childComp.clrAny();
+    },
+
     onUpdateSelect(data) {
       this.currentNode = data.selected !== undefined ? data.selected : null;
-      this.selected2 = []
-      let cls = this.currentNode ? this.currentNode["ent"] : 0;
-      if (cls === 1007) {
-        this.tagIns = "st:ent:ins"
-        this.tagUpd = "st:ent:upd"
-        this.tagDel = "st:ent:del"
-      }
-      if (cls === 1008) {
-        this.tagIns = "st:fil:ins"
-        this.tagUpd = "st:fil:upd"
-        this.tagDel = "st:fil:del"
-      }
-      if (cls === 1009) {
-        this.tagIns = "st:otd:ins"
-        this.tagUpd = "st:otd:upd"
-        this.tagDel = "st:otd:del"
-      }
-      if (cls === 1010) {
-        this.tagIns = "st:lab:ins"
-        this.tagUpd = "st:lab:upd"
-        this.tagDel = "st:lab:del"
-      }
-      this.loadObj(cls)
+      //console.log("currentNode onUpdateSelect", this.currentNode)
     },
 
-    editRow(row, mode) {
-      let data = {
-        accessLevel: 1,
-        cls: this.currentNode["ent"],
-      }
-      if (mode === "ins") {
-        if (this.currentNode["ent"] === this.clsEnterPrise)
-          data.parent = null
-        else
-          data.parent = this.parentId
-      } else if (mode === "upd") {
-        //extend(true, data, this.selected2[0])
-        Object.assign(data, this.selected2[0])
-      }
-
-      this.$q
-        .dialog({
-          component: UpdaterStructEnterprise,
-          componentProps: {
-            mode: mode,
-            parentId: this.parentId,
-            parentName: this.parentName,
-            data: data,
-            // ...
+    fetchData() {
+      this.visible = true;
+      api
+        .post("", {
+          method: "data/loadEnterprise",
+          params: ["Typ_Enterprise"],
+        })
+        .then(
+          (response) => {
+            this.rows = pack(response.data.result.records, "ord");
+            expandAll(this.rows);
           },
-        })
-        .onOk((r) => {
-          if (mode === "ins") {
-            if (this.currentNode["ent"] === this.clsEnterPrise) {
-              this.idNameParent()
-            }
-            this.rows2.push(r);
-            this.selected2 = [];
-            this.selected2.push(r);
-          } else {
-            for (let key in r) {
-              if (r.hasOwnProperty(key)) {
-                row[key] = r[key];
-              }
-            }
+          (error) => {
+            let msg = error.message;
+            if (error.response)
+              msg = this.$t(error.response.data.error.message);
+
+            console.error(msg);
           }
-        })
+        )
+        .finally(() => {
+          //setTimeout(() => {
+          this.visible = false;
+          //}, 3000)
+        });
     },
 
-    removeRow(rec) {
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' + rec.name + ' - ' + rec.fullName + ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          api
-            .post('', {
-              method: "data/deleteBranch",
-              params: [rec.id],
-            })
-            .then(
-              () => {
-                this.loadObj(this.currentNode["ent"])
-                this.selected2 = []
-              })
-            .then(() => {
-              if (this.currentNode["ent"] === this.clsEnterPrise)
-                this.idNameParent()
-            })
-            .catch(error => {
-              /*
-                            let msg = error.message
-                            if (error.response.data.error.message.includes("@")) {
-                              let msgs = error.response.data.error.message.split("@")
-                              let m1 = this.$t(`${msgs[0]}`)
-                              let m2 = (msgs.length > 1) ? " [" + msgs[1] + "]" : ""
-                              msg = m1 + m2
-                              notifyError(msg)
-                            } else {
-                              notifyError(msg)
-                            }
-              */
-            })
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t("canceled"));
-        })
-    },
-
-    getColumns1() {
+    getColumns() {
       return [
         {
           name: "name",
           label: this.$t("fldName"),
           field: "name",
           align: "left",
+          sortable: true,
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:100%",
-        },
-      ]
-    },
-
-    getColumns2() {
-      return [
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:20%",
+          headerStyle: "font-size: 1.3em;",
+          headerClass: "text-bold text-white bg-blue-grey-13 ",
+          style: "text-align: left; width:20%",
         },
         {
-          name: "fullName",
+          name: "fullname",
           label: this.$t("fldFullName"),
-          field: "fullName",
+          field: "fullname",
           align: "left",
+          sortable: true,
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width:30%",
+          headerStyle: "font-size: 1.3em;",
+          headerClass: "text-bold text-white bg-blue-grey-13",
+          style: "text-align: left; width:30%",
+        },
+        {
+          name: "namecls",
+          label: this.$t("cls"),
+          field: "namecls",
+          headerStyle: "font-size: 1.3em;",
+          headerClass: "text-bold text-white bg-blue-grey-13",
+          style: "text-align: right; width:20%;",
         },
         {
           name: "cmt",
           label: this.$t("fldCmt"),
           field: "cmt",
-          align: "left",
           classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 50%",
+          headerStyle: "font-size: 1.3em;",
+          headerClass: "text-bold text-white bg-blue-grey-13",
+          style: "text-align: left; width:30%",
         },
-      ]
+      ];
     },
 
-    loadClsTree() {
-      this.loading = true;
-      api
-        .post('', {
-          method: "data/loadClsTree",
-          params: [{typCod: 'Typ_Enterprise', typNodeVisible: false}],
-        })
-        .then(
-          (response) => {
-            this.rows = pack(response.data.result["records"], "ord")
-            expandAll(this.rows)
-          })
-        .catch(error => {
-          console.error(error.response.data.error.message)
-          //notifyError(this.$t(error.response.data.error.message))
-        })
-        .finally(() => {
-          this.loading = false
-        })
+    fnIns(mode, isChild) {
+      let data = {
+      };
 
+      let parent = null;
+      let parentName = null;
+
+      if (isChild) {
+        parent = this.currentNode.id;
+        parentName = this.currentNode.fullname;
+
+
+/*
+        if (this.currentNode.parent > 0) {
+          parent = this.currentNode.parent
+          let parentNode = [];
+          getParentNode(this.rows, this.currentNode.parent, parentNode);
+          console.log("ParentNode-----", parentNode)
+          parentName = parentNode[0].fullname;
+
+        } else {
+          parent = this.currentNode.id;
+          parentName = this.currentNode.fullname;
+        }
+*/
+      }
+      console.log("ParentNode-----2", parentName)
+      if (mode === "ins") {
+        data.parent = parent;
+      } else if (mode === "upd") {
+        data = {
+          id: this.currentNode.id,
+          parent: this.currentNode.parent,
+          name: this.currentNode.name,
+          cls: this.currentNode.cls,
+          nameCls: this.currentNode.namecls,
+          fullName: this.currentNode.fullname,
+          cmt: this.currentNode.cmt,
+        };
+        if (this.currentNode.parent > 0) {
+          let parentNode = [];
+          getParentNode(this.rows, this.currentNode.parent, parentNode);
+          parentName = parentNode[0].fullname;
+          isChild = true;
+        }
+      }
+      this.$q
+        .dialog({
+          component: UpdaterStructEnterprise2,
+          componentProps: {
+            mode: mode,
+            isChild: isChild,
+            parentName: parentName,
+            data: data,
+            // ...
+          },
+        })
+        .onOk((data) => {
+          //console.log("Ok! updated", data);
+          this.fetchData();
+          this.currentNode = data
+          this.$refs.childComp.restoreSelect(data)
+
+        });
     },
 
-    loadObj(cls) {
-      this.loading2 = true;
-      api
-        .post('', {
-          method: "data/loadObj",
-          params: [cls],
+    fnDel(rec) {
+      this.$q
+        .dialog({
+          title: this.$t("confirmation"),
+          message:
+            this.$t("deleteRecord") +
+            '<div style="color: plum">(' +
+            rec.cod +
+            ": " +
+            rec.name +
+            ")</div>",
+          html: true,
+          cancel: true,
+          persistent: true,
         })
-        .then(
-          (response) => {
-            this.rows2 = response.data.result["records"]
-          })
-        .catch(error => {
-          //notifyError(this.$t(error.response.data.error.message))
-          console.error(error.response.data.error.message)
+        .onOk(() => {
+          //let index = this.rows.findIndex((row) => row.id === rec.id);
+          api
+            .post("", {
+              method: "data/deleteEnterprise",
+              params: [rec.id],
+            })
+            .then(
+              () => {
+                this.fetchData();
+                this.clearAny();
+              })
         })
-        .finally(() => {
-          this.loading2 = false
-        })
-    },
-
-    idNameParent() {
-      api
-        .post('', {
-          method: "data/idNameParent",
-          params: [this.clsEnterPrise],
-        })
-        .then(
-          (response) => {
-            this.parentId = response.data.result.id
-            this.parentName = response.data.result.name
-            //notifySuccess(this.$t("success"))
-          })
-    },
-
-    infoSelected(row) {
-      return " " + row.fullName
+        .onCancel(() => {
+          notifyInfo(this.$t("canceled"));
+        });
     },
   },
 
   created() {
-    this.cols = this.getColumns1()
-    this.cols2 = this.getColumns2()
-    this.loading = true
-    api
-      .post('', {
-        method: "data/getClsIds",
-        params: ["Cls_Enterprise"],
-      })
-      .then(
-        (response) => {
-          this.clsEnterPrise = response.data.result["Cls_Enterprise"]
-          //notifySuccess(this.$t("success"))
-        })
-      .then(() => {
-        this.idNameParent()
-      })
-      .catch(error => {
-        //console.log(error.message)
-        if (error.response.data.error.message.includes("@")) {
-          let msgs = error.response.data.error.message.split("@")
-          let m1 = this.$t(`${msgs[0]}`)
-          let m2 = (msgs.length > 1) ? " [" + msgs[1] + "]" : ""
-          let msg = m1 + m2
-          //notifyError(msg)
-          console.error(msg)
-        } else {
-          //notifyError(error.message)
-          console.error(error.message)
-        }
-      })
-      .finally(() => {
-        this.loading = false
-      })
+    this.cols = this.getColumns();
 
+    this.fetchData();
+  },
 
-    this.loadClsTree()
+  setup() {}
 
-  }
-
-})
-
+};
 </script>
 
-<style>
+<style scoped>
+
+.img-vert {
+  -moz-transform: scaleY(-1);
+  -webkit-transform: scaleY(-1);
+  transform: scaleY(-1);
+  -ms-filter: "FlipV";
+}
 
 </style>

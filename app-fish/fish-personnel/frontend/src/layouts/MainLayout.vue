@@ -175,7 +175,7 @@ export default defineComponent({
     let getLinks = () => {
       return [
         {
-          title: "struct_enterprise2",
+          title: "struct_enterprise",
           info: "",
           icon: "apartment",
           link: "/struct_enterprise2",

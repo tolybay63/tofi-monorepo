@@ -168,6 +168,7 @@ class DataDao extends BaseMdbUtils {
             eu.deleteEntity(id)
         }
     }
+
     //---------------------------------- Personnel --------------------------------- //
     @DaoMethod
     Map<String, Object> loadPersonnel(Map<String, Object> params) throws Exception {
@@ -371,7 +372,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    public StoreRecord newRec() {
+    StoreRecord newRec() {
         //checkTarget("default-target")
         Store st = getMdb().createStore("Personnel")
         return st.add()
@@ -538,6 +539,89 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Map<Long, String> mapFvNameFromId() {
         return apiMeta().get(ApiMeta).mapFvNameFromId()
+    }
+
+    //------------------
+    @DaoMethod
+    Store loadEnterprise(String codTyp) {
+        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
+        if (idsCls.size() == 0)
+            idsCls.add(0L)
+
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select c.id, v.name
+            from Cls c, ClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (${idsCls.join(",")})
+        """, "")
+
+        StoreIndex indCls = stCls.getIndex("id")
+
+        Store st = mdb.loadQuery("""
+            select o.id, v.objparent as parent, v.name, v.fullname, o.cls, null as namecls, v.cmtver as cmt 
+            from obj o, objver v  
+            where o.id=v.ownerver and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            order by o.ord
+        """)
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("namecls", rec.getString("name"))
+            }
+        }
+        return st
+    }
+
+    @DaoMethod
+    Store loadCls(String codTyp, String flag) {
+        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
+        if (idsCls.size() == 0)
+            idsCls.add(0L)
+
+        String sql = """
+            select cls
+            from clsfactorval
+            where cls in (${idsCls.join(",")})
+            group by cls
+            having count(*) = 1
+        """
+        if (flag.equalsIgnoreCase("childs")) {
+            sql = """
+                    select cls
+                    from clsfactorval
+                    where cls in (${idsCls.join(",")})
+                    group by cls
+                    having count(*) > 1
+                """
+        }
+        Store stCls = apiMeta().get(ApiMeta).loadSql(sql, "")
+        Set<Object> setCls = stCls.getUniqueValues("cls")
+        return apiMeta().get(ApiMeta).loadSql("""
+            select c.id, v.name
+            from Cls c, ClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (${setCls.join(",")})        
+        """, "")
+    }
+
+    @DaoMethod
+    void insertEnterprise(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        long id = eu.insertEntity(rec)
+    }
+
+    @DaoMethod
+    void updateEnterprise(Map<String, Object> rec) {
+        long id = UtCnv.toLong(rec.get("id"))
+        if (id==0)
+            throw new XError("id=0")
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.updateEntity(rec)
+    }
+
+    @DaoMethod
+    void deleteEnterprise(long id) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.deleteEntity(id)
     }
 
 
