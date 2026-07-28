@@ -130,7 +130,10 @@ class FillDao  extends BaseMdbUtils {
     def props_meter = [
             "Prop_AreaOfTon": 1023L, "Prop_1057": 1057L,	"Prop_1097": 1097L,
             "Prop_1137": 1137L, "Prop_1177": 1177L,	"Prop_1257": 1257L,
-            "Prop_1217": 1217L, "Prop_1297": 1297L,	"Prop_1337": 1337L
+            "Prop_1217": 1217L, "Prop_1297": 1297L,	"Prop_1337": 1337L,
+            "Prop_1417": 1417L, "Prop_1457": 1457L, "Prop_1497": 1497L,
+            "Prop_1537": 1537L, "Prop_1577": 1577L, "Prop_1617": 1617L,
+            "Prop_1657": 1657L, "Prop_1697": 1697L, "Prop_1737": 1737L
     ]
 
     def props_obj = [

@@ -3,7 +3,7 @@
     <q-splitter
       v-model="splitterModel"
       :model-value="splitterModel"
-      :limits="[60, 100]"
+      :limits="[40, 100]"
       before-class="overflow-hidden"
       after-class="overflow-hidden q-pl-sm"
       separator-class="bg-red"

@@ -19,6 +19,15 @@
         <q-td> Prop_1217</q-td>
         <q-td> Prop_1297</q-td>
         <q-td> Prop_1337</q-td>
+        <q-td> Prop_1417</q-td>
+        <q-td> Prop_1457</q-td>
+        <q-td> Prop_1497</q-td>
+        <q-td> Prop_1537</q-td>
+        <q-td> Prop_1577</q-td>
+        <q-td> Prop_1617</q-td>
+        <q-td> Prop_1657</q-td>
+        <q-td> Prop_1697</q-td>
+        <q-td> Prop_1737</q-td>
       </q-tr>
     </q-markup-table>
 

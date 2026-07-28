@@ -224,14 +224,6 @@ class DataDao extends BaseMdbUtils {
             Store st = apiMeta().get(ApiMeta).loadSqlWithParams("""
                 select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
                 from Prop p, Measure m
-                where (p.id=:Prop_WaterFishAverageWeight or p.parent=:Prop_WaterFishAverageWeight) and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                from Prop p, Measure m
-                where (p.id=:Prop_WaterNumberFishBio or p.parent=:Prop_WaterNumberFishBio) and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                from Prop p, Measure m
                 where p.id=:Prop_WaterArea and p.measure=m.id
                 union all
                 select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
@@ -250,6 +242,62 @@ class DataDao extends BaseMdbUtils {
                 from Prop p, Measure m
                 where (p.id=:Prop_ReservoirDepth or p.parent=:Prop_ReservoirDepth) and p.measure=m.id
             """, "", map as Map<String, Object>)
+
+            Store st1 = apiMeta().get(ApiMeta).loadSqlWithParams("""
+                WITH RECURSIVE r AS (
+                   SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                   FROM Prop p, Measure m
+                   WHERE p.parent=:Prop_WaterFishAverageWeight and p.measure=m.id
+                   union ALL
+                   SELECT t.*
+                   FROM (
+                        select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                        FROM Prop p, Measure m
+                        WHERE p.measure=m.id
+                    ) t
+                      JOIN r
+                        ON t.parent = r.id
+                ),
+                o as (
+                SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                FROM Prop p, Measure m
+                WHERE p.id=:Prop_WaterFishAverageWeight and p.measure=m.id
+                )
+                SELECT * FROM o
+                union ALL
+                SELECT * FROM r
+                where 0=0
+            """, "", map as Map<String, Object>)
+
+            Store st2 = apiMeta().get(ApiMeta).loadSqlWithParams("""
+                WITH RECURSIVE r AS (
+                   SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                   FROM Prop p, Measure m
+                   WHERE p.parent=:Prop_WaterNumberFishBio and p.measure=m.id
+                   union ALL
+                   SELECT t.*
+                   FROM (
+                        select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                        FROM Prop p, Measure m
+                        WHERE p.measure=m.id
+                    ) t
+                      JOIN r
+                        ON t.parent = r.id
+                ),
+                o as (
+                SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                FROM Prop p, Measure m
+                WHERE p.id=:Prop_WaterNumberFishBio and p.measure=m.id
+                )
+                SELECT * FROM o
+                union ALL
+                SELECT * FROM r
+                where 0=0
+            """, "", map as Map<String, Object>)
+
+            st.add(st1)
+            st.add(st2)
+
             Set<Object> idsProp = st.getUniqueValues("id")
             //
 
