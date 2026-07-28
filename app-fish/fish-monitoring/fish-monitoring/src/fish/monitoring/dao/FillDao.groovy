@@ -21,11 +21,16 @@ import tofi.api.mdl.model.consts.FD_PeriodType_consts
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-class FillDao  extends BaseMdbUtils {
+
+class FillDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return getApp().bean(ApinatorService.class).getApi("meta") }
+
     ApinatorApi apiPersonnelData() { return getApp().bean(ApinatorService.class).getApi("personneldata") }
+
     ApinatorApi apiMonitoringData() { return getApp().bean(ApinatorService.class).getApi("monitoringdata") }
 
     private static boolean isInteger(String s) {
@@ -38,7 +43,7 @@ class FillDao  extends BaseMdbUtils {
         return true
     }
 
-    private void saveMeter(long own, boolean isObj, long prop, double val, String dte) {
+    private void saveMeter(long own, boolean isObj, long prop, double val, long periodType, String dte) {
         Store stProp = apiMeta().get(ApiMeta).loadSql("""
                 select p.id, p.cod, p.proptype, a.attribvaltype, p.isuniq, p.isdependvalueonperiod as dependperiod,
                     p.statusfactor, p.providertyp, m.kfrombase as koef, p.digit  
@@ -91,7 +96,8 @@ class FillDao  extends BaseMdbUtils {
                 //
             }
             if (stProp.get(0).getBoolean("dependperiod")) {
-                recDP.set("periodType", FD_PeriodType_consts.month)
+                recDP.set("periodType", periodType)
+                //recDP.set("periodType", FD_PeriodType_consts.year)
             }
             idDP = mdb.insertRec("DataProp", recDP, true)
         }
@@ -128,18 +134,18 @@ class FillDao  extends BaseMdbUtils {
     ]
 
     def props_meter = [
-            "Prop_AreaOfTon": 1023L, "Prop_1057": 1057L,	"Prop_1097": 1097L,
-            "Prop_1137": 1137L, "Prop_1177": 1177L,	"Prop_1257": 1257L,
-            "Prop_1217": 1217L, "Prop_1297": 1297L,	"Prop_1337": 1337L,
-            "Prop_1417": 1417L, "Prop_1457": 1457L, "Prop_1497": 1497L,
-            "Prop_1537": 1537L, "Prop_1577": 1577L, "Prop_1617": 1617L,
-            "Prop_1657": 1657L, "Prop_1697": 1697L, "Prop_1737": 1737L
+            "Prop_AreaOfTon": 1023L, "Prop_1057": 1057L, "Prop_1097": 1097L,
+            "Prop_1137"     : 1137L, "Prop_1177": 1177L, "Prop_1257": 1257L,
+            "Prop_1217"     : 1217L, "Prop_1297": 1297L, "Prop_1337": 1337L,
+            "Prop_1377"     : 1377L, "Prop_1417": 1417L, "Prop_1457": 1457L, "Prop_1497": 1497L,
+            "Prop_1537"     : 1537L, "Prop_1577": 1577L, "Prop_1617": 1617L,
+            "Prop_1657"     : 1657L, "Prop_1697": 1697L, "Prop_1737": 1737L
     ]
 
     def props_obj = [
-            "Prop_FishLocation": 1045,
-            "Prop_FishGear": 1046,
-            "Prop_FishManager": 1047L,
+            "Prop_FishLocation"    : 1045,
+            "Prop_FishGear"        : 1046,
+            "Prop_FishManager"     : 1047L,
             "Prop_FishParticipants": 1048L
     ]
 
@@ -150,6 +156,13 @@ class FillDao  extends BaseMdbUtils {
         """)
     }
 
+    @DaoMethod
+    void fillFishing(File file, boolean fill, int num) {
+        if (num == 1)
+            fillFishing_1(file, fill)
+        else if (num == 2)
+            fillFishing_2(file, fill)
+    }
 
     @DaoMethod
     void fillFishing_1(File file, boolean fill) {
@@ -173,7 +186,7 @@ class FillDao  extends BaseMdbUtils {
                 pms.put("own", own)
                 pms.put(k, props_obj.get(k))
                 pms.put("obj" + k.split("_")[1], m.get(k))
-                if (k=="Prop_FishLocation" || k=="Prop_FishGear") {
+                if (k == "Prop_FishLocation" || k == "Prop_FishGear") {
                     StoreRecord rec = indexLocationAndGear.get(UtCnv.toLong(m.get(k)))
                     if (rec != null) {
                         pms.put("pv" + k.split("_")[1], rec.getLong("pv"))
@@ -181,7 +194,7 @@ class FillDao  extends BaseMdbUtils {
                         dao.fillProperties(true, k, pms)
                     }
                 }
-                if (k=="Prop_FishManager") {
+                if (k == "Prop_FishManager") {
                     StoreRecord rec = indexManagerAndParticipants.get(UtCnv.toLong(m.get(k)))
                     if (rec != null) {
                         pms.put("pv" + k.split("_")[1], rec.getLong("pv"))
@@ -189,7 +202,7 @@ class FillDao  extends BaseMdbUtils {
                         dao.fillProperties(true, k, pms)
                     }
                 }
-                if (k=="Prop_FishParticipants") {
+                if (k == "Prop_FishParticipants") {
                     for (def it in m.get("Prop_FishParticipants").toString().split(";")) {
                         StoreRecord rec = indexManagerAndParticipants.get(UtCnv.toLong(it))
                         if (rec != null) {
@@ -221,7 +234,7 @@ class FillDao  extends BaseMdbUtils {
                 long prop = UtCnv.toLong(props_meter.get(k))
                 double val = UtCnv.toDouble(m.get(k))
                 //
-                saveMeter(UtCnv.toLong(own), true, prop, val, "")
+                saveMeter(UtCnv.toLong(own), true, prop, val, 0, "")
             }
 
         }
@@ -294,31 +307,33 @@ class FillDao  extends BaseMdbUtils {
         if (!fields.contains("Prop_FishManager")) reqFields.add("Prop_FishManager")
         if (!fields.contains("Prop_FishParticipants")) reqFields.add("Prop_FishParticipants")
 
-        if (fields.size() != 15) {
+        if (fields.size() != 25) {
             errTest = true
         }
-        if (!fields.containsAll(["cls","Prop_StartDate","Prop_FishLocation","Prop_FishGear","Prop_FishManager",
-             "Prop_FishParticipants","Prop_AreaOfTon","Prop_1057","Prop_1097","Prop_1137","Prop_1177","Prop_1257",
-             "Prop_1217","Prop_1297","Prop_1337"])) {
+        if (!fields.containsAll(["cls", "Prop_StartDate", "Prop_FishLocation", "Prop_FishGear", "Prop_FishManager",
+                                 "Prop_FishParticipants", "Prop_AreaOfTon", "Prop_1057", "Prop_1097", "Prop_1137", "Prop_1177", "Prop_1257",
+                                 "Prop_1217", "Prop_1297", "Prop_1337", "Prop_1377", "Prop_1417", "Prop_1457", "Prop_1497", "Prop_1537",
+                                 "Prop_1577", "Prop_1617", "Prop_1657", "Prop_1697", "Prop_1737"])) {
             errTest = true
         }
+
 
         def eachLineTest = { Map m ->
             count++
             if (!m.get("Prop_StartDate"))
-                emptyFields.add("Prop_StartDate: Строка-${count+1}")
+                emptyFields.add("Prop_StartDate: Строка-${count + 1}")
             if (!m.get("Prop_AreaOfTon"))
-                emptyFields.add("Prop_AreaOfTon: Строка-${count+1}")
+                emptyFields.add("Prop_AreaOfTon: Строка-${count + 1}")
             if (!m.get("Prop_FishParticipants"))
-                emptyFields.add("Prop_FishParticipants: Строка-${count+1}")
+                emptyFields.add("Prop_FishParticipants: Строка-${count + 1}")
             if (!isInteger(UtCnv.toString(m.get("cls"))))
-                emptyFields.add("cls: Строка-${count+1}")
+                emptyFields.add("cls: Строка-${count + 1}")
             if (!isInteger(UtCnv.toString(m.get("Prop_FishLocation"))))
-                emptyFields.add("Prop_FishLocation: Строка-${count+1}")
+                emptyFields.add("Prop_FishLocation: Строка-${count + 1}")
             if (!isInteger(UtCnv.toString(m.get("Prop_FishGear"))))
-                emptyFields.add("Prop_FishGear: Строка-${count+1}")
+                emptyFields.add("Prop_FishGear: Строка-${count + 1}")
             if (!isInteger(UtCnv.toString(m.get("Prop_FishManager"))))
-                emptyFields.add("Prop_FishManager: Строка-${count+1}")
+                emptyFields.add("Prop_FishManager: Строка-${count + 1}")
 
             countVal += m.size()
         }
@@ -388,7 +403,7 @@ class FillDao  extends BaseMdbUtils {
                     GRANT ALL ON TABLE log TO pg;
                 """)
                 Store stLog = mdb.loadQuery("select * from log")
-                if (stLog.size()==0) {
+                if (stLog.size() == 0) {
                     mdb.execQueryNative("""
                         INSERT INTO log (id, msg, count, countval, err) VALUES (1, '', 0, 0, 0);
                     """)
@@ -425,6 +440,141 @@ class FillDao  extends BaseMdbUtils {
         }
     }
 
+    static boolean isValidDate(String dateStr) {
+        try {
+            LocalDate.parse(dateStr, DateTimeFormatter.ofPattern('yyyy-MM-dd'))
+            return true
+        } catch (Exception e) {
+            return false
+        }
+    }
 
+    @DaoMethod
+    void fillFishing_2(File file, boolean fill) {
+        Store st = mdb.createStore()
+        Domain d = mdb.createDomain(st)
+        XLSXReader_withoutDescription reader = new XLSXReader_withoutDescription(mdb, file, d, st)
+        List<String> fields = reader.getFields()
+        boolean errTest = false
+        def count = 0
+        def countVal = 0
+        //
+
+        def eachLine = { Map m ->
+            def owner = UtCnv.toLong(m.get("owner"))
+            def isObj = UtCnv.toInt(m.get("isObj")) == 1
+            def prop = UtCnv.toLong(m.get("prop"))
+            def periodType = UtCnv.toLong(m.get("periodType"))
+            def dte = UtCnv.toString(m.get("dte"))
+            def val = UtCnv.toDouble(m.get("value"))
+            saveMeter(owner, isObj, prop, val, periodType, dte)
+        }
+
+
+        Set<Long> idsProp = new HashSet<>()
+
+        def eachLineCalc = { Map m ->
+            idsProp.add(UtCnv.toLong(m.get("prop")))
+        }
+        //
+        Set<String> reqFields = new HashSet<>()
+        Set<String> emptyFields = new HashSet<>()
+
+        if (!fields.contains("owner")) reqFields.add("owner")
+        if (!fields.contains("isObj")) reqFields.add("isObj")
+        if (!fields.contains("prop")) reqFields.add("prop")
+        if (!fields.contains("periodType")) reqFields.add("periodType")
+        if (!fields.contains("dte")) reqFields.add("dte")
+        if (!fields.contains("value")) reqFields.add("value")
+
+        if (fields.size() != 6) {
+            errTest = true
+        }
+        if (!fields.containsAll(["owner", "isObj", "prop", "periodType", "dte","value"])) {
+            errTest = true
+        }
+
+
+        def eachLineTest = { Map m ->
+            count++
+            if (!isInteger(UtCnv.toString(m.get("owner"))))
+                emptyFields.add("owner: Строка-${count + 1}")
+            if (!isInteger(UtCnv.toString(m.get("isObj"))))
+                emptyFields.add("isObj: Строка-${count + 1}")
+            if (!isInteger(UtCnv.toString(m.get("prop"))))
+                emptyFields.add("prop: Строка-${count + 1}")
+            if (!isInteger(UtCnv.toString(m.get("periodType"))))
+                emptyFields.add("periodType: Строка-${count + 1}")
+            else if (UtCnv.toLong(m.get("periodType")) > 0) {
+                if (!isValidDate(UtCnv.toString(m.get("dte"))))
+                    emptyFields.add("dte: Строка-${count + 1}")
+
+            }
+            if (!m.get("value"))
+                emptyFields.add("value: Строка-${count + 1}")
+
+            countVal = count
+        }
+
+
+
+        //*******************************************************
+        // Основное тело алгоритма
+        //*******************************************************
+
+        if (fill) {
+
+            reader.eachRow(eachLine)
+        } else {
+            try {
+                mdb.execQueryNative("""
+                    CREATE TABLE IF NOT EXISTS log (
+                        id int8 NOT NULL,
+                        msg varchar(800) NULL,
+                        count int8 NULL,
+                        countval int8 NULL,
+                        err int2 NULL,
+                        CONSTRAINT pk_log PRIMARY KEY (id)
+                    );
+                    ALTER TABLE log OWNER TO pg;
+                    GRANT ALL ON TABLE log TO pg;
+                """)
+                Store stLog = mdb.loadQuery("select * from log")
+                if (stLog.size() == 0) {
+                    mdb.execQueryNative("""
+                        INSERT INTO log (id, msg, count, countval, err) VALUES (1, '', 0, 0, 0);
+                    """)
+                } else {
+                    mdb.execQueryNative("""
+                        UPDATE log SET msg='', count=0, countval=0, err=0 WHERE id=1;
+                    """)
+                }
+            } catch (Exception e) {
+                e.printStackTrace()
+            }
+            //
+            reader.eachRow(eachLineTest)
+            //
+            String msg
+            def err = 0
+            if (!reqFields.isEmpty()) {
+                err = 1
+                msg = "Наименования полей отсутствуют: [${reqFields.join('; ')}]"
+            } else if (!emptyFields.isEmpty()) {
+                err = 1
+                msg = "Некоторые значения обязательных полей отсутствуют: [${emptyFields.join('; ')}]"
+            } else if (errTest) {
+                err = 1
+                msg = "Формат шаблона не верный"
+            } else {
+                err = 0
+                msg = ""
+            }
+            mdb.execQuery("""
+                update log set err='${err}', msg='${msg}', count=${count}, countval=${countVal} where id=1
+            """)
+        }
+
+    }
 
 }

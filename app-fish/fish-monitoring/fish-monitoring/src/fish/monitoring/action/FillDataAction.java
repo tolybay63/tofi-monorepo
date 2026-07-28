@@ -14,17 +14,12 @@ import java.io.File;
 public class FillDataAction extends BaseAction {
 
     protected void onExec() throws Exception {
-
-/*        String tempDir = UtCnv.toString(getReq().getHttpServlet().getServletContext().getAttribute("javax.servlet.context.tempdir"));
-        if (tempDir==null) {
-            throw new HttpError(404);
-        }*/
-
         //Извлекаем параметры метаданных
         IVariantMap params = getReq().getParams();
                 //IVariantMap params = UtJson.fromJson(getReq().getParams().getString("params"), VariantMap.class);
         String fnOrg = params.getString("filename");
         boolean fill = params.getBoolean("fill");
+        int num = params.getInt("num");
 
         javax.servlet.http.Part filePart = getReq().getPart("file");
 
@@ -38,34 +33,13 @@ public class FillDataAction extends BaseAction {
             java.nio.file.Files.copy(input, fle.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         }
 
-
-        //String fnOrg = getReq().getParams().getString("filename");
-        //boolean fill = getReq().getParams().getBoolean("fill");
-
-        //Сгенерированный файл
-        //File fle = findFile(tempDir);
-
-
         ModelService modelSvc = getApp().bean(ModelService.class);
         Mdb mdb = modelSvc.getModel().createMdb();
         FillDao dao = mdb.createDao(FillDao.class);
-        dao.fillFishing_1(fle, fill);
+        dao.fillFishing(fle, fill, num);
 
         getReq().render("filename: " + fnOrg);
 
     }
-
-    /*private File findFile(String path) throws Exception {
-        for(File item : Objects.requireNonNull(new File(path).listFiles())){
-            if (!item.isDirectory()){
-                if (item.getName().startsWith("undertow") &&
-                        item.getName().endsWith("upload")) {
-                    return item;
-                }
-            }
-        }
-        return null;
-    }*/
-
 
 }

@@ -83,20 +83,16 @@
 
     <!--  Meter  -->
 
-<!--
     <hr style="margin-top: 50px" />
-    <div class="q-pa-md q-gutter-sm q-pt-none">2. Водные объекты и их свойства (Измеритель)</div>
+    <div class="q-pa-md q-gutter-sm q-pt-none">2. Вылов рыбы (Измеритель)</div>
     <div>Формат:</div>
     <q-markup-table bordered class="row q-gutter-sm" style="border-color: #0f1010">
       <q-tr>
         <q-td> owner <span class="text-subtitle2 text-red">*</span></q-td>
         <q-td> isObj <span class="text-subtitle2 text-red">*</span></q-td>
         <q-td> prop <span class="text-subtitle2 text-red">*</span></q-td>
-        <q-td> status</q-td>
-        <q-td> provider</q-td>
         <q-td> periodType <span class="text-subtitle2 text-red">*</span></q-td>
-        <q-td> dbeg <span class="text-subtitle2 text-red">*</span></q-td>
-        <q-td> dend <span class="text-subtitle2 text-red">*</span></q-td>
+        <q-td> dte </q-td>
         <q-td> value <span class="text-subtitle2 text-red">*</span></q-td>
       </q-tr>
     </q-markup-table>
@@ -114,9 +110,10 @@
         />
       </div>
       <q-space></q-space>
+<!--      :disable="!file2 || (file2 && errTest2) || (file2 && isFill2)"-->
       <div class="col-1 text-right">
         <q-btn
-          :disable="!file2 || (file2 && errTest2) || (file2 && isFill2)"
+          :disable="!file2 || (file2 && errTest2)"
           color="grey-4"
           icon="file_download"
           label="Залить"
@@ -129,39 +126,33 @@
       <div v-if="!isFill2">
         <div v-if="errTest2">
           <div>
-            Проверка формата: <span class="text-red"> Заголовок файла не соответствует шаблону </span>
+            Проверка формата: <span class="text-red"> {{ logs2[0]["msg"] }} </span>
           </div>
+          <div>Количество строк: {{ logs2[0].count }}</div>
         </div>
         <div v-else>
           <div>Проверка формата: <span class="text-green"> Успешно </span></div>
-          <div>Количество строк: {{ logs2.cnt }}</div>
+          <div>Количество строк: {{ logs2.length > 0 ? logs2[0].count : '' }}</div>
+          <div>Количество значений: {{ logs2.length > 0 ? logs2[0].countval : '' }}</div>
         </div>
       </div>
       <div v-else>
-        <div>
-          <div>Заливка данных: <span class="text-black"> {{cnt2}} </span></div>
+        <div v-if="errFill2">
+          <div>Заливка данных: <span class="text-red"> Ошибка </span></div>
         </div>
-
-        <div v-if="logs2Err.length > 0" class="text-black">
-          <div>Пропущенные строки:</div>
-
-          <div v-for="log in logs2Err" :key="log.index" class="text-red" >
-            <div>{{log}}</div>
-          </div>
-
+        <div v-else>
+          <div>Заливка данных: <span class="text-green"> Успешно </span></div>
         </div>
       </div>
     </div>
--->
-
 
     <div>
       <q-inner-loading :showing="loading" color="secondary"></q-inner-loading>
     </div>
 
-<!--    <div>
+    <div>
       <q-inner-loading :showing="loading2" color="secondary"></q-inner-loading>
-    </div>-->
+    </div>
 
   </div>
 </template>
@@ -177,20 +168,18 @@ export default {
   data() {
     return {
       file: ref(null),
-      loading: false,
       logs: [],
+      loading: false,
       errTest: false,
       errFill: false,
       isFill: false,
       //
       file2: ref(null),
+      logs2: [],
       loading2: false,
       errTest2: false,
       errFill2: false,
       isFill2: false,
-      cnt2: "",
-      logs2: "",
-      logs2Err: []
     }
   },
 
@@ -200,11 +189,9 @@ export default {
     },
 
 
-/*
     fnGo2() {
       this.toSrv2(true)
     },
-*/
 
     clrFile() {
       this.file = ref(null)
@@ -213,15 +200,12 @@ export default {
       this.logs = []
     },
 
-/*
     clrFile2() {
       this.file2 = ref(null)
       this.errTest2 = false
       this.errFill2 = false
-      this.logs2 = ""
-      this.logs2Err = []
+      this.logs2 = []
     },
-*/
 
     updFile(val) {
       if (val !== null) {
@@ -230,14 +214,12 @@ export default {
       }
     },
 
-/*
     updFile2(val) {
       if (val !== null) {
         this.file2 = val[0]
-        this.toSrv2()
+        this.toSrv2(false)
       }
     },
-*/
 
     toSrv(fill) {
       this.loading = true
@@ -286,7 +268,6 @@ export default {
         })
     },
 
-/*
     toSrv2(fill) {
       this.loading2 = true
       this.isFill2 = fill
@@ -311,19 +292,13 @@ export default {
           this.loading2 = true
           api
             .post('', {
-              method: 'test/loadLog',
+              method: 'fill/loadLog',
               params: []
             })
             .then((response) => {
-              this.logs2 = response.data.result.records[0]
-              this.errFill2 = this.logs2.err === 1
-              if (fill) {
-                let arr = this.logs2["msg"].split("@")
-                this.cnt2 = arr[0]
-                this.logs2Err = arr[1].split(";")
-              } else {
-                this.errTest2 = this.logs2.err === 1
-              }
+              this.logs2 = response.data.result.records
+              this.errTest2 = this.logs2[0].err === 1
+              console.log("logs2", this.logs2)
             })
             .finally(() => {
               this.loading2 = false
@@ -338,8 +313,6 @@ export default {
           this.loading2 = false
         })
     },
-*/
-
 
   }
 }
