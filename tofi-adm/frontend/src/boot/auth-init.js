@@ -4,7 +4,7 @@ import { api } from 'boot/axios'
 
 export default boot(async ({ store }) => {
   const userStore = useUserStore(store)
-  const token = localStorage.getItem('fish_token')
+  const token = sessionStorage.getItem('fish_token')
 
   if (token && token !== 'null') {
     try {
