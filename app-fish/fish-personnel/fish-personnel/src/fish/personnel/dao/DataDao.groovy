@@ -172,7 +172,7 @@ class DataDao extends BaseMdbUtils {
     //---------------------------------- Personnel --------------------------------- //
     @DaoMethod
     Map<String, Object> loadPersonnel(Map<String, Object> params) throws Exception {
-        checkTarget("personnel");
+        checkTarget("st");
         String filter = UtCnv.toString(params.get("filter")).trim()
         Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_User%")
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")

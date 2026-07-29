@@ -18,7 +18,7 @@ class AuthDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    public void checkTarget(String target) {
+    void checkTarget(String target) {
         AuthService authService = getModel().getApp().bean(AuthService.class);
         AuthUser usr = authService.getCurrentUser();
 
@@ -38,7 +38,7 @@ class AuthDao extends BaseMdbUtils {
         String userTargets = usr.getAttrs().getString("target", "");
         String[] targets = userTargets.trim().split("\\s*,\\s*");
         if (!Arrays.asList(targets).contains(target)) {
-            if (target.equals("personnel")) {
+            if (target.equals("st")) {
                 throw new XError("notAccessService");
             }
             throw new XError("notAccess");

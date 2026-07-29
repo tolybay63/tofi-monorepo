@@ -26,7 +26,7 @@ public class DataBaseMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public Store load() throws Exception {
-        checkTarget("meta:db");
+        checkTarget("mdl:db");
         Store st = getMdb().createStore("DataBase");
         getMdb().loadQuery(st, """
                     select * from DataBase where 0=0
@@ -42,7 +42,7 @@ public class DataBaseMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public Store insert(Map<String, Object> rec) throws Exception {
-        checkTarget("meta:db:ins");
+        checkTarget("mdl:db:ins");
         EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DataBase");
         long id = eu.insertEntity(rec);
 
@@ -53,7 +53,7 @@ public class DataBaseMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public Store update(Map<String, Object> rec) throws Exception {
-        checkTarget("meta:db:upd");
+        checkTarget("mdl:db:upd");
         long id = UtCnv.toLong(rec.get("id"));
         if (id == 0) {
             throw new XError("Поле id должно иметь не нулевое значение");
@@ -68,7 +68,7 @@ public class DataBaseMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public void delete(Map<String, Object> rec) throws Exception {
-        checkTarget("meta:db:del");
+        checkTarget("mdl:db:del");
         EntityMdbUtils eu = new EntityMdbUtils(getMdb(), "DataBase");
         eu.deleteEntity(rec);
     }
