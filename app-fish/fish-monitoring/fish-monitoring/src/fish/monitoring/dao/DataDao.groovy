@@ -121,22 +121,13 @@ class DataDao extends BaseMdbUtils {
             )
             select
                 ob.id as obj, ob.cls, ob.name,
-                t1.lstBranch, t2.lstKATO,
+                null as lstBranch, t2.lstKATO,
                 v3.id as idReservoirType, v3.propval as pvReservoirType, null as fvReservoirType,
                 v4.id as idReservoirStatus, v4.propval as pvReservoirStatus, null as fvReservoirStatus,
                 v5.id as idFishFarmingType, v5.propval as pvFishFarmingType, null as fvFishFarmingType,
                 v6.id as idCoordinate, v6.strVal as Coordinate,
                 v7.id as idDescription, v7.multiStrVal as Description
             from ob                
-                left join (
-                    select d1.objorrelobj, d1.prop,
-                    STRING_AGG (cast(v1.id||'_'||v1.obj||'_'||v1.propval as varchar(2000)), ',' order by v1.id) as lstBranch
-                    from ob
-                        left join DataProp d1  on d1.isobj=1 and d1.objorrelobj=ob.id and d1.prop=:Prop_Branch
-                        left join DataPropVal v1 on d1.id=v1.dataprop
-                    where 0=0
-                    group by d1.objorrelobj, d1.prop
-                    ) t1 on t1.objorrelobj=ob.id and t1.prop=:Prop_Branch
                 left join (
                     select d2.objorrelobj, d2.prop,
                     STRING_AGG (cast(v2.id||'_'||v2.obj||'_'||v2.propval as varchar(2000)), ',' order by v2.id) as lstKATO
@@ -159,6 +150,26 @@ class DataDao extends BaseMdbUtils {
         """, map)
         //mdb.outTable(st)
 
+        Store stBranch = mdb.loadQuery("""
+            select
+                t1.objorrelobj as obj, t1.lstBranch
+            from (
+                    select d1.objorrelobj, d1.prop,
+                    STRING_AGG (cast(v1.id||'_'||v1.obj||'_'||v1.propval as varchar(2000)), ',' order by v1.id) as lstBranch
+                    from DataProp d1   
+                        left join DataPropVal v1 on d1.id=v1.dataprop
+                    where d1.isobj=1 and d1.prop=${map.get("Prop_Branch")}
+                    group by d1.objorrelobj, d1.prop
+                 ) t1
+        """)
+
+        StoreIndex indBranch = stBranch.getIndex("obj")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indBranch.get(r.getLong("obj"))
+            if (rec != null)
+                r.set("lstBranch", rec.getString("lstBranch"))
+        }
+
         Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
         StoreIndex indFV = stFV.getIndex("propval")
 
@@ -173,9 +184,9 @@ class DataDao extends BaseMdbUtils {
                 idsObj.add(arr1[1])
             }
             r.set("objBranch", objBranch.join(","))
-            Store stObj = mdb.loadQuery("""
+            Store stObj = loadSqlService("""
                 select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObj.join(",")})
-            """)
+            """, "", "personneldata")
             r.set("nameBranch", stObj.getUniqueValues("name").join("; "))
             //
             List<String> objKATO = new ArrayList<>()
@@ -1115,7 +1126,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadBranchForSelect(String codTypOrProp) {
-        return loadObjForSelectMulti(codTypOrProp, "monitoringdata")
+        return loadObjForSelectMulti(codTypOrProp, "personneldata")
     }
 
     @DaoMethod
