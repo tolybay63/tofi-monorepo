@@ -38,7 +38,7 @@ class AuthDao extends BaseMdbUtils {
         String userTargets = usr.getAttrs().getString("target", "");
         String[] targets = userTargets.trim().split("\\s*,\\s*");
         if (!Arrays.asList(targets).contains(target)) {
-            if (target.equals("monitoring")) {
+            if (target.equals("mon")) {
                 throw new XError("notAccessService");
             }
             throw new XError("notAccess");
