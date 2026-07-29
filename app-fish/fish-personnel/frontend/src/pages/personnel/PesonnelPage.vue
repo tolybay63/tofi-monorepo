@@ -378,7 +378,7 @@ export default {
       return [
         {
           name: "fio",
-          label: this.$t("fio"),
+          label: this.$t("fio")+"*",
           field: "fio",
           align: "left",
           sortable: true,
@@ -387,7 +387,7 @@ export default {
         },
         {
           name: "nameUserPosition",
-          label: this.$t("UserPosition"),
+          label: this.$t("UserPosition")+"*",
           field: "nameUserPosition",
           align: "left",
           classes: "bg-blue-grey-1",
@@ -396,7 +396,7 @@ export default {
         },
         {
           name: "nameUserOrg",
-          label: this.$t("UserOrg"),
+          label: this.$t("UserOrg")+"*",
           field: "nameUserOrg",
           align: "left",
           classes: "bg-blue-grey-1",

@@ -86,7 +86,7 @@
 </template>
 
 <script>
-import { api } from "src/boot/axios.js";
+import { api } from "../boot/axios.js";
 
 export default {
   props: {

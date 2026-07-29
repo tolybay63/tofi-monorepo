@@ -24,7 +24,7 @@
         <!-- name -->
         <q-input
           v-model="form.name"
-          :label="$t('fldName')"
+          :label="fnLabel('fldName', true)"
           :model-value="form.name"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
           autofocus
@@ -34,7 +34,7 @@
         <!-- fullName-->
         <q-input
           v-model="form.fullName"
-          :label="$t('fldFullName')"
+          :label="fnLabel('fldFullName', true)"
           :model-value="form.fullName"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
@@ -43,7 +43,7 @@
         <!-- clsName -->
         <q-select
           v-model="form.cls"
-          :label="$t('cls')"
+          :label="fnLabel('cls', true)"
           :model-value="form.cls"
           :options="optCls"
           map-options
@@ -55,7 +55,7 @@
         <!-- cmt -->
         <q-input
           v-model="form.cmt"
-          :label="$t('fldCmt')"
+          :label="fnLabel('fldCmt', false)"
           :model-value="form.cmt"
           type="textarea"
         >
@@ -103,6 +103,14 @@ export default {
   ],
 
   methods: {
+
+    fnLabel(txt, req) {
+      if (req)
+        return this.$t(txt) + "*";
+      else
+        return this.$t(txt);
+    },
+
     onBlurName() {
       if (this.form.name) {
         this.form.name = this.form.name.trim();
@@ -202,7 +210,7 @@ export default {
         }
       })
       .then(() => {
-        console.info("data", this.data)
+        //console.info("data", this.data)
       })
 
   },

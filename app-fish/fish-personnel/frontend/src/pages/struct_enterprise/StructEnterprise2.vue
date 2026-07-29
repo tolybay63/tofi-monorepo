@@ -66,7 +66,7 @@
           </q-tooltip>
         </q-btn>
 
-        <q-inner-loading :showing="visible" color="secondary"/>
+        <q-inner-loading :showing="loading" color="secondary"/>
       </template>
     </q-banner>
 
@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import {ref} from "vue";
+
 import {api} from "../..//boot/axios";
 import {expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "../../utils/jsutils";
 import QTreeTable from "../../components/QTreeTable.vue";
@@ -101,7 +101,7 @@ export default {
       cols: [],
       rows: [],
       currentNode: null,
-      visible: false,
+      loading: false,
     };
   },
 
@@ -117,7 +117,7 @@ export default {
     },
 
     fetchData() {
-      this.visible = true;
+      this.loading = true;
       api
         .post("", {
           method: "data/loadEnterprise",
@@ -138,7 +138,7 @@ export default {
         )
         .finally(() => {
           //setTimeout(() => {
-          this.visible = false;
+          this.loading = false;
           //}, 3000)
         });
     },
@@ -147,7 +147,7 @@ export default {
       return [
         {
           name: "name",
-          label: this.$t("fldName"),
+          label: this.$t("fldName") + "*",
           field: "name",
           align: "left",
           sortable: true,
@@ -158,7 +158,7 @@ export default {
         },
         {
           name: "fullname",
-          label: this.$t("fldFullName"),
+          label: this.$t("fldFullName") + "*",
           field: "fullname",
           align: "left",
           sortable: true,
@@ -169,7 +169,7 @@ export default {
         },
         {
           name: "namecls",
-          label: this.$t("cls"),
+          label: this.$t("cls") + "*",
           field: "namecls",
           headerStyle: "font-size: 1.3em;",
           headerClass: "text-bold text-white bg-blue-grey-13",
@@ -197,23 +197,8 @@ export default {
       if (isChild) {
         parent = this.currentNode.id;
         parentName = this.currentNode.fullname;
-
-
-/*
-        if (this.currentNode.parent > 0) {
-          parent = this.currentNode.parent
-          let parentNode = [];
-          getParentNode(this.rows, this.currentNode.parent, parentNode);
-          console.log("ParentNode-----", parentNode)
-          parentName = parentNode[0].fullname;
-
-        } else {
-          parent = this.currentNode.id;
-          parentName = this.currentNode.fullname;
-        }
-*/
       }
-      console.log("ParentNode-----2", parentName)
+
       if (mode === "ins") {
         data.parent = parent;
       } else if (mode === "upd") {
@@ -249,7 +234,6 @@ export default {
           this.fetchData();
           this.currentNode = data
           this.$refs.childComp.restoreSelect(data)
-
         });
     },
 
@@ -260,8 +244,6 @@ export default {
           message:
             this.$t("deleteRecord") +
             '<div style="color: plum">(' +
-            rec.cod +
-            ": " +
             rec.name +
             ")</div>",
           html: true,
@@ -269,7 +251,7 @@ export default {
           persistent: true,
         })
         .onOk(() => {
-          //let index = this.rows.findIndex((row) => row.id === rec.id);
+          this.loading = true
           api
             .post("", {
               method: "data/deleteEnterprise",
@@ -280,6 +262,9 @@ export default {
                 this.fetchData();
                 this.clearAny();
               })
+            .finally(()=> {
+              this.loading = false
+            })
         })
         .onCancel(() => {
           notifyInfo(this.$t("canceled"));
@@ -292,8 +277,6 @@ export default {
 
     this.fetchData();
   },
-
-  setup() {}
 
 };
 </script>

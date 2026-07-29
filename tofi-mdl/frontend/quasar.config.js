@@ -122,6 +122,7 @@ export default defineConfig((ctx) => {
         "Dialog",
         "Notify",
         "LocalStorage",
+        "SessionStorage",
         'LoadingBar'
       ]
     },

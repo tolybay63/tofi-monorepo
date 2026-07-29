@@ -41,7 +41,7 @@
 
 <script>
 import axios from 'axios'
-import {api, urlMainApp} from 'boot/axios'
+import {api, urlMainApp} from '../boot/axios'
 
 
 export default {

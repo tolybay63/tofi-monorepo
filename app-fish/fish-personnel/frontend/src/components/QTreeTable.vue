@@ -96,10 +96,10 @@
 
 <script>
 import {ref} from "vue";
-import {collapsAll, expandAll} from "src/utils/jsutils.js";
-import {tofi_dbeg, tofi_dend} from "boot/axios.js";
+import {collapsAll, expandAll} from "../utils/jsutils.js";
+import {tofi_dbeg, tofi_dend} from "../boot/axios.js";
 import {date} from "quasar";
-import allConsts from "pages/all-consts.js";
+import allConsts from "../pages/all-consts.js";
 
 const expand = (item) => {
   item.expend = ref(true);
