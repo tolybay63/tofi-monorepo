@@ -211,7 +211,7 @@ export default defineComponent({
       },
 
       notAccess() {
-        return getTarget.value.length === 0 && !isSysAdmin.value
+        return !getTarget.value.includes("st") && !isSysAdmin.value
       },
 
       nameIcon() {

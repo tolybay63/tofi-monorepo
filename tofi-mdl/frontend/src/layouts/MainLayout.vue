@@ -200,7 +200,7 @@ export default defineComponent({
     const userName = computed(() => getUserName.value);
 
     const reqAuth = computed(() => getUserName.value === '')
-    const notAccess = computed(() => !getTarget.value["includes"]("meta") && getUserId.value > 1)
+    const notAccess = computed(() => !getTarget.value["includes"]("mdl") && getUserId.value > 1)
 
 
     return {
