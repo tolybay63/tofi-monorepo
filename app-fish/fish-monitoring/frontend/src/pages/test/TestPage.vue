@@ -277,8 +277,8 @@ export default {
       fd.append('filename', this.file2.name)
       fd.append('fill', fill)
       fd.append('num', 2)
-      this.$axios
-        .post('/filldata', fd, {
+      axios
+        .post(filldataURL, fd, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

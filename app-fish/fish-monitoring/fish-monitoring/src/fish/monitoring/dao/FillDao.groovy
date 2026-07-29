@@ -523,7 +523,8 @@ class FillDao extends BaseMdbUtils {
         //*******************************************************
 
         if (fill) {
-
+            reader.eachRow(eachLineCalc)
+            //
             reader.eachRow(eachLine)
         } else {
             try {
