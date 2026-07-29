@@ -237,7 +237,7 @@ export default defineComponent({
               api
                 .post("", {
                   method: "auth/checkTarget",
-                  params: ["personnel"],
+                  params: ["st"],
                 })
             })
         } else {

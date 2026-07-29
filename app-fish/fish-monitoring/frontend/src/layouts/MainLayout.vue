@@ -276,7 +276,7 @@ export default defineComponent({
               api
                 .post("", {
                   method: "auth/checkTarget",
-                  params: ["monitoring"],
+                  params: ["mon"],
                 })
             })
         } else {

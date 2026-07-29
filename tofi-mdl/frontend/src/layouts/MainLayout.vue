@@ -251,7 +251,7 @@ export default defineComponent({
               api
                 .post("", {
                   method: "auth/checkTarget",
-                  params: ["meta"],
+                  params: ["mdl"],
                 })
             })
         } else {
