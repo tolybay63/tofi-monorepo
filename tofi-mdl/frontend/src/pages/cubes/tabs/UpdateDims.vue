@@ -383,7 +383,7 @@ export default {
       })
     //
 
-      console.log("create form", this.form);
+      //console.log("create form", this.form);
       if (this.form.dimPropType > 0) {
         this.loadDimPropForSelect(this.form.cubeS, this.form.dimPropType, this.mode)
       }

@@ -67,18 +67,31 @@
           @filter="filterUserPosition"
           @update:model-value="fnSelectUserPosition"
         />
-        <!-- UserOrg -->
-        <q-select
+
+        <q-item-label
+          :class="form.objUserOrg===0 ? 'text-red-10' : 'text-grey-7'"
+          style="font-size: 0.8em; margin-top: 10px" class="row"
+        >{{ fnLabel('UserOrg', true) }}
+          <q-space/>
+          <q-icon name="error" v-if="form.objUserOrg===0" color="red-10" size="24px"></q-icon>
+        </q-item-label>
+
+        <treeselect
+          :options="optUserOrg"
           v-model="form.objUserOrg"
-          :label="fnLabel('UserOrg', true)"
-          :options="optUserOrganization"
-          map-options
-          option-label="name"
-          option-value="id"
-          use-input
-          @filter="filterUserOrg"
-          @update:model-value="fnSelectUserOrg"
+          :normalizer="normalizerUserOrg"
+          :placeholder="fnLabel('select', false)"
+          :noResultsText="fnLabel('noResult', false)"
+          :noChildrenText="fnLabel('noChilds', false)"
+          :noOptionsText="fnLabel('noResult', false)"
+          defaultExpandLevel="1"
+          @select="fnSelectUserOrg"
         />
+
+        <q-item-label v-if="form.objUserOrg===0" class="text-red-10" style="font-size: 0.8em">
+          {{ $t("chooseDimProp") }}
+        </q-item-label>
+
 
         <!-- UserDateBirth  -->
         <q-input
@@ -151,9 +164,11 @@
 
 <script>
 import {api, } from "../../boot/axios";
-import {notifyError, notifySuccess} from "../../utils/jsutils";
-
+import {notifySuccess, pack} from "../../utils/jsutils";
+import {Treeselect} from "vue3-treeselect";
+import "vue3-treeselect/dist/vue3-treeselect.css";
 export default {
+  components: {treeselect: Treeselect},
   props: ["data", "mode"],
 
   data() {
@@ -161,13 +176,16 @@ export default {
       form: this.data,
       optUserSex: [],
       optUserSexOrg: [],
+
       optUserPosition: [],
       optUserPositionOrg: [],
-      optUserOrganization: [],
-      optUserOrganizationOrg: [],
+
       optUserId: [],
       optUserIdOrg: [],
-      loading: false,
+
+      optUserOrg: [],
+
+      loading: false
     };
   },
 
@@ -178,6 +196,14 @@ export default {
   ],
 
   methods: {
+
+    normalizerUserOrg(node) {
+      return {
+        id: node.id,
+        label: node.name,
+      };
+    },
+
     fnLabel(txt, req) {
       if (req)
         return this.$t(txt) + "*";
@@ -239,23 +265,6 @@ export default {
     fnSelectUserOrg(v) {
       this.form.objUserOrg = v.id
       this.form.pvUserOrg = v.pv
-    },
-
-    filterUserOrg(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optUserOrganization = this.optUserOrganizationOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optUserOrganizationOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optUserOrganization = this.optUserOrganizationOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
     },
 
     fnSelectUserId(v) {
@@ -385,12 +394,12 @@ export default {
       })
       .then(
         (response) => {
-          this.optUserOrganization = response.data.result.records
-          this.optUserOrganizationOrg = response.data.result.records
+          this.optUserOrg = pack(response.data.result.records, "id")
         })
       .finally(() => {
         this.loading = false
       })
+
     //
     this.loading = true
     api

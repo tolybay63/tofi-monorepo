@@ -517,7 +517,7 @@ class DataDao extends BaseMdbUtils {
         Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfClsFromPV(codProp)
         Map<Long, Long> mapCls = apiMeta().get(ApiMeta).mapEntityIdFromPV("cls", false)
         Store st = mdb.loadQuery("""
-            select o.id, o.cls, v.name, null as pv
+            select o.id, o.cls, v.name, v.objParent as parent, null as pv
             from Obj o, ObjVer v
             where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${setCls.join(",")})
         """)
@@ -620,6 +620,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void deleteEnterprise(long id) {
+        checkForExistData(id, 1)
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         eu.deleteEntity(id)
     }
