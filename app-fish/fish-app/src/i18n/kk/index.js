@@ -15,7 +15,7 @@ export default {
   appCalcName: "Қорларды есептеу",
   appMonitoringName: "Су нысандарын бақылау",
   appPersonnelName: "Субъектілердің ұйымдастырушылық құрылымы",
-  appAnalyseName: "Қорларды талдау",
+  appAnalyseName: "Қорларды талдау және болжау",
 
   appMinIO: "Файлды сақтау",
   appCubesName: "Текшелермен жұмыс істеу қызметі",

@@ -13,8 +13,8 @@ export default {
   appDataName: "Сервис работы с данными",
   appMonitoringName: "Мониторинг водоемов",
   appPersonnelName: "Организационная структура субъектов",
-  appCalcName: "Расчет запаса",
-  appAnalyseName: "Анализ запаса",
+  appCalcName: "Расчет запасов",
+  appAnalyseName: "Анализ прогноз запасов",
 
   appMinIO: "Файловое хранилище",
   appCubesName: "Сервис работы с кубами",
