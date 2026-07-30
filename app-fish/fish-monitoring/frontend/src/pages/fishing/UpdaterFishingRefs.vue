@@ -31,7 +31,6 @@
           option-value="id"
           @update:model-value="fnSelectCls"
         />
-
         <!-- StartDate -->
         <q-input
           v-model="form.StartDate"
@@ -42,7 +41,7 @@
           class="q-ma-md" dense
           @update:model-value="fnSelectDte"
         />
-
+        <!-- objFishLocation -->
         <q-select
           :disable="mode==='upd'"
           v-model="objFishLocation"
@@ -59,7 +58,6 @@
           options-selected-class="text-blue"
           @update:model-value="fnSelectFishLocation"
         />
-
         <!-- AreaOfTon -->
         <q-input
           v-model="form['AreaOfTon']"
@@ -86,8 +84,9 @@
           @update:model-value="fnSelectFishGear"
         />
         <!-- objFishManager -->
+<!--        :disable="mode==='upd'"-->
         <q-select
-          :disable="mode==='upd'"
+
           v-model="objFishManager"
           :model-value="objFishManager"
           :label="fmReqLabel('FishManager')"
@@ -104,8 +103,9 @@
         />
 
         <!-- FishParticipants -->
+<!--        :disable="mode==='upd'"-->
         <q-select
-          :disable="mode==='upd'"
+
           v-model="FishParticipants"
           :model-value="FishParticipants"
           :label="fmReqLabel('FishParticipants')"

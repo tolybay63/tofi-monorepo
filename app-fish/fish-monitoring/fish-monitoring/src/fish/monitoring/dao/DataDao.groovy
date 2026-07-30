@@ -15,8 +15,8 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiMonitoringData
-import tofi.api.dta.ApiPersonnelData
 import tofi.api.dta.ApiUserData
+import tofi.api.dta.ApiPersonnelData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.dta.model.utils.UtPeriod
@@ -97,6 +97,62 @@ class DataDao extends BaseMdbUtils {
         }
         return st
     }
+
+    @DaoMethod
+    Map<String, Object> idNameParent(long cls) {
+        Map<String, Object> res = new HashMap<>()
+        Store st = mdb.loadQuery("""
+            select o.id, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls=:cls
+        """, [cls: cls])
+        if (st.size() == 0) {
+            res.put("id", 0) as Map<String, Object>
+            res.put("name", "") as Map<String, Object>
+        } else {
+            res.put("id", st.get(0).getLong("id"))
+            res.put("name", st.get(0).getString("name"))
+        }
+        return res
+    }
+
+    @DaoMethod
+    Map<String, Long> getClsIds(String codCls) {
+        if (codCls == "")
+            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_%")
+        else
+            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
+    }
+
+    @DaoMethod
+    StoreRecord insertBranch(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        long own = eu.insertEntity(rec)
+        return loadObjRec(own)
+    }
+
+    @DaoMethod
+    StoreRecord updateBranch(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        long id = UtCnv.toLong(rec.get("id"))
+        eu.updateEntity(rec)
+        return loadObjRec(id)
+    }
+
+    private StoreRecord loadObjRec(long obj) {
+        StoreRecord st = mdb.createStoreRecord("Obj.full")
+        mdb.loadQueryRecord(st, """
+            select o.*, v.name, v.fullName, v.objParent as parent from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id=:o
+        """, [o: obj])
+        return st
+    }
+
+    @DaoMethod
+    void deleteBranch(long id) {
+        checkForExistData(id, 1)
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.deleteEntity(id)
+    }
+
 
     //---------------- Reservors---------------- //
     @DaoMethod
@@ -1638,8 +1694,31 @@ class DataDao extends BaseMdbUtils {
             if (pms.containsKey("objFishManager") && pms.getLong("idFishManager") > 0)
                 updateProperties("Prop_FishManager", pms)
 
+            //Prop_FishParticipants
+            String [] oldIds = UtCnv.toString(pms.get("lstFishParticipants")).split(",")
+            List<String> FishParticipants = UtCnv.toList(pms.get("FishParticipants"))
 
-
+            for (String e in oldIds) {
+                if (!FishParticipants.contains(e)) {
+                    long idDel = UtCnv.toLong(e.split("_")[0])
+                    mdb.execQueryNative("""
+                                delete from DataPropVal
+                                where id=${idDel};
+                                delete from DataProp where id in (
+                                    select id from dataprop
+                                    except
+                                    select dataProp as id from DataPropVal
+                                );
+                            """)
+                }
+            }
+            for (String it in FishParticipants) {
+                if (it.split("_").length==2) {   //ins
+                    pms.put("objFishParticipants", UtCnv.toLong(it.split("_")[0]))
+                    pms.put("pvFishParticipants", UtCnv.toLong(it.split("_")[1]))
+                    fillProperties(true, "Prop_FishParticipants", pms)
+                }
+            }
         }
         return loadFishing(own)
 
