@@ -14,7 +14,7 @@ export default {
   appMonitoringName: "Мониторинг водоемов",
   appPersonnelName: "Организационная структура субъектов",
   appCalcName: "Расчет запасов",
-  appAnalyseName: "Анализ прогноз запасов",
+  appAnalyseName: "Анализ и прогноз запасов",
 
   appMinIO: "Файловое хранилище",
   appCubesName: "Сервис работы с кубами",
