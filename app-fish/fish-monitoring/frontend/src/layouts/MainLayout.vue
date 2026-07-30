@@ -80,7 +80,7 @@
       </q-toolbar>
     </q-footer>
 
-    <q-drawer :width="230" v-model="leftDrawerOpen" show-if-above bordered elevated class="q-pa-sm">
+    <q-drawer :width="230" v-model="leftDrawerOpen" show-if-above bordered elevated class="q-pa-sm bg-blue-1">
       <h6 class="q-pa-md text-red text-bold" v-if="reqAuth()">
         {{ $t('notLoginned') }}
       </h6>
@@ -88,25 +88,44 @@
         {{ $t('notAccess') }}
       </h6>
 
-      <q-list v-for="link in essentialLinks" :key="link.title">
-        <q-item
-          class="q-table--bordered bg-blue-1"
-          v-if="hasTarget(link.target)"
-          clickable
-          tag="a"
-          :to="link.link"
-          active-class="text-bold text-blue"
-        >
-          <q-item-section v-if="link.icon" avatar>
-            <q-icon :name="link.icon" size="32px" />
-          </q-item-section>
+      <q-list v-else>
+        <template v-for="item in essentialLinks" :key="item.label">
+          <q-expansion-item v-if="item.children && hasTarget(item.target)"
+                            :icon="item.icon" :label="$t(item.label)" class="q-table--bordered"
+          >
+            <q-item
+              v-for="subItem in item.children"
+              :key="$t(subItem.label)"
+              v-ripple
+              :active="isActive(subItem.to)"
+              :to="subItem.to"
+              active-class="text-bold text-blue bg-blue-2"
+              class="q-pl-xl q-table--bordered"
+              clickable
+            >
+              <q-item-section avatar>
+                <q-icon :name="subItem.icon"/>
+              </q-item-section>
+              <q-item-section>{{ $t(subItem.label) }}</q-item-section>
+            </q-item>
+          </q-expansion-item>
 
-          <q-item-section>
-            <q-item-label>{{ $t(link.title) }}</q-item-label>
-            <q-item-label caption>{{ link.info }}</q-item-label>
-          </q-item-section>
-        </q-item>
+          <q-item v-else v-if="hasTarget(item.target)"
+                  v-ripple
+                  :active="isActive(item.to)"
+                  :to="item.to"
+                  active-class="text-bold text-blue bg-blue-2"
+                  clickable>
+            <q-item-section avatar>
+              <q-icon :name="item.icon"/>
+            </q-item-section>
+            <q-item-section>{{ $t(item.label) }}</q-item-section>
+          </q-item>
+        </template>
       </q-list>
+
+
+
     </q-drawer>
 
     <q-page-container>
@@ -140,6 +159,13 @@ export default defineComponent({
       open(urlMainApp, '_self')
     },
 
+    isActive(menuTo) {
+      if (!menuTo || !this.$route.path) return false;
+      const menuBase = menuTo.split('/')[1];
+      const currentBase = this.$route.path.split('/')[1];
+      return menuBase === currentBase;
+    },
+
     site_url() {
       return process.env.SITE_URL
     },
@@ -166,71 +192,78 @@ export default defineComponent({
     const { isSysAdmin, getUserName, getTarget } = storeToRefs(store)
     const { setUserStore, clearUserStore } = store
     const router = useRouter()
-    //const $q = useQuasar();
+    const $q = useQuasar();
 
 
     let getLinks = () => {
       return [
         {
-          title: "kato",
-          info: "",
+          label: "kato",
           icon: "home_work",
-          link: "/kato",
+          to: "/kato",
           target: "mon:kato",
         },
         {
-          title: 'reservoirs',
-          info: '',
+          label: 'reservoirs',
           icon: 'sailing',
-          link: '/reservoirs',
+          to: '/reservoirs',
           target: 'mon:vod',
         },
 
         {
-          title: 'samplingStations',
-          info: '',
+          label: 'samplingStations',
           icon: 'houseboat',
-          link: '/samplingstations',
+          to: '/samplingstations',
           target: 'mon:st',
         },
         {
-          title: 'typesOfFish',
-          info: '',
+          label: 'typesOfFish',
           icon: 'set_meal',
-          link: '/typesfish',
+          to: '/typesfish',
           target: 'mon:tf',
         },
 
         {
-          title: 'FishGear',
-          info: '',
+          label: 'FishGear',
           icon: 'phishing',
-          link: '/fishGear',
+          to: '/fishGear',
           target: 'mon:fg',
         },
 
         {
-          title: 'piscesInReservoirs',
-          info: '',
+          label: 'piscesInReservoirs',
           icon: 'tsunami',
-          link: '/piscesreservoirs',
+          to: '/piscesreservoirs',
           target: 'mon:rpv',
         },
 
         {
-          title: 'fishing',
-          info: '',
+          label: 'fishing',
           icon: 'location_on',
-          link: '/fishing',
+          to: '/fishing',
           target: 'mon:fish',
         },
         {
-          title: 'fill',
-          info: '',
+          label: 'fill',
           icon: 'download',
-          link: '/fill',
+          to: '/fill',
           target: 'mon:fill',
         },
+        {
+          label: 'charts',
+          icon: 'folder_open',
+          target: 'mon:charts',
+          children: [
+            {
+              label: 'chart1',
+              icon: 'legend_toggle',
+              to: '/chart1',
+              target: 'mon:chart1',
+
+            }
+          ]
+        },
+
       ]
     }
 

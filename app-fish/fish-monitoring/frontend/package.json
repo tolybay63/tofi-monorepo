@@ -17,9 +17,12 @@
   "dependencies": {
     "@quasar/extras": "^1.18.0",
     "axios": "^1.16.1",
+    "echarts": "^6.1.0",
+    "echarts-gl": "^2.1.0",
     "pinia": "^3.0.4",
     "quasar": "^2.19.3",
     "vue": "^3.5.34",
+    "vue-echarts": "^8.0.1",
     "vue-i18n": "^11.4.2",
     "vue-router": "^5.0.7",
     "vue3-treeselect": "^0.1.10"
@@ -27,10 +30,10 @@
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^11.2.3",
     "@quasar/app-vite": "^2.6.0",
-    "quasar-app-extension-qpdfviewervue3": "^1.0.3",
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.14",
     "prettier": "^3.8.3",
+    "quasar-app-extension-qpdfviewervue3": "^1.0.3",
     "vite": "^8.0.13"
   },
   "engines": {
