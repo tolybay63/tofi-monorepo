@@ -181,6 +181,7 @@ export default defineComponent({
           link: "/struct_enterprise2",
           target: "st:org",
         },
+/*
 
         {
           title: "struct_enterprise",
@@ -189,6 +190,7 @@ export default defineComponent({
           link: "/struct_enterprise",
           target: "st:org",
         },
+*/
         {
           title: "personnel",
           info: "",
