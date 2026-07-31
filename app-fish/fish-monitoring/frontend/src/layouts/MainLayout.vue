@@ -259,8 +259,14 @@ export default defineComponent({
               icon: 'legend_toggle',
               to: '/chart1',
               target: 'mon:chart1',
-
+            },
+            {
+              label: 'chart2',
+              icon: 'legend_toggle',
+              to: '/chart2',
+              target: 'mon:chart2',
             }
+
           ]
         },
 
