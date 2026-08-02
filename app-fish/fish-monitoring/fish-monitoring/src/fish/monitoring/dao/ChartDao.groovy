@@ -26,6 +26,11 @@ class ChartDao extends BaseMdbUtils {
         """).get(0).getString("name")
         rez.put("ownerName", name)
 
+        name = apiMeta().get(ApiMeta).loadSql("""
+            select name from meter where id=${meter}
+        """, "").get(0).getString("name")
+        rez.put("meterName", name)
+
         Store stDim = apiMeta().get(ApiMeta).loadSql("""
             select m.factor, f.name 
             from meterfactor m, factor f 
@@ -80,7 +85,9 @@ class ChartDao extends BaseMdbUtils {
             if (param2Key.contains("year")) periodDbeg = param2
         }
         //
-        def fvFirstLev = 1025
+        def fvFirstLev = param1
+        if (param2Key == "fishType")
+            fvFirstLev = param2
         def lstFvs = "${fvFirstLev}"
 
         def factorDims = []

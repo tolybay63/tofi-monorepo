@@ -3,7 +3,7 @@
     <q-card-section>
       <div class="q-pa-md row">
         <div class="text-h6">Водоем:
-          <span class="text-primary">{{ ownerName }} </span>
+          <span class="text-primary">{{ ownerName }} ({{meterName}})</span>
         </div>
         <!-- Кнопка быстрого скачивания графика -->
         <q-space/>
@@ -170,8 +170,9 @@ const chartRef = ref(null);
 let chartInstance = null;
 const loading = ref(false);
 const owner = 1061;
-const ownerName = ref(''); // Сделали реактивным для обновления из БД
+const ownerName = ref('');
 const meter = 1007;
+const meterName = ref('');
 
 const allDimensions = [
   {label: 'Период (Год)', value: 'year'},
@@ -256,7 +257,8 @@ const getCubeMetaData = async () => {
       params: [owner, meter],
     });
 
-    ownerName.value = response.data.result.ownerName || 'Водоем';
+    ownerName.value = response.data.result.ownerName;
+    meterName.value = response.data.result.meterName;
     databaseDictionary.dims = response.data.result.dims?.records || [];
     databaseDictionary.fishType = response.data.result.fishType?.records || [];
     databaseDictionary.age = response.data.result.age?.records || [];
