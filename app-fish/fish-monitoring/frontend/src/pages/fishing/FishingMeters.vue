@@ -136,6 +136,26 @@ export default {
         })
     },
 
+    updateRowValue(rows, targetRec) {
+      for (let row of rows) {
+        // Ищем элемент по id (можно изменить условие под ваши нужды)
+        if (row.id === targetRec.id) {
+          row.idval = targetRec.idval;
+          row.numberval = targetRec.numberval;
+          row.dbeg = targetRec.dbeg;
+          row.dend = targetRec.dend;
+          return true; // Успешно найдено и обновлено, прерываем поиск
+        }
+        // Если у узла есть дети, ищем рекурсивно в глубину
+        if (row.children && Array.isArray(row.children) && row.children.length > 0) {
+          if (this.updateRowValue(row.children, targetRec)) {
+            return true;
+          }
+        }
+      }
+      return false; // Элемент не найден
+    },
+
     fnEdit(row) {
       let rec = {obj: this.obj, prop: row.id, numberval: row.numberval || "", name: row.name, idval: row.idval};
       this.$q
@@ -146,17 +166,7 @@ export default {
           },
         })
         .onOk((r) => {
-
-          if (row.level === 0) {
-            this.rows[0].idval = r.idval;
-            this.rows[0].numberval = r.numberval;
-          } else {
-            let childs = this.rows[0].children;
-            let index = childs.findIndex((rec) => rec.id === row.id);
-            childs[index].idval = r.idval;
-            childs[index].numberval = r.numberval;
-          }
-
+          this.updateRowValue(this.rows, r)
         })
         .onCancel(() => {
           notifyInfo(this.$t("canceled"))

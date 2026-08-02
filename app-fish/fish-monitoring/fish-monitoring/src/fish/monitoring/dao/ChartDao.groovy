@@ -58,9 +58,52 @@ class ChartDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadCubeData(Map<String, Object> params) {
-        long owner = UtCnv.toLong(params.get("owner"))
-        long meter = UtCnv.toLong(params.get("meter"))
-        long param1 = UtCnv.toLong(params.get("param1"))
+        def owner = UtCnv.toLong(params.get("owner"))
+        def meter = UtCnv.toLong(params.get("meter"))
+        String param1Key = params.get("param1Key")
+        def param1 = params.get("param1")
+        if (param1Key == "fishType" || param1Key == "age" || param1Key == "sex")
+            param1 = UtCnv.toLong(params.get("param1"))
+
+        String param2Key = UtCnv.toString(params.get("param2Key"))
+        def param2 = params.get("param2")
+        if (param2Key == "fishType" || param2Key == "age" || param2Key == "sex")
+            param2 = UtCnv.toLong(params.get("param2"))
+
+        def xAxisField = params.get("xAxisField")
+        def seriesField = params.get("seriesField")
+
+        def periodType = 11L
+        def periodDbeg = null
+        if (param1Key.contains("year") || param2Key.contains("year")) {
+            if (param1Key.contains("year")) periodDbeg = param1
+            if (param2Key.contains("year")) periodDbeg = param2
+        }
+        //
+        def fvFirstLev = 1025
+        def lstFvs = "${fvFirstLev}"
+
+        def factorDims = []
+        if (param1Key != 'year') {
+            factorDims.push(param1Key)
+            if (param1Key == 'sex') {
+                lstFvs = "${fvFirstLev}, ${param1}"
+            }
+        }
+        if (param2Key != 'year') {
+            factorDims.push(param2Key)
+            if (param2Key == 'sex') {
+                lstFvs = "${fvFirstLev}, ${param2}"
+            }
+        }
+        if (xAxisField != 'year')
+            factorDims.push(xAxisField)
+        if (seriesField != 'year')
+            factorDims.push(seriesField)
+
+        def level = 2
+        if (factorDims.contains("sex"))
+            level = 3
 
         Store stProp = apiMeta().get(ApiMeta).loadSql("""
             select id, t.fishtype, t.fishyear, t.fishsex
@@ -79,7 +122,7 @@ class ChartDao extends BaseMdbUtils {
                     group by m.meterrate
                 )
                 select meterrate, name[1] as fishtype, name[2] as fishyear, coalesce(name[3], '') as fishsex  from gr
-                where arrFv @> '{${param1}}' and sz>=2
+                where arrFv @> '{${lstFvs}}' and sz=${level}
             ) t on p.meterrate=t.meterrate
         """, "")
 
@@ -87,12 +130,13 @@ class ChartDao extends BaseMdbUtils {
         //
         Set<Object> idsProp = stProp.getUniqueValues("id")
         if (idsProp.empty) idsProp.add(0L)
+        def wheDbeg = periodDbeg ? "and v.dbeg='${periodDbeg}-01-01'" : ""
         Store stData = mdb.loadQuery("""
             select d.prop as prop, substring(v.dbeg::text, 0, 5) as year, null as age, null as ageord, 
                 null as sex, v.numberval as value    
             from DataProp d
             join DataPropVal v on d.id=v.dataProp  
-            where d.isObj=1 and d.objorrelobj=${owner} and d.periodType=11 --and v.dbeg='2015-01-01'
+            where d.isObj=1 and d.objorrelobj=${owner} and d.periodType=11 ${wheDbeg}
                 and d.prop in (${idsProp.join(",")})
             order by substring(v.dbeg::text, 0, 5)                
         """)
@@ -101,7 +145,8 @@ class ChartDao extends BaseMdbUtils {
             StoreRecord rec = indProp.get(r.getLong("prop"))
             if (rec != null) {
                 r.set("age", rec.getString("fishyear"))
-                r.set("sex", rec.getString("fishsex"))
+                if (!rec.getString("fishsex").isEmpty())
+                    r.set("sex", rec.getString("fishsex"))
                 String ord = UtString.padLeft(rec.getString("fishyear").split(" ")[0], 2, "0")
                 r.set("ageord", ord)
             }

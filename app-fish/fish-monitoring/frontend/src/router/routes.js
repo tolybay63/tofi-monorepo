@@ -46,7 +46,6 @@ const routes = [
 
       { path: '/fill', name: 'TestPage', component: () => import('pages/test/TestPage.vue') },
       { path: '/chart1', component: () => import('pages/charts/Chart1Page.vue') },
-      { path: '/chart6', component: () => import('pages/charts/Chart6Page.vue') },
       { path: '/chart7', component: () => import('pages/charts/Chart7Page.vue') },
     ],
   },

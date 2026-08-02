@@ -1,8 +1,21 @@
 <template>
   <q-card class="q-pa-md q-mb-md">
     <q-card-section>
-      <div class="text-h6">Водоем: {{ ownerName }}</div>
-      <!-- Кнопка быстрого скачивания графика -->
+      <div class="q-pa-md row">
+        <div class="text-h6">Водоем:
+          <span class="text-primary">{{ ownerName }} </span>
+        </div>
+        <!-- Кнопка быстрого скачивания графика -->
+        <q-space/>
+        <q-btn
+          color="primary"
+          dense
+          icon="download"
+          label="Скачать график"
+          outline
+          @click="exportChart"
+        />
+      </div>
     </q-card-section>
 
     <!-- БЛОК 1: Фиксация параметров (Фильтры) -->
@@ -17,13 +30,13 @@
             <q-select
               v-model="fixedParam1.dimension"
               :options="optionsForParam1"
-              option-value="value"
-              option-label="label"
-              label="Параметр 1"
-              outlined
               dense
               emit-value
+              label="Параметр 1"
               map-options
+              option-label="label"
+              option-value="value"
+              outlined
               @update:model-value="onFixedParamChange(1)"
             />
           </div>
@@ -31,14 +44,14 @@
             <q-select
               v-model="fixedParam1.value"
               :options="getValuesForDimension(fixedParam1.dimension)"
-              option-value="value"
-              option-label="label"
-              label="Значение"
-              outlined
+              clearable
               dense
               emit-value
+              label="Значение"
               map-options
-              clearable
+              option-label="label"
+              option-value="value"
+              outlined
               @update:model-value="fetchCubeData"
             />
           </div>
@@ -50,30 +63,30 @@
             <q-select
               v-model="fixedParam2.dimension"
               :options="optionsForParam2"
-              option-value="value"
-              option-label="label"
-              label="Параметр 2 (необязательно)"
-              outlined
+              clearable
               dense
               emit-value
+              label="Параметр 2 (необязательно)"
               map-options
-              clearable
+              option-label="label"
+              option-value="value"
+              outlined
               @update:model-value="onFixedParamChange(2)"
             />
           </div>
           <div class="col-6">
             <q-select
               v-model="fixedParam2.value"
+              :disable="!fixedParam2.dimension"
               :options="getValuesForDimension(fixedParam2.dimension)"
-              option-value="value"
-              option-label="label"
-              label="Значение"
-              outlined
+              clearable
               dense
               emit-value
+              label="Значение"
               map-options
-              clearable
-              :disable="!fixedParam2.dimension"
+              option-label="label"
+              option-value="value"
+              outlined
               @update:model-value="fetchCubeData"
             />
           </div>
@@ -87,14 +100,14 @@
         <q-select
           v-model="chartAxes.xAxisField"
           :options="remainingDimensions"
-          option-value="value"
-          option-label="label"
-          label="Измерение по оси X"
-          outlined
           dense
           emit-value
+          label="Измерение по оси X"
           map-options
-          @update:model-value="updateChart"
+          option-label="label"
+          option-value="value"
+          outlined
+          @update:model-value="fetchCubeData"
         />
       </div>
 
@@ -102,14 +115,14 @@
         <q-select
           v-model="chartAxes.seriesField"
           :options="remainingDimensions"
-          option-value="value"
-          option-label="label"
-          label="Группировка (Серии)"
-          outlined
           dense
           emit-value
+          label="Группировка (Серии)"
           map-options
-          @update:model-value="updateChart"
+          option-label="label"
+          option-value="value"
+          outlined
+          @update:model-value="fetchCubeData"
         />
       </div>
 
@@ -120,42 +133,51 @@
             { label: 'Столбчатая (Bar)', value: 'bar' },
             { label: 'Линейная (Line)', value: 'line' }
           ]"
-          option-value="value"
-          option-label="label"
-          label="Тип диаграммы"
-          outlined
           dense
           emit-value
+          label="Тип диаграммы"
           map-options
+          option-label="label"
+          option-value="value"
+          outlined
           @update:model-value="updateChart"
         />
       </div>
+
+      <div class="col-12 col-md-3 flex items-center">
+        <q-toggle
+          v-model="chartAxes.isStacked"
+          label="С накоплением (Stack)"
+          @update:model-value="updateChart"
+        />
+      </div>
+
     </q-card-section>
 
     <!-- Контейнер графика -->
     <q-card-section>
-      <div ref="chartRef" style="width: 100%; height: 500px;"></div>
+      <div ref="chartRef" style="width: 100%; height: 600px;"></div>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import {computed, nextTick, onMounted, onUnmounted, reactive, ref} from 'vue';
 import * as echarts from 'echarts';
-import { api } from "boot/axios.js";
+import {api} from "boot/axios.js";
 
 const chartRef = ref(null);
 let chartInstance = null;
 const loading = ref(false);
 const owner = 1061;
-const ownerName = ref('Жайсан'); // Сделали реактивным для обновления из БД
+const ownerName = ref(''); // Сделали реактивным для обновления из БД
 const meter = 1007;
 
 const allDimensions = [
-  { label: 'Период (Год)', value: 'year' },
-  { label: 'Вид рыбы', value: 'fishType' },
-  { label: 'Возраст рыбы', value: 'age' },
-  { label: 'Пол рыбы', value: 'sex' }
+  {label: 'Период (Год)', value: 'year'},
+  {label: 'Вид рыбы', value: 'fishType'},
+  {label: 'Возраст рыбы', value: 'age'},
+  {label: 'Пол рыбы', value: 'sex'}
 ];
 
 const databaseDictionary = reactive({
@@ -169,10 +191,10 @@ const databaseDictionary = reactive({
 const cubeData = ref([]);
 
 // Первый параметр обязателен, второй по умолчанию пустой (null)
-const fixedParam1 = reactive({ dimension: 'fishType', value: null });
-const fixedParam2 = reactive({ dimension: null, value: null });
+const fixedParam1 = reactive({dimension: 'fishType', value: null});
+const fixedParam2 = reactive({dimension: null, value: null});
 
-const chartAxes = reactive({ xAxisField: 'year', seriesField: 'age', chartType: 'bar' });
+const chartAxes = reactive({xAxisField: 'year', seriesField: 'age', chartType: 'bar', isStacked: false});
 
 // Динамические опции для фильтров с исключением дубликатов
 const optionsForParam1 = computed(() => {
@@ -256,8 +278,12 @@ const loadCubeData = async () => {
       params: [{
         owner: owner,
         meter: meter,
+        param1Key: fixedParam1.dimension,
         param1: fixedParam1.value,
-        param2: fixedParam2.value
+        param2Key: fixedParam2.dimension,
+        param2: fixedParam2.value,
+        xAxisField: chartAxes.xAxisField,
+        seriesField: chartAxes.seriesField,
       }],
     });
 
@@ -295,43 +321,6 @@ async function fetchCubeData() {
   }
 }
 
-/*
-function getChartOptions() {
-  const xField = chartAxes.xAxisField;
-  const sField = chartAxes.seriesField;
-
-  const xCategories = [...new Set(cubeData.value.map(item => item[xField]))];
-  const seriesCategories = [...new Set(cubeData.value.map(item => item[sField]))];
-
-  const series = seriesCategories.map(seriesName => {
-    const dataForSeries = xCategories.map(xVal => {
-      const found = cubeData.value.find(
-        item => item[xField] === xVal && item[sField] === seriesName
-      );
-      return found ? found.value : 0;
-    });
-
-    const dict = getValuesForDimension(sField);
-    const dictItem = dict.find(i => i.value === seriesName || i.label === seriesName);
-    const readableName = dictItem ? dictItem.label : seriesName;
-
-    return {
-      name: readableName,
-      type: chartAxes.chartType,
-      data: dataForSeries
-    };
-  });
-
-  return {
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    legend: { type: 'scroll', top: 10 },
-    xAxis: { type: 'category', data: xCategories },
-    yAxis: { type: 'value', name: 'Количество (шт)' },
-    series: series
-  };
-}
-*/
-
 function getChartOptions() {
   const xField = chartAxes.xAxisField;
   const sField = chartAxes.seriesField;
@@ -358,6 +347,7 @@ function getChartOptions() {
       type: isArea ? 'line' : chartAxes.chartType,
       areaStyle: isArea ? {} : undefined, // Превращает линию в залитую область
       data: dataForSeries,
+      stack: chartAxes.isStacked ? 'total_stack' : null,
       smooth: true // Плавные линии для красивого отображения трендов
     };
   });
@@ -365,19 +355,23 @@ function getChartOptions() {
   return {
     // Красивая палитра цветов (можно настроить под бренд-бук)
     color: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'],
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    legend: { type: 'scroll', top: 10 },
+    tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'}},
+    legend: {type: 'scroll', top: 10},
     // Панель инструментов (зум, сохранение картинки, переключение типов)
+
+/*
     toolbox: {
       feature: {
-        saveAsImage: { title: 'Сохранить как PNG' },
-        dataZoom: { title: { zoom: 'Зум', back: 'Сброс зума' } },
-        magicType: { type: ['line', 'bar'], title: { line: 'Линии', bar: 'Столбцы' } }
+        saveAsImage: {title: 'Сохранить как PNG'},
+        dataZoom: {title: {zoom: 'Зум', back: 'Сброс зума'}},
+        magicType: {type: ['line', 'bar'], title: {line: 'Линии', bar: 'Столбцы'}}
       },
       right: 20
     },
-    xAxis: { type: 'category', data: xCategories, axisLabel: { interval: 0, rotate: 15 } },
-    yAxis: { type: 'value', name: 'Количество (шт)' },
+*/
+
+    xAxis: {type: 'category', data: xCategories, axisLabel: {interval: 0, rotate: 15}},
+    yAxis: {type: 'value', name: 'Количество (шт)'},
     series: series
   };
 }

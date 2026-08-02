@@ -15,18 +15,18 @@
 
     <!--  PeriodType  -->
     <q-select
-      class="q-ml-lg"
       v-model="periodType"
-      :model-value="periodType"
-      dense
-      options-dense
-      :options="optPeriod"
       :label="fnReqLabel('periodType')"
-      option-value="id"
-      option-label="text"
+      :model-value="periodType"
+      :options="optPeriod"
+      class="q-ml-lg"
+      dense
       map-options
-      @update:model-value="fnSelectPeriodType"
+      option-label="text"
+      option-value="id"
+      options-dense
       style="width: 100px"
+      @update:model-value="fnSelectPeriodType"
     />
   </div>
 
@@ -102,8 +102,8 @@
             </q-btn>
 
             <q-btn
-              class="no-padding no-margin" color="red" dense flat icon="delete" round
-              size="sm" @click="fnDelete(item)" :disable="!(item.idval>0)"
+              :disable="!(item.idval>0)" class="no-padding no-margin" color="red" dense flat icon="delete"
+              round size="sm" @click="fnDelete(item)"
             >
               <q-tooltip
                 transition-hide="rotate" transition-show="rotate"
@@ -124,7 +124,7 @@
 <script>
 
 import {api, tofi_dbeg, tofi_dend} from 'boot/axios'
-import {expandAll, notifyError, notifyInfo, pack, today} from 'src/utils/jsutils'
+import {notifyError, notifyInfo, pack, today} from 'src/utils/jsutils'
 import {ref} from "vue";
 import {date} from "quasar";
 import UpdaterReservoirMeter from "pages/reservoirs/UpdaterReservoirMeter.vue";
@@ -220,13 +220,34 @@ export default {
         })
     },
 
+    updateRowValue(rows, targetRec) {
+      for (let row of rows) {
+        // Ищем элемент по id (можно изменить условие под ваши нужды)
+        if (row.id === targetRec.id) {
+          row.idval = targetRec.idval;
+          row.numberval = targetRec.numberval;
+          row.dbeg = targetRec.dbeg;
+          row.dend = targetRec.dend;
+          return true; // Успешно найдено и обновлено, прерываем поиск
+        }
+        // Если у узла есть дети, ищем рекурсивно в глубину
+        if (row.children && Array.isArray(row.children) && row.children.length > 0) {
+          if (this.updateRowValue(row.children, targetRec)) {
+            return true;
+          }
+        }
+      }
+      return false; // Элемент не найден
+    },
+
     fnEdit(row) {
       let rec = {
         obj: this.obj, prop: row.id,
         name: row.name, idval: row.idval,
         numberval: row.numberval || "",
         dependperiod: row.dependperiod,
-        dt: this.dte, pt: this.periodType
+        dt: this.dte, pt: this.periodType,
+        level: row.level,
       };
 
       this.$q
@@ -237,26 +258,7 @@ export default {
           },
         })
         .onOk((r) => {
-          console.info("r Update", r);
-          console.info("row Update", row);
-
-          if (row.level === 0) {
-            let index = this.rows.findIndex((rec) => rec.id === r.id);
-            if (index > -1) {
-              this.rows[index].idval = r.idval;
-              this.rows[index].numberval = r.numberval;
-              this.rows[index].dbeg = r.dbeg;
-              this.rows[index].dend = r.dend;
-            }
-          } else {
-            let index = this.rows.findIndex((rec) => rec.id === r.parent);
-            let child = this.rows[index].children;
-            let index2 = child.findIndex((rec) => rec.id === r.id);
-            child[index2].idval = r.idval;
-            child[index2].numberval = r.numberval;
-            child[index2].dbeg = r.dbeg;
-            child[index2].dend = r.dend;
-          }
+          this.updateRowValue(this.rows, r)
         })
         .onCancel(() => {
           notifyInfo(this.$t("canceled"))
@@ -382,6 +384,7 @@ export default {
             //console.info("rows", response.data.result["records"]);
             this.rows = pack(response.data.result["records"], "id")
             //expandAll(this.rows)
+            console.log(this.rows)
           })
         .finally(() => {
           this.loading = false

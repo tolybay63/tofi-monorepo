@@ -261,12 +261,6 @@ export default defineComponent({
               target: 'mon:chart1',
             },
             {
-              label: 'chart6',
-              icon: 'legend_toggle',
-              to: '/chart6',
-              target: 'mon:chart6',
-            },
-            {
               label: 'chart7',
               icon: 'legend_toggle',
               to: '/chart7',
