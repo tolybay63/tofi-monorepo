@@ -13,6 +13,7 @@ export default {
   logIn: 'Кіру',
   logOut: 'Шығу',
   browserDenied: 'Браузер файлды жүктеп алудан бас тартты...',
+  charts: "Диаграммалар",
 
   invalid_user_passwd: "Пайдаланушы аты немесе құпия сөз дұрыс емес",
   notLoginned: "Жүйеге кіру қажет",

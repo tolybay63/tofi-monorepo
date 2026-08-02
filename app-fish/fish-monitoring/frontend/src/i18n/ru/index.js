@@ -16,6 +16,8 @@ export default {
   logOut: 'Выйти',
   browserDenied: 'Браузер запретил загрузку файла...',
 
+  charts: "Диаграммы",
+
   notLoginned: "Необходимо авторизоваться",
   notAccess: "У вас отсутствуют права для выполнения данной операции",
   notAccessService: "У вас отсутствуют права для входа в данный сервис",
@@ -138,7 +140,6 @@ export default {
   FishGear: 'Орудие лова',
   FishManager: "Руководитель вылова",
   FishParticipants: "Участники вылова",
-
 
   enterprise: 'Предприятия',
 

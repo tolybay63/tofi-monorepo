@@ -370,8 +370,6 @@ export default {
       .then(
         (response) => {
           this.optKATO = pack(response.data.result.records, "id")
-
-          console.info("optKATO", this.optKATO)
         })
       .finally(() => {
         this.loading = false

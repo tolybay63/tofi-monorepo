@@ -12,6 +12,7 @@ export default {
   logIn: 'Login',
   logOut: 'Logout',
   browserDenied: 'Browser denied file download...',
+  charts: "Charts",
 
   notLoginned: "Login required",
   notAccess: "You do not have the rights to perform this operation",

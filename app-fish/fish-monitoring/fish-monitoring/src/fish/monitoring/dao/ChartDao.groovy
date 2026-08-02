@@ -21,12 +21,8 @@ class ChartDao extends BaseMdbUtils {
     @DaoMethod
     Map<String, Object> loadCubeMetaData(long owner, long meter) {
         Map<String, Object> rez = new HashMap<>()
-        String name = mdb.loadQuery("""
-            select name from ObjVer where ownerVer=${owner} and lastVer=1
-        """).get(0).getString("name")
-        rez.put("ownerName", name)
 
-        name = apiMeta().get(ApiMeta).loadSql("""
+        String name = apiMeta().get(ApiMeta).loadSql("""
             select name from meter where id=${meter}
         """, "").get(0).getString("name")
         rez.put("meterName", name)

@@ -1,4 +1,11 @@
 <template>
+
+  <q-dialog
+    ref="dialogRef"
+    persistent
+    full-width full-height
+  >
+
   <q-card class="q-pa-md q-mb-md">
     <q-card-section>
       <div class="q-pa-md row">
@@ -158,21 +165,53 @@
     <q-card-section>
       <div ref="chartRef" style="width: 100%; height: 600px;"></div>
     </q-card-section>
+
+    <!---->
+    <q-card-actions align="right">
+      <q-btn color="primary" icon="close" :label="$t('close')" class="q-mt-xl" v-close-popup/>
+    </q-card-actions>
+
   </q-card>
+
+  </q-dialog>
 </template>
 
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, reactive, ref} from 'vue';
 import * as echarts from 'echarts';
 import {api} from "boot/axios.js";
+import { useDialogPluginComponent } from 'quasar';
+
+// Описываем пропсы, принимаемые модальным окном
+const props = defineProps({
+  owner: {
+    type: [Number, String],
+    required: true
+  },
+  meter: {
+    type: [Number, String],
+    required: true
+  },
+  ownerName: {
+    type: [String],
+    required: true
+  },
+
+});
+
+// Интеграция с механизмом модальных окон Quasar
+const { dialogRef, onDialogHide, onDialogCancel } = useDialogPluginComponent();
+
+
+const owner = props.owner;
+const ownerName = props.ownerName;
+const meter = props.meter;
+
+const meterName = ref('');
 
 const chartRef = ref(null);
 let chartInstance = null;
 const loading = ref(false);
-const owner = 1061;
-const ownerName = ref('Жайсан');
-const meter = 1007;
-const meterName = ref('');
 
 const allDimensions = [
   {label: 'Период (Год)', value: 'year'},
@@ -271,7 +310,7 @@ const getCubeMetaData = async () => {
 };
 
 const loadCubeData = async () => {
-  console.log('loadCubeData!');
+  //console.log('loadCubeData!');
   loading.value = true;
   try {
     const response = await api.post('', {
@@ -288,7 +327,7 @@ const loadCubeData = async () => {
       }],
     });
 
-    console.log("Data response:", response.data.result);
+    //console.log("Data response:", response.data.result);
     cubeData.value = response.data.result.records || [];
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
@@ -398,12 +437,67 @@ function exportChart() {
   link.click();
 }
 
-onMounted(async () => {
+// Создаем именованную функцию для ресайза (чтобы она корректно удалялась из памяти)
+const handleResize = () => {
+  chartInstance?.resize();
+};
+
+// Функция полной инициализации графика
+const initAndDrawChart = async () => {
+  await loadDataFromDatabase(); // Загружаем метаданные и куб из БД
+
   await nextTick();
   if (chartRef.value) {
-    chartInstance = echarts.init(chartRef.value);
-    await loadDataFromDatabase();
-    window.addEventListener('resize', () => chartInstance?.resize());
+    // Если экземпляр еще не создан — инициализируем его
+    if (!chartInstance) {
+      chartInstance = echarts.init(chartRef.value);
+      window.addEventListener('resize', handleResize);
+    }
+    // Обязательно делаем resize на случай, если окно открылось с другой шириной
+    chartInstance.resize();
+    updateChart();
+  } else {
+    console.error("chartRef все еще недоступен в DOM");
+  }
+};
+
+onMounted(() => {
+  // Вызываем инициализацию с небольшим микротаймаутом,
+  // чтобы дать Quasar завершить анимацию отрисовки q-dialog
+  setTimeout(() => {
+    initAndDrawChart();
+  }, 100);
+});
+
+onUnmounted(() => {
+  if (chartInstance) {
+    chartInstance.dispose();
+    chartInstance = null;
+  }
+  // Передаем ту же самую функцию для очистки слушателя
+  window.removeEventListener('resize', handleResize);
+});
+
+
+
+/*
+onMounted(async () => {
+  //console.log("Модальное окно смонтировано, параметры:", props.owner, props.meter);
+
+  // 1. Сначала в любом случае запрашиваем данные из БД (метаданные и куб)
+  await loadDataFromDatabase();
+
+  // 2. Ждем отрисовку DOM для инициализации графика ECharts
+  await nextTick();
+  if (chartRef.value) {
+    if (!chartInstance) {
+      chartInstance = echarts.init(chartRef.value);
+      window.addEventListener('resize', () => chartInstance?.resize());
+    }
+    // Рисуем график, так как данные к этому моменту уже загружены
+    updateChart();
+  } else {
+    console.error("chartRef все еще недоступен в DOM");
   }
 });
 
@@ -411,4 +505,6 @@ onUnmounted(() => {
   chartInstance?.dispose();
   window.removeEventListener('resize', () => chartInstance?.resize());
 });
+*/
+
 </script>

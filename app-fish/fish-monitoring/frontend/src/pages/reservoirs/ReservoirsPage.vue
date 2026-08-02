@@ -86,6 +86,18 @@
                 </q-tooltip>
               </q-btn>
 
+              <q-btn
+                icon="insert_chart_outlined"
+                color="secondary"
+                class="q-ml-sm" dense
+                :disable="loading || selected.length === 0"
+                @click="showChart(selected[0])"
+              >
+                <q-tooltip transition-show="rotate" transition-hide="rotate">
+                  {{ $t('charts') }}
+                </q-tooltip>
+              </q-btn>
+
               <q-space/>
 
               <q-input
@@ -120,10 +132,11 @@
 <script>
 import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
 import {api} from 'boot/axios'
-import {extend} from 'quasar'
+import {extend, useQuasar} from 'quasar'
 import {ref} from 'vue'
 import UpdaterReservoirRefs from 'pages/reservoirs/UpdaterReservoirRefs.vue'
 import ReservoirsMeter from "pages/reservoirs/ReservoirsMeter.vue";
+import ChartViewPage from "components/ChartViewPage.vue";
 
 export default {
   name: 'ReservoirsPage',
@@ -155,7 +168,6 @@ export default {
 
   methods: {
     hasTarget,
-
     updateSelected() {
       let obj = 0
 
@@ -168,6 +180,21 @@ export default {
         this.$refs.ReservoirsMeter.clearData()
       }
       this.$refs.ReservoirsMeter.loadReservoirsMeter(obj)
+    },
+
+    showChart(row) {
+      this.$q.dialog({
+        component: ChartViewPage,
+        componentProps: {
+          owner: row.obj,
+          ownerName: row.name,
+          meter: 1007
+        }
+      }).onOk(() => {
+        console.log('Диалог закрыт с OK');
+      }).onCancel(() => {
+        console.log('Диалог отменен');
+      });
     },
 
     editRowRefs(row, mode) {

@@ -154,7 +154,6 @@ export default {
     },
 
     fnSelectPeriodType(v) {
-      console.log(v, this.periodType)
       this.periodType = v.id
       this.loadReservoirsMeter(this.obj)
     },
@@ -165,7 +164,6 @@ export default {
 
     fnDt(val) {
       //let dt = date.formatDate(val).isWellFormed()
-      console.log("fbDt", val)
       if (val.length === 10 && date.formatDate(val).isWellFormed()) {
         this.dte = val
         this.loadReservoirsMeter(this.obj)
@@ -384,7 +382,6 @@ export default {
             //console.info("rows", response.data.result["records"]);
             this.rows = pack(response.data.result["records"], "id")
             //expandAll(this.rows)
-            console.log(this.rows)
           })
         .finally(() => {
           this.loading = false
