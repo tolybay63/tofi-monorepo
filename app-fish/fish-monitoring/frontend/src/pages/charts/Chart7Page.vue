@@ -261,7 +261,7 @@ const getCubeMetaData = async () => {
     databaseDictionary.fishType = response.data.result.fishType?.records || [];
     databaseDictionary.age = response.data.result.age?.records || [];
     databaseDictionary.sex = response.data.result.sex?.records || [];
-    databaseDictionary.year = ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'];
+    databaseDictionary.year = ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
   } catch (error) {
     console.error('Ошибка загрузки метаданных:', error);
   } finally {
