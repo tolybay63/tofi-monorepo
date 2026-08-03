@@ -163,12 +163,12 @@
 
     <!-- Контейнер графика -->
     <q-card-section>
-      <div ref="chartRef" style="width: 100%; height: 600px;"></div>
+      <div ref="chartRef" style="width: 100%; height: calc(50vh);"></div>
     </q-card-section>
 
     <!---->
     <q-card-actions align="right">
-      <q-btn color="primary" icon="close" :label="$t('close')" class="q-mt-xl" v-close-popup/>
+      <q-btn color="primary" icon="close" :label="$t('close')" class="q-my-md" v-close-popup/>
     </q-card-actions>
 
   </q-card>

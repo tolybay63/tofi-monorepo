@@ -39,6 +39,7 @@ class ChartDao extends BaseMdbUtils {
             select id as value, name as label
             from factor
             where parent=${stDim.get(0).getLong("factor")}
+            order by ord
         """, "")
         rez.put("fishType", st)
 
@@ -46,12 +47,14 @@ class ChartDao extends BaseMdbUtils {
             select id as value, name as label
             from factor
             where parent=${stDim.get(1).getLong("factor")}
+            order by ord
         """, "")
         rez.put("age", st)
         st = apiMeta().get(ApiMeta).loadSql("""
             select id as value, name as label
             from factor
             where parent=${stDim.get(2).getLong("factor")}
+            order by ord
         """, "")
         rez.put("sex", st)
         return rez
