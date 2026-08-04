@@ -2,176 +2,176 @@
 
   <q-dialog
     ref="dialogRef"
+    full-width
     persistent
-    full-width full-height
   >
 
-  <q-card class="q-pa-md q-mb-md">
-    <q-card-section>
-      <div class="q-pa-md row">
-        <div class="text-h6">Водоем:
-          <span class="text-primary">{{ ownerName }} ({{meterName}})</span>
+    <q-card class="q-pa-md q-mb-md">
+      <q-card-section>
+        <div class="q-pa-md row">
+          <div class="text-h6">Водоем:
+            <span class="text-primary">{{ ownerName }} ({{ meterName }})</span>
+          </div>
+          <!-- Кнопка быстрого скачивания графика -->
+          <q-space/>
+          <q-btn
+            color="primary"
+            dense
+            icon="download"
+            label="Скачать график"
+            outline
+            @click="exportChart"
+          />
         </div>
-        <!-- Кнопка быстрого скачивания графика -->
-        <q-space/>
-        <q-btn
-          color="primary"
-          dense
-          icon="download"
-          label="Скачать график"
-          outline
-          @click="exportChart"
-        />
-      </div>
-    </q-card-section>
+      </q-card-section>
 
-    <!-- БЛОК 1: Фиксация параметров (Фильтры) -->
-    <q-card-section class="bg-grey-1 q-pa-md rounded-borders q-mb-md">
-      <div class="text-subtitle2 text-grey-8 q-mb-sm">
-        1. Фильтрация куба (параметры):
-      </div>
-      <div class="row q-col-gutter-md">
-        <!-- Первый фиксированный параметр -->
-        <div class="col-12 col-md-6 row q-col-gutter-sm items-center">
-          <div class="col-6">
-            <q-select
-              v-model="fixedParam1.dimension"
-              :options="optionsForParam1"
-              dense
-              emit-value
-              label="Параметр 1"
-              map-options
-              option-label="label"
-              option-value="value"
-              outlined
-              @update:model-value="onFixedParamChange(1)"
-            />
+      <!-- БЛОК 1: Фиксация параметров (Фильтры) -->
+      <q-card-section class="bg-grey-1 q-pa-md rounded-borders q-mb-md">
+        <div class="text-subtitle2 text-grey-8 q-mb-sm">
+          1. Фильтрация куба (параметры):
+        </div>
+        <div class="row q-col-gutter-md">
+          <!-- Первый фиксированный параметр -->
+          <div class="col-12 col-md-6 row q-col-gutter-sm items-center">
+            <div class="col-6">
+              <q-select
+                v-model="fixedParam1.dimension"
+                :options="optionsForParam1"
+                dense
+                emit-value
+                label="Параметр 1"
+                map-options
+                option-label="label"
+                option-value="value"
+                outlined
+                @update:model-value="onFixedParamChange(1)"
+              />
+            </div>
+            <div class="col-6">
+              <q-select
+                v-model="fixedParam1.value"
+                :options="getValuesForDimension(fixedParam1.dimension)"
+                clearable
+                dense
+                emit-value
+                label="Значение"
+                map-options
+                option-label="label"
+                option-value="value"
+                outlined
+                @update:model-value="fetchCubeData"
+              />
+            </div>
           </div>
-          <div class="col-6">
-            <q-select
-              v-model="fixedParam1.value"
-              :options="getValuesForDimension(fixedParam1.dimension)"
-              clearable
-              dense
-              emit-value
-              label="Значение"
-              map-options
-              option-label="label"
-              option-value="value"
-              outlined
-              @update:model-value="fetchCubeData"
-            />
+
+          <!-- Второй фиксированный параметр (опциональный, по умолчанию null) -->
+          <div class="col-12 col-md-6 row q-col-gutter-sm items-center">
+            <div class="col-6">
+              <q-select
+                v-model="fixedParam2.dimension"
+                :options="optionsForParam2"
+                clearable
+                dense
+                emit-value
+                label="Параметр 2 (необязательно)"
+                map-options
+                option-label="label"
+                option-value="value"
+                outlined
+                @update:model-value="onFixedParamChange(2)"
+              />
+            </div>
+            <div class="col-6">
+              <q-select
+                v-model="fixedParam2.value"
+                :disable="!fixedParam2.dimension"
+                :options="getValuesForDimension(fixedParam2.dimension)"
+                clearable
+                dense
+                emit-value
+                label="Значение"
+                map-options
+                option-label="label"
+                option-value="value"
+                outlined
+                @update:model-value="fetchCubeData"
+              />
+            </div>
           </div>
         </div>
+      </q-card-section>
 
-        <!-- Второй фиксированный параметр (опциональный, по умолчанию null) -->
-        <div class="col-12 col-md-6 row q-col-gutter-sm items-center">
-          <div class="col-6">
-            <q-select
-              v-model="fixedParam2.dimension"
-              :options="optionsForParam2"
-              clearable
-              dense
-              emit-value
-              label="Параметр 2 (необязательно)"
-              map-options
-              option-label="label"
-              option-value="value"
-              outlined
-              @update:model-value="onFixedParamChange(2)"
-            />
-          </div>
-          <div class="col-6">
-            <q-select
-              v-model="fixedParam2.value"
-              :disable="!fixedParam2.dimension"
-              :options="getValuesForDimension(fixedParam2.dimension)"
-              clearable
-              dense
-              emit-value
-              label="Значение"
-              map-options
-              option-label="label"
-              option-value="value"
-              outlined
-              @update:model-value="fetchCubeData"
-            />
-          </div>
+      <!-- БЛОК 2: Выбор осей графика -->
+      <q-card-section class="row q-col-gutter-md">
+        <div class="col-12 col-md-4">
+          <q-select
+            v-model="chartAxes.xAxisField"
+            :options="remainingDimensions"
+            dense
+            emit-value
+            label="Измерение по оси X"
+            map-options
+            option-label="label"
+            option-value="value"
+            outlined
+            @update:model-value="fetchCubeData"
+          />
         </div>
-      </div>
-    </q-card-section>
 
-    <!-- БЛОК 2: Выбор осей графика -->
-    <q-card-section class="row q-col-gutter-md">
-      <div class="col-12 col-md-4">
-        <q-select
-          v-model="chartAxes.xAxisField"
-          :options="remainingDimensions"
-          dense
-          emit-value
-          label="Измерение по оси X"
-          map-options
-          option-label="label"
-          option-value="value"
-          outlined
-          @update:model-value="fetchCubeData"
-        />
-      </div>
+        <div class="col-12 col-md-4">
+          <q-select
+            v-model="chartAxes.seriesField"
+            :options="remainingDimensions"
+            dense
+            emit-value
+            label="Группировка (Серии)"
+            map-options
+            option-label="label"
+            option-value="value"
+            outlined
+            @update:model-value="fetchCubeData"
+          />
+        </div>
 
-      <div class="col-12 col-md-4">
-        <q-select
-          v-model="chartAxes.seriesField"
-          :options="remainingDimensions"
-          dense
-          emit-value
-          label="Группировка (Серии)"
-          map-options
-          option-label="label"
-          option-value="value"
-          outlined
-          @update:model-value="fetchCubeData"
-        />
-      </div>
-
-      <div class="col-12 col-md-4">
-        <q-select
-          v-model="chartAxes.chartType"
-          :options="[
+        <div class="col-12 col-md-4">
+          <q-select
+            v-model="chartAxes.chartType"
+            :options="[
             { label: 'Столбчатая (Bar)', value: 'bar' },
             { label: 'Линейная (Line)', value: 'line' }
           ]"
-          dense
-          emit-value
-          label="Тип диаграммы"
-          map-options
-          option-label="label"
-          option-value="value"
-          outlined
-          @update:model-value="updateChart"
-        />
-      </div>
+            dense
+            emit-value
+            label="Тип диаграммы"
+            map-options
+            option-label="label"
+            option-value="value"
+            outlined
+            @update:model-value="updateChart"
+          />
+        </div>
 
-      <div class="col-12 col-md-3 flex items-center">
-        <q-toggle
-          v-model="chartAxes.isStacked"
-          label="С накоплением (Stack)"
-          @update:model-value="updateChart"
-        />
-      </div>
+        <div class="col-12 col-md-3 flex items-center">
+          <q-toggle
+            v-model="chartAxes.isStacked"
+            label="С накоплением (Stack)"
+            @update:model-value="updateChart"
+          />
+        </div>
 
-    </q-card-section>
+      </q-card-section>
 
-    <!-- Контейнер графика -->
-    <q-card-section>
-      <div ref="chartRef" style="width: 100%; height: calc(50vh);"></div>
-    </q-card-section>
+      <!-- Контейнер графика -->
+      <q-card-section>
+        <div ref="chartRef" style="width: 100%; height: calc(45vh);"></div>
+      </q-card-section>
 
-    <!---->
-    <q-card-actions align="right">
-      <q-btn color="primary" icon="close" :label="$t('close')" class="q-my-md" v-close-popup/>
-    </q-card-actions>
+      <!---->
+      <q-card-actions align="right">
+        <q-btn v-close-popup :label="$t('close')" class="q-my-md" color="primary" icon="close"/>
+      </q-card-actions>
 
-  </q-card>
+    </q-card>
 
   </q-dialog>
 </template>
@@ -180,7 +180,7 @@
 import {computed, nextTick, onMounted, onUnmounted, reactive, ref} from 'vue';
 import * as echarts from 'echarts';
 import {api} from "boot/axios.js";
-import { useDialogPluginComponent } from 'quasar';
+import {useDialogPluginComponent} from 'quasar';
 
 // Описываем пропсы, принимаемые модальным окном
 const props = defineProps({
@@ -200,7 +200,7 @@ const props = defineProps({
 });
 
 // Интеграция с механизмом модальных окон Quasar
-const { dialogRef, onDialogHide, onDialogCancel } = useDialogPluginComponent();
+const {dialogRef} = useDialogPluginComponent();
 
 
 const owner = props.owner;
@@ -369,10 +369,8 @@ function getChartOptions() {
   const xField = chartAxes.xAxisField;
   const sField = chartAxes.seriesField;
 
-  const xCategories = [...new Set(cubeData.value.map(item => item[xField]))];
-  const seriesCategories = [...new Set(cubeData.value.map(item => item[sField]))];
-  //const xCategories = [...new Set(cubeData.value.map(item => item[xField]).filter(val => val !== null && val !== undefined && val !== ''))];
-  //const seriesCategories = [...new Set(cubeData.value.map(item => item[sField]).filter(val => val !== null && val !== undefined && val !== ''))];
+  const xCategories = [...new Set(cubeData.value.map(item => item[xField]).filter(val => val !== null && val !== undefined && val !== ''))];
+  const seriesCategories = [...new Set(cubeData.value.map(item => item[sField]).filter(val => val !== null && val !== undefined && val !== ''))];
 
   const series = seriesCategories.map(seriesName => {
     const dataForSeries = xCategories.map(xVal => {
@@ -382,14 +380,9 @@ function getChartOptions() {
       return found ? found.value : 0;
     });
 
-    //const dict = getValuesForDimension(sField);
-    //const dictItem = dict.find(i => i.value === seriesName || i.label === seriesName);
-    //const readableName = dictItem ? dictItem.label : seriesName;
-
     const dict = getValuesForDimension(sField);
     const dictItem = dict.find(i => i.value === seriesName || i.label === seriesName);
     const readableName = dictItem ? dictItem.label : (seriesName ?? 'Без названия');
-
 
     const isArea = chartAxes.chartType === 'area';
 
@@ -410,16 +403,16 @@ function getChartOptions() {
     legend: {type: 'scroll', top: 10},
     // Панель инструментов (зум, сохранение картинки, переключение типов)
 
-/*
-    toolbox: {
-      feature: {
-        saveAsImage: {title: 'Сохранить как PNG'},
-        dataZoom: {title: {zoom: 'Зум', back: 'Сброс зума'}},
-        magicType: {type: ['line', 'bar'], title: {line: 'Линии', bar: 'Столбцы'}}
-      },
-      right: 20
-    },
-*/
+    /*
+        toolbox: {
+          feature: {
+            saveAsImage: {title: 'Сохранить как PNG'},
+            dataZoom: {title: {zoom: 'Зум', back: 'Сброс зума'}},
+            magicType: {type: ['line', 'bar'], title: {line: 'Линии', bar: 'Столбцы'}}
+          },
+          right: 20
+        },
+    */
 
     xAxis: {type: 'category', data: xCategories, axisLabel: {interval: 0, rotate: 15}},
     yAxis: {type: 'value', name: 'Количество (шт)'},
@@ -488,34 +481,5 @@ onUnmounted(() => {
   // Передаем ту же самую функцию для очистки слушателя
   window.removeEventListener('resize', handleResize);
 });
-
-
-
-/*
-onMounted(async () => {
-  //console.log("Модальное окно смонтировано, параметры:", props.owner, props.meter);
-
-  // 1. Сначала в любом случае запрашиваем данные из БД (метаданные и куб)
-  await loadDataFromDatabase();
-
-  // 2. Ждем отрисовку DOM для инициализации графика ECharts
-  await nextTick();
-  if (chartRef.value) {
-    if (!chartInstance) {
-      chartInstance = echarts.init(chartRef.value);
-      window.addEventListener('resize', () => chartInstance?.resize());
-    }
-    // Рисуем график, так как данные к этому моменту уже загружены
-    updateChart();
-  } else {
-    console.error("chartRef все еще недоступен в DOM");
-  }
-});
-
-onUnmounted(() => {
-  chartInstance?.dispose();
-  window.removeEventListener('resize', () => chartInstance?.resize());
-});
-*/
 
 </script>

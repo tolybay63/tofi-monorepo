@@ -95,21 +95,12 @@ class ChartDao extends BaseMdbUtils {
         def level = 2
         if (factorDims.size()==2)
             level = 3
-
-/*        if (param2Key != 'year') {
-            factorDims.push(param2Key)
-            if (param2Key == 'sex') {
-                lstFvs = "${fvFirstLev}, ${param2}"
-            }
+        else {
+            if (["fishtype", "age", "sex"].contains(xAxisField) &&
+                ["fishtype", "age", "sex"].contains(seriesField) &&
+                    xAxisField != seriesField)
+                level=3
         }
-        if (xAxisField != 'year')
-            factorDims.push(xAxisField)
-        if (seriesField != 'year')
-            factorDims.push(seriesField)
-
-        def level = 2
-        if (factorDims.contains("sex"))
-            level = 3*/
 
         Store stProp = apiMeta().get(ApiMeta).loadSql("""
             select id, t.fishtype, t.fishyear, t.fishsex
@@ -131,8 +122,6 @@ class ChartDao extends BaseMdbUtils {
                 where arrFv @> '{${lstFvs}}' and sz=${level}
             ) t on p.meterrate=t.meterrate
         """, "")
-
-        //--and sz=${level}
 
         StoreIndex indProp = stProp.getIndex("id")
         //
@@ -161,7 +150,7 @@ class ChartDao extends BaseMdbUtils {
         }
         stData.sort("year, ageord")
 
-        mdb.outTable(stData)
+        //mdb.outTable(stData)
 
         return stData
     }
