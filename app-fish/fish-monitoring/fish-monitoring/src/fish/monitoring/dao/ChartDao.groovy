@@ -41,7 +41,7 @@ class ChartDao extends BaseMdbUtils {
             where parent=${stDim.get(0).getLong("factor")}
             order by ord
         """, "")
-        rez.put("fishType", st)
+        rez.put("fishtype", st)
 
         st = apiMeta().get(ApiMeta).loadSql("""
             select id as value, name as label
@@ -66,12 +66,12 @@ class ChartDao extends BaseMdbUtils {
         def meter = UtCnv.toLong(params.get("meter"))
         String param1Key = params.get("param1Key")
         def param1 = params.get("param1")
-        if (param1Key == "fishType" || param1Key == "age" || param1Key == "sex")
+        if (param1Key == "fishtype" || param1Key == "age" || param1Key == "sex")
             param1 = UtCnv.toLong(params.get("param1"))
 
         String param2Key = UtCnv.toString(params.get("param2Key"))
         def param2 = params.get("param2")
-        if (param2Key == "fishType" || param2Key == "age" || param2Key == "sex")
+        if (param2Key == "fishtype" || param2Key == "age" || param2Key == "sex")
             param2 = UtCnv.toLong(params.get("param2"))
 
         def xAxisField = params.get("xAxisField")
@@ -84,19 +84,19 @@ class ChartDao extends BaseMdbUtils {
             if (param2Key.contains("year")) periodDbeg = param2
         }
         //
-        def fvFirstLev = param1
-        if (param2Key == "fishType")
-            fvFirstLev = param2
-        def lstFvs = "${fvFirstLev}"
-
         def factorDims = []
-        if (param1Key != 'year') {
-            factorDims.push(param1Key)
-            if (param1Key == 'sex') {
-                lstFvs = "${fvFirstLev}, ${param1}"
-            }
-        }
-        if (param2Key != 'year') {
+        if (["fishtype", "age", "sex"].contains(param1Key))
+            factorDims.add(param1)
+        if (["fishtype", "age", "sex"].contains(param2Key))
+            factorDims.add(param2)
+
+        def lstFvs = factorDims.join(",")
+
+        def level = 2
+        if (factorDims.size()==2)
+            level = 3
+
+/*        if (param2Key != 'year') {
             factorDims.push(param2Key)
             if (param2Key == 'sex') {
                 lstFvs = "${fvFirstLev}, ${param2}"
@@ -109,7 +109,7 @@ class ChartDao extends BaseMdbUtils {
 
         def level = 2
         if (factorDims.contains("sex"))
-            level = 3
+            level = 3*/
 
         Store stProp = apiMeta().get(ApiMeta).loadSql("""
             select id, t.fishtype, t.fishyear, t.fishsex
@@ -127,10 +127,12 @@ class ChartDao extends BaseMdbUtils {
                         p.meter=${meter} and p.meterrate is not null
                     group by m.meterrate
                 )
-                select meterrate, name[1] as fishtype, name[2] as fishyear, coalesce(name[3], '') as fishsex  from gr
+                select meterrate, name[1] as fishtype, name[2] as fishyear, name[3] as fishsex from gr
                 where arrFv @> '{${lstFvs}}' and sz=${level}
             ) t on p.meterrate=t.meterrate
         """, "")
+
+        //--and sz=${level}
 
         StoreIndex indProp = stProp.getIndex("id")
         //
@@ -138,8 +140,8 @@ class ChartDao extends BaseMdbUtils {
         if (idsProp.empty) idsProp.add(0L)
         def wheDbeg = periodDbeg ? "and v.dbeg='${periodDbeg}-01-01'" : ""
         Store stData = mdb.loadQuery("""
-            select d.prop as prop, substring(v.dbeg::text, 0, 5) as year, null as age, null as ageord, 
-                null as sex, v.numberval as value    
+            select d.prop as prop, substring(v.dbeg::text, 0, 5) as year, null as age, 
+                null as fishtype, null as ageord, null as sex, v.numberval as value    
             from DataProp d
             join DataPropVal v on d.id=v.dataProp  
             where d.isObj=1 and d.objorrelobj=${owner} and d.periodType=11 ${wheDbeg}
@@ -150,9 +152,9 @@ class ChartDao extends BaseMdbUtils {
         for (StoreRecord r in stData) {
             StoreRecord rec = indProp.get(r.getLong("prop"))
             if (rec != null) {
+                r.set("fishType", rec.getString("fishType"))
                 r.set("age", rec.getString("fishyear"))
-                if (!rec.getString("fishsex").isEmpty())
-                    r.set("sex", rec.getString("fishsex"))
+                r.set("sex", rec.getString("fishsex"))
                 String ord = UtString.padLeft(rec.getString("fishyear").split(" ")[0], 2, "0")
                 r.set("ageord", ord)
             }

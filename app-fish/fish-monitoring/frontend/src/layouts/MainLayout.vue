@@ -249,7 +249,8 @@ export default defineComponent({
           to: '/fill',
           target: 'mon:fill',
         },
-        {
+
+/*        {
           label: 'charts',
           icon: 'folder_open',
           target: 'mon:charts',
@@ -270,7 +271,7 @@ export default defineComponent({
 
 
           ]
-        },
+        },*/
 
       ]
     }

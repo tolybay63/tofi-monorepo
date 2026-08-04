@@ -215,7 +215,7 @@ const loading = ref(false);
 
 const allDimensions = [
   {label: 'Период (Год)', value: 'year'},
-  {label: 'Вид рыбы', value: 'fishType'},
+  {label: 'Вид рыбы', value: 'fishtype'},
   {label: 'Возраст рыбы', value: 'age'},
   {label: 'Пол рыбы', value: 'sex'}
 ];
@@ -223,7 +223,7 @@ const allDimensions = [
 const databaseDictionary = reactive({
   dims: [],
   year: [],
-  fishType: [],
+  fishtype: [],
   age: [],
   sex: []
 });
@@ -231,7 +231,7 @@ const databaseDictionary = reactive({
 const cubeData = ref([]);
 
 // Первый параметр обязателен, второй по умолчанию пустой (null)
-const fixedParam1 = reactive({dimension: 'fishType', value: null});
+const fixedParam1 = reactive({dimension: 'fishtype', value: null});
 const fixedParam2 = reactive({dimension: null, value: null});
 
 const chartAxes = reactive({xAxisField: 'year', seriesField: 'age', chartType: 'bar', isStacked: false});
@@ -298,10 +298,14 @@ const getCubeMetaData = async () => {
 
     meterName.value = response.data.result.meterName;
     databaseDictionary.dims = response.data.result.dims?.records || [];
-    databaseDictionary.fishType = response.data.result.fishType?.records || [];
+    databaseDictionary.fishtype = response.data.result.fishtype?.records || [];
     databaseDictionary.age = response.data.result.age?.records || [];
     databaseDictionary.sex = response.data.result.sex?.records || [];
     databaseDictionary.year = ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
+    console.info("dims", databaseDictionary.dims)
+    console.info("fishtype", databaseDictionary.fishtype)
+    console.info("age", databaseDictionary.age)
+    console.info("sex", databaseDictionary.sex)
   } catch (error) {
     console.error('Ошибка загрузки метаданных:', error);
   } finally {
@@ -327,7 +331,7 @@ const loadCubeData = async () => {
       }],
     });
 
-    //console.log("Data response:", response.data.result);
+    console.log("Data response:", response.data.result);
     cubeData.value = response.data.result.records || [];
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
@@ -341,9 +345,9 @@ async function loadDataFromDatabase() {
     await getCubeMetaData();
 
     // Дефолт только для первого параметра
-    const fishTypes = getValuesForDimension('fishType');
-    if (fishTypes.length > 0) {
-      fixedParam1.value = fishTypes[0].value;
+    const fishtypes = getValuesForDimension('fishtype');
+    if (fishtypes.length > 0) {
+      fixedParam1.value = fishtypes[0].value;
     }
 
     await fetchCubeData();
@@ -367,6 +371,8 @@ function getChartOptions() {
 
   const xCategories = [...new Set(cubeData.value.map(item => item[xField]))];
   const seriesCategories = [...new Set(cubeData.value.map(item => item[sField]))];
+  //const xCategories = [...new Set(cubeData.value.map(item => item[xField]).filter(val => val !== null && val !== undefined && val !== ''))];
+  //const seriesCategories = [...new Set(cubeData.value.map(item => item[sField]).filter(val => val !== null && val !== undefined && val !== ''))];
 
   const series = seriesCategories.map(seriesName => {
     const dataForSeries = xCategories.map(xVal => {
@@ -376,9 +382,14 @@ function getChartOptions() {
       return found ? found.value : 0;
     });
 
+    //const dict = getValuesForDimension(sField);
+    //const dictItem = dict.find(i => i.value === seriesName || i.label === seriesName);
+    //const readableName = dictItem ? dictItem.label : seriesName;
+
     const dict = getValuesForDimension(sField);
     const dictItem = dict.find(i => i.value === seriesName || i.label === seriesName);
-    const readableName = dictItem ? dictItem.label : seriesName;
+    const readableName = dictItem ? dictItem.label : (seriesName ?? 'Без названия');
+
 
     const isArea = chartAxes.chartType === 'area';
 
