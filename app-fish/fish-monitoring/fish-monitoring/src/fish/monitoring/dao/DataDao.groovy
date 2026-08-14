@@ -811,6 +811,7 @@ class DataDao extends BaseMdbUtils {
         deleteOwnerWithProperties(id, 1)
     }
 
+/*
     //---------------- 4 TypesFishGear ----------------//
     @DaoMethod
     Store loadFishGear(Map<String, Object> params) {
@@ -886,6 +887,7 @@ class DataDao extends BaseMdbUtils {
         checkForExistData(id, 1)
         deleteOwnerWithProperties(id, 1)
     }
+*/
 
     //---------------- 5 PiscesReservoir ----------------//
     @DaoMethod
@@ -1157,7 +1159,7 @@ class DataDao extends BaseMdbUtils {
         return loadFishFecundity(relobj, prop)
     }
 
-    @DaoMethod
+/*    @DaoMethod
     Store loadReservoir(String codTyp) {
         Store st = loadObjForSelect(codTyp, "monitoringdata")
         Set<Object> idsCls = st.getUniqueValues("cls")
@@ -1173,7 +1175,7 @@ class DataDao extends BaseMdbUtils {
             }
         }
         return st
-    }
+    }*/
 
     @DaoMethod
     Store loadTypeOfFish(String codTyp) {
@@ -1915,7 +1917,7 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_Coordinate") ||
+            if (/*cod.equalsIgnoreCase("Prop_Coordinate") ||*/
                     cod.equalsIgnoreCase("Prop_FishSpawPeriod") ||
                     cod.equalsIgnoreCase("Prop_FishSpawFrequency")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
@@ -1947,7 +1949,7 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_KATO") ||
                     cod.equalsIgnoreCase("Prop_Branch") ||
                     cod.equalsIgnoreCase("Prop_FishLocation") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    /*cod.equalsIgnoreCase("Prop_ReservoirShore") ||*/
                     cod.equalsIgnoreCase("Prop_FishGear") ||
                     cod.equalsIgnoreCase("Prop_FishManager") ||
                     cod.equalsIgnoreCase("Prop_FishParticipants")) {
@@ -1975,7 +1977,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_AreaOfTon") ||
+            if (/*cod.equalsIgnoreCase("Prop_AreaOfTon") ||*/
                     cod.equalsIgnoreCase("Prop_FishStartPuberty") ||
                     cod.equalsIgnoreCase("Prop_FishEndPuberty")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
@@ -2183,7 +2185,7 @@ class DataDao extends BaseMdbUtils {
             if (cod.equalsIgnoreCase("Prop_KATO") ||
                     cod.equalsIgnoreCase("Prop_Branch") ||
                     cod.equalsIgnoreCase("Prop_FishLocation") ||
-                    cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    /*cod.equalsIgnoreCase("Prop_ReservoirShore") ||*/
                     cod.equalsIgnoreCase("Prop_FishGear") ||
                     cod.equalsIgnoreCase("Prop_FishManager") ||
                     cod.equalsIgnoreCase("Prop_FishParticipants")) {

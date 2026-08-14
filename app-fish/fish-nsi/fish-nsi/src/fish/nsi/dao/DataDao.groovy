@@ -66,6 +66,191 @@ class DataDao extends BaseMdbUtils {
         eu.deleteEntity(id)
     }
 
+    //---------------- 2 SamplingStation ----------------//
+    @DaoMethod
+    Store loadSamplingStations(Map<String, Object> params) {
+        String codCls = UtCnv.toString(params.get("codCls"))
+        long idObj = UtCnv.toLong(params.get("idObj"))
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        String whe = "o.id=${idObj}"
+        if (idObj == 0) {
+            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
+            whe = "o.cls = ${map1.get(codCls)}"
+        }
+        Store st = mdb.createStore("Obj.sampling.station")
+        mdb.loadQuery(st, """
+            select o.id as obj, o.cls, v.name, 
+                v1.id as idCoordinate, v1.strVal as Coordinate, 
+                v2.id as idAreaOfTon, v2.numberVal as AreaOfTon,
+                v3.id as idDescription, v3.multiStrVal as Description,
+                v4.id as idReservoirShore, v4.obj as objReservoirShore, 
+                v4.propVal as pvReservoirShore, ov.name as nameReservoirShore
+            from Obj o
+                join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
+                left join DataPropVal v1 on d1.id=v1.dataprop 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_AreaOfTon
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirShore
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join ObjVer ov on v4.obj=ov.ownerVer and ov.lastVer=1
+            where ${whe}
+        """, map)
+        return st
+    }
+
+    @DaoMethod
+    Store saveSamplingStation(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("fullName", pms.get("name"))
+        if (pms.getString("mode").equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Station", "")
+            if (map.isEmpty()) throw new XError("NotFoundCod@Cls_Station")
+            par.put("cls", map.get("Cls_Station"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //Prop_AreaOfTon
+            fillProperties(true, "Prop_AreaOfTon", pms)
+            //Prop_Coordinate
+            fillProperties(true, "Prop_Coordinate", pms)
+            //Prop_ReservoirShore
+            fillProperties(true, "Prop_ReservoirShore", pms)
+            //Prop_Description
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+        } else {
+            own = pms.getLong("obj")
+            par.put("id", own)
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //1 Prop_AreaOfTon
+            if (pms.containsKey("idAreaOfTon"))
+                updateProperties("Prop_AreaOfTon", pms)
+            //2 Prop_Coordinate
+            if (pms.containsKey("idCoordinate"))
+                updateProperties("Prop_Coordinate", pms)
+            //3 Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+
+            //3 Prop_Description
+            if (pms.getLong("idReservoirShore") > 0)
+                updateProperties("Prop_ReservoirShore", pms)
+            else if (pms.getLong("objReservoirShore") > 0)
+                fillProperties(true, "Prop_ReservoirShore", pms)
+        }
+        return loadSamplingStations([codCls: "", idObj: own] as Map<String, Object>)
+    }
+
+    @DaoMethod
+    void deleteSamplingStation(long id) {
+        checkForExistData(id, 1)
+        deleteOwnerWithProperties(id, 1)
+    }
+
+    @DaoMethod
+    Store loadReservoir(String codTyp) {
+        Store st = loadObjForSelect(codTyp, "monitoringdata")
+        Set<Object> idsCls = st.getUniqueValues("cls")
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select c.id, v.name from Cls c, ClsVer v 
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("name", r.getString("name") + " (" + rec.getString("name") + ")")
+            }
+        }
+        return st
+    }
+
+    //---------------- 4 TypesFishGear ----------------//
+    @DaoMethod
+    Store loadFishGear(Map<String, Object> params) {
+        String codTyp = UtCnv.toString(params.get("codTyp"))
+        long idObj = UtCnv.toLong(params.get("idObj"))
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        String whe = "o.id=${idObj}"
+        if (idObj == 0) {
+            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
+            whe = "o.cls in (${idsCls.join(",")})"
+        }
+        Store st = mdb.createStore("Obj.FishGear")
+        mdb.loadQuery(st, """
+            select o.id as obj, o.cls, v.name, null as nameCls, 
+                v3.id as idDescription, v3.multiStrVal as Description
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_FishFamily
+                left join DataPropVal v1 on d1.id=v1.dataprop 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FishTyp
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataPropVal v3 on d3.id=v3.dataprop
+            where ${whe}
+        """, map)
+        Set<Object> idsCls = st.getUniqueValues("cls")
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select c.id, name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null)
+                r.set("nameCls", rec.getString("name"))
+        }
+        //mdb.outTable(st)
+        return st
+    }
+
+    @DaoMethod
+    Store saveFishGear(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("fullName", pms.get("name"))
+        if (pms.getString("mode").equalsIgnoreCase("ins")) {
+            par.put("cls", params.get("cls"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //Prop_Description
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+        } else {
+            own = pms.getLong("obj")
+            par.put("id", own)
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+        }
+        return loadFishGear([codTyp: "", idObj: own] as Map<String, Object>)
+    }
+
+    @DaoMethod
+    void deleteFishGear(long id) {
+        checkForExistData(id, 1)
+        deleteOwnerWithProperties(id, 1)
+    }
+
 
 
 
@@ -600,6 +785,14 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadClsList(String codTyp) {
+        Store st = apiMeta().get(ApiMeta).loadCls(codTyp)
+        if (st.size() == 0)
+            throw new XError("NotFoundCod@${codTyp}")
+        return st
+    }
+
+    @DaoMethod
     Store loadCls(String codTyp, String flag) {
         Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
         if (idsCls.size() == 0)
@@ -626,7 +819,7 @@ class DataDao extends BaseMdbUtils {
         return apiMeta().get(ApiMeta).loadSql("""
             select c.id, v.name
             from Cls c, ClsVer v
-            where c.id=v.ownerVer and v.lastVer=1 and c.id in (${setCls.join(",")})        
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${setCls.join(",")})        
         """, "")
     }
 
@@ -652,6 +845,43 @@ class DataDao extends BaseMdbUtils {
         eu.deleteEntity(id)
     }
 
+
+    private Store loadObjForSelect(String codTypOrProp, String model) {
+        if (codTypOrProp.startsWith("Typ_")) {
+            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
+            idsCls.add(0)
+            return loadSqlService("""
+                select o.id, o.cls, v.name
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            """, "", model)
+        } else if (codTypOrProp.startsWith("Prop_")) {
+            Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codTypOrProp, "")
+            Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select cls, id as propval
+                from PropVal
+                where prop=${mapProp.get(codTypOrProp)} and cls is not null
+            """, "")
+            StoreIndex indProp = stProp.getIndex("cls")
+
+            Set<Object> idsCls = stProp.getUniqueValues("cls")
+
+            Store stObj = loadSqlService("""
+                select o.id, o.cls, v.name, null as pv
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
+            """, "", model)
+            for (StoreRecord r in stObj) {
+                StoreRecord rec = indProp.get(r.getLong("cls"))
+                if (rec != null) {
+                    r.set("pv", rec.getLong("propval"))
+                }
+            }
+            return stObj
+        } else {
+            throw new XError("Неверный параметр")
+        }
+    }
 
 //-----------------------------------------------------------------------------------------------//
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
@@ -718,7 +948,8 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_UserSecondName") ||
+            if (cod.equalsIgnoreCase("Prop_Coordinate") ||
+                    cod.equalsIgnoreCase("Prop_UserSecondName") ||
                     cod.equalsIgnoreCase("Prop_UserFirstName") ||
                     cod.equalsIgnoreCase("Prop_UserMiddleName") ||
                     cod.equalsIgnoreCase("Prop_UserEmail") ||
@@ -750,7 +981,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_UserOrg")) {
+            if (cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    cod.equalsIgnoreCase("Prop_UserOrg")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -772,7 +1004,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_WaterArea")) {
+            if (cod.equalsIgnoreCase("Prop_AreaOfTon") ||
+                    cod.equalsIgnoreCase("Prop_WaterArea")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -838,7 +1071,8 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("timeStamp", tmst)
         // For Attrib (str)
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_UserSecondName") ||
+            if (cod.equalsIgnoreCase("Prop_Coordinate") ||
+                    cod.equalsIgnoreCase("Prop_UserSecondName") ||
                     cod.equalsIgnoreCase("Prop_UserFirstName") ||
                     cod.equalsIgnoreCase("Prop_UserMiddleName") ||
                     cod.equalsIgnoreCase("Prop_UserEmail") ||
@@ -948,7 +1182,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_WaterArea")) {
+            if (cod.equalsIgnoreCase("Prop_AreaOfTon") ||
+                    cod.equalsIgnoreCase("Prop_WaterArea")) {
                 if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
@@ -973,7 +1208,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_UserOrg")) {
+            if (cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    cod.equalsIgnoreCase("Prop_UserOrg")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -1166,7 +1402,7 @@ class DataDao extends BaseMdbUtils {
         String userTargets = usr.getAttrs().getString("target", "");
         String[] targets = userTargets.trim().split("\\s*,\\s*");
         if (!Arrays.asList(targets).contains(target)) {
-            if (target.equals("st")) {
+            if (target.equals("nsi")) {
                 throw new XError("notAccessService");
             }
             throw new XError("notAccess");

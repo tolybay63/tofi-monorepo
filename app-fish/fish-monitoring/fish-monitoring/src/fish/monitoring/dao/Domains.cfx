@@ -37,7 +37,6 @@
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
 
-
         <field name="lstBranch" parent="string"/>
         <field name="nameBranch" parent="string"/>
         <field name="objBranch" parent="string"/>
@@ -96,7 +95,7 @@
         <field name="Description" parent="memo"/>
     </domain>
 
-    <domain name="Obj.sampling.station" parent="base">
+    <!--<domain name="Obj.sampling.station" parent="base">
         <field name="obj" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
@@ -115,7 +114,7 @@
 
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
-    </domain>
+    </domain>-->
 
     <domain name="Obj.typesFish" parent="base">
         <field name="obj" parent="long"/>
@@ -134,16 +133,14 @@
         <field name="Description" parent="string"/>
     </domain>
 
-    <domain name="Obj.FishGear" parent="base">
+    <!--<domain name="Obj.FishGear" parent="base">
         <field name="obj" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
         <field name="nameCls" parent="string"/>
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
-    </domain>
-
-
+    </domain>-->
 
     <domain name="Obj.FishFamily" parent="base">
         <field name="obj" parent="long"/>

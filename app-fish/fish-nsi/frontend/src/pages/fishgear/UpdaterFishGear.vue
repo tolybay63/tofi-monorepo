@@ -142,7 +142,7 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadCls',
+        method: 'data/loadClsList',
         params: ['Typ_FishGear'],
       })
       .then(

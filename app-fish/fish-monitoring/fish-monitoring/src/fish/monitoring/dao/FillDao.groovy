@@ -13,7 +13,6 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiMonitoringData
-import tofi.api.dta.ApiPersonnelData
 import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.model.consts.FD_InputType_consts

@@ -53,5 +53,34 @@
         <field name="cmt" parent="string"/>
     </domain>
 
+    <domain name="Obj.sampling.station" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+
+        <field name="idCoordinate" parent="long"/>
+        <field name="Coordinate" parent="string"/>
+
+
+        <field name="idReservoirShore" parent="long"/>
+        <field name="objReservoirShore" parent="long"/>
+        <field name="pvReservoirShore" parent="long"/>
+        <field name="nameReservoirShore" parent="string"/>
+
+        <field name="idAreaOfTon" parent="long"/>
+        <field name="AreaOfTon" parent="double"/>
+
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+    </domain>
+
+    <domain name="Obj.FishGear" parent="base">
+        <field name="obj" parent="long"/>
+        <field name="cls" parent="long"/>
+        <field name="name" parent="string"/>
+        <field name="nameCls" parent="string"/>
+        <field name="idDescription" parent="long"/>
+        <field name="Description" parent="string"/>
+    </domain>
 </root>
 
