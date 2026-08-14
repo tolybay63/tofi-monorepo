@@ -175,6 +175,25 @@ export default defineComponent({
     let getLinks = () => {
       return [
         {
+          title: "kato",
+          icon: "home_work",
+          link: "/kato",
+          target: "mon:kato",
+        },
+        {
+          title: 'samplingStations',
+          icon: 'houseboat',
+          link: '/samplingstations',
+          target: 'mon:st',
+        },
+        {
+          title: 'FishGear',
+          icon: 'phishing',
+          link: '/fishGear',
+          target: 'mon:fg',
+        },
+
+        {
           title: "struct_enterprise",
           info: "",
           icon: "apartment",

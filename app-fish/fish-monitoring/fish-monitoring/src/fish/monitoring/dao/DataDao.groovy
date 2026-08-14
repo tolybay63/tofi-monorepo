@@ -15,8 +15,8 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiMonitoringData
+import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiUserData
-import tofi.api.dta.ApiPersonnelData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.dta.model.utils.UtPeriod
@@ -40,7 +40,7 @@ class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
 
-    ApinatorApi apiPersonnelData() { return app.bean(ApinatorService).getApi("personneldata") }
+    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
 
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
@@ -2212,7 +2212,7 @@ class DataDao extends BaseMdbUtils {
         if (model.equalsIgnoreCase("userdata"))
             apiUserData().get(ApiUserData).execSql(sql)
         else if (model.equalsIgnoreCase("personneldata"))
-            apiPersonnelData().get(ApiPersonnelData).execSql(sql)
+            apiNSIData().get(ApiNSIData).execSql(sql)
         else if (model.equalsIgnoreCase("monitoringdata"))
             apiMonitoringData().get(ApiMonitoringData).execSql(sql)
         else
@@ -2223,7 +2223,7 @@ class DataDao extends BaseMdbUtils {
         if (model.equalsIgnoreCase("userdata"))
             return apiUserData().get(ApiUserData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("personneldata"))
-            return apiPersonnelData().get(ApiPersonnelData).loadSql(sql, domain)
+            return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("monitoringdata"))
             return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
         else

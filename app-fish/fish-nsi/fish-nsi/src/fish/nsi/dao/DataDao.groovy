@@ -36,11 +36,38 @@ class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
     ApinatorApi apiAdm() { return app.bean(ApinatorService).getApi("adm") }
-    ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
-    ApinatorApi apiPersonnelData() { return app.bean(ApinatorService).getApi("personneldata") }
+    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
 
     //----------------------------------------------------------------------------//
+
+    //---------------- KATO ---------------- //
+    @DaoMethod
+    Store loadKATO() {
+        Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_KATO")
+        if (setCls.isEmpty()) setCls.add(0L)
+        String whe = setCls.join(",")
+        Store st = mdb.createStore("Obj.cust")
+        mdb.loadQuery(st, """
+            select o.id, v.objParent as parent, o.cls, v.name, o.cmt, v.fullName, o.ord 
+            from Obj o
+                left join ObjVer v on o.id=v.ownerver and v.lastver=1
+            where o.cls in (${whe})
+            order by o.ord
+        """)
+        //
+        return st
+    }
+
+    @DaoMethod
+    void deleteKATO(long id) {
+        checkForExistData(id, 1)
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.deleteEntity(id)
+    }
+
+
+
 
     //---------------------------------- Branch --------------------------------- //
     @DaoMethod
@@ -969,10 +996,8 @@ class DataDao extends BaseMdbUtils {
     }
 
     private Store loadSqlService(String sql, String domain, String model) {
-        if (model.equalsIgnoreCase("userdata"))
-            return apiUserData().get(ApiUserData).loadSql(sql, domain)
-        else if (model.equalsIgnoreCase("personneldata"))
-            return apiPersonnelData().get(ApiNSIData).loadSql(sql, domain)
+        if (model.equalsIgnoreCase("nsidata"))
+            return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("monitoringdata"))
             return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
         else
