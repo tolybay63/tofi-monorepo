@@ -1,4 +1,4 @@
-package fish.personnel.main;
+package fish.nsi.main;
 
 import jandcode.commons.cli.CliLauncher;
 import jandcode.core.apx.cli.DbCheckCliCmd;

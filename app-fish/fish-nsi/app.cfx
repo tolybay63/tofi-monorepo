@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 
-    <x-include path="res:fish/personnel/main/app.cfx"/>
+    <x-include path="res:fish/nsi/main/app.cfx"/>
 
     <!-- ===================================================================== -->
 

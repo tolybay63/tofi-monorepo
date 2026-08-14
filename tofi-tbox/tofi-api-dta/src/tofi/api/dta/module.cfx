@@ -23,9 +23,9 @@
                   class="tofi.api.dta.impl.ApiMonitoringDataImpl"/>
         </api>
 
-        <api name="personneldata" invoker="model" model="personneldata">
-            <item name="tofi.api.dta.ApiPersonnelData"
-                  class="tofi.api.dta.impl.ApiPersonnelDataImpl"/>
+        <api name="nsidata" invoker="model" model="nsidata">
+            <item name="tofi.api.dta.ApiNSIData"
+                  class="tofi.api.dta.impl.ApiNSIDataImpl"/>
         </api>
 
     </apinator>

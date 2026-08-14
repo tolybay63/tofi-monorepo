@@ -4,7 +4,7 @@ import jandcode.core.store.Store;
 
 import java.util.Map;
 
-public interface ApiPersonnelData {
+public interface ApiNSIData {
 
     /**
      * @param sql text of Sql

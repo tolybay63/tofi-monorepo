@@ -2,9 +2,9 @@ package tofi.api.dta.impl
 
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
-import tofi.api.dta.ApiPersonnelData
+import tofi.api.dta.ApiNSIData
 
-class ApiPersonnelDataImpl extends BaseMdbUtils implements ApiPersonnelData {
+class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
 
     @Override
     Store loadSql(String sql, String domain) {

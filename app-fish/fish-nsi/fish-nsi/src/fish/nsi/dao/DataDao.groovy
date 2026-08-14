@@ -1,4 +1,4 @@
-package fish.personnel.dao
+package fish.nsi.dao
 
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
@@ -18,7 +18,7 @@ import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.adm.ApiAdm
 import tofi.api.dta.ApiMonitoringData
-import tofi.api.dta.ApiPersonnelData
+import tofi.api.dta.ApiNSIData
 import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.PeriodGenerator
@@ -972,7 +972,7 @@ class DataDao extends BaseMdbUtils {
         if (model.equalsIgnoreCase("userdata"))
             return apiUserData().get(ApiUserData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("personneldata"))
-            return apiPersonnelData().get(ApiPersonnelData).loadSql(sql, domain)
+            return apiPersonnelData().get(ApiNSIData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("monitoringdata"))
             return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
         else

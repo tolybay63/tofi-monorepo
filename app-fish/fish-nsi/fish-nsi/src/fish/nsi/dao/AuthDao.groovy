@@ -1,4 +1,4 @@
-package fish.personnel.dao
+package fish.nsi.dao
 
 import jandcode.commons.error.XError
 import jandcode.core.auth.AuthService

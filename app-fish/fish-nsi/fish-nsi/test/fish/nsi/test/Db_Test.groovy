@@ -1,4 +1,4 @@
-package fish.personnel.test
+package fish.nsi.test
 
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store

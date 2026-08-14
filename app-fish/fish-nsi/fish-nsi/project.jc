@@ -8,10 +8,10 @@ class P extends ProjectScript {
 
     void onInclude() {
         //
-        project.name = "fish-personnel"
+        project.name = "fish-nsi"
         //
         include(JavaProject).with {
-            moduleDef("fish.personnel").with {
+            moduleDef("fish.nsi").with {
                 depends.prod(
                     "jandcode.core.apx",
                     "jandcode.core.db.postgresql",

@@ -1,4 +1,4 @@
-package fish.personnel.action;
+package fish.nsi.action;
 
 import jandcode.core.web.HttpError;
 import jandcode.core.web.WebService;
