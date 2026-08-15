@@ -12,7 +12,7 @@ export default {
   appUserDataName: "Личный кабинет пользователя",
   appDataName: "Сервис работы с данными",
   appMonitoringName: "Мониторинг водоемов",
-  appPersonnelName: "Организационная структура субъектов",
+  appNsiName: 'Нормативно - справочная информация',
   appCalcName: "Расчет запасов",
   appAnalyseName: "Анализ и прогноз запасов",
 

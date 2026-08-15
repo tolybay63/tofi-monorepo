@@ -13,7 +13,7 @@ import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import tofi.api.adm.utils.PasswordGenerator;
-import tofi.api.dta.ApiPersonnelData;
+import tofi.api.dta.ApiNSIData;
 import tofi.api.dta.ApiUserData;
 import tofi.api.mdl.ApiMeta;
 import tofi.api.mdl.model.consts.FD_AccessLevel_consts;
@@ -30,8 +30,8 @@ public class UsrMdbUtils extends BaseMdbUtils {
     ApinatorApi apiUserData() {
         return getApp().bean(ApinatorService.class).getApi("userdata");
     }
-    ApinatorApi apiPersonnelData() {
-        return getApp().bean(ApinatorService.class).getApi("personneldata");
+    ApinatorApi apiNSIData() {
+        return getApp().bean(ApinatorService.class).getApi("nsidata");
     }
 
     private final Argon2 argon2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id);
@@ -212,7 +212,7 @@ public class UsrMdbUtils extends BaseMdbUtils {
             // Check Personnel
             String wheUser = "v1.strval like '"+id+".0'";
             Map<String, Long> mapProp = apiMeta().get(ApiMeta.class).getIdFromCodOfEntity("Prop", "Prop_UserId", "");
-            Store st = apiPersonnelData().get(ApiPersonnelData.class).loadSql("""
+            Store st = apiNSIData().get(ApiNSIData.class).loadSql("""
                     SELECT o.id, v.name
                     FROM Obj o
                         JOIN ObjVer v ON o.id = v.ownerVer AND v.lastVer = 1

@@ -16,7 +16,7 @@
         </q-btn>
 
         <q-toolbar-title class="text-center">
-          {{ $t('appPersonnelName') }}
+          {{ $t('appNsiName') }}
         </q-toolbar-title>
 
         <!--Home -->

@@ -52,23 +52,20 @@
               </div>
             </div>
           </q-btn>
-
-
         </div>
 
-
         <div class="row q-ma-md justify-center">
-          <!-- Personnel -->
+          <!-- NSI -->
           <q-btn
             rounded
             class="bg-green text-white text-bold q-ma-md"
             style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
-            @click="fnPersonnel()"
+            @click="fnNSI()"
           >
             <div class="column">
               <div>
-                <q-avatar icon="groups" color="orange"></q-avatar>
-                <div>{{ $t("appPersonnelName") }}</div>
+                <q-avatar icon="menu_book" color="orange"></q-avatar>
+                <div>{{ $t("appNsiName") }}</div>
               </div>
             </div>
           </q-btn>
@@ -132,7 +129,7 @@ import {
   appDataURL,
   appModelURL,
   appMonitoringURL,
-  appPersonnelURL
+  appNsiURL
 } from "boot/axios";
 import {Notify} from "quasar";
 
@@ -157,8 +154,8 @@ export default defineComponent({
       open(appCubeURL, "_self");
     },
 
-    fnPersonnel() {
-      open(appPersonnelURL, "_self");
+    fnNSI() {
+      open(appNsiURL, "_self");
     },
 
     fnMonitoring() {

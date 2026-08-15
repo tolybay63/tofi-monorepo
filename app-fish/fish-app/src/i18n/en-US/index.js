@@ -12,7 +12,7 @@ export default {
   appDataName: "Data management service",
   appCalcName: "Stock calculation",
   appMonitoringName: "Water body monitoring",
-  appPersonnelName: "Organizational structure of the entities",
+  appNsiName: "Normative reference information",
   appAnalyseName: "Stock Analysis and Forecasting",
   appMinIO: "File storage",
   appCubesName: "Cube management service",

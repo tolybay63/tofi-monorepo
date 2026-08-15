@@ -5,7 +5,7 @@ const appAdmURL = process.env.VITE_PRUDUCT_ADM_URL
 const appModelURL = process.env.VITE_PRUDUCT_MODEL_URL
 const appDataURL = process.env.VITE_PRUDUCT_DATA_URL
 const appCubeURL = process.env.VITE_PRUDUCT_CUBE_URL
-const appPersonnelURL = process.env.VITE_PRUDUCT_PERSONNEL_URL
+const appNsiURL = process.env.VITE_PRUDUCT_NSI_URL
 const appMonitoringURL = process.env.VITE_PRUDUCT_MONITORING_URL
 const appCalcURL = process.env.VITE_PRUDUCT_CALC_URL
 
@@ -26,4 +26,4 @@ export default defineBoot(({ app }) => {
 })
 
 export { api, appAdmURL, appModelURL, appDataURL,
-  appCalcURL, appCubeURL, appMonitoringURL, appPersonnelURL}
+  appCalcURL, appCubeURL, appMonitoringURL, appNsiURL}
