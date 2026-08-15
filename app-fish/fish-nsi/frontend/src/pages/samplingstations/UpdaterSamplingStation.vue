@@ -184,7 +184,6 @@ export default {
       .post('', {
         method: 'data/loadReservoir',
         params: ['Prop_ReservoirShore'],
-        //Typ_WaterBodies
       })
       .then(
         (response) => {

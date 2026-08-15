@@ -19,7 +19,6 @@ import jandcode.core.store.StoreRecord
 import tofi.api.adm.ApiAdm
 import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
-import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.dta.model.utils.UtPeriod
@@ -85,7 +84,7 @@ class DataDao extends BaseMdbUtils {
                 v2.id as idAreaOfTon, v2.numberVal as AreaOfTon,
                 v3.id as idDescription, v3.multiStrVal as Description,
                 v4.id as idReservoirShore, v4.obj as objReservoirShore, 
-                v4.propVal as pvReservoirShore, ov.name as nameReservoirShore
+                v4.propVal as pvReservoirShore, null as nameReservoirShore
             from Obj o
                 join ObjVer v on o.id=v.ownerver and v.lastver=1
                 left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
@@ -96,9 +95,19 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v3 on d3.id=v3.dataprop
                 left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirShore
                 left join DataPropVal v4 on d4.id=v4.dataprop
-                left join ObjVer ov on v4.obj=ov.ownerVer and ov.lastVer=1
             where ${whe}
         """, map)
+
+        Store stResoir = loadObjCustom("Prop_ReservoirShore")
+        StoreIndex indResoir = stResoir.getIndex("id")
+
+        for(StoreRecord r in st) {
+            StoreRecord rec = indResoir.get(r.getLong("objReservoirShore"))
+            if (rec != null)
+                r.set("nameReservoirShore", rec.getString("name"))
+
+        }
+
         return st
     }
 
@@ -158,8 +167,13 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadReservoir(String codTyp) {
-        Store st = loadObjForSelect(codTyp, "monitoringdata")
+    Store loadReservoir(String codTypOrProp) {
+        return loadObjCustom(codTypOrProp)
+    }
+    //
+
+    Store loadObjCustom(String codTypOrProp) {
+        Store st = loadObjForSelect(codTypOrProp, "monitoringdata")
         Set<Object> idsCls = st.getUniqueValues("cls")
         Store stCls = apiMeta().get(ApiMeta).loadSql("""
             select c.id, v.name from Cls c, ClsVer v 

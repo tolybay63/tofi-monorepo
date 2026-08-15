@@ -632,6 +632,8 @@ class DataDao extends BaseMdbUtils {
     }
 
     //---------------- 2 SamplingStation ----------------//
+
+/*
     @DaoMethod
     Store loadSamplingStations(Map<String, Object> params) {
         String codCls = UtCnv.toString(params.get("codCls"))
@@ -721,6 +723,7 @@ class DataDao extends BaseMdbUtils {
         checkForExistData(id, 1)
         deleteOwnerWithProperties(id, 1)
     }
+*/
 
     //---------------- 3 TypesFish ----------------//
     @DaoMethod
