@@ -6,7 +6,7 @@ import { useUserStore } from "../stores/user-store.js"
 // =========================================================================
 // 1. Настройка базовых URL (Одинаково для DEV и PROD)
 // =========================================================================
-const SERVICE_NAME = 'personnel';
+const SERVICE_NAME = 'nsi';
 let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP;
 
 let authURL = "/auth";

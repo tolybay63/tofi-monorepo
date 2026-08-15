@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url'
 let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
 export default defineConfig((ctx) => {
   //***********************************
-  const SERVICE_NAME = 'personnel';
+  const SERVICE_NAME = 'nsi';
   //***********************************
 
   return {
