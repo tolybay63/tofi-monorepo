@@ -15,7 +15,7 @@ class ChartDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
-    ApinatorApi apiPersonnelData() { return app.bean(ApinatorService).getApi("personneldata") }
+    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
     //-----------------------------------------------------------------------------------------------//
 
     @DaoMethod

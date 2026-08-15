@@ -39,7 +39,7 @@
         <model name="adm" instance="tofi.api.adm.model"/>
         <model name="monitoringdata" instance="tofi.api.dta.model"/>
         <model name="calcdata" instance="tofi.api.dta.model"/>
-        <model name="personneldata" instance="tofi.api.dta.model"/>
+        <model name="nsidata" instance="tofi.api.dta.model"/>
 
 
     </dbm>

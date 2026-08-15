@@ -13,6 +13,7 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiMonitoringData
+import tofi.api.dta.ApiNSIData
 import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
 import tofi.api.mdl.model.consts.FD_InputType_consts
@@ -28,7 +29,7 @@ class FillDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return getApp().bean(ApinatorService.class).getApi("meta") }
 
-    ApinatorApi apiPersonnelData() { return getApp().bean(ApinatorService.class).getApi("personneldata") }
+    ApinatorApi apiNSIData() { return getApp().bean(ApinatorService.class).getApi("nsidata") }
 
     ApinatorApi apiMonitoringData() { return getApp().bean(ApinatorService.class).getApi("monitoringdata") }
 
@@ -368,7 +369,7 @@ class FillDao extends BaseMdbUtils {
             indexLocationAndGear = stReg.getIndex("id")
             //
             idsFishManager.addAll(idsFishParticipants)
-            stReg = apiPersonnelData().get(ApiPersonnelData).loadSql("""
+            stReg = apiNSIData().get(ApiNSIData).loadSql("""
                 select id, cls, 0 as pv from Obj where id in (${idsFishManager.join(",")})
             """, "")
 

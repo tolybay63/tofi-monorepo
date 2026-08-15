@@ -242,7 +242,7 @@ class DataDao extends BaseMdbUtils {
             r.set("objBranch", objBranch.join(","))
             Store stObj = loadSqlService("""
                 select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObj.join(",")})
-            """, "", "personneldata")
+            """, "", "nsidata")
             r.set("nameBranch", stObj.getUniqueValues("name").join("; "))
             //
             List<String> objKATO = new ArrayList<>()
@@ -1159,7 +1159,7 @@ class DataDao extends BaseMdbUtils {
         return loadFishFecundity(relobj, prop)
     }
 
-/*    @DaoMethod
+    @DaoMethod
     Store loadReservoir(String codTyp) {
         Store st = loadObjForSelect(codTyp, "monitoringdata")
         Set<Object> idsCls = st.getUniqueValues("cls")
@@ -1175,7 +1175,7 @@ class DataDao extends BaseMdbUtils {
             }
         }
         return st
-    }*/
+    }
 
     @DaoMethod
     Store loadTypeOfFish(String codTyp) {
@@ -1184,7 +1184,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadBranchForSelect(String codTypOrProp) {
-        return loadObjForSelectMulti(codTypOrProp, "personneldata")
+        return loadObjForSelectMulti(codTypOrProp, "nsidata")
     }
 
     @DaoMethod
@@ -1521,12 +1521,12 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadFishManagerForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp, "personneldata")
+        return loadObjForSelect(codTypOrProp, "nsidata")
     }
 
     @DaoMethod
     Store loadFishParticipantsForSelect(String codProp) {
-        return loadObjForSelectMulti(codProp, "personneldata")
+        return loadObjForSelectMulti(codProp, "nsidata")
     }
 
     @DaoMethod
@@ -1600,7 +1600,7 @@ class DataDao extends BaseMdbUtils {
             r.set("objFishParticipants", objFishParticipants.join(","))
             Store stObj = loadSqlService("""
                 select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (0${idsObj.join(",")})
-            """, "", "personneldata")
+            """, "", "nsidata")
             r.set("nameFishParticipants", stObj.getUniqueValues("name").join("; "))
             //
             StoreRecord rec = indCls.get(r.getLong("cls"))
@@ -2213,7 +2213,7 @@ class DataDao extends BaseMdbUtils {
     private void execSql(String sql, String model) {
         if (model.equalsIgnoreCase("userdata"))
             apiUserData().get(ApiUserData).execSql(sql)
-        else if (model.equalsIgnoreCase("personneldata"))
+        else if (model.equalsIgnoreCase("nsidata"))
             apiNSIData().get(ApiNSIData).execSql(sql)
         else if (model.equalsIgnoreCase("monitoringdata"))
             apiMonitoringData().get(ApiMonitoringData).execSql(sql)
@@ -2224,7 +2224,7 @@ class DataDao extends BaseMdbUtils {
     private Store loadSqlService(String sql, String domain, String model) {
         if (model.equalsIgnoreCase("userdata"))
             return apiUserData().get(ApiUserData).loadSql(sql, domain)
-        else if (model.equalsIgnoreCase("personneldata"))
+        else if (model.equalsIgnoreCase("nsidata"))
             return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("monitoringdata"))
             return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
