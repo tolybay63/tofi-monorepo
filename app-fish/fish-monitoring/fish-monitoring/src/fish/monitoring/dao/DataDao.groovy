@@ -156,7 +156,7 @@ class DataDao extends BaseMdbUtils {
 
     //---------------- Reservors---------------- //
     @DaoMethod
-    Store loadReservors(Map<String, Object> params) {
+    Store loadReservoirs(Map<String, Object> params) {
 
         String codTyp = UtCnv.toString(params.get("codTyp"))
         long idObj = UtCnv.toLong(params.get("idObj"))
@@ -628,7 +628,7 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("Не известный режим ввода")
             }
         }
-        return loadReservors([codTyp: "", idObj: own] as Map<String, Object>)
+        return loadReservoirs([codTyp: "", idObj: own] as Map<String, Object>)
     }
 
     //---------------- 2 SamplingStation ----------------//
