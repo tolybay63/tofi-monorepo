@@ -45,30 +45,6 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
 
-    //---------------- KATO ---------------- //
-    @DaoMethod
-    Store loadKATO() {
-        Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_KATO")
-        if (setCls.isEmpty()) setCls.add(0L)
-        String whe = setCls.join(",")
-        Store st = mdb.createStore("Obj.cust")
-        mdb.loadQuery(st, """
-            select o.id, v.objParent as parent, o.cls, v.name, o.cmt, v.fullName, o.ord 
-            from Obj o
-                left join ObjVer v on o.id=v.ownerver and v.lastver=1
-            where o.cls in (${whe})
-            order by o.ord
-        """)
-        //
-        return st
-    }
-
-    @DaoMethod
-    void deleteKATO(long id) {
-        checkForExistData(id, 1)
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        eu.deleteEntity(id)
-    }
 
     Store loadObj(String codTyp, long idObj) {
         String whe = "o.id=${idObj}"
@@ -122,20 +98,6 @@ class DataDao extends BaseMdbUtils {
             return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
     }
 
-    @DaoMethod
-    StoreRecord insertBranch(Map<String, Object> rec) {
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        long own = eu.insertEntity(rec)
-        return loadObjRec(own)
-    }
-
-    @DaoMethod
-    StoreRecord updateBranch(Map<String, Object> rec) {
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        long id = UtCnv.toLong(rec.get("id"))
-        eu.updateEntity(rec)
-        return loadObjRec(id)
-    }
 
     private StoreRecord loadObjRec(long obj) {
         StoreRecord st = mdb.createStoreRecord("Obj.full")
@@ -144,13 +106,6 @@ class DataDao extends BaseMdbUtils {
             where o.id=v.ownerVer and v.lastVer=1 and o.id=:o
         """, [o: obj])
         return st
-    }
-
-    @DaoMethod
-    void deleteBranch(long id) {
-        checkForExistData(id, 1)
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        eu.deleteEntity(id)
     }
 
 
@@ -631,100 +586,6 @@ class DataDao extends BaseMdbUtils {
         return loadReservoirs([codTyp: "", idObj: own] as Map<String, Object>)
     }
 
-    //---------------- 2 SamplingStation ----------------//
-
-/*
-    @DaoMethod
-    Store loadSamplingStations(Map<String, Object> params) {
-        String codCls = UtCnv.toString(params.get("codCls"))
-        long idObj = UtCnv.toLong(params.get("idObj"))
-
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-        String whe = "o.id=${idObj}"
-        if (idObj == 0) {
-            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
-            whe = "o.cls = ${map1.get(codCls)}"
-        }
-        Store st = mdb.createStore("Obj.sampling.station")
-        mdb.loadQuery(st, """
-            select o.id as obj, o.cls, v.name, 
-                v1.id as idCoordinate, v1.strVal as Coordinate, 
-                v2.id as idAreaOfTon, v2.numberVal as AreaOfTon,
-                v3.id as idDescription, v3.multiStrVal as Description,
-                v4.id as idReservoirShore, v4.obj as objReservoirShore, 
-                v4.propVal as pvReservoirShore, ov.name as nameReservoirShore
-            from Obj o
-                join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
-                left join DataPropVal v1 on d1.id=v1.dataprop 
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_AreaOfTon
-                left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
-                left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirShore
-                left join DataPropVal v4 on d4.id=v4.dataprop
-                left join ObjVer ov on v4.obj=ov.ownerVer and ov.lastVer=1
-            where ${whe}
-        """, map)
-        return st
-    }
-
-    @DaoMethod
-    Store saveSamplingStation(Map<String, Object> params) {
-        VariantMap pms = new VariantMap(params)
-        long own
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Object> par = new HashMap<>(pms)
-        par.put("fullName", pms.get("name"))
-        if (pms.getString("mode").equalsIgnoreCase("ins")) {
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Station", "")
-            if (map.isEmpty()) throw new XError("NotFoundCod@Cls_Station")
-            par.put("cls", map.get("Cls_Station"))
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-            //Prop_AreaOfTon
-            fillProperties(true, "Prop_AreaOfTon", pms)
-            //Prop_Coordinate
-            fillProperties(true, "Prop_Coordinate", pms)
-            //Prop_ReservoirShore
-            fillProperties(true, "Prop_ReservoirShore", pms)
-            //Prop_Description
-            if (!pms.getString("Description").isEmpty())
-                fillProperties(true, "Prop_Description", pms)
-        } else {
-            own = pms.getLong("obj")
-            par.put("id", own)
-            eu.updateEntity(par)
-            //
-            pms.put("own", own)
-            //1 Prop_AreaOfTon
-            if (pms.containsKey("idAreaOfTon"))
-                updateProperties("Prop_AreaOfTon", pms)
-            //2 Prop_Coordinate
-            if (pms.containsKey("idCoordinate"))
-                updateProperties("Prop_Coordinate", pms)
-            //3 Prop_Description
-            if (pms.containsKey("idDescription"))
-                updateProperties("Prop_Description", pms)
-            else if (!pms.getString("Description").isEmpty())
-                fillProperties(true, "Prop_Description", pms)
-
-            //3 Prop_Description
-            if (pms.getLong("idReservoirShore") > 0)
-                updateProperties("Prop_ReservoirShore", pms)
-            else if (pms.getLong("objReservoirShore") > 0)
-                fillProperties(true, "Prop_ReservoirShore", pms)
-        }
-        return loadSamplingStations([codCls: "", idObj: own] as Map<String, Object>)
-    }
-
-    @DaoMethod
-    void deleteSamplingStation(long id) {
-        checkForExistData(id, 1)
-        deleteOwnerWithProperties(id, 1)
-    }
-*/
-
     //---------------- 3 TypesFish ----------------//
     @DaoMethod
     Store loadTypesFish(Map<String, Object> params) {
@@ -813,84 +674,6 @@ class DataDao extends BaseMdbUtils {
         checkForExistData(id, 1)
         deleteOwnerWithProperties(id, 1)
     }
-
-/*
-    //---------------- 4 TypesFishGear ----------------//
-    @DaoMethod
-    Store loadFishGear(Map<String, Object> params) {
-        String codTyp = UtCnv.toString(params.get("codTyp"))
-        long idObj = UtCnv.toLong(params.get("idObj"))
-
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-        String whe = "o.id=${idObj}"
-        if (idObj == 0) {
-            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
-            whe = "o.cls in (${idsCls.join(",")})"
-        }
-        Store st = mdb.createStore("Obj.FishGear")
-        mdb.loadQuery(st, """
-            select o.id as obj, o.cls, v.name, null as nameCls, 
-                v3.id as idDescription, v3.multiStrVal as Description
-            from Obj o
-                left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_FishFamily
-                left join DataPropVal v1 on d1.id=v1.dataprop 
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FishTyp
-                left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
-                left join DataPropVal v3 on d3.id=v3.dataprop
-            where ${whe}
-        """, map)
-        Set<Object> idsCls = st.getUniqueValues("cls")
-        Store stCls = apiMeta().get(ApiMeta).loadSql("""
-            select c.id, name from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
-        """, "")
-        StoreIndex indCls = stCls.getIndex("id")
-
-        for (StoreRecord r in st) {
-            StoreRecord rec = indCls.get(r.getLong("cls"))
-            if (rec != null)
-                r.set("nameCls", rec.getString("name"))
-        }
-        //mdb.outTable(st)
-        return st
-    }
-
-    @DaoMethod
-    Store saveFishGear(Map<String, Object> params) {
-        VariantMap pms = new VariantMap(params)
-        long own
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Object> par = new HashMap<>(pms)
-        par.put("fullName", pms.get("name"))
-        if (pms.getString("mode").equalsIgnoreCase("ins")) {
-            par.put("cls", params.get("cls"))
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-            //Prop_Description
-            if (!pms.getString("Description").isEmpty())
-                fillProperties(true, "Prop_Description", pms)
-        } else {
-            own = pms.getLong("obj")
-            par.put("id", own)
-            eu.updateEntity(par)
-            //
-            pms.put("own", own)
-            //Prop_Description
-            if (pms.containsKey("idDescription"))
-                updateProperties("Prop_Description", pms)
-            else if (!pms.getString("Description").isEmpty())
-                fillProperties(true, "Prop_Description", pms)
-        }
-        return loadFishGear([codTyp: "", idObj: own] as Map<String, Object>)
-    }
-
-    @DaoMethod
-    void deleteFishGear(long id) {
-        checkForExistData(id, 1)
-        deleteOwnerWithProperties(id, 1)
-    }
-*/
 
     //---------------- 5 PiscesReservoir ----------------//
     @DaoMethod
