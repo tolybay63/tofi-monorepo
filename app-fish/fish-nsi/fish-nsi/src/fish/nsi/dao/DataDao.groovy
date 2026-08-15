@@ -400,7 +400,7 @@ class DataDao extends BaseMdbUtils {
     //---------------------------------- Personnel --------------------------------- //
     @DaoMethod
     Map<String, Object> loadPersonnel(Map<String, Object> params) throws Exception {
-        checkTarget("st");
+        checkTarget("st")
         String filter = UtCnv.toString(params.get("filter")).trim()
         Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_User%")
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
@@ -842,7 +842,7 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     void insertEnterprise(Map<String, Object> rec) {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        long id = eu.insertEntity(rec)
+        eu.insertEntity(rec)
     }
 
     @DaoMethod
@@ -1399,29 +1399,29 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void checkTarget(String target) {
-        AuthService authService = getModel().getApp().bean(AuthService.class);
-        AuthUser usr = authService.getCurrentUser();
+        AuthService authService = getModel().getApp().bean(AuthService.class)
+        AuthUser usr = authService.getCurrentUser()
 
         if (getApp().getEnv().isDev()) {
-            System.out.println("--- DEBUG ---");
-            System.out.println("Target: " + target);
-            System.out.println("User ID from Attrs: " + usr.getAttrs().getLong("id"));
-            System.out.println("User Login: " + usr.getAttrs().getString("login"));
-            System.out.println("-------------");
+            System.out.println("--- DEBUG ---")
+            System.out.println("Target: " + target)
+            System.out.println("User ID from Attrs: " + usr.getAttrs().getLong("id"))
+            System.out.println("User Login: " + usr.getAttrs().getString("login"))
+            System.out.println("-------------")
         }
 
-        if (usr.getAttrs().getLong("id") == 1) return;
+        if (usr.getAttrs().getLong("id") == 1) return
 
         if (usr.getAttrs().getLong("id") == 0)
-            throw new XError("notLoginned");
+            throw new XError("notLoginned")
 
-        String userTargets = usr.getAttrs().getString("target", "");
-        String[] targets = userTargets.trim().split("\\s*,\\s*");
+        String userTargets = usr.getAttrs().getString("target", "")
+        String[] targets = userTargets.trim().split("\\s*,\\s*")
         if (!Arrays.asList(targets).contains(target)) {
-            if (target.equals("nsi")) {
-                throw new XError("notAccessService");
+            if (target == "nsi") {
+                throw new XError("notAccessService")
             }
-            throw new XError("notAccess");
+            throw new XError("notAccess")
         }
     }
 
