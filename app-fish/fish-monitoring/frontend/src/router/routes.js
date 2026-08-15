@@ -5,19 +5,18 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
 
-      /*{path: '/kato', name: "KatoPage", component: () => import('pages/kato/KatoPage.vue')},*/
-
       {
         path: '/reservoirs',
         name: 'ReservoirsPage',
         component: () => import('pages/reservoirs/ReservoirsPage.vue'),
       },
 
-/*      {
-        path: '/samplingstations',
-        name: 'SamplingStationsPage',
-        component: () => import('pages/samplingstations/SamplingStationsPage.vue'),
-      },*/
+      {
+        path: '/reservoirs2',
+        name: 'ReservoirsPage2',
+        component: () => import('pages/reservoirs/ReservoirsPage2.vue'),
+      },
+
 
       {
         path: '/typesfish',

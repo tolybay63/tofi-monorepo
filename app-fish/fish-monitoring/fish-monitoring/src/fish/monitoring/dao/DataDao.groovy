@@ -945,6 +945,51 @@ class DataDao extends BaseMdbUtils {
         return loadFishFecundity(relobj, prop)
     }
 
+
+    @DaoMethod
+    Store loadFilials() {
+        //Cls_Enterprise	1007
+        //Cls_Branch		1008
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Enterprise", "")
+        if (map.size()==0)
+            throw new XError("Не найден код свойств [Cls_Enterprise]")
+        Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Branch", "")
+        if (map1.size()==0)
+            throw new XError("Не найден код свойств [Cls_Branch]")
+        map.putAll(map1)
+
+        Store st = apiNSIData().get(ApiNSIData).loadSqlWithParams("""
+            select o.id, v.name || ' (' || t.name || ')' as name, null as cnt 
+            from Obj o
+                join Objver v on o.id=v.ownerver and v.lastver=1
+                left join (
+                    select o.id, v.name 
+                    from Obj o, Objver v
+                    where o.id=v.ownerver and v.lastver=1 and o.cls=:Cls_Enterprise
+                ) t on t.id=v.objparent
+            where o.cls=:Cls_Branch
+        """, map as Map<String, Object>, "")
+        Set<Object> idsFilial = st.getUniqueValues("id")
+
+        Store stCount = mdb.loadQuery("""
+            select v.obj, count(*) as cnt
+            from datapropval v
+                left join dataprop d on d.id=v.dataprop and d.prop=1006
+                left join objver v1 on d.objorrelobj=v1.ownerver and v1.lastver=1
+                left join objver v2 on v.obj=v2.ownerver and v2.lastver=1
+            where v.obj in (0${idsFilial.join(",")})
+            group by v.obj
+        """)
+        StoreIndex indCount = stCount.getIndex("obj")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCount.get(r.getLong("id"))
+            if (rec != null)
+                r.set("cnt", rec.getLong("cnt"))
+        }
+
+        return st
+    }
+
     @DaoMethod
     Store loadReservoir(String codTyp) {
         Store st = loadObjForSelect(codTyp, "monitoringdata")

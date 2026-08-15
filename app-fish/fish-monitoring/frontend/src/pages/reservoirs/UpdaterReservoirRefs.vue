@@ -51,7 +51,7 @@
             <q-select
               v-model="objBranch"
               :model-value="objBranch"
-              :label="fmReqLabel('struct_enterprise2')"
+              :label="fmReqLabel('filial')"
               :options="optBranch"
               class="q-ma-md"
               dense emit-value

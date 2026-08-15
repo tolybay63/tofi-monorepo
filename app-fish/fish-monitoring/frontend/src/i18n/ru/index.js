@@ -151,7 +151,8 @@ export default {
   kato: "Классификатор административно-территориальных объектов",
   struct_enterprise: "Организационная структура предприятия",
   kato2: "Област/Район",
-  struct_enterprise2: "Филиал",
+  filial: "Филиал",
+  countReservoirs: "Количество водоемов",
 
   attached_files: 'Прикрепленные файлы',
   attach_file: 'Прикрепить файл',

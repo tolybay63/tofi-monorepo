@@ -197,12 +197,6 @@ export default defineComponent({
 
     let getLinks = () => {
       return [
-/*        {
-          label: "kato",
-          icon: "home_work",
-          to: "/kato",
-          target: "mon:kato",
-        },*/
         {
           label: 'reservoirs',
           icon: 'sailing',
@@ -210,12 +204,14 @@ export default defineComponent({
           target: 'mon:vod',
         },
 
-/*        {
-          label: 'samplingStations',
-          icon: 'houseboat',
-          to: '/samplingstations',
-          target: 'mon:st',
-        },*/
+        {
+          label: 'reservoirs',
+          icon: 'sailing',
+          to: '/reservoirs2',
+          target: 'mon:vod',
+        },
+
+
         {
           label: 'typesOfFish',
           icon: 'set_meal',

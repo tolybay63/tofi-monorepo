@@ -288,7 +288,7 @@ export default {
         },
         {
           name: 'nameBranch',
-          label: this.$t('struct_enterprise2') + '*',
+          label: this.$t('filial') + '*',
           field: 'nameBranch',
           align: 'left',
           sortable: true,
