@@ -68,6 +68,10 @@ class DataDao extends BaseMdbUtils {
     //---------------- 2 SamplingStation ----------------//
     @DaoMethod
     Store loadSamplingStations(Map<String, Object> params) {
+
+        Store stResoir = loadObjCustom("Prop_ReservoirShore")
+        StoreIndex indResoir = stResoir.getIndex("id")
+
         String codCls = UtCnv.toString(params.get("codCls"))
         long idObj = UtCnv.toLong(params.get("idObj"))
 
@@ -97,15 +101,13 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v4 on d4.id=v4.dataprop
             where ${whe}
         """, map)
+        //
 
-        Store stResoir = loadObjCustom("Prop_ReservoirShore")
-        StoreIndex indResoir = stResoir.getIndex("id")
-
-        for(StoreRecord r in st) {
+        st.each { StoreRecord r ->
             StoreRecord rec = indResoir.get(r.getLong("objReservoirShore"))
-            if (rec != null)
+            if (rec != null) {
                 r.set("nameReservoirShore", rec.getString("name"))
-
+            }
         }
 
         return st
@@ -172,7 +174,7 @@ class DataDao extends BaseMdbUtils {
     }
     //
 
-    Store loadObjCustom(String codTypOrProp) {
+    private Store loadObjCustom(String codTypOrProp) {
         Store st = loadObjForSelect(codTypOrProp, "monitoringdata")
         Set<Object> idsCls = st.getUniqueValues("cls")
         Store stCls = apiMeta().get(ApiMeta).loadSql("""
