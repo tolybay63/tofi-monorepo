@@ -68,30 +68,13 @@
           @update:model-value="fnSelectUserPosition"
         />
 
-        <q-item-label
-          :class="form.objUserOrg===0 ? 'text-red-10' : 'text-grey-7'"
-          style="font-size: 0.8em; margin-top: 10px" class="row"
-        >{{ fnLabel('UserOrg', true) }}
-          <q-space/>
-          <q-icon name="error" v-if="form.objUserOrg===0" color="red-10" size="24px"></q-icon>
-        </q-item-label>
-
-        <treeselect
-          :options="optUserOrg"
+        <!-- UserOrg  -->
+        <TreeSelect
           v-model="form.objUserOrg"
-          :normalizer="normalizerUserOrg"
-          :placeholder="fnLabel('select', false)"
-          :noResultsText="fnLabel('noResult', false)"
-          :noChildrenText="fnLabel('noChilds', false)"
-          :noOptionsText="fnLabel('noResult', false)"
-          defaultExpandLevel="1"
+          :options="optUserOrg"
+          :label="fnLabel('UserOrg', true)"
           @select="fnSelectUserOrg"
         />
-
-        <q-item-label v-if="form.objUserOrg===0" class="text-red-10" style="font-size: 0.8em">
-          {{ $t("chooseDimProp") }}
-        </q-item-label>
-
 
         <!-- UserDateBirth  -->
         <q-input
@@ -163,12 +146,12 @@
 </template>
 
 <script>
+
+import TreeSelect from "../../components/TreeSelect.vue";
 import {api, } from "../../boot/axios";
 import {notifySuccess, pack} from "../../utils/jsutils";
-import {Treeselect} from "vue3-treeselect";
-import "vue3-treeselect/dist/vue3-treeselect.css";
 export default {
-  components: {treeselect: Treeselect},
+  components: {TreeSelect},
   props: ["data", "mode"],
 
   data() {
