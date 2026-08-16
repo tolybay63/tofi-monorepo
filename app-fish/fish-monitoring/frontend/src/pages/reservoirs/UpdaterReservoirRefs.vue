@@ -165,17 +165,13 @@
 </template>
 
 <script>
-/*
-import {Treeselect} from "vue3-treeselect";
-import "vue3-treeselect/dist/vue3-treeselect.css";
-*/
 
 import {api} from 'boot/axios'
 import {notifyError, notifySuccess, pack, today} from 'src/utils/jsutils'
 import TreeSelect from "components/TreeSelect.vue";
 
 export default {
-  components: {TreeSelect/*, treeselect: Treeselect*/},
+  components: {TreeSelect},
   props: ['mode', 'data'],
 
   data() {
@@ -244,7 +240,7 @@ export default {
     validSave() {
       let nm = this.form.name
       nm = nm ? nm.trim() : null
-      if (!nm || !this.form.cls || !this.objKATO || !this.objBranch ||
+      if (!nm || !this.form.cls || this.objKATO.length === 0 || this.objBranch.length === 0 ||
         !this.form.fvReservoirType || !this.form.fvReservoirStatus) return true
     },
 
@@ -333,7 +329,7 @@ export default {
       .then(
         (response) => {
           this.optBranch = response.data.result.records
-          console.info("optBranch", this.optBranch)
+          //console.info("optBranch", this.optBranch)
         })
       .finally(() => {
         this.loading = false
@@ -348,7 +344,7 @@ export default {
       .then(
         (response) => {
           this.optKATO = pack(response.data.result.records, "id")
-          console.info("optKATO", this.optKATO)
+          //console.info("optKATO", this.optKATO)
         })
       .finally(() => {
         this.loading = false

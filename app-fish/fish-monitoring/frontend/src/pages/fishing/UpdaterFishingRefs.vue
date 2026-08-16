@@ -103,15 +103,13 @@
         />
 
         <!-- FishParticipants -->
-<!--        :disable="mode==='upd'"-->
-        <q-select
 
+        <q-select
           v-model="FishParticipants"
           :model-value="FishParticipants"
           :label="fmReqLabel('FishParticipants')"
           :options="optFishParticipants"
           class="q-ma-md"
-          color="blue"
           options-dense
           dense map-options
           multiple use-chips
@@ -119,6 +117,7 @@
           option-value="id"
           options-selected-class="text-blue"
         />
+
       </q-card-section>
 
       <q-card-actions align="right">
@@ -138,11 +137,9 @@
 
 <script>
 
-import "vue3-treeselect/dist/vue3-treeselect.css";
+
 import {api} from 'boot/axios'
-import {notifySuccess, pack, today} from 'src/utils/jsutils'
-import {date, format} from "quasar";
-import {matElectricalServices} from "@quasar/extras/material-icons";
+import {notifySuccess} from 'src/utils/jsutils'
 
 export default {
 
@@ -350,6 +347,7 @@ export default {
       .then(
         (response) => {
           this.optFishParticipants = response.data.result.records
+          //console.info("this.optFishParticipants", this.optFishParticipants)
         })
       .finally(() => {
         this.loading = false
