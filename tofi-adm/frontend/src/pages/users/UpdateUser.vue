@@ -240,7 +240,6 @@ export default {
       this.loading = true;
       let method = this.mode === "ins" ? "insert" : "update";
       let err = false
-
       api
         .post("", {
           method: "usr/" + method,

@@ -634,6 +634,10 @@ export default {
 
 <style lang="sass">
 
+.img-vert
+  transform: scaleY(-1)
+  filter: "FlipV"
+  -ms-filter: "FlipV"
 
 .sticky-header-table
   height: calc(100vh - 130px)

@@ -42,25 +42,14 @@
         >
         </q-input>
 
-        <!-- parent -->
-        <q-item-label
-          class="text-grey-7"
-          style="font-size: 0.8em; margin-top: 10px"
-          >{{ $t("parent") }}</q-item-label
-        >
-        <treeselect
-          :disabled="mode === 'ins' && isChild === true"
-          :normalizer="normalizer"
-          :options="parents"
+        <!-- Использование нашего компонента с древовидной структурой -->
+        <TreeSelect
           v-model="parent"
-          maxHeight="600"
-          :placeholder="$t('select')"
-          :noChildrenText="$t('noChilds')"
-          :noResultsText="$t('noResult')"
-          :noOptionsText="$t('noResult')"
-          @close="fnCloseParent"
-        >
-        </treeselect>
+          :options="parents"
+          :label="$t('parent', true)"
+          node-key="id"
+          @select="fnCloseParent"
+        />
 
         <!-- cmt -->
         <q-input
@@ -99,12 +88,11 @@
 import {api,} from "boot/axios";
 import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
 
-import treeselect from "vue3-treeselect";
-import "vue3-treeselect/dist/vue3-treeselect.css";
 import {ref} from "vue";
+import TreeSelect from "components/TreeSelect.vue";
 
 export default {
-  components: { treeselect },
+  components: {TreeSelect},
 
   props: ["data", "mode", "isChild", "parentName", "dense"],
 
@@ -130,6 +118,7 @@ export default {
   methods: {
 
     fnCloseParent(v) {
+      console.info("fnCloseParent", v);
       this.form.parent = v;
       this.parent = v;
     },
@@ -177,6 +166,9 @@ export default {
       // on OK, it is REQUIRED to
       // emit "ok" event (with optional payload)
       // before hiding the QDialog
+
+      this.form.parent =
+        typeof this.parent === "object" ? this.parent.id : this.parent;
 
       const method = this.mode === "ins" ? "insertGr" : "updateGr";
       api
