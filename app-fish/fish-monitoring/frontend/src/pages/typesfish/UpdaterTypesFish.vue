@@ -23,6 +23,7 @@
           autofocus dense
           v-model="form.name"
           :label="fmReqLabel('fldName')"
+          class="q-mt-md"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         />
 
@@ -67,7 +68,7 @@
         />
 
         <!-- Description -->
-        <q-input v-model="form['Description']" type="textarea" :label="$t('description')"/>
+        <q-input v-model="form['Description']" type="textarea" :label="$t('description')" class="q-mt-md"/>
       </q-card-section>
       <!---->
 

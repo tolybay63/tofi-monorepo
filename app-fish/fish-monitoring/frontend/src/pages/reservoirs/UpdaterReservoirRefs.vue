@@ -50,42 +50,30 @@
           <div class="col">
             <q-select
               v-model="objBranch"
-              :model-value="objBranch"
               :label="fmReqLabel('filial')"
+              :model-value="objBranch"
               :options="optBranch"
               class="q-ma-md"
               dense emit-value
-              map-options
-              multiple use-chips
-              color="blue"
-              options-selected-class="text-blue"
+              map-options multiple
               option-label="name"
               option-value="id"
               options-dense
+              options-selected-class="text-blue"
+              use-chips
             />
           </div>
 
           <div class="col">
-            <!-- KATO -->
-            <q-item-label class="text-grey-7" style="font-size: 0.8em">
-              {{ fmReqLabel('kato2') }}
-            </q-item-label>
-            <treeselect
+            <TreeSelect
               v-model="objKATO"
-              :clear-on-select="true"
-              :default-expand-level="2"
-              :flat="true"
-              :multiple="true"
-              :noChildrenText="$t('noChilds')"
-              :noOptionsText="$t('noResult')"
-              :noResultsText="$t('noResult')"
-              :normalizer="normalizer"
               :options="optKATO"
-              :placeholder="$t('select')"
-              class="q-ma-sm"
+              class="q-ma-md"
+              :label="fmReqLabel('kato2')"
+              multiple
+              node-key="key"
             />
           </div>
-
         </div>
 
         <div class="row">
@@ -177,13 +165,17 @@
 </template>
 
 <script>
+/*
 import {Treeselect} from "vue3-treeselect";
 import "vue3-treeselect/dist/vue3-treeselect.css";
+*/
+
 import {api} from 'boot/axios'
-import {notifySuccess, pack, today} from 'src/utils/jsutils'
+import {notifyError, notifySuccess, pack, today} from 'src/utils/jsutils'
+import TreeSelect from "components/TreeSelect.vue";
 
 export default {
-  components: {treeselect: Treeselect},
+  components: {TreeSelect/*, treeselect: Treeselect*/},
   props: ['mode', 'data'],
 
   data() {
@@ -212,12 +204,7 @@ export default {
   ],
 
   methods: {
-    normalizer(node) {
-      return {
-        id: node.key,
-        label: node.name,
-      };
-    },
+
 
     fmReqLabel(label) {
       return this.$t(label) + '*'
@@ -279,6 +266,7 @@ export default {
       this.$emit('hide')
     },
 
+
     onOKClick() {
       // on OK, it is REQUIRED to
       // emit "ok" event (with optional payload)
@@ -290,7 +278,7 @@ export default {
       this.form.name = nm.trim()
       this.form.objBranch = this.objBranch
       this.form.objKATO = this.objKATO
-
+      //
       api
         .post('', {
           method: 'data/saveReservoirPropertiesRef',
@@ -306,17 +294,7 @@ export default {
           (error) => {
             //console.log("error.response.data=>>>", error.response.data.error.message)
             err = true
-            /*
-                        if (error.response.data.error.message.includes('@')) {
-                          let msgs = error.response.data.error.message.split('@')
-                          let m1 = this.$t(`${msgs[0]}`)
-                          let m2 = msgs.length > 1 ? ' [' + this.$t(msgs[1]) + ']' : ''
-                          let msg = m1 + m2
-                          notifyError(msg)
-                        } else {
-                          notifyError(this.$t(error.response.data.error.message))
-                        }
-            */
+            notifyError(error?.response?.data?.error.message)
           }
         )
         .finally(() => {
@@ -355,7 +333,7 @@ export default {
       .then(
         (response) => {
           this.optBranch = response.data.result.records
-          //console.info("optBranch", this.optBranch)
+          console.info("optBranch", this.optBranch)
         })
       .finally(() => {
         this.loading = false
@@ -370,6 +348,7 @@ export default {
       .then(
         (response) => {
           this.optKATO = pack(response.data.result.records, "id")
+          console.info("optKATO", this.optKATO)
         })
       .finally(() => {
         this.loading = false
@@ -419,7 +398,7 @@ export default {
         this.loading = false
       })
     //
-    if (this.mode==="upd") {
+    if (this.mode === "upd") {
       let arr = this.data.objBranch.split(',') || []
       arr.forEach(item => {
         this.objBranch.push(item)
