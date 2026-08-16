@@ -210,9 +210,9 @@ class DataDao extends BaseMdbUtils {
                 idsObj.add(arr1[1])
             }
             r.set("objKATO", objKATO.join(","))
-            stObj = mdb.loadQuery("""
+            stObj = loadSqlService("""
                 select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObj.join(",")})
-            """)
+            """, "", "nsidata")
             r.set("nameKATO", stObj.getUniqueValues("name").join("; "))
             //
             StoreRecord rec = indFV.get(r.getLong("pvReservoirType"))
@@ -1020,7 +1020,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadKatoForSelect(String codTypOrProp) {
-        return loadObjForTreeSelect(codTypOrProp)
+        return loadObjForTreeSelect(codTypOrProp, "nsidata")
     }
 
     @DaoMethod
@@ -1091,15 +1091,15 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadObjForTreeSelect(String codTypOrProp) {
+    Store loadObjForTreeSelect(String codTypOrProp, String model) {
         if (codTypOrProp.startsWith("Typ_")) {
             Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
             idsCls.add(0)
-            return mdb.loadQuery("""
+            return loadSqlService("""
                 select o.id, o.cls, v.name, v.objParent as parent
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
-            """)
+            """, "", model)
         } else if (codTypOrProp.startsWith("Prop_")) {
             Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codTypOrProp, "")
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
@@ -1111,11 +1111,11 @@ class DataDao extends BaseMdbUtils {
 
             Set<Object> idsCls = stProp.getUniqueValues("cls")
 
-            Store stObj = mdb.loadQuery("""
+            Store stObj = loadSqlService("""
                 select o.id, o.cls, v.name, v.objParent as parent, null as key
                 from Obj o, ObjVer v
                 where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
-            """)
+            """, "", model)
             for (StoreRecord r in stObj) {
                 StoreRecord rec = indProp.get(r.getLong("cls"))
                 if (rec != null) {
@@ -1342,12 +1342,12 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadFishLocationForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp, "monitoringdata")
+        return loadObjForSelect(codTypOrProp, "nsidata")
     }
 
     @DaoMethod
     Store loadFishGearForSelect(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp, "monitoringdata")
+        return loadObjForSelect(codTypOrProp, "nsidata")
     }
 
     @DaoMethod
@@ -1456,9 +1456,9 @@ class DataDao extends BaseMdbUtils {
             select name from ClsVer where ownerVer=${pms.getLong("cls")} and lastVer=1
         """, "")
         String nm = stTmp.get(0).getString("name")
-        stTmp = mdb.loadQuery("""
+        stTmp = loadSqlService("""
             select name from ObjVer where ownerVer=${pms.getLong("objFishLocation")} and lastVer=1
-        """)
+        """, "", "nsidata")
         nm = nm + "_" + pms.getString("StartDate") + "_" + stTmp.get(0).getString("name")
         //
         par.put("name", nm)
@@ -1748,7 +1748,7 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (/*cod.equalsIgnoreCase("Prop_Coordinate") ||*/
+            if (cod.equalsIgnoreCase("Prop_Coordinate") ||
                     cod.equalsIgnoreCase("Prop_FishSpawPeriod") ||
                     cod.equalsIgnoreCase("Prop_FishSpawFrequency")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
@@ -1808,7 +1808,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (/*cod.equalsIgnoreCase("Prop_AreaOfTon") ||*/
+            if (cod.equalsIgnoreCase("Prop_AreaOfTon") ||
                     cod.equalsIgnoreCase("Prop_FishStartPuberty") ||
                     cod.equalsIgnoreCase("Prop_FishEndPuberty")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
