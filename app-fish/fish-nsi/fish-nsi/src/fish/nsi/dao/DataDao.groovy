@@ -1320,19 +1320,19 @@ class DataDao extends BaseMdbUtils {
             }
 */
             //3 Объект является значением объекта/отношения?
-            stTmp = mdb.loadQuery("""
+            String objName = mdb.loadQuery("select name from ObjVer where ownerVer=${id} and lastVer=1").get(0).getString("name")
+            stTmp = loadSqlService("""
                 select  
-                    ov.name nm1, d.prop, d.periodType, v.dbeg, v.dend, d.isObj,
+                    d.prop, d.periodType, v.dbeg, v.dend, d.isObj,
                     case when d.isObj = 1 then ov1.name when d.isObj = 0 then rv1.name end as nm2
                 from DataProp d
                     inner join DataPropVal v on d.id=v.dataprop
                     left join ObjVer ov1 on d.isObj=1 and d.objorrelobj=ov1.ownerver and ov1.lastver=1
                     left join RelObjVer rv1 on d.isObj=0 and d.objorrelobj=rv1.ownerver and rv1.lastver=1
-                    left join ObjVer ov on ov.ownerver=${id} and ov.lastver=1
                 where v.obj=${id}
-            """)
+            """, "", "monitoringdata")
             if (stTmp.size() > 0) {
-                String nm = "Объект [" + stTmp.get(0).getString("nm1") + "]"
+                String nm = "Объект [${objName}]"
                 String objOrRelObj = stTmp.get(0).getInt("isObj") == 1 ? "объекта" : "отношения"
                 String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
                 if (stTmp.get(0).getLong("periodType") > 0) {
@@ -1342,7 +1342,7 @@ class DataDao extends BaseMdbUtils {
                 Store stProp = loadSqlMeta("""
                     select name from Prop where id=${stTmp.get(0).getLong("prop")}
                 """, "")
-                throw new XError(nm + " является значением свойства [" + stProp.get(0).getString("name") + "] " + objOrRelObj + " [" + stTmp.get(0).getString("nm2") + "]" + periodName)
+                throw new XError(nm + " является значением свойства [" + stProp.get(0).getString("name") + "] " + objOrRelObj + " [" + stTmp.get(0).getString("nm2") + "]" + periodName + " в сервисе [Monitoring]")
             }
 
         } else {
