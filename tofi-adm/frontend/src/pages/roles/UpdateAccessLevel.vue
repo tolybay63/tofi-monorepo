@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import {api,} from "boot/axios";
+import {api,} from "@/boot/axios";
 
 export default {
   props: ["data", "dense"],

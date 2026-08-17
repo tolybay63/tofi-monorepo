@@ -67,25 +67,25 @@
         class="q-table-container q-table--dense wrap bg-orange-1 scroll sticky-header-table"
         style="height: 90%"
       >
-          <table class="q-table q-table--cell-separator q-table--bordered wrap">
-            <thead class="text-bold text-white bg-blue-grey-13">
-            <tr class style="text-align: left">
-              <th
-                v-for="(col, index) in cols"
-                :key="index"
-                :class="col.headerClass"
-                :style="col.headerStyle"
-              >
-                {{ col.label }}
-              </th>
-            </tr>
-            </thead>
+        <table class="q-table q-table--cell-separator q-table--bordered wrap">
+          <thead class="text-bold text-white bg-blue-grey-13">
+          <tr class style="text-align: left">
+            <th
+              v-for="(col, index) in cols"
+              :key="index"
+              :class="col.headerClass"
+              :style="col.headerStyle"
+            >
+              {{ col.label }}
+            </th>
+          </tr>
+          </thead>
 
-            <tbody style="background: aliceblue">
-            <tr v-for="(item, index) in arrayTreeObj" :key="index">
-              <!--text-->
-              <td :data-th="cols[0].name" @click="toggle(item, index)">
-                  <span class="q-tree__node" v-bind:style="setPadding(item)">
+          <tbody style="background: aliceblue">
+          <tr v-for="(item, index) in arrayTreeObj" :key="index">
+            <!--text-->
+            <td :data-th="cols[0].name" @click="toggle(item, index)">
+                  <span class="q-tree__node" :style="setPadding(item)">
                     <q-icon
                       style="cursor: pointer"
                       :name="iconName(item)"
@@ -95,7 +95,7 @@
                     <q-btn
                       dense
                       flat
-                      :color="item.children.length > 0 ? 'gray' : 'blue'"
+                      :color="item.children?.length > 0 ? 'gray' : 'blue'"
                       :icon="
                         item.checked ? 'check_box' : 'check_box_outline_blank'
                       "
@@ -105,71 +105,91 @@
 
                     {{ item[cols[0].field] }}
                   </span>
-              </td>
+            </td>
 
-              <!--name-->
-              <td :data-th="cols[1].name">
-                <q-btn
-                  dense
-                  flat
-                  size="sm"
-                  color="blue"
-                  @click.stop="updAL(item)"
-                  :disable="!item.checked"
-                  :icon="!item.checked ? '' : 'edit'"
-                />
-                {{ fnAL(item[cols[1].field]) }}
-              </td>
-            </tr>
-            </tbody>
-          </table>
+            <!--name-->
+            <td :data-th="cols[1].name">
+              <q-btn
+                dense
+                flat
+                size="sm"
+                color="blue"
+                @click.stop="updAL(item)"
+                :disable="!item.checked"
+                :icon="!item.checked ? '' : 'edit'"
+              />
+              {{ fnAL(item[cols[1].field]) }}
+            </td>
+          </tr>
+          </tbody>
+        </table>
       </div>
 
       <div>
         <q-bar style="font-size: 1em; height: 16px"
-        >{{ $t("countAll") }}: {{ this.sz }}
-        </q-bar
-        >
+        >{{ $t("countAll") }}: {{ sz }}
+        </q-bar>
       </div>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api,} from "boot/axios";
-import {ref} from "vue";
-import {collapsAll, expandAll, notifyError, pack,} from "src/utils/jsutils";
-import UpdateAccessLevel from "pages/roles/UpdateAccessLevel.vue";
+<script setup>
+import { ref, computed, getCurrentInstance, onMounted } from "vue";
+import { useQuasar } from "quasar";
+import { api } from "@/boot/axios";
+import { collapsAll, expandAll, notifyError, pack } from "../../utils/jsutils";
+import UpdateAccessLevel from "@/pages/roles/UpdateAccessLevel.vue";
+
+const props = defineProps({
+  user: [String, Number],
+  userName: String,
+  dense: Boolean
+});
+
+const emit = defineEmits(["ok", "hide"]);
+const { proxy } = getCurrentInstance();
+const $q = useQuasar();
+
+const dialog = ref(null);
+const cols = ref([]);
+const rows = ref([]);
+const FD_AccessLevel = ref({});
+const loading = ref(false);
+const isExpanded = ref(true);
+const currentNode = ref(null);
+const itemId = ref(null);
+const sz = ref(0);
 
 let leaf = [];
 
 const expand = (item) => {
-  item.expend = ref(true);
-  const {children} = item;
-  if (children.length > 0) item.leaf = ref(false);
-  else item.leaf = ref(true);
+  item.expend = true;
+  const { children } = item;
+  if (children && children.length > 0) item.leaf = false;
+  else item.leaf = true;
 };
 
 const collaps = (item) => {
-  item.expend = ref(false);
-  const {children} = item;
-  if (children.length > 0) {
-    item.leaf = ref(false);
+  item.expend = false;
+  const { children } = item;
+  if (children && children.length > 0) {
+    item.leaf = false;
   } else {
-    item.leaf = ref(true);
+    item.leaf = true;
     item.expend = undefined;
   }
 };
 
 const checkChilds = (node) => {
   node.checked = true;
-  const children = node.children;
+  const children = node.children || [];
   children.forEach(checkChilds);
 };
 
 const checkNode = (node) => {
   if (leaf.includes(node.id)) node.checked = true;
-  const children = node.children;
+  const children = node.children || [];
   children.forEach(checkNode);
 };
 
@@ -181,298 +201,246 @@ const getNode = (data) => {
 
 const uncheckChilds = (node) => {
   node.checked = false;
-  const children = node.children;
+  const children = node.children || [];
   children.forEach(uncheckChilds);
 };
 
-export default {
-  props: ["user", "userName", "dense"],
-
-  data() {
-    return {
-      cols: [],
-      rows: [],
-      FD_AccessLevel: new Map(),
-      loading: false,
-      //
-      isExpanded: true,
-      currentNode: null,
-      itemId: null,
-      sz: 0,
-    };
-  },
-
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
-
-  methods: {
-    updAL(row) {
-      this.$q
-        .dialog({
-          component: UpdateAccessLevel,
-          componentProps: {
-            data: row,
-            dense: true,
-          },
-        })
-        .onOk((data) => {
-          for (let key in data) {
-            if (data.hasOwnProperty(key)) {
-              row[key] = data[key];
-            }
-          }
-        });
+const updAL = (row) => {
+  $q.dialog({
+    component: UpdateAccessLevel,
+    componentProps: {
+      data: row,
+      dense: true,
     },
-
-    fnAL(val) {
-      return this.FD_AccessLevel ? this.FD_AccessLevel[val] : null;
-    },
-
-    selectedCheck(item) {
-      if (item.children.length > 0) {
-        if (item.checked === false) checkChilds(item);
-        else uncheckChilds(item);
-      } else {
-        item.checked = !item.checked;
+  }).onOk((data) => {
+    for (let key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        row[key] = data[key];
       }
-      //
-      if (item.checked && item.parent !== undefined) {
-        api
-          .post("", {
-            method: "permis/getLeaf",
-            params: [item.id],
-          })
-          .then((response) => {
-            leaf = response.data.result;
-          })
-          .finally(() => {
-            getNode(this.rows);
-          });
-      }
-    },
+    }
+  });
+};
 
-    loadData() {
-      this.loading = ref(true);
-      api
-        .post("", {
-          method: "usr/loadUserPermisForUpd",
-          params: [this.user],
-        })
-        .then((response) => {
-          this.sz = response.data.result.records.length;
-          this.rows = pack(response.data.result.records, "ord");
-          expandAll(this.rows);
-        })
-        .finally(() => {
-          this.loading = ref(false);
-        });
-    },
+const fnAL = (val) => {
+  return FD_AccessLevel.value ? FD_AccessLevel.value[val] : null;
+};
 
-    getColumns() {
-      return [
-        {
-          name: "text",
-          label: this.$t("fldName"),
-          field: "text",
-          align: "left",
-          headerStyle: "font-size: 1.2em; width: 70%",
-        },
+const selectedCheck = (item) => {
+  if (item.children && item.children.length > 0) {
+    if (item.checked === false) checkChilds(item);
+    else uncheckChilds(item);
+  } else {
+    item.checked = !item.checked;
+  }
 
-        {
-          name: "accessLevel",
-          label: this.$t("accessLevel"),
-          field: "accessLevel",
-          classes: "bg-blue-grey-1",
-          headerStyle:
-            "font-size: 1.2em; background: bg-blue-grey-13; text-align: left; width:30%",
-        },
-      ];
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]();
-    },
-
-    onOKClick() {
-      this.loading = ref(true);
-      let dta = [];
-
-      const tt = (node, chks) => {
-        if (node.checked) {
-          chks.push(node);
-        }
-        let children = node.children;
-        if (children.length > 0) {
-          children.forEach((ch) => tt(ch, chks));
-        }
-      };
-
-      const getCheckeds = (data, chks) => {
-        for (let i = 0; i < data.length; i++) {
-          tt(data[i], chks);
-        }
-      };
-
-      getCheckeds(this.rows, dta);
-
-      let d0 = [];
-      dta.forEach((d) => {
-        let {...o} = d;
-        o.children = null;
-        d0.push(o);
-      });
-
-      api
-        .post("", {
-          method: "usr/saveUserPermis",
-          params: [{user: this.user, data: d0}],
-        })
-        .then(
-          () => {
-            this.$emit("ok", {res: true});
-          },
-          (error) => {
-            let msg = error.message;
-            //if (error.response.data.error.message) msg = error.response.data.error.message
-            notifyError(msg);
-          }
-        )
-        .finally(() => {
-          this.loading = ref(false);
-          this.hide();
-        });
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-
-    fnExpand() {
-      expandAll(this.rows);
-    },
-
-    fnCollapse() {
-      collapsAll(this.rows);
-    },
-
-    recursive(obj, newObj, level, itemId, isExpend) {
-      let vm = this;
-      obj.forEach(function (o) {
-        if (o.children && o.children.length !== 0) {
-          o.level = level;
-          o.leaf = false;
-          newObj.push(o);
-          if (o.id === itemId) {
-            o.expend = isExpend;
-          }
-          if (o.expend) {
-            vm.recursive(o.children, newObj, o.level + 1, itemId, isExpend);
-          }
-        } else {
-          o.level = level;
-          o.leaf = true;
-          newObj.push(o);
-          return false;
-        }
-      });
-    },
-
-    iconName(item) {
-      if (item.expend) {
-        return "remove_circle_outline";
-      }
-      if (item.children && item.children.length > 0) {
-        return "control_point";
-      }
-      return "";
-    },
-
-    toggle(item) {
-      if (item.children && item.children.length > 0) {
-        if (item.expend) collaps(item);
-        else expand(item);
-      }
-    },
-
-    setPadding(item) {
-      return `padding-left: ${item.level * 30}px;`;
-    },
-  },
-
-  created() {
-    this.cols = this.getColumns();
-
-    this.loading = ref(true)
+  if (item.checked && item.parent !== undefined) {
     api
       .post("", {
-        method: "dict/loadDict",
-        params: ["FD_AccessLevel"],
+        method: "permis/getLeaf",
+        params: [item.id],
       })
       .then((response) => {
-        this.FD_AccessLevel = response.data.result
+        leaf = response.data.result;
       })
       .finally(() => {
-        this.loading = ref(false)
-      })
-
-    this.loadData();
-
-    return {};
-  },
-
-  computed: {
-    arrayTreeObj() {
-      let vm = this;
-      let newObj = [];
-      vm.recursive(vm.rows, newObj, 0, vm.itemId, vm.isExpanded);
-      return newObj;
-    },
-  },
+        getNode(rows.value);
+      });
+  }
 };
+
+const loadData = () => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "usr/loadUserPermisForUpd",
+      params: [props.user],
+    })
+    .then((response) => {
+      sz.value = response.data.result.records.length;
+      rows.value = pack(response.data.result.records, "ord");
+      expandAll(rows.value);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const getColumns = () => [
+  {
+    name: "text",
+    label: proxy?.$t("fldName"),
+    field: "text",
+    align: "left",
+    headerStyle: "font-size: 1.2em; width: 70%",
+  },
+  {
+    name: "accessLevel",
+    label: proxy?.$t("accessLevel"),
+    field: "accessLevel",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; text-align: left; width:30%",
+  },
+];
+
+const show = () => {
+  dialog.value?.show();
+};
+
+const hide = () => {
+  dialog.value?.hide();
+};
+
+const onDialogHide = () => {
+  emit("hide");
+};
+
+const onCancelClick = () => {
+  hide();
+};
+
+const onOKClick = () => {
+  loading.value = true;
+  let dta = [];
+
+  const tt = (node, chks) => {
+    if (node.checked) {
+      chks.push(node);
+    }
+    let children = node.children || [];
+    if (children.length > 0) {
+      children.forEach((ch) => tt(ch, chks));
+    }
+  };
+
+  const getCheckeds = (data, chks) => {
+    for (let i = 0; i < data.length; i++) {
+      tt(data[i], chks);
+    }
+  };
+
+  getCheckeds(rows.value, dta);
+
+  let d0 = [];
+  dta.forEach((d) => {
+    let { ...o } = d;
+    o.children = null;
+    d0.push(o);
+  });
+
+  api
+    .post("", {
+      method: "usr/saveUserPermis",
+      params: [{ user: props.user, data: d0 }],
+    })
+    .then(
+      () => {
+        emit("ok", { res: true });
+      },
+      (error) => {
+        let msg = error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+      hide();
+    });
+};
+
+const fnExpand = () => {
+  expandAll(rows.value);
+};
+
+const fnCollapse = () => {
+  collapsAll(rows.value);
+};
+
+const recursive = (obj, newObj, level, currentItemId, isExpend) => {
+  if (!obj) return;
+  obj.forEach(function (o) {
+    if (o.children && o.children.length !== 0) {
+      o.level = level;
+      o.leaf = false;
+      newObj.push(o);
+      if (o.id === currentItemId) {
+        o.expend = isExpend;
+      }
+      if (o.expend) {
+        recursive(o.children, newObj, o.level + 1, currentItemId, isExpend);
+      }
+    } else {
+      o.level = level;
+      o.leaf = true;
+      newObj.push(o);
+    }
+  });
+};
+
+const iconName = (item) => {
+  if (item.expend) {
+    return "remove_circle_outline";
+  }
+  if (item.children && item.children.length > 0) {
+    return "control_point";
+  }
+  return "";
+};
+
+const toggle = (item) => {
+  if (item.children && item.children.length > 0) {
+    if (item.expend) collaps(item);
+    else expand(item);
+  }
+};
+
+const setPadding = (item) => {
+  return `padding-left: ${(item.level || 0) * 30}px;`;
+};
+
+const arrayTreeObj = computed(() => {
+  let newObj = [];
+  recursive(rows.value, newObj, 0, itemId.value, isExpanded.value);
+  return newObj;
+});
+
+onMounted(() => {
+  cols.value = getColumns();
+  loading.value = true;
+  api
+    .post("", {
+      method: "dict/loadDict",
+      params: ["FD_AccessLevel"],
+    })
+    .then((response) => {
+      FD_AccessLevel.value = response.data.result;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+  loadData();
+});
+
+defineExpose({
+  show,
+  hide
+});
 </script>
 
 <style scoped>
 .sticky-header-table {
-  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
   max-height: 95%;
   overflow: auto;
 }
-
 .sticky-header-table table {
-  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
   border-collapse: separate;
   border-spacing: 0;
 }
-
 .sticky-header-table thead th {
-  /* Делаем заголовок липким */
   position: sticky;
   top: 0;
-  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
   z-index: 1;
-  /* Фон обязателен, иначе заголовок будет прозрачным */
-  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+  background-color: #607d8b;
 }
-
-/* Опционально: если у таблицы есть границы, фиксируем их отображение */
 .sticky-header-table .q-table--bordered {
   border-top: none;
 }

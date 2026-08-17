@@ -32,8 +32,8 @@
 </template>
 
 <script>
-import {api,} from "boot/axios";
-import {notifyError} from "src/utils/jsutils";
+import {api,} from "@/boot/axios";
+import {notifyError} from "../../utils/jsutils";
 
 export default {
   name: "RoleDesc",

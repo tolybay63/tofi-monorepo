@@ -43,105 +43,85 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, getCurrentInstance, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useQuasar } from "quasar";
+import { api } from "@/boot/axios";
+import UpdaterUserRole from "@/pages/users/UpdaterUserRole.vue";
+import { hasTarget } from "../../utils/jsutils.js";
 
-import {api,} from "boot/axios";
-import UpdaterUserRole from "pages/users/UpdaterUserRole.vue";
-import {hasTarget} from "src/utils/jsutils.js";
+const { proxy } = getCurrentInstance();
+const $q = useQuasar();
+const route = useRoute();
 
-export default {
-  name: "UserRole",
+const user_id = ref(0);
+const cols = ref([]);
+const rows = ref([]);
+const loading = ref(false);
 
-  data() {
-    return {
-      user_id: 0,
-      cols: [],
-      rows: [],
-      loading: false,
-    };
-  },
-
-  methods: {
-    hasTarget,
-    fnEdit() {
-      this.$q
-        .dialog({
-          component: UpdaterUserRole,
-          componentProps: {
-            user: this.user_id, // userName: this.userName,
-            dense: true,
-          },
-        })
-        .onOk(() => {
-          //if (data.res) {
-          this.fetchData(this.user_id);
-          //}
-        });
+const fnEdit = () => {
+  $q.dialog({
+    component: UpdaterUserRole,
+    componentProps: {
+      user: user_id.value,
+      dense: true,
     },
-
-    fetchData(user) {
-      this.loading = true;
-      api
-        .post("", {
-          method: "usr/loadUserRoles",
-          params: [user],
-        })
-        .then((response) => {
-          this.rows = response.data.result.records;
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          sortable: true,
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 15%",
-        },
-        {
-          name: "fullName",
-          label: this.$t("fldFullName"),
-          field: "fullName",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 25%",
-        },
-        {
-          name: "cmt",
-          label: this.$t("fldCmt"),
-          field: "cmt",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 60%",
-        },
-      ];
-    },
-  },
-
-  mounted() {
-    this.user_id = this.$route["params"].user;
-    this.fetchData(this.user_id);
-  },
-
-  computed: {},
-
-  created() {
-    this.cols = this.getColumns();
-  },
-
-  setup() {
-    return {};
-  },
+  }).onOk(() => {
+    fetchData(user_id.value);
+  });
 };
+
+const fetchData = (user) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "usr/loadUserRoles",
+      params: [user],
+    })
+    .then((response) => {
+      rows.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const getColumns = () => [
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    sortable: true,
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 15%",
+  },
+  {
+    name: "fullName",
+    label: proxy?.$t("fldFullName"),
+    field: "fullName",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 25%",
+  },
+  {
+    name: "cmt",
+    label: proxy?.$t("fldCmt"),
+    field: "cmt",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 60%",
+  },
+];
+
+onMounted(() => {
+  user_id.value = route.params.user;
+  cols.value = getColumns();
+  fetchData(user_id.value);
+});
 </script>
 
 <style scoped></style>

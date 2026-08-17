@@ -32,56 +32,48 @@
   </q-select>
 </template>
 
-<script>
+<script setup>
 import languages from "quasar/lang/index.json";
-import {Quasar} from "quasar";
-import {useI18n} from "vue-i18n";
+import { Quasar, useQuasar } from "quasar";
+import { useI18n } from "vue-i18n";
 
-export default {
-  methods: {
-    setLang(e) {
-      console.info("setLang")
-      import(`../../node_modules/quasar/lang/${e}.js`).then((l) => {
-        this.$q.lang.set(l.default);
-        let curLang = l.default.isoName;
-        //
-        localStorage.setItem("curLang", curLang);
-      })
-        .then(() => {
-          location.reload()
-        })
+const $q = useQuasar();
+const { locale } = useI18n({ useScope: "global" });
 
-    },
-  },
-  created() {
-    console.info("created")
-  },
+const appLanguages = languages.filter((lang) =>
+  ["kk", "ru", "en-US"].includes(lang.isoName)
+);
 
-  setup() {
-    console.info("setup")
-    const appLanguages = languages.filter((lang) =>
-      ["kk", "ru", "en-US"].includes(lang.isoName)
-    );
-    const localeOptions = appLanguages.map((lang) => ({
-      label: lang.nativeName,
-      value: lang.isoName,
-    }));
-    if (!localStorage.getItem("curLang")) localStorage.setItem("curLang", "ru");
-    let curLang = localStorage.getItem("curLang");
-    const {locale} = useI18n({useScope: "global"})
-    import(`../../node_modules/quasar/lang/${curLang}.js`).then((l) => {
-      Quasar.lang.set(l.default);
+const localeOptions = appLanguages.map((lang) => ({
+  label: lang.nativeName,
+  value: lang.isoName,
+}));
+
+if (!localStorage.getItem("curLang")) {
+  localStorage.setItem("curLang", "ru");
+}
+
+let curLang = localStorage.getItem("curLang");
+
+import(`../../node_modules/quasar/lang/${curLang}.js`)
+  .then((l) => {
+    Quasar.lang.set(l.default);
+  })
+  .then(() => {
+    locale.value = curLang;
+  });
+
+const setLang = (e) => {
+  console.info("setLang");
+  import(`../../node_modules/quasar/lang/${e}.js`)
+    .then((l) => {
+      $q.lang.set(l.default);
+      let curLangName = l.default.isoName;
+      localStorage.setItem("curLang", curLangName);
     })
-      .then(()=> {
-        //const {locale} = useI18n({useScope: "global"})
-        locale.value = curLang
-      })
-
-    return {
-      locale,
-      localeOptions,
-    };
-  },
+    .then(() => {
+      location.reload();
+    });
 };
 </script>
 

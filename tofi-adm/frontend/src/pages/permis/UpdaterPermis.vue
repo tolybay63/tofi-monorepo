@@ -40,7 +40,6 @@
           :disable="mode === 'upd'"
         />
       </q-card-section>
-      <!---->
 
       <q-card-actions align="right">
         <q-btn
@@ -61,85 +60,71 @@
   </q-dialog>
 </template>
 
-<script>
-import {api,} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, getCurrentInstance } from "vue";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "../../utils/jsutils";
 
-export default {
-  props: ["mode", "isChild", "parentName", "data"],
+const props = defineProps({
+  mode: String,
+  isChild: Boolean,
+  parentName: String,
+  data: Object
+});
 
-  data() {
-    return {
-      form: this.data,
-    };
-  },
+const emit = defineEmits(["ok", "hide"]);
+const { proxy } = getCurrentInstance();
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+const dialog = ref(null);
+const form = reactive({ ...props.data });
 
-  methods: {
-    validName() {
-      return !!(this.form.text === "" || this.form.id === "");
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      //delete this.form.accessLevel_text
-      const method = this.mode === "ins" ? "insert" : "update";
-
-      api
-        .post("", {
-          method: "permis/" + method,
-          params: [{ rec: this.form }],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-
-            let msg = error.message;
-            if (error.response)
-              msg = this.$t(error.response.data.error.message);
-            notifyError(msg);
-          }
-        )
-        .finally(() => {
-          this.hide();
-        });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {},
+const validName = () => {
+  return !!(form.text === "" || form.id === "");
 };
+
+const show = () => {
+  dialog.value?.show();
+};
+
+const hide = () => {
+  dialog.value?.hide();
+};
+
+const onDialogHide = () => {
+  emit("hide");
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insert" : "update";
+
+  api
+    .post("", {
+      method: "permis/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        emit("ok", response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success"));
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response)
+          msg = proxy?.$t(error.response.data.error.message);
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      hide();
+    });
+};
+
+const onCancelClick = () => {
+  hide();
+};
+
+defineExpose({
+  show,
+  hide
+});
 </script>

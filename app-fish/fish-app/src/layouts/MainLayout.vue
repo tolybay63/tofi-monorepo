@@ -18,7 +18,7 @@
           </q-icon>
           {{ $t("company") }}
           <span class="absolute-right q-pt-sm">
-          <a :href="site_url()" class="q-pr-md text-white" style="font-size: 12px"
+          <a :href="site_url" class="q-pr-md text-white" style="font-size: 12px"
              target="_blank"> {{ $t("fish_model") }} </a>
           </span>
         </q-toolbar-title>
@@ -33,17 +33,24 @@
 
 <script>
 import { defineComponent } from "vue";
-import SetLocale from "components/SetLocale.vue";
+import SetLocale from "../components/SetLocale.vue";
 
 export default defineComponent({
   name: "MainLayout",
   components: { SetLocale },
 
-  methods: {
-    site_url() {
-      return process.env.SITE_URL
-    },
-  },
+  setup() {
+    // Получаем переменную окружения
+    const site_url = import.meta.env.QCLI_SITE_URL;
 
+    // Для проверки в консоли
+    //console.log("Все переменные окружения Vite:", import.meta.env);
+    //console.log("Значение QCLI_SITE_URL:", site_url);
+
+    // Возвращаем переменную в шаблон
+    return {
+      site_url
+    };
+  }
 });
 </script>

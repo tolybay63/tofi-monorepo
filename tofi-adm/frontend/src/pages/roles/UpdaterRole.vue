@@ -44,7 +44,6 @@
           :label="$t('fldCmt')"
         >
         </q-input>
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
@@ -66,93 +65,94 @@
   </q-dialog>
 </template>
 
-<script>
-import {api,} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, getCurrentInstance } from "vue";
+import { useQuasar } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "../../utils/jsutils";
 
-export default {
-  props: ["data", "mode"],
-
-  data() {
-    return {
-      form: this.data,
-      options: [],
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({ id: 0, name: "", fullName: "", cmt: null })
   },
+  mode: {
+    type: String,
+    default: "ins"
+  }
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+const emit = defineEmits(["ok", "hide"]);
+const { proxy } = getCurrentInstance();
+const $q = useQuasar();
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        if (this.form.fullName === "")
-          this.form.fullName = this.form.name.trim();
-      }
-    },
+const dialog = ref(null);
 
-    validName() {
-      if (!this.form.name) return true;
-      else if (this.form.name.trim().length === 0) return true;
-      return false;
-    },
+// Безопасная инициализация формы с защитой от undefined
+const form = reactive({
+  id: props.data?.id || 0,
+  name: props.data?.name || "",
+  fullName: props.data?.fullName || "",
+  cmt: props.data?.cmt || null
+});
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]();
-    },
+const options = ref([]);
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insert" : "update";
-
-      api
-        .post("", {
-          id: this.form.id,
-          method: "role/" + method,
-          params: [{ rec: this.form }],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            notifyError(error.response.data.error.message);
-          }
-        )
-        .finally(() => {
-          this.hide();
-        });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    return {};
-  },
+const onBlurName = () => {
+  if (form.name) {
+    if (form.fullName === "")
+      form.fullName = form.name.trim();
+  }
 };
+
+const validName = () => {
+  if (!form.name) return true;
+  else if (form.name.trim().length === 0) return true;
+  return false;
+};
+
+const show = () => {
+  dialog.value?.show();
+};
+
+const hide = () => {
+  dialog.value?.hide();
+};
+
+const onDialogHide = () => {
+  emit("hide");
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insert" : "update";
+
+  api
+    .post("", {
+      id: form.id,
+      method: "role/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        emit("ok", response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success"));
+      },
+      (error) => {
+        notifyError(error.response.data.error.message);
+      }
+    )
+    .finally(() => {
+      hide();
+    });
+};
+
+const onCancelClick = () => {
+  hide();
+};
+
+// Экспортируем методы для Quasar Dialog plugin
+defineExpose({
+  show,
+  hide
+});
 </script>

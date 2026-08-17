@@ -4,7 +4,7 @@
       <div style="margin-left: 20px">
         {{ $t("user") }}:
         <span style="color: black; margin-left: 10px">
-          <strong>{{ this.infoUser() }}</strong>
+          <strong>{{ infoUser() }}</strong>
         </span>
       </div>
 
@@ -42,7 +42,7 @@
         name="role"
         style="height: calc(100vh - 200px); width: 100%"
       >
-        <user-role :user="user" />
+        <user-role :user="user_id" />
       </q-tab-panel>
 
       <q-tab-panel
@@ -55,75 +55,57 @@
   </div>
 </template>
 
-<script>
-import {ref} from "vue";
-import {api,} from "boot/axios";
-import {notifyError} from "src/utils/jsutils";
-import UserRole from "pages/users/UserRole.vue";
-import UserPermis from "pages/users/UserPermis.vue";
+<script setup>
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { api } from "@/boot/axios";
+import { notifyError } from "../../utils/jsutils";
+import UserRole from "@/pages/users/UserRole.vue";
+import UserPermis from "@/pages/users/UserPermis.vue";
 
-export default {
-  name: "UserSelectedPage",
-  components: { UserPermis, UserRole },
+const route = useRoute();
+const router = useRouter();
 
-  data: function () {
-    return {
-      userGr_id: 0,
-      user_id: 0,
-      user: {},
-    };
-  },
+const tab = ref("role");
+const userGr_id = ref(0);
+const user_id = ref(0);
+const user = ref({});
+const loading = ref(false);
 
-  methods: {
-    toBack() {
-      this.$router["push"]({
-        name: "Users",
-        params: {
-          user: this.user_id,
-          userGr: this.userGr_id,
-        },
-      });
+const toBack = () => {
+  router.push({
+    name: "Users",
+    params: {
+      user: user_id.value,
+      userGr: userGr_id.value,
     },
-
-    infoUser() {
-      return this.user.fullName;
-    },
-  },
-
-  mounted() {
-    this.user_id = parseInt(this.$route["params"].user, 10);
-    this.userGr_id = parseInt(this.$route["params"].userGr, 10);
-
-    // load user
-    this.loading = ref(true);
-    api
-      .post("", {
-        method: "usr/loadUser",
-        params: [this.user_id],
-      })
-      .then((response) => {
-        this.user = response.data.result.records[0];
-      })
-      .catch((error) => {
-        notifyError(error.message);
-      })
-      .finally(() => {
-        this.loading = ref(false);
-      });
-    //
-  },
-
-  created() {
-  },
-
-  computed: {},
-
-  setup() {
-    return {
-      tab: ref("role"),
-    };
-  },
+  });
 };
+
+const infoUser = () => {
+  return user.value?.fullName || "";
+};
+
+onMounted(() => {
+  user_id.value = parseInt(route.params.user, 10);
+  userGr_id.value = parseInt(route.params.userGr, 10);
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "usr/loadUser",
+      params: [user_id.value],
+    })
+    .then((response) => {
+      user.value = response.data.result.records[0];
+    })
+    .catch((error) => {
+      notifyError(error.message);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+});
 </script>
 
 <style scoped></style>

@@ -3,11 +3,13 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-import {defineConfig} from '#q-app/wrappers'
+import {defineConfig} from '#q-app'
 import {fileURLToPath} from 'node:url'
 
 
-let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
+let url = import.meta.env.PROD
+  ? import.meta.env.QCLI_PRODUCT_APP_URL
+  : 'http://127.0.0.1:8080'
 
 
 export default defineConfig((ctx) => {

@@ -23,7 +23,7 @@
 
         <!-- name -->
         <q-input
-          :dense="dense"
+          dense
           :model-value="form.name"
           v-model="form.name"
           autofocus
@@ -34,7 +34,7 @@
         </q-input>
         <!-- fullName-->
         <q-input
-          :dense="dense"
+          dense
           :model-value="form.fullName"
           v-model="form.fullName"
           :label="$t('fldFullName')"
@@ -47,25 +47,22 @@
           v-model="parent"
           :options="parents"
           :label="$t('parent', true)"
-          node-key="id"
-          @select="fnCloseParent"
+          @select="fnSelectParent"
         />
 
         <!-- cmt -->
         <q-input
-          :dense="dense"
-          :model-value="form.cmt"
-          v-model="form.cmt"
+          dense
+          v-model="form['cmt']"
           type="textarea"
           :label="$t('fldCmt')"
         >
         </q-input>
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-          :dense="dense"
+          dense
           color="primary"
           icon="save"
           :label="$t('save')"
@@ -73,7 +70,7 @@
           :disable="validName()"
         />
         <q-btn
-          :dense="dense"
+          dense
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
@@ -84,147 +81,100 @@
   </q-dialog>
 </template>
 
-<script>
-import {api,} from "boot/axios";
-import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, getCurrentInstance, onMounted } from "vue";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess, pack } from "../../utils/jsutils";
+import TreeSelect from "../../components/TreeSelect.vue";
 
-import {ref} from "vue";
-import TreeSelect from "components/TreeSelect.vue";
+const props = defineProps({
+  data: Object,
+  mode: String,
+  isChild: Boolean,
+  parentName: String,
+});
 
-export default {
-  components: {TreeSelect},
+const emit = defineEmits(["ok", "hide"]);
+const { proxy } = getCurrentInstance();
 
-  props: ["data", "mode", "isChild", "parentName", "dense"],
+const dialog = ref(null);
+const form = reactive({ ...props.data });
+const parents = ref([]);
+const parent = ref(props.data?.parent);
+const loading = ref(false);
 
-  data() {
-    return {
-      form: this.data,
-      optAL: [],
-      al: this.data.accessLevel,
-      //
-
-      parents: [],
-      parent: this.data.parent,
-      loading: ref(false)
-    };
-  },
-
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
-
-  methods: {
-
-    fnCloseParent(v) {
-      console.info("fnCloseParent", v);
-      this.form.parent = v;
-      this.parent = v;
-    },
-
-    normalizer(node) {
-      return {
-        id: node.id,
-        label: node.name,
-        children: node.children,
-      };
-    },
-
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        this.form.fullName = this.form.name.trim();
-      }
-    },
-
-    validName() {
-      if (!this.form.name) return true;
-      else if (this.form.name.trim().length === 0) return true;
-      return false;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      this.form.parent =
-        typeof this.parent === "object" ? this.parent.id : this.parent;
-
-      const method = this.mode === "ins" ? "insertGr" : "updateGr";
-      api
-        .post("", {
-          id: this.form.id,
-          method: "usr/" + method,
-          params: [{ rec: this.form }],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            notifyError(error.response.data.error.message);
-          }
-        )
-        .finally(() => {
-          this.hide();
-        });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-
-    this.loading = ref(true)
-    api
-      .post("", {
-        method: "dict/loadDictAsStore",
-        params: ["FD_AccessLevel"],
-      })
-      .then((response) => {
-        this.optAL = response.data.result.records;
-      })
-      .finally(()=> {
-        this.loading = ref(false)
-      })
-    //
-    this.loading = ref(true)
-    api
-      .post("", {
-        method: "usr/loadGroupForSelect",
-        params: [this.data.id],
-      })
-      .then((response) => {
-        this.parents = pack(response.data.result.records, "ord");
-      })
-      .finally(()=> {
-        this.loading = ref(false)
-      })
-
-  },
+const fnSelectParent = (v) => {
+  form.parent = v.id;
+  parent.value = v.id;
 };
+
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    form.fullName = form.name.trim();
+  }
+};
+
+const validName = () => {
+  if (!form.name) return true;
+  return form.name.trim().length === 0;
+};
+
+const show = () => {
+  dialog.value?.show();
+};
+
+const hide = () => {
+  dialog.value?.hide();
+};
+
+const onDialogHide = () => {
+  emit("hide");
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insertGr" : "updateGr";
+  api
+    .post("", {
+      id: form.id,
+      method: "usr/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        emit("ok", response.data.result["records"][0]);
+        notifySuccess(proxy?.$t("success"));
+      },
+      (error) => {
+        notifyError(error.response.data.error.message);
+      }
+    )
+    .finally(() => {
+      hide();
+    });
+};
+
+const onCancelClick = () => {
+  hide();
+};
+
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "usr/loadGroupForSelect",
+      params: [props.data?.id],
+    })
+    .then((response) => {
+      parents.value = pack(response.data.result["records"], "ord");
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+});
+
+defineExpose({
+  show,
+  hide
+});
 </script>

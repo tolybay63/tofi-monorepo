@@ -14,7 +14,7 @@
     <div class="q-pa-lg bg-elements">
       <img
         alt="Fish logo"
-        src="~assets/fish.webp"
+        src="../assets/fish.webp"
         style="width: 200px; height: 150px"
       />
     </div>
@@ -24,12 +24,13 @@
       <div style="height: 50%; width: 80%">
 
         <div class="row q-ma-md justify-center">
+
           <!-- adm -->
           <q-btn
             rounded
             class="bg-orange text-white text-bold q-ma-md"
             style="height: 100px; width: 730px; font-size: 26px; opacity: 0.7"
-            @click="fnAdm()"
+            @click="fnAdm"
           >
             <div class="column-3">
               <div>
@@ -38,6 +39,7 @@
               </div>
             </div>
           </q-btn>
+
           <!-- model -->
           <q-btn
             rounded
@@ -55,6 +57,7 @@
         </div>
 
         <div class="row q-ma-md justify-center">
+
           <!-- NSI -->
           <q-btn
             rounded
@@ -98,6 +101,7 @@
               </div>
             </div>
           </q-btn>
+
           <!-- Analyse -->
           <q-btn
             rounded
@@ -120,72 +124,51 @@
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue";
+<script setup>
 import {
   appAdmURL,
   appCalcURL,
-  appCubeURL,
-  appDataURL,
   appModelURL,
-  appMonitoringURL,
-  appNsiURL
-} from "boot/axios";
-import {Notify} from "quasar";
+  appNsiURL,
+  appMonitoringURL
+} from "../boot/axios";
+import { Notify } from "quasar";
 
+function fnAdm() {
+  window.open(appAdmURL, "_self");
+}
 
-export default defineComponent({
-  name: "IndexPage",
+function fnMdl() {
+  window.open(appModelURL, "_self");
+}
 
-  methods: {
-    fnAdm() {
-      open(appAdmURL, "_self");
-    },
+function fnNSI() {
+  window.open(appNsiURL, "_self");
+}
 
-    fnMdl() {
-      open(appModelURL, "_self");
-    },
+function fnMonitoring() {
+  window.open(appMonitoringURL, "_self");
+}
 
-    fnData() {
-      open(appDataURL, "_self");
-    },
+function fnCalc() {
+  Notify.create({
+    type: 'negative',
+    message: "На стадии реализации",
+    position: 'top',
+    timeout: 5000,
+    actions: [{ icon: 'close', color: 'white' }]
+  });
+}
 
-    fnCube() {
-      open(appCubeURL, "_self");
-    },
-
-    fnNSI() {
-      open(appNsiURL, "_self");
-    },
-
-    fnMonitoring() {
-      open(appMonitoringURL, "_self");
-    },
-
-    fnCalc() {
-      //open(appCalcURL, "_self");
-      Notify.create({
-        type: 'negative',
-        message: "На стадии реализации",
-        position: 'top',
-        timeout: 5000,
-        actions: [{ icon: 'close', color: 'white' }]
-      });
-    },
-
-    fnAnalyse() {
-      //open(appAnalyseURL, "_self");
-      Notify.create({
-        type: 'negative',
-        message: "На стадии реализации",
-        position: 'top',
-        timeout: 5000,
-        actions: [{ icon: 'close', color: 'white' }]
-      });
-    },
-
-  },
-});
+function fnAnalyse() {
+  Notify.create({
+    type: 'negative',
+    message: "На стадии реализации",
+    position: 'top',
+    timeout: 5000,
+    actions: [{ icon: 'close', color: 'white' }]
+  });
+}
 </script>
 
 <style scoped>

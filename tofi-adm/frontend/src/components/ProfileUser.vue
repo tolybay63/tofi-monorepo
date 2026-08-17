@@ -1,11 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-down"
-      transition-hide="slide-down"
+    ref="dialog"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-down"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar class="text-white bg-primary">
@@ -17,112 +17,61 @@
           <q-card-section>
             <!-- email -->
             <q-input
-                v-model="form.email"
-                :model-value="form.email"
-                type="email"
-                :label="$t('email')"
-                autofocus
-                :rules="[(val) => emailTest(val) || $t('req')]"
-                @change="onChangeEmil"
+              v-model="form.email"
+              :model-value="form.email"
+              type="email"
+              :label="$t('email')"
+              autofocus
+              :rules="[(val) => emailTest(val) || $t('req')]"
+              @change="onChangeEmil"
             >
             </q-input>
             <!-- phone -->
             <q-input
-                dense
-                clearable
-                v-model="form.phone"
-                :model-value="form.phone"
-                unmasked-value
-                :label="$t('phone')"
-                prefix="+7"
-                mask="### ### ####"
-                fill-mask="_"
-                :rules="[(val) => val.length > 9 || $t('req')]"
-                @change="onChangePhone"
-                @update:model-value="isValid"
+              dense
+              clearable
+              v-model="form.phone"
+              :model-value="form.phone"
+              unmasked-value
+              :label="$t('phone')"
+              prefix="+7"
+              mask="### ### ####"
+              fill-mask="_"
+              :rules="[(val) => val?.length > 9 || $t('req')]"
+              @change="onChangePhone"
+              @update:model-value="isValid"
             />
 
             <q-toggle
-                v-model="chPsw"
-                :label="$t('changePsw')"
-                :model-value="chPsw"
-
+              v-model="chPsw"
+              :label="$t('changePsw')"
+              :model-value="chPsw"
             />
-
-            <!--
-            <q-input
-              dense
-              v-model="form.passwdold"
-              :model-value="form.passwdold"
-              label="Старый пароль *"
-              autofocus
-              :type="isPwd ? 'password' : 'text'"
-              :rules="[
-                (val) => (!!chPsw && !!val && !!val.trim()) || $t('req'),
-              ]"
-              :disable="chPsw !== true"
-            >
-              <template v-slot:append>
-                <q-icon
-                  dense
-                  :name="isPwd ? 'visibility_off' : 'visibility'"
-                  class="cursor-pointer"
-                  @click="isPwd = !isPwd"
-                />
-              </template>
-            </q-input>
-
-            <q-input
-              dense
-              v-model="form.passwd"
-              :model-value="form.passwd"
-              label="Новый пароль *"
-              :type="isPwd ? 'password' : 'text'"
-              :rules="[
-                (val) => (!!chPsw && !!val && !!val.trim()) || $t('req'),
-              ]"
-              @change="onChangePsw"
-              :disable="chPsw !== true"
-            ></q-input>
-
-            &lt;!&ndash; psw2 &ndash;&gt;
-            <q-input
-              dense
-              v-model="form.passwd2"
-              :model-value="form.passwd2"
-              label="Подтверждение *"
-              :type="isPwd ? 'password' : 'text'"
-              :rules="[
-                (val) => (!!chPsw && pswTest(val)) || $t('errorPassword'),
-              ]"
-              :disable="chPsw !== true"
-            ></q-input>
--->
           </q-card-section>
         </div>
-        <!---->
+
         <div class="col">
           <q-card-section>
             <!-- name -->
             <q-input
-                v-model="form.name"
-                :model-value="form.name"
-                type="text"
-                :label="$t('usrName')"
-                :rules="[(val) => textTest(val) || $t('req')]"
-                @change="onChangeNm"
-                @blur="onBlur"
+              v-model="form.name"
+              :model-value="form.name"
+              type="text"
+              :label="$t('usrName')"
+              :rules="[(val) => textTest(val) || $t('req')]"
+              @change="onChangeNm"
+              @blur="onBlur"
             >
             </q-input>
 
             <!-- fullName -->
             <q-input
-                v-model="form.fullName"
-                :model-value="form.fullName"
-                type="text"
-                :label="$t('usrFullName')"
-                :rules="[(val) => textTest(val) || $t('req')]"
-                @change="onChangeFnm"
+              v-model="form.fullName"
+              :model-value="form.fullName"
+              type="text"
+              :label="$t('usrFullName')"
+              :rules="[(val) => textTest(val) || $t('req')]"
+              @change="onChangeFnm"
             >
             </q-input>
           </q-card-section>
@@ -131,209 +80,208 @@
 
       <q-card-actions align="right">
         <q-btn
-            :loading="loading"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :loading="loading"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
             <q-spinner-hourglass color="white"/>
           </template>
         </q-btn>
         <q-btn
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onCancelClick"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
-<script>
-import {api, authURL} from "boot/axios.js";
-import {ref} from "vue";
-import {notifyError} from "src/utils/jsutils.js";
-import UpdaterPsw from "components/UpdaterPsw.vue";
-import {useUserStore} from "stores/user-store.js";
 
-export default {
-  props: ["lg", "userId"],
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useRouter } from "vue-router";
+import { useQuasar } from "quasar";
+import { api, authURL } from "@/boot/axios.js";
+import { notifyError } from "../utils/jsutils.js";
+import UpdaterPsw from "@/components/UpdaterPsw.vue";
+import { useUserStore } from "@/stores/user-store.js";
 
-  data() {
-    return {
-      form: {},
-      form2: {},
-      lang: this.lg,
-      loading: false,
-      chPsw: ref(false),
-      newForm: {},
-    };
-  },
+const props = defineProps({
+  lg: String,
+  userId: [String, Number]
+});
 
-  emits: ["ok", "hide"],
+const emit = defineEmits(["ok", "hide"]);
+const { proxy } = getCurrentInstance();
+const $q = useQuasar();
+const router = useRouter();
 
-  methods: {
-    isValid() {
-      return this.form.phone.length !== 10
-    },
+const dialog = ref(null);
+const form = reactive({});
+const form2 = reactive({});
+const newForm = reactive({});
+const loading = ref(false);
+const chPsw = ref(false);
 
-    onBlur() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
-
-    validSave() {
-      return !(
-          this.chPsw ||
-          !(
-              this.isChanged() &&
-              this.form.phone &&
-              this.form.phone.length > 9 &&
-              this.emailTest(this.form.email) &&
-              this.textTest(this.form.name) &&
-              this.textTest(this.form.fullName)
-          )
-      );
-    },
-
-    isChanged() {
-      return !(
-          this.form.email !== this.form2.email ||
-          this.form.name !== this.form2.name ||
-          this.form.fullName !== this.form2.fullName ||
-          this.form.phone !== this.form2.phone
-      );
-    },
-
-    onChangeEmil() {
-      this.newForm.email = this.form.email;
-    },
-    onChangePhone() {
-      this.newForm.phone = this.form.phone;
-    },
-    onChangeNm() {
-      this.newForm.name = this.form.name;
-    },
-    onChangeFnm() {
-      this.newForm.fullName = this.form.fullName;
-    },
-
-    emailTest: function (v) {
-      return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
-          v
-      );
-    },
-
-    textTest(val) {
-      return !!val && !!val.trim();
-    },
-
-    show() {
-      this.$refs.dialog["show"]();
-    },
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      const store = useUserStore();
-      const {setUserStore, setUserName} = store;
-
-      this.newForm.id = this.userId;
-      //console.log("new Form", this.newForm);
-
-      this.loading = true;
-      api
-          .post("", {
-            method: "auth/saveProfile",
-            params: [this.newForm],
-          })
-          .then(
-              () => {
-                setUserName(this.form.fullName);
-                if (this.chPsw) {
-                  api
-                      .post(authURL + "/logout", {
-                        params: {},
-                      })
-                      .then(() => {
-                        setUserStore({});
-                        this.$router["push"]("/");
-                      });
-
-                  this.$q
-                      .dialog({
-                        component: UpdaterPsw,
-                        componentProps: {
-                          id: this.newForm.id,
-                          // ...
-                        },
-                      })
-                      .onOk((r) => {
-                        if (r.res) {
-                          console.log("Ok! Psw changed!");
-                          this.hide();
-                          //location.reload()
-                        }
-                      });
-                } else {
-                  setUserName(this.form.fullName);
-                  this.hide();
-                  //location.reload()
-                }
-              },
-              (error) => {
-                notifyError(error.messages);
-              }
-          )
-          .finally(() => {
-            this.loading = false;
-          });
-    },
-
-    mounted() {
-    },
-
-    onCancelClick() {
-      this.hide();
-    },
-  },
-  created() {
-    this.loading = true;
-    api
-        .post("", {
-          id: "1",
-          method: "auth/loadProfile",
-          params: [this.userId],
-        })
-        .then(
-            (response) => {
-              this.form = response.data.result.records[0];
-              Object.assign(this.form2, this.form);
-            },
-            (error) => {
-              notifyError(error.messages);
-            }
-        )
-        .finally(() => {
-          this.loading = false;
-        });
-
-    return {};
-  },
+const isValid = () => {
+  return form.phone?.length !== 10;
 };
+
+const onBlur = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (
+      !form.fullName ||
+      (form.fullName && form.fullName.trim() === "")
+    ) {
+      form.fullName = form.name;
+    }
+  }
+};
+
+const validSave = () => {
+  return !(
+    chPsw.value ||
+    !(
+      isChanged() &&
+      form.phone &&
+      form.phone.length > 9 &&
+      emailTest(form.email) &&
+      textTest(form.name) &&
+      textTest(form.fullName)
+    )
+  );
+};
+
+const isChanged = () => {
+  return !(
+    form.email !== form2.email ||
+    form.name !== form2.name ||
+    form.fullName !== form2.fullName ||
+    form.phone !== form2.phone
+  );
+};
+
+const onChangeEmil = () => {
+  newForm.email = form.email;
+};
+const onChangePhone = () => {
+  newForm.phone = form.phone;
+};
+const onChangeNm = () => {
+  newForm.name = form.name;
+};
+const onChangeFnm = () => {
+  newForm.fullName = form.fullName;
+};
+
+const emailTest = (v) => {
+  return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
+    v
+  );
+};
+
+const textTest = (val) => {
+  return !!val && !!val.trim();
+};
+
+const show = () => {
+  dialog.value?.show();
+};
+const hide = () => {
+  dialog.value?.hide();
+};
+
+const onDialogHide = () => {
+  emit("hide");
+};
+
+const onOKClick = () => {
+  const store = useUserStore();
+  const { setUserName } = store;
+
+  newForm.id = props.userId;
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "auth/saveProfile",
+      params: [newForm],
+    })
+    .then(
+      () => {
+        setUserName(form.fullName);
+        if (chPsw.value) {
+          api
+            .post(authURL + "/logout", {
+              params: {},
+            })
+            .then(() => {
+              store.setUserStore({});
+              router.push("/");
+            });
+
+          $q.dialog({
+            component: UpdaterPsw,
+            componentProps: {
+              id: newForm.id,
+            },
+          })
+            .onOk((r) => {
+              if (r.res) {
+                console.log("Ok! Psw changed!");
+                hide();
+              }
+            });
+        } else {
+          setUserName(form.fullName);
+          hide();
+        }
+      },
+      (error) => {
+        notifyError(error.messages);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const onCancelClick = () => {
+  hide();
+};
+
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      id: "1",
+      method: "auth/loadProfile",
+      params: [props.userId],
+    })
+    .then(
+      (response) => {
+        const data = response.data.result.records[0];
+        Object.assign(form, data);
+        Object.assign(form2, data);
+      },
+      (error) => {
+        hide()
+        //notifyError(error.messages);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+    });
+});
+
+defineExpose({
+  show,
+  hide
+});
 </script>

@@ -25,9 +25,9 @@
       <template #bottom-row>
         <q-td colspan="100%" v-if="selected.length > 0">
           <span class="text-blue"> {{ $t("selectedRow") }}: </span>
-          <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+          <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
         </q-td>
-        <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+        <q-td colspan="100%" v-else-if="rows.length > 0" class="text-bold">
           {{ $t("infoRole") }}
         </q-td>
       </template>
@@ -66,7 +66,6 @@
           </q-tooltip>
         </q-btn>
 
-<!--    v-if="hasTarget('adm:role:del')"    -->
         <q-btn
           :dense="dense"
           icon="delete"
@@ -116,11 +115,36 @@
   </q-page>
 </template>
 
-<script>
-import {ref} from "vue";
-import {api,} from "boot/axios";
-import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
-import UpdateRole from "pages/roles/UpdaterRole.vue";
+<script setup>
+import { ref, reactive, getCurrentInstance } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useQuasar } from "quasar";
+import { api } from "@/boot/axios";
+import { hasTarget, notifyError, notifyInfo, notifySuccess } from "../../utils/jsutils";
+import UpdateRole from "@/pages/roles/UpdaterRole.vue";
+
+const { proxy } = getCurrentInstance();
+const $q = useQuasar();
+const route = useRoute();
+const router = useRouter();
+
+const cols = ref([]);
+const rows = ref([]);
+const filter = ref("");
+const loading = ref(false);
+const maxLen = ref(0);
+const role_id = ref(0);
+
+let pagination = reactive({
+  sortBy: null,
+  descending: false,
+  page: 1,
+  rowsPerPage: 25,
+  rowsNumber: 0,
+});
+
+const selected = ref([]);
+const dense = ref(true);
 
 const requestParam = {
   page: 1,
@@ -131,253 +155,199 @@ const requestParam = {
   sortBy: null,
 };
 
-export default {
-  name: "RolePage",
-
-  data() {
-    return {
-      cols: [],
-      rows: [],
-      filter: "",
-      loading: false,
-      maxLen: 0,
-      role_id: 0,
-
-      pagination: {
-        sortBy: null,
-        descending: false,
-        page: 1,
-        rowsPerPage: 25,
-        rowsNumber: 0,
-      },
-      selected: [],
-      dense: true,
-    };
+const getColumns = () => [
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    sortable: true,
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 15%",
   },
+  {
+    name: "fullName",
+    label: proxy?.$t("fldFullName"),
+    field: "fullName",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 25%",
+  },
+  {
+    name: "cmt",
+    label: proxy?.$t("fldCmt"),
+    field: "cmt",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 60%",
+  },
+];
 
-  methods: {
-    hasTarget,
-    fnChoose() {
-      this.$router["push"]({
-        name: "RoleSelected",
-        params: {
-          role: this.selected[0].id,
-        },
-      });
+const fnChoose = () => {
+  router.push({
+    name: "RoleSelected",
+    params: {
+      role: selected.value[0].id,
     },
+  });
+};
 
-    removeRow(rec) {
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' +
-            rec.name +
-            ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          let index = this.rows.findIndex((row) => row.id === rec.id);
-          api
-            .post("", {
-              method: "role/delete",
-              params: [{ rec: rec }],
-            })
-            .then(
-              () => {
-                this.rows.splice(index, 1);
-                this.selected = ref([]);
-                notifySuccess(this.$t("success"));
-              },
-/*              (error) => {
-                let msg = error.message;
-                if (error.response) msg = error.response.data.error.message;
-
-                notifyError(msg);
-              }*/
-            );
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t("canceled"));
-        });
-    },
-
-    editRow(rec, mode) {
-      let data = {
-        id: 0,
-        name: "",
-        fullName: "",
-        cmt: null,
-      };
-      if (mode === "upd") {
-        data = {
-          id: rec.id,
-          name: rec.name,
-          fullName: rec.fullName,
-          cmt: rec.cmt,
-        };
-      }
-
-      this.$q
-        .dialog({
-          component: UpdateRole,
-          componentProps: {
-            data: data,
-            mode: mode,
-            // ...
-          },
-        })
-        .onOk((r) => {
-          if (mode === "ins") {
-            this.rows.push(r);
-            this.selected = [];
-            this.selected.push(r);
-          } else {
-            for (let key in r) {
-              if (r.hasOwnProperty(key)) {
-                rec[key] = r[key];
-              }
-            }
-          }
-        });
-    },
-
-    fetchData(requestProps) {
-      this.loading = true;
-
-      const page = requestProps.page;
-      const rowsPerPage = requestProps.rowsPerPage;
-      const orderBy = requestProps.sortBy;
-      const filter = requestProps.filter;
-      //
+const removeRow = (rec) => {
+  $q.dialog({
+    title: proxy?.$t("confirmation"),
+    message:
+      proxy?.$t("deleteRecord") +
+      '<div style="color: plum">(' +
+      rec.name +
+      ")</div>",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  })
+    .onOk(() => {
+      let index = rows.value.findIndex((row) => row.id === rec.id);
       api
         .post("", {
-          method: "role/loadRolePaginate",
-          params: [
-            {
-              page: page,
-              limit: rowsPerPage,
-              orderBy: orderBy,
-              filter: filter,
-            },
-          ],
+          method: "role/delete",
+          params: [{ rec: rec }],
         })
-        .then(
-          (response) => {
-            this.rows = response.data.result.store.records;
-            const meta = response.data.result.meta;
-            this.pagination.page = meta.page;
-            this.pagination.rowsPerPage = meta.limit===meta.total ? 0 : meta.limit;
-            this.pagination.rowsNumber = meta.total;
-            this.maxLen = this.rows.length;
-            //
-            this.selected = ref([]);
-            if (this.role_id > 0) {
-              let index = this.rows.findIndex((row) => row.id === this.role_id);
-              this.selected[0] = this.rows[index];
-            }
-          },
-          (error) => {
-            this.$router["push"]("/");
-            let msg = error.message;
-            if (error.response)
-              msg = this.$t(error.response.data.error.message);
-
-            notifyError(msg);
-          }
-        )
-        .finally(() => {
-          //setTimeout(() => {
-          this.loading = false;
-          //}, 500)
+        .then(() => {
+          rows.value.splice(index, 1);
+          selected.value = [];
+          notifySuccess(proxy?.$t("success"));
         });
-    },
-
-    pagesNumber: function () {
-      return 1;
-    },
-
-    requestData(requestProps) {
-      const sb = requestProps.pagination.sortBy;
-      const des = requestProps.pagination.descending;
-      //debugger
-      if (sb === null) {
-        requestParam.sortBy = null;
-      } else {
-        if (des === true) requestParam.sortBy = sb + " desc";
-        else requestParam.sortBy = sb;
-      }
-      requestParam.descending = requestProps.pagination.descending;
-      requestParam.filter = requestProps.filter;
-      requestParam.page = requestProps.pagination.page;
-      requestParam.rowsPerPage = requestProps.pagination.rowsPerPage;
-      requestParam.rowsNumber = requestProps.pagination.rowsNumber;
-
-      this.pagination.sortBy = requestProps.pagination.sortBy;
-      this.pagination.descending = requestProps.pagination.descending;
-      //
-      this.fetchData(requestParam);
-    },
-
-    infoSelected(row) {
-      return " " + row.name;
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          sortable: true,
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 15%",
-        },
-        {
-          name: "fullName",
-          label: this.$t("fldFullName"),
-          field: "fullName",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 25%",
-        },
-        {
-          name: "cmt",
-          label: this.$t("fldCmt"),
-          field: "cmt",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 60%",
-        },
-      ];
-    },
-  },
-
-  mounted() {
-    this.role_id = parseInt(this.$route["params"].role, 10);
-  },
-
-  created() {
-    this.cols = this.getColumns();
-    this.fetchData(requestParam);
-  },
-
-  computed: {},
-
-  setup() {},
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t("canceled"));
+    });
 };
+
+const editRow = (rec, mode) => {
+  let data = {
+    id: 0,
+    name: "",
+    fullName: "",
+    cmt: null,
+  };
+  if (mode === "upd") {
+    data = {
+      id: rec.id,
+      name: rec.name,
+      fullName: rec.fullName,
+      cmt: rec.cmt,
+    };
+  }
+
+  $q.dialog({
+    component: UpdateRole,
+    componentProps: {
+      data: data,
+      mode: mode,
+    },
+  })
+    .onOk((r) => {
+      if (mode === "ins") {
+        rows.value.push(r);
+        selected.value = [];
+        selected.value.push(r);
+      } else {
+        for (let key in r) {
+          if (r.hasOwnProperty(key)) {
+            rec[key] = r[key];
+          }
+        }
+      }
+    });
+};
+
+const fetchData = (requestProps) => {
+  loading.value = true;
+
+  const page = requestProps.page;
+  const rowsPerPage = requestProps.rowsPerPage;
+  const orderBy = requestProps.sortBy;
+  const filterVal = requestProps.filter;
+
+  api
+    .post("", {
+      method: "role/loadRolePaginate",
+      params: [
+        {
+          page: page,
+          limit: rowsPerPage,
+          orderBy: orderBy,
+          filter: filterVal,
+        },
+      ],
+    })
+    .then(
+      (response) => {
+        rows.value = response.data.result.store.records;
+        const meta = response.data.result.meta;
+        pagination.page = meta.page;
+        pagination.rowsPerPage = meta.limit === meta.total ? 0 : meta.limit;
+        pagination.rowsNumber = meta.total;
+        maxLen.value = rows.value.length;
+
+        selected.value = [];
+        if (role_id.value > 0) {
+          let index = rows.value.findIndex((row) => row.id === role_id.value);
+          if (index !== -1) {
+            selected.value[0] = rows.value[index];
+          }
+        }
+      },
+      (error) => {
+        router.push("/");
+        let msg = error.message;
+        if (error.response)
+          msg = proxy?.$t(error.response.data.error.message);
+
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const pagesNumber = () => 1;
+
+const requestData = (requestProps) => {
+  const sb = requestProps.pagination.sortBy;
+  const des = requestProps.pagination.descending;
+
+  if (sb === null) {
+    requestParam.sortBy = null;
+  } else {
+    if (des === true) requestParam.sortBy = sb + " desc";
+    else requestParam.sortBy = sb;
+  }
+  requestParam.descending = requestProps.pagination.descending;
+  requestParam.filter = requestProps.filter;
+  requestParam.page = requestProps.pagination.page;
+  requestParam.rowsPerPage = requestProps.pagination.rowsPerPage;
+  requestParam.rowsNumber = requestProps.pagination.rowsNumber;
+
+  pagination.sortBy = requestProps.pagination.sortBy;
+  pagination.descending = requestProps.pagination.descending;
+
+  fetchData(requestParam);
+};
+
+const infoSelected = (row) => " " + row.name;
+
+// Инициализация при создании компонента
+role_id.value = parseInt(route.params.role, 10) || 0;
+cols.value = getColumns();
+fetchData(requestParam);
 </script>
 
 <style lang="sass">
 .sticky-header-table
-  /* height or max-height is important */
   height: calc(100vh - 140px)
 
   thead tr th
@@ -387,15 +357,9 @@ export default {
   thead tr:first-child th
     top: 0
 
-  /* this is when the loading indicator appears */
-
   &.q-table--loading thead tr:last-child th
-    /* height of all previous header rows */
     top: 48px
 
-  /* prevent scrolling behind sticky top row on focus */
-
   tbody
-    /* height of all previous header rows */
     scroll-margin-top: 48px
 </style>

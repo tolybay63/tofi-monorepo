@@ -18,9 +18,6 @@
       <div class="row q-col-gutter-y-sm">
         <div class="col">
           <q-card-section>
-            <!-- login
-            :disable="true"
-            -->
             <q-input
               :disable="mode === 'upd' && form.login === 'sysadmin'"
               autofocus
@@ -32,7 +29,6 @@
               :rules="[(val) => loginTest(val) || $t('req')]"
             >
             </q-input>
-            <!-- email -->
             <q-input
               dense
               v-model="form.email"
@@ -42,7 +38,6 @@
               :rules="[(val) => emailTest(val) || $t('req')]"
             >
             </q-input>
-            <!-- passwd -->
             <q-input
               v-show="mode === 'ins'"
               dense
@@ -61,7 +56,6 @@
                 />
               </template>
             </q-input>
-            <!-- psw2 -->
             <q-input
               v-show="mode === 'ins'"
               dense
@@ -73,7 +67,6 @@
             >
             </q-input>
 
-            <!-- AccessLevel -->
             <q-select
               :disable="mode === 'upd' && form.login === 'sysadmin'"
               v-model="al"
@@ -89,10 +82,9 @@
             />
           </q-card-section>
         </div>
-        <!---->
+
         <div class="col">
           <q-card-section>
-            <!-- name -->
             <q-input
               v-model="form.name"
               :model-value="form.name"
@@ -104,7 +96,6 @@
             >
             </q-input>
 
-            <!-- fullname -->
             <q-input
               v-model="form.fullName"
               :model-value="form.fullName"
@@ -115,7 +106,6 @@
             >
             </q-input>
 
-            <!-- phone -->
             <q-input
               dense
               clearable
@@ -163,125 +153,129 @@
     </q-card>
   </q-dialog>
 </template>
-<script>
-import {ref} from "vue";
-import {notifyError} from "src/utils/jsutils";
-import {api,} from "boot/axios";
 
-export default {
-  props: ["rec", "mode", "dense"],
-  emits: ["ok", "hide"],
+<script setup>
+import { ref, reactive, getCurrentInstance, onMounted } from "vue";
+import { notifyError } from "../../utils/jsutils";
+import { api } from "@/boot/axios";
 
-  data() {
-    return {
-      form: this.rec,
-      isPwd: ref(true),
-      loading: false,
-      optionsLevel: [],
-      al: this.rec.accessLevel === 0 ? 1 : this.rec.accessLevel,
-    };
-  },
+const props = defineProps({
+  rec: Object,
+  mode: String,
+  dense: Boolean
+});
 
-  methods: {
-    fnSelect() {
-      this.form.accessLevel = this.al.id;
-    },
+const emit = defineEmits(["ok", "hide"]);
+const { proxy } = getCurrentInstance();
 
-    onBlurName() {
-      this.form.name = this.form.name ? this.form.name.trim() : null;
-      if (this.form.name) {
-        if (this.form.fullName == null || this.form.fullName === "")
-          this.form.fullName = this.form.name.trim();
-      }
-    },
+const dialog = ref(null);
+const form = reactive({ ...props.rec });
+const isPwd = ref(true);
+const loading = ref(false);
+const optionsLevel = ref([]);
+const al = ref(props.rec?.accessLevel === 0 ? 1 : props.rec?.accessLevel);
 
-    emailTest: function (v) {
-      return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
-        v
-      );
-    },
-
-    loginTest(val) {
-      return !!val && !!val.trim();
-    },
-
-    pswTest(val) {
-      return val === this.form.passwd;
-    },
-
-    disableReg() {
-      if (this.mode === "ins")
-        return !(
-          this.loginTest(this.form.login) && this.emailTest(this.form.email) &&
-          this.loginTest(this.form.name) && this.loginTest(this.form.fullName) &&
-          this.form.passwd && this.form.passwd === this.form.psw2
-        );
-      else {
-        return !(this.loginTest(this.form.login) && this.emailTest(this.form.email) &&
-          this.loginTest(this.form.name) && this.loginTest(this.form.fullName)
-        );
-      }
-    },
-
-    show() {
-      this.$refs.dialog["show"]();
-    },
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      //const data = JSON.parse(JSON.stringify(this.form));
-
-      this.loading = true;
-      let method = this.mode === "ins" ? "insert" : "update";
-      let err = false
-      api
-        .post("", {
-          method: "usr/" + method,
-          params: [this.form],
-        })
-        .then(
-          () => {
-            this.$emit("ok", {res: true});
-          },
-          (error) => {
-            err = true;
-            let msg = error.message;
-            if (error.response)
-              msg = this.$t(error.response.data.error.message);
-            console.log(msg);
-          }
-        )
-        .finally(() => {
-          this.loading = false;
-          if (!err) this.hide();
-        });
-    },
-
-    onCancelClick() {
-      this.hide();
-    },
-  },
-  created() {
-
-    this.loading = true
-    api
-      .post("", {
-        method: "dict/loadDictAsStore",
-        params: ["FD_AccessLevel"],
-      })
-      .then((response) => {
-        //console.log("FD_AccessLevel", response.data.result.records)
-        this.optionsLevel = response.data.result.records;
-      })
-      .finally(() => {
-        this.loading = false
-      })
-  },
+const fnSelect = () => {
+  form.accessLevel = al.value?.id !== undefined ? al.value.id : al.value;
 };
+
+const onBlurName = () => {
+  form.name = form.name ? form.name.trim() : null;
+  if (form.name) {
+    if (form.fullName == null || form.fullName === "")
+      form.fullName = form.name.trim();
+  }
+};
+
+const emailTest = (v) => {
+  return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
+    v
+  );
+};
+
+const loginTest = (val) => {
+  return !!val && !!val.trim();
+};
+
+const pswTest = (val) => {
+  return val === form.passwd;
+};
+
+const disableReg = () => {
+  if (props.mode === "ins")
+    return !(
+      loginTest(form.login) && emailTest(form.email) &&
+      loginTest(form.name) && loginTest(form.fullName) &&
+      form.passwd && form.passwd === form.psw2
+    );
+  else {
+    return !(loginTest(form.login) && emailTest(form.email) &&
+      loginTest(form.name) && loginTest(form.fullName)
+    );
+  }
+};
+
+const show = () => {
+  dialog.value?.show();
+};
+
+const hide = () => {
+  dialog.value?.hide();
+};
+
+const onDialogHide = () => {
+  emit("hide");
+};
+
+const onOKClick = () => {
+  loading.value = true;
+  let method = props.mode === "ins" ? "insert" : "update";
+  let err = false;
+
+  api
+    .post("", {
+      method: "usr/" + method,
+      params: [form],
+    })
+    .then(
+      () => {
+        emit("ok", { res: true });
+      },
+      (error) => {
+        err = true;
+        let msg = error.message;
+        if (error.response)
+          msg = proxy?.$t(error.response.data.error.message);
+        console.log(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+      if (!err) hide();
+    });
+};
+
+const onCancelClick = () => {
+  hide();
+};
+
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "dict/loadDictAsStore",
+      params: ["FD_AccessLevel"],
+    })
+    .then((response) => {
+      optionsLevel.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+});
+
+defineExpose({
+  show,
+  hide
+});
 </script>
