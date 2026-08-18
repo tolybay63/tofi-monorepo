@@ -126,6 +126,7 @@ import SetLocale from '../components/SetLocale.vue'
 import { api, authURL, urlMainApp } from '../boot/axios'
 import { useUserStore } from '../stores/user-store'
 import { hasTarget } from '../utils/jsutils.js'
+import axios from "axios";
 
 export default defineComponent({
   name: 'MainLayout',
@@ -206,11 +207,11 @@ export default defineComponent({
 
           api.post('', {
             method: 'auth/checkTarget',
-            params: ['st'],
+            params: ['nsi'],
           })
         })
       } else {
-        api
+        axios
           .post(authURL + '/logout', new URLSearchParams())
           .then(() => {
             clearUserStore()
