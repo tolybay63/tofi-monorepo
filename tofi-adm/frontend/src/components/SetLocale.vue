@@ -72,7 +72,7 @@ const setLang = (e) => {
       localStorage.setItem("curLang", curLangName);
     })
     .then(() => {
-      location.reload();
+      //location.reload();
     });
 };
 </script>
