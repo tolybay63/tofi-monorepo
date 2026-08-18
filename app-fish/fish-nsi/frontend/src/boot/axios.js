@@ -1,19 +1,19 @@
-import { defineBoot } from '#q-app/wrappers'
+import { defineBoot } from '#q-app'
 import axios from 'axios'
 import { LoadingBar, Notify } from 'quasar'
-import { useUserStore } from "../stores/user-store.js"
+import { useUserStore } from "@/stores/user-store.js"
 
 // =========================================================================
 // 1. Настройка базовых URL (Одинаково для DEV и PROD)
 // =========================================================================
 const SERVICE_NAME = 'nsi';
-let urlMainApp = process.env.VITE_PRODUCT_URL_MAIN_APP;
+let urlMainApp = import.meta.env.QCLI_PRODUCT_URL_MAIN_APP;
 
 let authURL = "/auth";
 let baseURL = "/api";
 
 // Если это ПРОД (сборка через Nginx или запуск без портов в браузере)
-if (process.env.NODE_ENV === 'production' || (typeof window !== 'undefined' && !window.location.port)) {
+if (import.meta.env.QUASAR_PROD || (typeof window !== 'undefined' && !window.location.port)) {
   baseURL = `/fish/${SERVICE_NAME}/api/`;
   authURL = `/fish/${SERVICE_NAME}/auth`; // С закрывающим слэшем для идеальной работы proxy_cookie_path
 }

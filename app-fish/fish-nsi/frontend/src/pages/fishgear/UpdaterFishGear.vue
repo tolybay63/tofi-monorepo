@@ -17,32 +17,29 @@
       </q-bar>
 
       <q-card-section>
-
-        <!-- name -->
         <q-input
-          autofocus dense
+          autofocus
+          dense
           v-model="form.name"
           :label="fmReqLabel('fldName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         />
 
-        <!-- Class -->
         <q-select
           class="q-mt-md"
           v-model="form.cls"
-          dense options-dense
+          dense
+          options-dense
           :options="optCls"
           :label="fmReqLabel('FishGearType')"
           option-value="id"
           option-label="name"
           map-options
-          :disable="mode==='upd'"
+          :disable="mode === 'upd'"
           @update:model-value="fnSelectCls"
         />
-        <!-- Description -->
-        <q-input v-model="form['Description']" type="textarea" :label="$t('description')"/>
+        <q-input v-model="form['Description']" type="textarea" :label="$t('description')" />
       </q-card-section>
-      <!---->
 
       <q-card-actions align="right">
         <q-btn
@@ -52,109 +49,98 @@
           @click="onOKClick"
           :disable="validSave()"
         />
-        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick"/>
+        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from 'boot/axios'
-import {notifySuccess} from 'src/utils/jsutils'
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { api } from '../../boot/axios'
+import { notifySuccess } from '../../utils/jsutils'
 
-export default {
-  props: ['mode', 'data'],
+const props = defineProps({
+  mode: String,
+  data: Object,
+})
 
-  data() {
-    return {
-      form: this.data,
-      loading: false,
-      optCls: [],
-    }
-  },
+const emit = defineEmits(['ok', 'hide'])
+const { proxy } = getCurrentInstance()
 
-  emits: [
-    // REQUIRED
-    'ok',
-    'hide',
-  ],
+const dialog = ref(null)
+const loading = ref(false)
+const optCls = ref([])
+const form = reactive({ ...props.data })
 
-  methods: {
-    fmReqLabel(label) {
-      return this.$t(label) + '*'
-    },
-
-    fnSelectCls(v) {
-      this.form.cls = v.id
-    },
-
-    validSave() {
-      if (!this.form.cls || !this.form.name) return true
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]()
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]()
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit('hide')
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      let err = false
-      this.form.mode = this.mode
-      api
-        .post('', {
-          method: 'data/saveFishGear',
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            err = false
-            this.$emit('ok', response.data.result["records"][0])
-            notifySuccess(this.$t('success'))
-          })
-        .finally(() => {
-          if (!err) this.hide()
-        })
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide()
-    },
-  },
-  created() {
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadClsList',
-        params: ['Typ_FishGear'],
-      })
-      .then(
-        (response) => {
-          this.optCls = response.data.result["records"]
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-
-
-  },
+const fmReqLabel = (label) => {
+  return proxy?.$t(label) + '*'
 }
+
+const fnSelectCls = (v) => {
+  if (v) {
+    form.cls = v.id
+  }
+}
+
+const validSave = () => {
+  if (!form.cls || !form.name) return true
+}
+
+const show = () => {
+  dialog.value?.show()
+}
+
+const hide = () => {
+  dialog.value?.hide()
+}
+
+const onDialogHide = () => {
+  emit('hide')
+}
+
+const onOKClick = () => {
+  let err = false
+  form.mode = props.mode
+  api
+    .post('', {
+      method: 'data/saveFishGear',
+      params: [form],
+    })
+    .then((response) => {
+      err = false
+      emit('ok', response.data.result['records'][0])
+      notifySuccess(proxy?.$t('success'))
+    })
+    .catch(() => {
+      err = true
+    })
+    .finally(() => {
+      if (!err) hide()
+    })
+}
+
+const onCancelClick = () => {
+  hide()
+}
+
+onMounted(() => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadClsList',
+      params: ['Typ_FishGear'],
+    })
+    .then((response) => {
+      optCls.value = response.data.result['records']
+    })
+    .finally(() => {
+      loading.value = false
+    })
+})
+
+defineExpose({
+  show,
+  hide,
+})
 </script>

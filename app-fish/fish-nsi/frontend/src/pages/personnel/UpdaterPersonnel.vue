@@ -10,39 +10,30 @@
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
-        <div>{{ $t("newRecord") }}</div>
+        <div>{{ $t('newRecord') }}</div>
       </q-bar>
       <q-bar v-if="mode === 'upd'" class="text-white bg-primary">
-        <div>{{ $t("editRecord") }}</div>
+        <div>{{ $t('editRecord') }}</div>
       </q-bar>
 
       <q-card-section>
         <!-- UserSecondName -->
         <q-input
-          :model-value="form.UserSecondName"
           v-model="form.UserSecondName"
-          autofocus dense
+          autofocus
+          dense
           :label="fnLabel('UserSecondName', true)"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
         <!-- UserFirstName-->
         <q-input
-          :model-value="form.UserFirstName"
           v-model="form.UserFirstName"
           :label="fnLabel('UserFirstName', true)"
           dense
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
         <!-- UserMiddleName-->
-        <q-input
-          :model-value="form.UserMiddleName"
-          v-model="form.UserMiddleName"
-          :label="fnLabel('UserMiddleName', false)"
-          dense
-        >
-        </q-input>
+        <q-input v-model="form.UserMiddleName" :label="fnLabel('UserMiddleName', false)" dense />
         <!-- UserSex -->
         <q-select
           v-model="form.fvUserSex"
@@ -68,7 +59,7 @@
           @update:model-value="fnSelectUserPosition"
         />
 
-        <!-- UserOrg  -->
+        <!-- UserOrg (интегрирован наш універсальный TreeSelect) -->
         <TreeSelect
           v-model="form.objUserOrg"
           :options="optUserOrg"
@@ -76,7 +67,7 @@
           @select="fnSelectUserOrg"
         />
 
-        <!-- UserDateBirth  -->
+        <!-- UserDateBirth -->
         <q-input
           v-model="form.UserDateBirth"
           :label="fnLabel('UserDateBirth', false)"
@@ -85,14 +76,12 @@
           @update:model-value="fnSelectUserDateBirth"
         />
         <!-- UserEmail -->
-
         <q-input
           v-model="form.UserEmail"
           type="email"
           :label="fnLabel('UserEmail', false)"
-          :rules="[val => emailTest(val) || 'Ошибка формата']"
-        >
-        </q-input>
+          :rules="[(val) => emailTest(val) || 'Ошибка формата']"
+        />
 
         <!-- UserPhone -->
         <q-input
@@ -105,9 +94,7 @@
           bottom-slots
           @update:model-value="isValidPhone"
         >
-          <template v-slot:error>
-            Please use 10 characters.
-          </template>
+          <template v-slot:error> Please use 10 characters. </template>
         </q-input>
         <!-- UserId -->
         <q-select
@@ -117,13 +104,11 @@
           map-options
           option-label="name"
           option-value="id"
-          use-input clearable
+          use-input
+          clearable
           @filter="filterUserId"
           @update:model-value="fnSelectUserId"
         />
-
-
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
@@ -134,276 +119,245 @@
           @click="onOKClick"
           :disable="validSave()"
         />
-        <q-btn
-          color="primary"
-          icon="cancel"
-          :label="$t('cancel')"
-          @click="onCancelClick"
-        />
+        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { date } from 'quasar'
+import TreeSelect from '../../components/TreeSelect.vue'
+import { api } from '../../boot/axios'
+import { notifySuccess, pack } from '../../utils/jsutils'
 
-import TreeSelect from "../../components/TreeSelect.vue";
-import {api, } from "../../boot/axios";
-import {notifySuccess, pack} from "../../utils/jsutils";
-export default {
-  components: {TreeSelect},
-  props: ["data", "mode"],
+const props = defineProps({
+  data: Object,
+  mode: String,
+})
 
-  data() {
-    return {
-      form: this.data,
-      optUserSex: [],
-      optUserSexOrg: [],
+const emit = defineEmits(['ok', 'hide'])
+const { proxy } = getCurrentInstance()
 
-      optUserPosition: [],
-      optUserPositionOrg: [],
+const dialog = ref(null)
+const loading = ref(false)
+const form = reactive({ ...props.data })
 
-      optUserId: [],
-      optUserIdOrg: [],
+const optUserSex = ref([])
+const optUserSexOrg = ref([])
+const optUserPosition = ref([])
+const optUserPositionOrg = ref([])
+const optUserId = ref([])
+const optUserIdOrg = ref([])
+const optUserOrg = ref([])
 
-      optUserOrg: [],
+const fnLabel = (txt, req) => {
+  return req ? proxy?.$t(txt) + '*' : proxy?.$t(txt)
+}
 
-      loading: false
-    };
-  },
+const fnSelectUserDateBirth = (v) => {
+  if (v && v.length === 10 && date.formatDate(v)) {
+    form.UserDateBirth = v
+  }
+}
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+const fnSelectUserSex = (v) => {
+  if (v) {
+    form.fvUserSex = v.id
+    form.pvUserSex = v.pv
+  }
+}
 
-  methods: {
+const filterUserSex = (val, update) => {
+  if (val === null || val === '') {
+    update(() => {
+      optUserSex.value = optUserSexOrg.value
+    })
+    return
+  }
+  update(() => {
+    if (optUserSexOrg.value.length < 2) return
+    const needle = val.toLowerCase()
+    optUserSex.value = optUserSexOrg.value.filter((v) => {
+      return v.name?.toLowerCase().indexOf(needle) > -1
+    })
+  })
+}
 
-    normalizerUserOrg(node) {
-      return {
-        id: node.id,
-        label: node.name,
-      };
-    },
+const fnSelectUserPosition = (v) => {
+  if (v) {
+    form.fvUserPosition = v.id
+    form.pvUserPosition = v.pv
+  }
+}
 
-    fnLabel(txt, req) {
-      if (req)
-        return this.$t(txt) + "*";
-      else
-        return this.$t(txt);
-    },
+const filterUserPosition = (val, update) => {
+  if (val === null || val === '') {
+    update(() => {
+      optUserPosition.value = optUserPositionOrg.value
+    })
+    return
+  }
+  update(() => {
+    if (optUserPositionOrg.value.length < 2) return
+    const needle = val.toLowerCase()
+    optUserPosition.value = optUserPositionOrg.value.filter((v) => {
+      return v.name?.toLowerCase().indexOf(needle) > -1
+    })
+  })
+}
 
-    fnSelectUserDateBirth(v) {
-      console.log("UserDateBirth", v)
-      if (v.length === 10 && date.formatDate(v).isWellFormed()) {
-        this.UserDateBirth = v
-      }
-    },
+const fnSelectUserOrg = (v) => {
+  if (v) {
+    form.objUserOrg = v.id
+    form.pvUserOrg = v.pv
+  } else {
+    form.objUserOrg = null
+    form.pvUserOrg = null
+  }
+}
 
-    fnSelectUserSex(v) {
-      this.form.fvUserSex = v.id
-      this.form.pvUserSex = v.pv
-    },
+const fnSelectUserId = (v) => {
+  form.UserId = v ? v.id : null
+}
 
-    filterUserSex(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optUserSex = this.optUserSexOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optUserSexOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optUserSex = this.optUserSexOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
-    },
+const filterUserId = (val, update) => {
+  if (val === null || val === '') {
+    update(() => {
+      optUserId.value = optUserIdOrg.value
+    })
+    return
+  }
+  update(() => {
+    if (optUserIdOrg.value.length < 2) return
+    const needle = val.toLowerCase()
+    optUserId.value = optUserIdOrg.value.filter((v) => {
+      return v.name?.toLowerCase().indexOf(needle) > -1
+    })
+  })
+}
 
-    fnSelectUserPosition(v) {
-      this.form.fvUserPosition = v.id
-      this.form.pvUserPosition = v.pv
-    },
+const emailTest = (v) => {
+  if (!v) return true
+  return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(
+    v,
+  )
+}
 
-    filterUserPosition(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optUserPosition = this.optUserPositionOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optUserPositionOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optUserPosition = this.optUserPositionOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
-    },
+const isValidPhone = () => {
+  return form.UserPhone?.length === 10
+}
 
-    fnSelectUserOrg(v) {
-      this.form.objUserOrg = v.id
-      this.form.pvUserOrg = v.pv
-    },
+const validSave = () => {
+  return (
+    !form.UserSecondName ||
+    !form.UserFirstName ||
+    !form.fvUserSex ||
+    !form.fvUserPosition ||
+    !form.objUserOrg
+  )
+}
 
-    fnSelectUserId(v) {
-      this.form.UserId = v.id
-    },
+const show = () => {
+  dialog.value?.show()
+}
 
-    filterUserId(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optUserId = this.optUserIdOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optUserIdOrg.length < 2) return
-        const needle = val.toLowerCase()
-        let name = 'name'
-        this.optUserId = this.optUserIdOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1
-        })
-      })
-    },
+const hide = () => {
+  dialog.value?.hide()
+}
 
-    emailTest: function (v) {
-      if (!v)
-        return true
-      else
-        return /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/.test(v);
-    },
+const onDialogHide = () => {
+  emit('hide')
+}
 
-    isValidPhone: function (v) {
-      return this.form.UserPhone.length === 10
-    },
+const onOKClick = () => {
+  loading.value = true
+  let err = false
+  api
+    .post('', {
+      method: 'data/savePersonnel',
+      params: [props.mode, form],
+    })
+    .then((response) => {
+      emit('ok', response.data.result.records[0])
+      notifySuccess(proxy?.$t('success'))
+    })
+    .catch((error) => {
+      err = true
+      console.error(error.response?.data?.error?.message || error.message)
+    })
+    .finally(() => {
+      loading.value = false
+      if (!err) hide()
+    })
+}
 
-    validSave() {
-      return !this.form.UserSecondName || !this.form.UserFirstName || !this.form.fvUserSex ||
-        !this.form.fvUserPosition || !this.form.objUserOrg;
-    },
+const onCancelClick = () => {
+  loading.value = false
+  hide()
+}
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]();
-    },
+onMounted(() => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/selectFV',
+      params: ['Prop_UserSex'],
+    })
+    .then((response) => {
+      optUserSex.value = response.data.result.records
+      optUserSexOrg.value = response.data.result.records
+    })
+    .finally(() => {
+      loading.value = false
+    })
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/selectFV',
+      params: ['Prop_UserPosition'],
+    })
+    .then((response) => {
+      optUserPosition.value = response.data.result.records
+      optUserPositionOrg.value = response.data.result.records
+    })
+    .finally(() => {
+      loading.value = false
+    })
 
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/selectObj',
+      params: ['Prop_UserOrg'],
+    })
+    .then((response) => {
+      const rawRecords = response.data?.result?.records || []
+      optUserOrg.value = pack(rawRecords, 'id')
+    })
+    .finally(() => {
+      loading.value = false
+    })
 
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      this.loading = true
-      let err = false
-      api
-        .post("", {
-           method: "data/savePersonnel",
-          params: [this.mode, this.form ],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            err = true
-            console.error(error.response.data.error.message);
-          }
-        )
-        .finally(() => {
-          if (!err) this.hide();
-        });
-    },
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/selectUser',
+      params: [],
+    })
+    .then((response) => {
+      optUserId.value = response.data.result.records
+      optUserIdOrg.value = response.data.result.records
+    })
+    .finally(() => {
+      loading.value = false
+    })
+})
 
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.loading = false
-      this.hide();
-    },
-  },
-
-  created() {
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/selectFV',
-        params: ['Prop_UserSex'],
-      })
-      .then(
-        (response) => {
-          this.optUserSex = response.data.result.records
-          this.optUserSexOrg = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/selectFV',
-        params: ['Prop_UserPosition'],
-      })
-      .then(
-        (response) => {
-          this.optUserPosition = response.data.result.records
-          this.optUserPositionOrg = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/selectObj',
-        params: ['Prop_UserOrg'],
-      })
-      .then(
-        (response) => {
-          this.optUserOrg = pack(response.data.result.records, "id")
-        })
-      .finally(() => {
-        this.loading = false
-      })
-
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/selectUser',
-        params: [],
-      })
-      .then(
-        (response) => {
-          console.log("UserId", response.data.result.records);
-          this.optUserId = response.data.result.records
-          this.optUserIdOrg = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    console.info("data", this.data)
-
-
-
-  },
-};
+defineExpose({
+  show,
+  hide,
+})
 </script>

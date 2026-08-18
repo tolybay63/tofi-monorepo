@@ -22,9 +22,9 @@
       <template #bottom-row>
         <q-td colspan="100%" v-if="selected.length > 0">
           <span class="text-blue"> {{ $t('selectedRow') }}: </span>
-          <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+          <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
         </q-td>
-        <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+        <q-td colspan="100%" v-else-if="rows.length > 0" class="text-bold">
           {{ $t('infoRow') }}
         </q-td>
       </template>
@@ -79,13 +79,7 @@
 
         <q-space />
 
-        <q-input
-          dense
-          debounce="300"
-          color="primary"
-          v-model="filter"
-          :label="$t('txt_filter')"
-        >
+        <q-input dense debounce="300" color="primary" v-model="filter" :label="$t('txt_filter')">
           <template v-slot:append>
             <q-icon name="search" />
           </template>
@@ -99,223 +93,142 @@
   </div>
 </template>
 
-<script>
-import {extend} from 'quasar'
-import {api} from 'boot/axios'
-import {hasTarget, notifyInfo} from 'src/utils/jsutils'
-import UpdaterFishGear from "pages/fishgear/UpdaterFishGear.vue";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from 'vue'
+import { useQuasar, extend } from 'quasar'
+import { api } from '../../boot/axios'
+import { hasTarget, notifyInfo } from '../../utils/jsutils'
+import UpdaterFishGear from './UpdaterFishGear.vue'
 
-export default {
-  name: 'FishGearPage',
-  props: [],
+const $q = useQuasar()
+const { proxy } = getCurrentInstance()
 
-  data: function () {
-    return {
-      cols: [],
-      rows: [],
-      filter: '',
-      selected: [],
-      loading: false,
-    }
+const rows = ref([])
+const filter = ref('')
+const selected = ref([])
+const loading = ref(false)
+
+const getColumns = () => [
+  {
+    name: 'name',
+    label: proxy?.$t('fldName') + '*',
+    field: 'name',
+    align: 'left',
+    sortable: true,
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 35%',
   },
+  {
+    name: 'nameCls',
+    label: proxy?.$t('FishGearType') + '*',
+    field: 'nameCls',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width:25%',
+  },
+  {
+    name: 'Description',
+    label: proxy?.$t('description'),
+    field: 'Description',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 40%',
+  },
+]
 
-  methods: {
-    hasTarget,
+const cols = ref(getColumns())
 
-    editRow(row, mode) {
-      let data = { accessLevel: 1 }
-      if (mode === 'upd') {
-        data = extend(true, {}, row)
+const infoSelected = (row) => {
+  return ' ' + row.name
+}
+
+const loadFishGear = () => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadFishGear',
+      params: [{ codTyp: 'Typ_FishGear', idObj: 0 }],
+    })
+    .then((response) => {
+      rows.value = response.data.result['records']
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
+
+const editRow = (row, mode) => {
+  let data = { accessLevel: 1 }
+  if (mode === 'upd') {
+    data = extend(true, {}, row)
+  }
+
+  $q.dialog({
+    component: UpdaterFishGear,
+    componentProps: {
+      mode: mode,
+      data: data,
+    },
+  }).onOk((r) => {
+    if (mode === 'ins') {
+      rows.value.push(r)
+      selected.value = [r]
+    } else {
+      for (let key in r) {
+        row[key] = r[key]
       }
+    }
+  })
+}
 
-      this.$q
-        .dialog({
-          component: UpdaterFishGear,
-          componentProps: {
-            mode: mode,
-            data: data,
-            // ...
-          },
-        })
-        .onOk((r) => {
-          //console.log("Ok! updated", r);
-          if (mode === 'ins') {
-            this.rows.push(r)
-            this.selected = []
-            this.selected.push(r)
-          } else {
-            for (let key in r) {
-              row[key] = r[key]
-              /*
-              if (r.hasOwnProperty(key)) {
-                row[key] = r[key]
-              }
-*/
-            }
-          }
-        })
-    },
-
-    removeRow(row) {
-      this.$q
-        .dialog({
-          title: this.$t('confirmation'),
-          message: this.$t('deleteRecord') + '<div style="color: plum">(' + row.name + ')</div>',
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: 'cancel',
-        })
-        .onOk(() => {
-          //let index = this.rows.findIndex((row) => row.id === rec.id);
-          api
-            .post('', {
-              method: 'data/deleteFishGear',
-              params: [row.obj],
-            })
-            .then(() => {
-              this.loadFishGear()
-              this.selected = []
-            })
-            .catch(() => {
-              //console.log(error.message)
-
-/*
-              if (error.response.data.error.message.includes('@')) {
-                let msgs = error.response.data.error.message.split('@')
-                let m1 = msgs[0]
-                let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
-                let msg = ''
-                if (m1 === 'existsSampling') {
-                  msg = `
-                  Заборы проб:
-                  Существует - ${m2}
-                  `
-                }
-                notifyError(msg)
-              } else {
-                notifyError(this.$t(error.response.data.error.message))
-              }
-*/
-            })
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t('canceled'))
-        })
-    },
-
-    loadFishGear() {
-      this.loading = true
+const removeRow = (row) => {
+  $q.dialog({
+    title: proxy?.$t('confirmation'),
+    message: proxy?.$t('deleteRecord') + '<div style="color: plum">(' + row.name + ')</div>',
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: 'cancel',
+  })
+    .onOk(() => {
       api
         .post('', {
-          method: 'data/loadFishGear',
-          params: [{ codTyp: 'Typ_FishGear', idObj: 0 }],
+          method: 'data/deleteFishGear',
+          params: [row.obj],
         })
-        .then(
-          (response) => {
-            this.rows = response.data.result["records"]
-          })
-        .finally(() => {
-          this.loading = false
+        .then(() => {
+          loadFishGear()
+          selected.value = []
         })
-    },
-
-    getColumns() {
-      return [
-        {
-          name: 'name',
-          label: this.$t('fldName')+"*",
-          field: 'name',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 35%',
-        },
-        {
-          name: 'nameCls',
-          label: this.$t('FishGearType')+"*",
-          field: 'nameCls',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width:25%',
-        },
-        {
-          name: 'Description',
-          label: this.$t('description'),
-          field: 'Description',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 40%',
-        },
-      ]
-    },
-
-    infoSelected(row) {
-      return ' ' + row.name
-    },
-  },
-
-  created() {
-    this.cols = this.getColumns()
-    //
-    this.loadFishGear()
-
-  },
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t('canceled'))
+    })
 }
+
+onMounted(() => {
+  loadFishGear()
+})
 </script>
-
-<!--<style lang="sass">
-.my-sticky-header-table
-  /* height or max-height is important */
-  height: calc(100vh - 190px)
-
-  .q-table__top,
-  .q-table__bottom,
-  thead tr:first-child th
-    /* bg color is important for th; just specify one */
-    background-color: #bdbdbd
-
-  thead tr th
-    position: sticky
-    z-index: 1
-  thead tr:first-child th
-    top: 0
-
-  /* this is when the loading indicator appears */
-  &.q-table&#45;&#45;loading thead tr:last-child th
-    /* height of all previous header rows */
-    top: 48px
-
-  /* prevent scrolling behind sticky top row on focus */
-  tbody
-    /* height of all previous header rows */
-    scroll-margin-top: 48px
-</style>-->
 
 <style scoped>
 .sticky-header-table {
-  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
   max-height: 100%;
   overflow: auto;
 }
 
 .sticky-header-table table {
-  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
   border-collapse: separate;
   border-spacing: 0;
 }
 
 .sticky-header-table thead th {
-  /* Делаем заголовок липким */
   position: sticky;
   top: 0;
-  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
   z-index: 1;
-  /* Фон обязателен, иначе заголовок будет прозрачным */
-  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+  background-color: #607d8b;
 }
 
-/* Опционально: если у таблицы есть границы, фиксируем их отображение */
 .sticky-header-table .q-table--bordered {
   border-top: none;
 }

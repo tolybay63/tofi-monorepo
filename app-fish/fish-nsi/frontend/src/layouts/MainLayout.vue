@@ -3,13 +3,13 @@
     <q-header elevated>
       <q-toolbar>
         <!--Main App -->
-        <q-btn class="q-mr-md" rounded color="primary" dense icon="grid_view" @click="mainApp()">
+        <q-btn class="q-mr-md" rounded color="primary" dense icon="grid_view" @click="mainApp">
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t('appName') }}
           </q-tooltip>
         </q-btn>
 
-        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer()">
+        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer">
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t('menu') }}
           </q-tooltip>
@@ -26,7 +26,7 @@
           color="primary"
           dense
           icon="home"
-          @click="this.$router['push']('/')"
+          @click="router.push('/')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t('mainPage') }}
@@ -41,14 +41,14 @@
             color="primary"
             dense
             icon="account_circle"
-            @click="loginOnOff()"
+            @click="loginOnOff"
             no-caps
           >
-            <q-tooltip transition-show="rotate" transition-hide="rotate" v-if="getUserName === ''"
-              >{{ $t('logIn') }}
+            <q-tooltip transition-show="rotate" transition-hide="rotate" v-if="getUserName === ''">
+              {{ $t('logIn') }}
             </q-tooltip>
-            <q-tooltip v-else transition-show="rotate" transition-hide="rotate"
-              >{{ $t('logOut') }}
+            <q-tooltip v-else transition-show="rotate" transition-hide="rotate">
+              {{ $t('logOut') }}
             </q-tooltip>
 
             {{ getUserName }}
@@ -60,7 +60,7 @@
         </div>
 
         <!-- Текущий язык-->
-        <SetLocale></SetLocale>
+        <SetLocale />
       </q-toolbar>
     </q-header>
 
@@ -73,9 +73,10 @@
           {{ $t('company') }}
 
           <span class="absolute-right q-pt-sm">
-          <a :href="site_url()" target="_blank" style="font-size: 12px" class="q-pr-md text-white"> {{$t("fish_model")}} </a>
+            <a :href="siteUrl" target="_blank" style="font-size: 12px" class="q-pr-md text-white">
+              {{ $t('fish_model') }}
+            </a>
           </span>
-
         </q-toolbar-title>
       </q-toolbar>
     </q-footer>
@@ -116,172 +117,131 @@
 </template>
 
 <script>
-import {defineComponent, ref} from 'vue'
+import { defineComponent, ref } from 'vue'
+import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import LoginUser from '../components/LoginUser.vue'
 import SetLocale from '../components/SetLocale.vue'
-import {api, authURL, urlMainApp} from '../boot/axios'
-
-import {useUserStore} from '../stores/user-store'
-import {storeToRefs} from 'pinia'
-import {useRouter} from "vue-router";
-import {Notify} from "quasar";
-import {hasTarget} from "../utils/jsutils.js";
-import axios from "axios";
+import { api, authURL, urlMainApp } from '../boot/axios'
+import { useUserStore } from '../stores/user-store'
+import { hasTarget } from '../utils/jsutils.js'
 
 export default defineComponent({
   name: 'MainLayout',
   components: { SetLocale },
 
-  data() {
-    return {}
-  },
-
-  methods: {
-    hasTarget,
-    mainApp() {
-      open(urlMainApp, '_self')
-    },
-
-    site_url() {
-      return process.env.SITE_URL
-    },
-  },
-
-  created() {
-    console.info('Created!')
-    const store = useUserStore()
-    const { clearUserStore } = store
-    const { getUserId } = storeToRefs(store)
+  setup() {
+    console.info('Setup initialized!')
+    const $q = useQuasar()
     const router = useRouter()
+    const leftDrawerOpen = ref(true)
 
+    const store = useUserStore()
+    const { getUserName, isSysAdmin, getTarget, getUserId } = storeToRefs(store)
+    const { setUserStore, clearUserStore } = store
+
+    // Проверка авторизации при инициализации
     if (getUserId.value === 0) {
       clearUserStore()
       router.push('/')
     }
-  },
 
-  mounted() {
-  },
+    const essentialLinks = [
+      {
+        title: 'kato',
+        icon: 'home_work',
+        link: '/kato',
+        target: 'mon:kato',
+      },
+      {
+        title: 'samplingStations',
+        icon: 'houseboat',
+        link: '/samplingstations',
+        target: 'mon:st',
+      },
+      {
+        title: 'FishGear',
+        icon: 'phishing',
+        link: '/fishGear',
+        target: 'mon:fg',
+      },
+      {
+        title: 'struct_enterprise',
+        info: '',
+        icon: 'apartment',
+        link: '/struct_enterprise2',
+        target: 'st:org',
+      },
+      {
+        title: 'personnel',
+        info: '',
+        icon: 'group',
+        link: '/personnel',
+        target: 'st:per',
+      },
+    ]
 
-  setup() {
-    console.info('Setup!')
-    const leftDrawerOpen = ref(true)
-
-    const store = useUserStore()
-    const { getUserName, isSysAdmin, getTarget } = storeToRefs(store)
-    const { setUserStore, clearUserStore } = store
-    const router = useRouter()
-
-    let getLinks = () => {
-      return [
-        {
-          title: "kato",
-          icon: "home_work",
-          link: "/kato",
-          target: "mon:kato",
-        },
-        {
-          title: 'samplingStations',
-          icon: 'houseboat',
-          link: '/samplingstations',
-          target: 'mon:st',
-        },
-        {
-          title: 'FishGear',
-          icon: 'phishing',
-          link: '/fishGear',
-          target: 'mon:fg',
-        },
-
-        {
-          title: "struct_enterprise",
-          info: "",
-          icon: "apartment",
-          link: "/struct_enterprise2",
-          target: "st:org",
-        },
-/*
-
-        {
-          title: "struct_enterprise",
-          info: "",
-          icon: "apartment",
-          link: "/struct_enterprise",
-          target: "st:org",
-        },
-*/
-        {
-          title: "personnel",
-          info: "",
-          icon: "group",
-          link: "/personnel",
-          target: "st:per",
-        },
-      ]
+    const mainApp = () => {
+      open(urlMainApp, '_self')
     }
 
-    let essentialLinks = getLinks()
+    const siteUrl = import.meta.env.QCLI_SITE_URL || 'https://tofishstocks-model.kz'
 
+    const reqAuth = () => getUserName.value === ''
+
+    const notAccess = () => !getTarget.value.includes('st') && !isSysAdmin.value
+
+    const nameIcon = () => (getUserName.value === '' ? 'login' : 'logout')
+
+    const loginOnOff = () => {
+      if (getUserName.value === '') {
+        leftDrawerOpen.value = true
+        $q.dialog({
+          component: LoginUser,
+          componentProps: {},
+        }).onOk((res) => {
+          setUserStore(res)
+          router.push('/')
+
+          api.post('', {
+            method: 'auth/checkTarget',
+            params: ['st'],
+          })
+        })
+      } else {
+        api
+          .post(authURL + '/logout', new URLSearchParams())
+          .then(() => {
+            clearUserStore()
+          })
+          .catch((err) => {
+            console.error('Ошибка при logout на сервере:', err)
+            clearUserStore()
+          })
+          .finally(() => {
+            router.push('/')
+          })
+      }
+    }
+
+    const toggleLeftDrawer = () => {
+      leftDrawerOpen.value = !leftDrawerOpen.value
+    }
 
     return {
-      getUserName,
-      essentialLinks,
-
-      reqAuth() {
-        return getUserName.value === ''
-      },
-
-      notAccess() {
-        return !getTarget.value.includes("st") && !isSysAdmin.value
-      },
-
-      nameIcon() {
-        if (getUserName.value === '') return 'login'
-        else return 'logout'
-      },
-
-      loginOnOff() {
-
-        if (getUserName.value === '') {
-          leftDrawerOpen.value = true
-          this.$q
-            .dialog({
-              component: LoginUser,
-              componentProps: {
-                // ...
-              },
-            })
-            .onOk((res) => {
-              setUserStore(res)
-              router.push('/')
-
-              api
-                .post("", {
-                  method: "auth/checkTarget",
-                  params: ["st"],
-                })
-            })
-        } else {
-          axios
-            .post(authURL + '/logout', new URLSearchParams()) // <-- Склеиваем динамически со слэшем!
-            .then(() => {
-              clearUserStore()
-            })
-            .catch((err) => {
-              console.error("Ошибка при logout на сервере:", err)
-              clearUserStore()
-            })
-            .finally(() => {
-              router.push('/')
-            })
-        }
-
-      },
-
       leftDrawerOpen,
-      toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      },
+      essentialLinks,
+      getUserName,
+      mainApp,
+      siteUrl,
+      hasTarget,
+      reqAuth,
+      notAccess,
+      nameIcon,
+      loginOnOff,
+      toggleLeftDrawer,
+      router,
     }
   },
 })

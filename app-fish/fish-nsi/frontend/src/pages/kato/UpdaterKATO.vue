@@ -10,47 +10,34 @@
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
-        <div>{{ $t("newRecord") }}</div>
+        <div>{{ $t('newRecord') }}</div>
       </q-bar>
       <q-bar v-if="mode === 'upd'" class="text-white bg-primary">
-        <div>{{ $t("editRecord") }}</div>
+        <div>{{ $t('editRecord') }}</div>
       </q-bar>
 
       <q-card-section>
         <q-item-section v-if="isChild">
           <div class="row">
-          <span class="text-blue q-mt-md-md" > {{ $t("region") }}: </span>
-          <span class="q-mb-lg q-ml-md text-bold"> {{ parentName }} </span>
+            <span class="text-blue q-mt-md-md"> {{ $t('region') }}: </span>
+            <span class="q-mb-lg q-ml-md text-bold"> {{ parentName }} </span>
           </div>
         </q-item-section>
 
-        <!-- name -->
         <q-input
           v-model="form.name"
-          :model-value="form.name"
           autofocus
           @blur="onBlurName"
           :label="fmReqLabel('fldName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
-        <!-- fullName-->
+        />
         <q-input
           v-model="form.fullName"
-          :model-value="form.fullName"
           :label="fmReqLabel('fldFullName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
-
-        <!-- cmt -->
-        <q-input
-          :model-value="form.cmt"
-          v-model="form.cmt"
-          type="textarea"
-          :label="$t('fldCmt')"
         />
-        <!---->
+
+        <q-input v-model="form.cmt" type="textarea" :label="$t('fldCmt')" />
       </q-card-section>
 
       <q-card-actions align="right">
@@ -61,142 +48,109 @@
           @click="onOKClick"
           :disable="validSave()"
         />
-        <q-btn
-          color="primary"
-          icon="cancel"
-          :label="$t('cancel')"
-          @click="onCancelClick"
-        />
+        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { api } from '@/boot/axios'
+import { notifyError } from '../../utils/jsutils'
 
-export default {
-  props: ["mode", "isChild", "parentName", "data"],
+const props = defineProps({
+  mode: String,
+  isChild: Boolean,
+  parentName: String,
+  data: Object,
+})
 
-  data() {
-    return {
-      form: this.data,
-      loading: false,
-      clsRegion: 0,
-      clsDistrict: 0,
-    }
-  },
+const emit = defineEmits(['ok', 'hide'])
+const { proxy } = getCurrentInstance()
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+const dialog = ref(null)
+const loading = ref(false)
+const clsRegion = ref(0)
+const clsDistrict = ref(0)
+const form = reactive({ ...props.data })
 
-  methods: {
-    fmReqLabel(label) {
-      return this.$t(label) + "*";
-    },
-
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-          !this.form.fullName ||
-          (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
-
-    validSave() {
-      return (
-        !this.form.name ||
-        !this.form.fullName
-      )
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insertBranch" : "updateBranch";
-      if (this.isChild)
-        this.form.cls = this.clsDistrict
-      else
-        this.form.cls = this.clsRegion
-
-      api
-        .post('', {
-          method: "data/" + method,
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            //this.$emit("ok", {res: true});
-            this.$emit("ok", response.data.result["records"][0]);
-            //notifySuccess(this.$t("success"));
-          })
-        .catch(error => {
-          let msg = error.response.data.error.message
-            ? error.response.data.error.message
-            : error.message
-          notifyError(msg)
-        })
-        .finally(() => {
-          this.hide()
-        })
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-
-  created() {
-    this.loading = true
-    api
-      .post('', {
-        method: "data/getClsIds",
-        params: [""],
-      })
-      .then(
-        (response) => {
-          this.clsRegion = response.data.result["Cls_Regions"]
-          this.clsDistrict = response.data.result["Cls_Districts"]
-          //notifySuccess(this.$t("success"))
-        })
-      .catch(error => {
-        let msg = error.response.data.error.message
-          ? error.response.data.error.message
-          : error.message
-        notifyError(msg)
-      })
-      .finally(() => {
-        this.loading = false
-      })
-  },
+const fmReqLabel = (label) => {
+  return proxy?.$t(label) + '*'
 }
+
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim()
+    if (!form.fullName || form.fullName.trim() === '') {
+      form.fullName = form.name
+    }
+  }
+}
+
+const validSave = () => {
+  return !form.name || !form.fullName
+}
+
+const show = () => {
+  dialog.value?.show()
+}
+
+const hide = () => {
+  dialog.value?.hide()
+}
+
+const onDialogHide = () => {
+  emit('hide')
+}
+
+const onOKClick = () => {
+  const method = props.mode === 'ins' ? 'insertBranch' : 'updateBranch'
+  form.cls = props.isChild ? clsDistrict.value : clsRegion.value
+
+  api
+    .post('', {
+      method: 'data/' + method,
+      params: [form],
+    })
+    .then((response) => {
+      emit('ok', response.data.result['records'][0])
+    })
+    .catch((error) => {
+      let msg = error.response?.data?.error?.message || error.message
+      notifyError(msg)
+    })
+    .finally(() => {
+      hide()
+    })
+}
+
+const onCancelClick = () => {
+  hide()
+}
+
+onMounted(() => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/getClsIds',
+      params: [''],
+    })
+    .then((response) => {
+      clsRegion.value = response.data.result['Cls_Regions']
+      clsDistrict.value = response.data.result['Cls_Districts']
+    })
+    .catch((error) => {
+      let msg = error.response?.data?.error?.message || error.message
+      notifyError(msg)
+    })
+    .finally(() => {
+      loading.value = false
+    })
+})
+
+defineExpose({
+  show,
+  hide,
+})
 </script>
