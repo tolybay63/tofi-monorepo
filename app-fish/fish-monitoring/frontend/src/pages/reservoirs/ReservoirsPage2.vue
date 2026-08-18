@@ -35,8 +35,13 @@
 
             <q-card-section
               class="flex flex-center"
+              :style="{fontSize: 20 + 'px'} "
             >
-              <div>Количество водоемов:  <strong>{{ props.row.cnt }} </strong></div>
+              <div class="row">Количество водоемов:
+                <div class="text-blue text-bold">
+                  {{ props.row.cnt }}
+                </div>
+              </div>
             </q-card-section>
           </q-card>
         </div>
@@ -70,6 +75,7 @@ export default {
       cols: [],
       rows: [],
       loading: true,
+      maxCnt: 4
 
     }
   },
@@ -79,7 +85,6 @@ export default {
 
     fnChoose(row) {
       console.log(row)
-
     },
 
 

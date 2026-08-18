@@ -249,7 +249,7 @@ export default {
         .then(
           (response) => {
             this.rows = response.data.result["records"]
-            console.info("load", this.rows)
+            //console.info("load", this.rows)
           })
         .finally(() => {
           //setTimeout(()=> {
@@ -373,8 +373,7 @@ export default {
       })
       .then(
         (response) => {
-          console.info("mapResorvoir", response.data.result.records)
-
+          //console.info("mapResorvoir", response.data.result.records)
           response.data.result.records.forEach((it) => {
             this.mapResorvoir.set(it["obj"], it["name"])
           })
