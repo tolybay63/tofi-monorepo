@@ -3,7 +3,6 @@
     ref="dialogRef"
     @hide="onDialogHide"
     persistent
-    autofocus
     transition-show="slide-down"
     transition-hide="slide-down"
   >
