@@ -1348,15 +1348,16 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadResorvoirForName() {
         Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
+        //Typ_FishCatch
+        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
         Store stObj = mdb.loadQuery("""
-            select --* 
-             distinct v.obj, ov1.name
+            select distinct v.obj, ov1.name
             from Obj o
             left join ObjVer ov on o.id=ov.ownerVer and ov.lastVer=1
             left join DataProp d on d.isobj=1 and d.objorrelobj =o.id and d.prop=${mapProp.get("Prop_ReservoirShore")}
             left join DataPropVal v on d.id=v.dataprop 
             left join ObjVer ov1 on ov1.ownerver=v.obj and ov1.lastver=1
-            where o.cls in (1035,1036,1037) and v.obj is not null            
+            where o.cls in (0${idsCls.join(",")}) and v.obj is not null            
         """)
         //
         return stObj

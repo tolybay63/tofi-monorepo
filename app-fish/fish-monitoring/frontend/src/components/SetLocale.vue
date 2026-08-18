@@ -50,7 +50,7 @@ export default {
           localStorage.setItem('curLang', curLang)
         })
         .then(() => {
-          location.reload()
+          //location.reload()
         })
     },
   },
