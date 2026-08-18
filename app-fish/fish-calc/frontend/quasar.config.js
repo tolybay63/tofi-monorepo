@@ -1,4 +1,4 @@
-import {defineConfig} from '#q-app/wrappers'
+import {defineConfig} from '#q-app'
 import {fileURLToPath} from 'node:url'
 
 let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'

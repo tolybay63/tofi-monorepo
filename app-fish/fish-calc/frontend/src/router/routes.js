@@ -11,7 +11,7 @@ const routes = [
 
   {
     path: "/confirm-pws",
-    component: () => import("pages/ConfirmPassword.vue")
+    component: () => import("@/pages/ConfirmPassword.vue")
   },
 
 
