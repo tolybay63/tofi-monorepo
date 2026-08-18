@@ -147,6 +147,8 @@ export default {
       mapFishGear: new Map(),
       mapFishManager: new Map(),
 
+      mapResorvoir: new Map(),
+
     }
   },
 
@@ -247,7 +249,7 @@ export default {
         .then(
           (response) => {
             this.rows = response.data.result["records"]
-            //console.info("load", this.rows)
+            console.info("load", this.rows)
           })
         .finally(() => {
           //setTimeout(()=> {
@@ -271,7 +273,7 @@ export default {
           name: 'StartDate',
           label: this.$t('StartDate') + "*",
           field: 'StartDate',
-          align: 'left',
+          algn: 'left',
           sortable: true,
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 10%',
@@ -288,12 +290,13 @@ export default {
           format: (v) => (this.mapFishLocation ? this.mapFishLocation.get(v) : null),
         },
         {
-          name: 'nameReservoir',
+          name: 'objReservoirShore',
           label: this.$t('reservoir') + "*",
-          field: 'nameReservoir',
+          field: 'objReservoirShore',
           align: 'left',
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 10%',
+          format: (v) => (this.mapResorvoir ? this.mapResorvoir.get(v) : null),
         },
         {
           name: 'AreaOfTon',
@@ -348,7 +351,7 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadFishLocationForSelect',
+        method: 'data/loadFishLocationForName',
         params: ["Prop_FishLocation"],
       })
       .then(
@@ -361,6 +364,26 @@ export default {
         this.loading = false
       })
     //
+
+    this.loading = true
+    api
+      .post('', {
+        method: 'data/loadResorvoirForName',
+        params: [],
+      })
+      .then(
+        (response) => {
+          console.info("mapResorvoir", response.data.result.records)
+
+          response.data.result.records.forEach((it) => {
+            this.mapResorvoir.set(it["obj"], it["name"])
+          })
+        })
+      .finally(() => {
+        this.loading = false
+      })
+    //
+
     this.loading = true
     api
       .post('', {

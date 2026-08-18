@@ -41,6 +41,23 @@
           class="q-ma-md" dense
           @update:model-value="fnSelectDte"
         />
+
+        <!-- Reservoir -->
+        <q-select
+          v-model="form.objReservoirShore"
+          :label="fmReqLabel('reservoir')"
+          :model-value="form.objReservoirShore"
+          :options="optReservoir"
+          class="q-ma-md"
+          dense
+          map-options
+          option-label="name"
+          option-value="id"
+          use-input
+          @filter="filterReservoir"
+          @update:model-value="fnSelectReservoir"
+        />
+
         <!-- objFishLocation -->
         <q-select
           :disable="mode==='upd'"
@@ -162,6 +179,9 @@ export default {
       FishParticipants: [],
       optFishParticipants: [],
 
+      optReservoir: [],
+      optReservoirOrg: [],
+
       loading: false,
 
     }
@@ -194,13 +214,44 @@ export default {
       }
     },
 
+    fnSelectReservoir(v) {
+      if (v) {
+        this.objFishLocation = null
+        this.form.objFishLocation = null
+        this.form.pvFishLocation = null
+
+        this.form.objReservoirShore = v.id
+        this.form.pvReservoirShore = v.pv
+        this.loadFishLocationForSelect(v.id)
+      } else {
+        this.form.objReservoirShore = null
+        this.form.pvReservoirShore = null
+        this.loadFishLocationForSelect(0)
+      }
+    },
+
+    filterReservoir(val, update) {
+      if (val === null || val === '') {
+        update(() => {
+          this.optReservoir = this.optReservoirOrg
+        })
+        return
+      }
+      update(() => {
+        if (this.optReservoirOrg.length < 2) return
+        const needle = val.toLowerCase()
+        this.optReservoir = this.optReservoirOrg.filter((v) => {
+          return v.name?.toLowerCase().indexOf(needle) > -1
+        })
+      })
+    },
+
     fnSelectFishGear(v) {
       if (v) {
         this.form.objFishGear = v.id
         this.form.pvFishGear = v.pv
       }
     },
-
 
     fnSelectFishManager(v) {
       if (v) {
@@ -209,6 +260,21 @@ export default {
       }
     },
 
+    loadFishLocationForSelect(reoirvoir) {
+      this.loading = true
+      api
+        .post('', {
+          method: 'data/loadFishLocationForSelect',
+          params: [reoirvoir],
+        })
+        .then(
+          (response) => {
+            this.optFishLocation = response.data.result.records
+          })
+        .finally(() => {
+          this.loading = false
+        })
+    },
 
     validSave() {
       //console.info("form", this.form)
@@ -299,17 +365,17 @@ export default {
     this.loading = true
     api
       .post('', {
-        method: 'data/loadFishLocationForSelect',
-        params: ['Prop_FishLocation'],
+        method: 'data/loadReservoir',
+        params: ['Prop_ReservoirShore'],
       })
-      .then(
-        (response) => {
-          this.optFishLocation = response.data.result.records
-        })
+      .then((response) => {
+        this.optReservoir = response.data.result['records']
+        this.optReservoirOrg = response.data.result['records']
+      })
       .finally(() => {
         this.loading = false
       })
-    //
+
     this.loading = true
     api
       .post('', {
@@ -354,6 +420,8 @@ export default {
       })
       .then(() => {
         if (this.mode === "upd") {
+          this.loadFishLocationForSelect(this.data.objReservoirShore)
+          //
           this.objFishLocation = this.data.objFishLocation
           this.objFishGear = this.data.objFishGear
           this.objFishManager = this.data.objFishManager

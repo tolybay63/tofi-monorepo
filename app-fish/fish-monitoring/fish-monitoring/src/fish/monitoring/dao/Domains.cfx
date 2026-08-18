@@ -297,6 +297,10 @@
         <field name="idStartDate" parent="long"/>
         <field name="StartDate" parent="string"/>
 
+        <field name="idReservoirShore" parent="long"/>
+        <field name="pvReservoirShore" parent="long"/>
+        <field name="objReservoirShore" parent="long"/>
+
         <field name="idFishLocation" parent="long"/>
         <field name="pvFishLocation" parent="long"/>
         <field name="objFishLocation" parent="long"/>
