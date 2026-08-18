@@ -10,7 +10,7 @@ import jandcode.core.std.CfgService;
 import java.util.Properties;
 
 public class MailSender {
-    private final String username = "dtj.service360@gmail.com";
+    private final String username = "ksi.factor.app.fish@gmail.com";
     private String mailPass="";
     Mdb mdb;
 
