@@ -155,12 +155,12 @@ export default defineComponent({
         link: '/kato',
         target: 'mon:kato',
       },
-      {
+/*      {
         title: 'samplingStations',
         icon: 'houseboat',
         link: '/samplingstations',
         target: 'mon:st',
-      },
+      },*/
       {
         title: 'FishGear',
         icon: 'phishing',
