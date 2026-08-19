@@ -7,12 +7,6 @@ const routes = [
 
       {
         path: '/reservoirs',
-        name: 'ReservoirsPage',
-        component: () => import('pages/reservoirs/ReservoirsPage.vue'),
-      },
-
-      {
-        path: '/reservoirs2',
         name: 'FilialsPage',
         component: () => import('pages/reservoirs/Filials.vue'),
       },
@@ -21,6 +15,8 @@ const routes = [
         name: 'ReservoirFilialPage',
         component: () => import('pages/reservoirs/ReservoirsFilialPage.vue'),
       },
+
+      { path: '/samplingstations', name: 'SamplingStationsPage', component: () => import('../pages/samplingstations/SamplingStationsPage.vue')},
 
 
       {

@@ -707,6 +707,133 @@ class DataDao extends BaseMdbUtils {
         return loadReservoirsFilial([codTyp: "", idObj: own, filial: pms.getLong("objBranch")] as Map<String, Object>)
     }
 
+    @DaoMethod
+    void deleteReservoir(long id) {
+        checkForExistData(id, 1)
+        deleteOwnerWithProperties(id, 1)
+    }
+
+    //---------------- 2 SamplingStation ----------------//
+    @DaoMethod
+    Store loadSamplingStations(Map<String, Object> params) {
+
+        Store stResoir = loadObjCustom("Prop_ReservoirShore")
+        StoreIndex indResoir = stResoir.getIndex("id")
+
+        String codCls = UtCnv.toString(params.get("codCls"))
+        long idObj = UtCnv.toLong(params.get("idObj"))
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        String whe = "o.id=${idObj}"
+        if (idObj == 0) {
+            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
+            whe = "o.cls = ${map1.get(codCls)}"
+        }
+        Store st = mdb.createStore("Obj.sampling.station")
+        mdb.loadQuery(st, """
+            select o.id as obj, o.cls, v.name, 
+                v1.id as idCoordinate, v1.strVal as Coordinate, 
+                v2.id as idAreaOfTon, v2.numberVal as AreaOfTon,
+                v3.id as idDescription, v3.multiStrVal as Description,
+                v4.id as idReservoirShore, v4.obj as objReservoirShore, 
+                v4.propVal as pvReservoirShore, null as nameReservoirShore
+            from Obj o
+                join ObjVer v on o.id=v.ownerver and v.lastver=1
+                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
+                left join DataPropVal v1 on d1.id=v1.dataprop 
+                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_AreaOfTon
+                left join DataPropVal v2 on d2.id=v2.dataprop
+                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirShore
+                left join DataPropVal v4 on d4.id=v4.dataprop
+            where ${whe}
+        """, map)
+        //
+
+        st.each { StoreRecord r ->
+            StoreRecord rec = indResoir.get(r.getLong("objReservoirShore"))
+            if (rec != null) {
+                r.set("nameReservoirShore", rec.getString("name"))
+            }
+        }
+        return st
+    }
+
+    //todo ????
+    private Store loadObjCustom(String codTypOrProp) {
+        Store st = loadObjForSelect(codTypOrProp, "monitoringdata")
+        Set<Object> idsCls = st.getUniqueValues("cls")
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select c.id, v.name from Cls c, ClsVer v 
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("id")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("name", r.getString("name") + " (" + rec.getString("name") + ")")
+            }
+        }
+        return st
+    }
+
+
+
+    @DaoMethod
+    Store saveSamplingStation(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        Map<String, Object> par = new HashMap<>(pms)
+        par.put("fullName", pms.get("name"))
+        if (pms.getString("mode").equalsIgnoreCase("ins")) {
+            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Station", "")
+            if (map.isEmpty()) throw new XError("NotFoundCod@Cls_Station")
+            par.put("cls", map.get("Cls_Station"))
+            own = eu.insertEntity(par)
+            pms.put("own", own)
+            //Prop_AreaOfTon
+            fillProperties(true, "Prop_AreaOfTon", pms)
+            //Prop_Coordinate
+            fillProperties(true, "Prop_Coordinate", pms)
+            //Prop_ReservoirShore
+            fillProperties(true, "Prop_ReservoirShore", pms)
+            //Prop_Description
+            if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+        } else {
+            own = pms.getLong("obj")
+            par.put("id", own)
+            eu.updateEntity(par)
+            //
+            pms.put("own", own)
+            //1 Prop_AreaOfTon
+            if (pms.containsKey("idAreaOfTon"))
+                updateProperties("Prop_AreaOfTon", pms)
+            //2 Prop_Coordinate
+            if (pms.containsKey("idCoordinate"))
+                updateProperties("Prop_Coordinate", pms)
+            //3 Prop_Description
+            if (pms.containsKey("idDescription"))
+                updateProperties("Prop_Description", pms)
+            else if (!pms.getString("Description").isEmpty())
+                fillProperties(true, "Prop_Description", pms)
+
+            //3 Prop_Description
+            if (pms.getLong("idReservoirShore") > 0)
+                updateProperties("Prop_ReservoirShore", pms)
+            else if (pms.getLong("objReservoirShore") > 0)
+                fillProperties(true, "Prop_ReservoirShore", pms)
+        }
+        return loadSamplingStations([codCls: "", idObj: own] as Map<String, Object>)
+    }
+
+    @DaoMethod
+    void deleteSamplingStation(long id) {
+        checkForExistData(id, 1)
+        deleteOwnerWithProperties(id, 1)
+    }
     //---------------- 3 TypesFish ----------------//
     @DaoMethod
     Store loadTypesFish(Map<String, Object> params) {
@@ -1528,48 +1655,23 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadResorvoirForName() {
-        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
-        //Typ_FishCatch
-        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
-        Store stObj = mdb.loadQuery("""
-            select distinct v.obj, ov1.name
-            from Obj o
-            left join ObjVer ov on o.id=ov.ownerVer and ov.lastVer=1
-            left join DataProp d on d.isobj=1 and d.objorrelobj =o.id and d.prop=${mapProp.get("Prop_ReservoirShore")}
-            left join DataPropVal v on d.id=v.dataprop 
-            left join ObjVer ov1 on ov1.ownerver=v.obj and ov1.lastver=1
-            where o.cls in (0${idsCls.join(",")}) and v.obj is not null            
-        """)
-        //
-        return stObj
-    }
-
-    @DaoMethod
-    Store loadFishLocationForName(String codTypOrProp) {
-        return loadObjForSelect(codTypOrProp, "nsidata")
-    }
-
-    @DaoMethod
     Store loadFishLocationForSelect(long resoirvoir) {
         Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
-        Map<String, Long> mapProp1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FishLocation", "")
-        mapProp.putAll(mapProp1)
         Map<String, Long> mapCls = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Station", "")
 
-        Store stObj = apiNSIData().get(ApiNSIData).loadSql("""
+        Store stObj = mdb.loadQuery("""
             select o.id, o.cls, ov.name, null as pv
             from Obj o
                 join ObjVer ov on o.id=ov.ownerVer and ov.lastVer=1
                 join DataProp d on d.isobj=1 and d.objorrelobj =o.id and d.prop=${mapProp.get("Prop_ReservoirShore")}
                 join DataPropVal v on d.id=v.dataprop 
             where o.cls=${mapCls.get("Cls_Station")} and v.obj=${resoirvoir}
-        """, "")
+        """)
 
         Store stProp = apiMeta().get(ApiMeta).loadSql("""
             select cls, id as propval
             from PropVal
-            where prop=${mapProp.get("Prop_FishLocation")} and cls is not null
+            where prop=${mapProp.get("Prop_ReservoirShore")} and cls is not null
         """, "")
         StoreIndex indProp = stProp.getIndex("cls")
 
@@ -1615,17 +1717,18 @@ class DataDao extends BaseMdbUtils {
             )
             select ob.id as obj, ob.cls, null as nameCls,
                 v1.id as idStartDate, v1.dateTimeVal::date as StartDate,
-                v2.id as idFishLocation, v2.propVal as pvFishLocation, v2.obj as objFishLocation, 
+                v2.id as idFishLocation, v2.propVal as pvFishLocation, v2.obj as objFishLocation, ov22.name as nameFishLocation,
                 v3.id as idAreaOfTon, v3.numberVal as AreaOfTon,
                 v4.id as idFishGear, v4.propVal as pvFishGear, v4.obj as objFishGear,
                 v5.id as idFishManager, v5.propVal as pvFishManager, v5.obj as objFishManager,
                 t1.lstFishParticipants, 
-                v6.id as idReservoirShore, v6.obj as objReservoirShore, v6.propval as pvReservoirShore
+                v6.id as idReservoirShore, v6.obj as objReservoirShore, v6.propval as pvReservoirShore, ov6.name as nameReservoirShore
             from ob
                 join DataProp d1 on d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
                 join DataPropVal v1 on d1.id=v1.dataprop 
                 join DataProp d2 on d2.objorrelobj=ob.id and d2.prop=:Prop_FishLocation
                 join DataPropVal v2 on d2.id=v2.dataprop
+                left join ObjVer ov22 on v2.obj=ov22.ownerVer and ov22.lastVer=1
                 join DataProp d3 on d3.objorrelobj=ob.id and d3.prop=:Prop_AreaOfTon
                 join DataPropVal v3 on d3.id=v3.dataprop
                 join DataProp d4 on d4.objorrelobj=ob.id and d4.prop=:Prop_FishGear
@@ -1643,6 +1746,7 @@ class DataDao extends BaseMdbUtils {
                     ) t1 on t1.objorrelobj=ob.id and t1.prop=:Prop_FishParticipants
                 left join DataProp d6 on d6.objorrelobj=ob.id and d6.prop=:Prop_ReservoirShore
                 left join DataPropVal v6 on d6.id=v6.dataprop
+                left join ObjVer ov6 on v6.obj=ov6.ownerVer and ov6.lastVer=1
         """, map)
 
         Set<Object> idsCls = st.getUniqueValues("cls")
@@ -1690,9 +1794,9 @@ class DataDao extends BaseMdbUtils {
             select name from ClsVer where ownerVer=${pms.getLong("cls")} and lastVer=1
         """, "")
         String nm = stTmp.get(0).getString("name")
-        stTmp = loadSqlService("""
+        stTmp = mdb.loadQuery("""
             select name from ObjVer where ownerVer=${pms.getLong("objFishLocation")} and lastVer=1
-        """, "", "nsidata")
+        """)
         nm = nm + "_" + pms.getString("StartDate") + "_" + stTmp.get(0).getString("name")
         //
         par.put("name", nm)
@@ -1803,14 +1907,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    void deleteReservoir(long id) {
-        checkForExistData_new(id, 1, "Prop_ReservoirShore")
-        deleteOwnerWithProperties(id, 1)
-    }
-
-    @DaoMethod
     void deleteFishing(long id) {
-        checkForExistData(id, 1)
         deleteOwnerWithProperties(id, 1)
     }
 
@@ -1934,6 +2031,10 @@ class DataDao extends BaseMdbUtils {
         return idDP
     }
 
+    //Prop_AreaOfTon
+    //Prop_Coordinate
+    //Prop_ReservoirShore
+    //Prop_Description
     @DaoMethod
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))

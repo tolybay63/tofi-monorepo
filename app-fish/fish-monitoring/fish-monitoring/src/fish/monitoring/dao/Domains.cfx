@@ -95,7 +95,7 @@
         <field name="Description" parent="memo"/>
     </domain>
 
-    <!--<domain name="Obj.sampling.station" parent="base">
+    <domain name="Obj.sampling.station" parent="base">
         <field name="obj" parent="long"/>
         <field name="cls" parent="long"/>
         <field name="name" parent="string"/>
@@ -114,7 +114,7 @@
 
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
-    </domain>-->
+    </domain>
 
     <domain name="Obj.typesFish" parent="base">
         <field name="obj" parent="long"/>
@@ -292,18 +292,18 @@
         <field name="cls" parent="long"/>
         <field name="nameCls" parent="string"/>
 
-        <field name="nameReservoir" parent="string"/>
-
         <field name="idStartDate" parent="long"/>
         <field name="StartDate" parent="string"/>
 
         <field name="idReservoirShore" parent="long"/>
         <field name="pvReservoirShore" parent="long"/>
         <field name="objReservoirShore" parent="long"/>
+        <field name="nameReservoirShore" parent="string"/>
 
         <field name="idFishLocation" parent="long"/>
         <field name="pvFishLocation" parent="long"/>
         <field name="objFishLocation" parent="long"/>
+        <field name="nameFishLocation" parent="string"/>
 
         <field name="idAreaOfTon" parent="long"/>
         <field name="AreaOfTon" parent="double"/>

@@ -65,7 +65,7 @@ class DataDao extends BaseMdbUtils {
         eu.deleteEntity(id)
     }
 
-    //---------------- 2 SamplingStation ----------------//
+/*    //---------------- 2 SamplingStation ----------------//
     @DaoMethod
     Store loadSamplingStations(Map<String, Object> params) {
 
@@ -168,12 +168,13 @@ class DataDao extends BaseMdbUtils {
         deleteOwnerWithProperties(id, 1)
     }
 
+    //todo ????
     @DaoMethod
     Store loadReservoir(String codTypOrProp) {
         return loadObjCustom(codTypOrProp)
     }
     //
-
+    //todo ????
     private Store loadObjCustom(String codTypOrProp) {
         Store st = loadObjForSelect(codTypOrProp, "monitoringdata")
         Set<Object> idsCls = st.getUniqueValues("cls")
@@ -190,6 +191,8 @@ class DataDao extends BaseMdbUtils {
         }
         return st
     }
+*/
+
 
     //---------------- 4 TypesFishGear ----------------//
     @DaoMethod

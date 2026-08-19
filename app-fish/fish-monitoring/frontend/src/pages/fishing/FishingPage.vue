@@ -143,11 +143,8 @@ export default {
       loading: false,
       name: "",
 
-      mapFishLocation: new Map(),
       mapFishGear: new Map(),
       mapFishManager: new Map(),
-
-      mapResorvoir: new Map(),
 
     }
   },
@@ -160,7 +157,7 @@ export default {
       if (this.selected.length > 0) {
         this.splitterModel = 70
         obj = this.selected[0].obj
-        this.name = this.mapFishLocation.get(this.selected[0].objFishLocation) +
+        this.name = this.selected[0].nameFishLocation +
           ' (' + this.selected[0].nameCls + ' - ' + date.formatDate(this.selected[0].StartDate, 'DD.MM.YYYY') + ')'
       } else {
         this.splitterModel = 100
@@ -211,7 +208,7 @@ export default {
           message:
             this.$t('deleteRecord') +
             '<div style="color: plum">(' +
-            this.mapFishLocation.get(row.objFishLocation) +
+            row.nameFishLocation +
             ' (' + row.nameCls + ' - ' + date.formatDate(row.StartDate, 'DD.MM.YYYY') + ')' +
             ')</div>',
           html: true,
@@ -281,22 +278,20 @@ export default {
             val <= tofi_dbeg || val >= tofi_dend ? '...' : date.formatDate(val, 'DD.MM.YYYY'),
         },
         {
-          name: 'objFishLocation',
+          name: 'nameFishLocation',
           label: this.$t('FishLocation') + "*",
-          field: 'objFishLocation',
+          field: 'nameFishLocation',
           align: 'left',
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 10%',
-          format: (v) => (this.mapFishLocation ? this.mapFishLocation.get(v) : null),
         },
         {
-          name: 'objReservoirShore',
+          name: 'nameReservoirShore',
           label: this.$t('reservoir') + "*",
-          field: 'objReservoirShore',
+          field: 'nameReservoirShore',
           align: 'left',
           classes: 'bg-blue-grey-1',
           headerStyle: 'font-size: 1.2em; width: 10%',
-          format: (v) => (this.mapResorvoir ? this.mapResorvoir.get(v) : null),
         },
         {
           name: 'AreaOfTon',
@@ -339,7 +334,7 @@ export default {
     infoSelected(row) {
       return (
         ' ' +
-        this.mapFishLocation.get(row.objFishLocation) +
+        row.nameFishLocation +
         ' (' + row.nameCls + ' - ' + date.formatDate(row.StartDate, 'DD.MM.YYYY') + ')'
       )
     },
@@ -348,41 +343,6 @@ export default {
   created() {
     this.cols = this.getColumns()
     //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFishLocationForName',
-        params: ["Prop_FishLocation"],
-      })
-      .then(
-        (response) => {
-          response.data.result.records.forEach((it) => {
-            this.mapFishLocation.set(it["id"], it["name"])
-          })
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadResorvoirForName',
-        params: [],
-      })
-      .then(
-        (response) => {
-          //console.info("mapResorvoir", response.data.result.records)
-          response.data.result.records.forEach((it) => {
-            this.mapResorvoir.set(it["obj"], it["name"])
-          })
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-
     this.loading = true
     api
       .post('', {

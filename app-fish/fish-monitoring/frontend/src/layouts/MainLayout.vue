@@ -100,7 +100,7 @@
               :active="isActive(subItem.to)"
               :to="subItem.to"
               active-class="text-bold text-blue bg-blue-2"
-              class="q-pl-xl q-table--bordered"
+              class="q-table--bordered bg-blue-1"
               clickable
             >
               <q-item-section avatar>
@@ -114,6 +114,7 @@
                   v-ripple
                   :active="isActive(item.to)"
                   :to="item.to"
+                  class="q-table--bordered bg-blue-1"
                   active-class="text-bold text-blue bg-blue-2"
                   clickable>
             <q-item-section avatar>
@@ -197,22 +198,19 @@ export default defineComponent({
 
     let getLinks = () => {
       return [
-/*
         {
           label: 'reservoirs',
           icon: 'sailing',
           to: '/reservoirs',
           target: 'mon:vod',
         },
-*/
 
         {
-          label: 'reservoirs',
-          icon: 'sailing',
-          to: '/reservoirs2',
-          target: 'mon:vod',
+          label: 'samplingStations',
+          icon: 'houseboat',
+          to: '/samplingstations',
+          target: 'mon:st',
         },
-
 
         {
           label: 'typesOfFish',
@@ -220,13 +218,6 @@ export default defineComponent({
           to: '/typesfish',
           target: 'mon:tf',
         },
-
-/*        {
-          label: 'FishGear',
-          icon: 'phishing',
-          to: '/fishGear',
-          target: 'mon:fg',
-        },*/
 
         {
           label: 'piscesInReservoirs',
