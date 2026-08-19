@@ -1336,6 +1336,67 @@ class DataDao extends BaseMdbUtils {
             eu.deleteEntity(id)
     }
 
+    private void checkForExistData_new(long id, int isObj, String prop) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", prop, "")
+        if (map.size()==0)
+            throw new XError("Не найден код [${prop}]")
+        long idProp = map.get(prop)
+        if (isObj == 1) {
+            //1 Объект является значением объекта/отношения?
+            Store stTmp = mdb.loadQuery("""
+                select  
+                    ov.name nm1, d.prop, d.periodType, v.dbeg, v.dend, d.isObj,
+                    case when d.isObj = 1 then ov1.name when d.isObj = 0 then rv1.name end as nm2
+                from DataProp d
+                    inner join DataPropVal v on d.id=v.dataprop
+                    left join ObjVer ov1 on d.isObj=1 and d.objorrelobj=ov1.ownerver and ov1.lastver=1
+                    left join RelObjVer rv1 on d.isObj=0 and d.objorrelobj=rv1.ownerver and rv1.lastver=1
+                    left join ObjVer ov on ov.ownerver=${id} and ov.lastver=1
+                where d.prop=${idProp} and v.obj=${id}
+            """)
+            if (stTmp.size() > 0) {
+                String nm = "Объект [" + stTmp.get(0).getString("nm1") + "]"
+                String objOrRelObj = stTmp.get(0).getInt("isObj") == 1 ? "объекта" : "отношения"
+                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
+                if (stTmp.get(0).getLong("periodType") > 0) {
+                    PeriodGenerator pg = new PeriodGenerator()
+                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
+                }
+                Store stProp = loadSqlMeta("""
+                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
+                """, "")
+                throw new XError(nm + " является значением свойства [" + stProp.get(0).getString("name") + "] " + objOrRelObj + " [" + stTmp.get(0).getString("nm2") + "]" + periodName)
+            }
+        } else {
+            //2 отношение является значением объекта/отношения?
+            Store stTmp = mdb.loadQuery("""
+                select  
+                    rov.name nm1, d.prop, d.periodType, v.dbeg, v.dend, d.isObj,
+                    case when d.isObj = 1 then ov1.name when d.isObj = 0 then rv1.name end as nm2
+                from DataProp d
+                    inner join DataPropVal v on d.id=v.dataprop
+                    left join ObjVer ov1 on d.isObj=1 and d.objorrelobj=ov1.ownerver and ov1.lastver=1
+                    left join RelObjVer rv1 on d.isObj=0 and d.objorrelobj=rv1.ownerver and rv1.lastver=1
+                    left join RelObjVer rov on rov.ownerver=${id} and rov.lastver=1
+                where d.prop=${idProp} and v.relobj=${id}
+            """)
+            if (stTmp.size() > 0) {
+                String nm = "Отношение [" + stTmp.get(0).getString("nm1") + "]"
+                String objOrRelObj = stTmp.get(0).getInt("isObj") == 1 ? "объекта" : "отношения"
+                String periodName = " за [" + stTmp.get(0).getString("dbeg") + " - " + stTmp.get(0).getString("dend") + "]"
+                if (stTmp.get(0).getLong("periodType") > 0) {
+                    PeriodGenerator pg = new PeriodGenerator()
+                    periodName = " за " + pg.getPeriodName(stTmp.get(0).getDate("dbeg"), stTmp.get(0).getDate("dend"), stTmp.get(0).getLong("periodType"), 3)
+                }
+                Store stProp = loadSqlMeta("""
+                    select name from Prop where id=${stTmp.get(0).getLong("prop")}
+                """, "")
+                throw new XError(nm + " является значением свойства [" + stProp.get(0).getString("name") + "] " + objOrRelObj + " [" + stTmp.get(0).getString("nm2") + "]" + periodName)
+            }
+        }
+
+    }
+
     private void checkForExistData(long id, int isObj) {
         if (isObj == 1) {
             // 1 Родитель ?
@@ -1743,7 +1804,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void deleteReservoir(long id) {
-        checkForExistData(id, 1)
+        checkForExistData_new(id, 1, "Prop_ReservoirShore")
         deleteOwnerWithProperties(id, 1)
     }
 

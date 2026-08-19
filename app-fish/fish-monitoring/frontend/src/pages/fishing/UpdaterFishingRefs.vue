@@ -44,6 +44,7 @@
 
         <!-- Reservoir -->
         <q-select
+          :disable="mode==='upd'"
           v-model="form.objReservoirShore"
           :label="fmReqLabel('reservoir')"
           :model-value="form.objReservoirShore"
@@ -260,12 +261,12 @@ export default {
       }
     },
 
-    loadFishLocationForSelect(reoirvoir) {
+    loadFishLocationForSelect(resorvoir) {
       this.loading = true
       api
         .post('', {
           method: 'data/loadFishLocationForSelect',
-          params: [reoirvoir],
+          params: [resorvoir],
         })
         .then(
           (response) => {
