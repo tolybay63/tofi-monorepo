@@ -142,6 +142,7 @@ export default {
   FishParticipants: "Участники вылова",
 
   enterprise: 'Предприятия',
+  back: "Назад",
 
   region: "Область",
   district: "Район",

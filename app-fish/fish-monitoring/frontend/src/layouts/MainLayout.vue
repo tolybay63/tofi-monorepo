@@ -197,12 +197,14 @@ export default defineComponent({
 
     let getLinks = () => {
       return [
+/*
         {
           label: 'reservoirs',
           icon: 'sailing',
           to: '/reservoirs',
           target: 'mon:vod',
         },
+*/
 
         {
           label: 'reservoirs',

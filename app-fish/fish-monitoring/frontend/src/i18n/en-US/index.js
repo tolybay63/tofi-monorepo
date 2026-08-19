@@ -150,6 +150,7 @@ export default {
   kato2: "Region/District",
   filial: "Branch",
   countReservoirs: "Number of reservoirs",
+  back: "Back",
 
   nameCls: 'Type of gun',
   attached_files: 'Attached files',

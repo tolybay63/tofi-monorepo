@@ -149,6 +149,7 @@ export default {
   kato2: "Аймақ/Аудан",
   filial: "Филиал",
   countReservoirs: "Су қоймаларының саны",
+  back: "Артқа",
 
   nameCls: 'Құрал түрі',
   attached_files: 'Тіркелген файлдар',

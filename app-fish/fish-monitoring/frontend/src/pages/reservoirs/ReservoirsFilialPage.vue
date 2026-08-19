@@ -43,7 +43,7 @@
             <template v-slot:top>
               <div style="font-size: 1.2em; font-weight: bold">
                 <q-avatar color="black" text-color="white" icon="sailing"></q-avatar>
-                {{ $t('reservoirs') }}
+                {{ $t('reservoirs') }} ( {{nameBranch}} )
               </div>
 
               <q-space/>
@@ -57,13 +57,12 @@
                 </q-tooltip>
               </q-btn>
 
-<!--              :disable="loading"-->
               <q-btn
                 v-if="hasTarget('mon:vod:ins')"
                 icon="post_add"
                 dense class="q-ml-sm"
                 color="secondary"
-                :disable="true"
+                :disable="loading"
                 @click="editRowRefs(null, 'ins')"
               >
                 <q-tooltip transition-show="rotate" transition-hide="rotate">
@@ -71,40 +70,39 @@
                 </q-tooltip>
               </q-btn>
 
-<!--              :disable="loading || selected.length === 0"-->
               <q-btn
                 v-if="hasTarget('mon:vod:upd')"
                 icon="edit"
                 dense
                 color="secondary"
                 class="q-ml-sm"
-                :disable="true"
+                :disable="loading || selected.length === 0"
                 @click="editRowRefs(selected[0], 'upd')"
               >
                 <q-tooltip transition-show="rotate" transition-hide="rotate">
                   {{ $t('editRecord') }}
                 </q-tooltip>
               </q-btn>
-<!--                 :disable="loading || selected.length === 0"-->
+
               <q-btn
                 v-if="hasTarget('mon:vod:del')"
                 icon="delete"
                 dense
                 color="red"
                 class="q-ml-lg"
-                :disable="true"
+                :disable="loading || selected.length === 0"
                 @click="removeRow(selected[0])"
               >
                 <q-tooltip transition-show="rotate" transition-hide="rotate">
                   {{ $t('deletingRecord') }}
                 </q-tooltip>
               </q-btn>
-<!--                 :disable="loading || selected.length === 0"-->
+
               <q-btn
                 icon="insert_chart_outlined"
                 color="secondary"
                 class="q-ml-sm" dense
-                :disable="true"
+                :disable="loading || selected.length === 0"
                 @click="showChart(selected[0])"
               >
                 <q-tooltip transition-show="rotate" transition-hide="rotate">
@@ -148,9 +146,9 @@ import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
 import {api} from 'boot/axios'
 import {extend, useQuasar} from 'quasar'
 import {ref} from 'vue'
-import UpdaterReservoirRefs from 'pages/reservoirs/UpdaterReservoirRefs.vue'
 import ReservoirsMeter from "pages/reservoirs/ReservoirsMeter.vue";
 import ChartViewPage from "components/ChartViewPage.vue";
+import UpdaterReservoirFilialRefs from "pages/reservoirs/UpdaterReservoirFilialRefs.vue";
 
 export default {
   name: 'ReservoirsFilialPage',
@@ -169,6 +167,9 @@ export default {
       optFvReservoirType: new Map(),
       optFvReservoirStatus: new Map(),
       optFvFishFarmingType: new Map(),
+      nameBranch: "",
+      pvBranch: null,
+      objBranch: null,
       pagination: ref({
         page: 1,
         rowsPerPage: 25,
@@ -219,14 +220,15 @@ export default {
     },
 
     editRowRefs(row, mode) {
-      let data = {accessLevel: 1}
+      let data = {accessLevel: 1, objBranch: this.objBranch, pvBranch: this.pvBranch}
       if (mode === 'upd') {
         data = extend(true, {}, row)
       }
+      console.log("data 0", data)
 
       this.$q
         .dialog({
-          component: UpdaterReservoirRefs,
+          component: UpdaterReservoirFilialRefs,
           componentProps: {
             mode: mode,
             data: data,
@@ -265,10 +267,7 @@ export default {
           message:
             this.$t('deleteRecord') +
             '<div style="color: plum">(' +
-            row.name +
-            ' - ' +
-            row.nameBranch +
-            ')</div>',
+            row.name + ')</div>',
           html: true,
           cancel: true,
           persistent: true,
@@ -278,11 +277,11 @@ export default {
           //let index = this.rows.findIndex((row) => row.id === rec.id);
           api
             .post('', {
-              method: 'data/deleteOwnerWithProperties',
-              params: [row.obj, 1]
+              method: 'data/deleteReservoir',
+              params: [row.obj]
             })
             .then(() => {
-              this.loadReservoirs()
+              this.loadReservoirs(this.objBranch)
               this.selected = []
               this.updateSelected()
             })
@@ -356,7 +355,7 @@ export default {
             obj = this.selected[0].obj
           }
           this.rows = response.data.result["records"]
-          //console.info("rows", this.rows)
+          console.info("rows", this.rows)
           if (obj > 0) {
             this.selected = []
             let sel = this.rows.filter((item) => {
@@ -368,7 +367,7 @@ export default {
           }
         })
         .catch((error) => {
-          if (error.response.data.error.message.includes('@')) {
+/*          if (error.response.data.error.message.includes('@')) {
             let msgs = error.response.data.error.message.split('@')
             let m1 = this.$t(`${msgs[0]}`)
             let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
@@ -376,7 +375,8 @@ export default {
             notifyError(msg)
           } else {
             notifyError(this.$t(error.response.data.error.message))
-          }
+          }*/
+          console.error(error.response?.data?.error.message)
         })
         .finally(() => {
           //setTimeout(()=> {
@@ -390,6 +390,17 @@ export default {
   mounted() {
     const filial = parseInt(this.$route["params"].filial, 10);
     this.loadReservoirs(filial);
+    api
+      .post('', {
+        method: 'data/getBranchInfo',
+        params: [filial],
+      })
+      .then(
+        (response) => {
+          this.nameBranch = response.data.result.name
+          this.pvBranch = response.data.result.pv
+          this.objBranch = filial
+        })
     //
   },
 

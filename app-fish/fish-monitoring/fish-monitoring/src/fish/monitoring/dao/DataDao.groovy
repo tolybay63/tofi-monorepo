@@ -138,7 +138,8 @@ class DataDao extends BaseMdbUtils {
                 v4.id as idReservoirStatus, v4.propval as pvReservoirStatus, null as fvReservoirStatus,
                 v5.id as idFishFarmingType, v5.propval as pvFishFarmingType, null as fvFishFarmingType,
                 v6.id as idCoordinate, v6.strVal as Coordinate,
-                v7.id as idDescription, v7.multiStrVal as Description
+                v7.id as idDescription, v7.multiStrVal as Description,
+                v8.id as idBranch, v8.obj as objBranch, v8.propval as pvBranch
             from ob                
                 left join (
                     select d2.objorrelobj, d2.prop,
@@ -197,6 +198,31 @@ class DataDao extends BaseMdbUtils {
 
     }
 
+    @DaoMethod
+    Map<String, Object> getBranchInfo(long filial) {
+        Store st = apiNSIData().get(ApiNSIData).loadSql("""
+            select o.cls, v.name, null as pv
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id=${filial}
+        """, "")
+        if (st.size() == 0)
+            throw new XError("Филиал не найден")
+
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Branch", "")
+        Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select id as propval
+                from PropVal
+                where prop=${mapProp.get("Prop_Branch")} and cls=${st.get(0).getLong("cls")}
+            """, "")
+        if (stProp.size() == 0)
+            throw new XError("Не найден возможное значения [Prop_Branch]")
+
+        Map<String, Object> rez = new HashMap<>()
+        rez.put("name", st.get(0).getString("name"))
+        rez.put("pv", stProp.get(0).getLong("propval"))
+        //
+        return rez
+    }
     //
     @DaoMethod
     Store loadReservoirs(Map<String, Object> params) {
@@ -516,12 +542,12 @@ class DataDao extends BaseMdbUtils {
             //
             List<String> lstBranch = UtCnv.toList(pms.get("objBranch"))
             List<String> lstRegion = UtCnv.toList(pms.get("objKATO"))
-            for (String it in lstBranch) {
+/*            for (String it in lstBranch) {
                 String[] arr = it.split("_")
                 pms.put("objBranch", UtCnv.toLong(arr[0]))
                 pms.put("pvBranch", UtCnv.toLong(arr[1]))
                 fillProperties(true, "Prop_Branch", pms)
-            }
+            }*/
             for (String it in lstRegion) {
                 String[] arr = it.split("_")
                 pms.put("objKATO", UtCnv.toLong(arr[0]))
@@ -529,6 +555,12 @@ class DataDao extends BaseMdbUtils {
                 fillProperties(true, "Prop_KATO", pms)
             }
             //
+            //2 Prop_Branch
+            if (pms.containsKey("objBranch"))
+                fillProperties(true, "Prop_Branch", pms)
+            else
+                throw new XError("Не указан [objBranch]")
+
             //3 Prop_ReservoirType
             if (pms.containsKey("fvReservoirType"))
                 fillProperties(true, "Prop_ReservoirType", pms)
@@ -562,6 +594,7 @@ class DataDao extends BaseMdbUtils {
                 eu.updateEntity(par)
                 pms.put("own", own)
                 //
+/*
                 List<String> lstBranch = UtCnv.toList(pms.get("lstBranch"))
                 List<String> lstOldBranch = new ArrayList<>()
                 List<String> objBranch = UtCnv.toList(pms.get("objBranch"))
@@ -593,6 +626,7 @@ class DataDao extends BaseMdbUtils {
                         fillProperties(true, "Prop_Branch", pms)
                     }
                 }
+*/
                 // KATO
                 List<String> lstKATO = UtCnv.toList(pms.get("lstKATO"))
                 List<String> lstOldKATO = new ArrayList<>()
@@ -601,8 +635,7 @@ class DataDao extends BaseMdbUtils {
                 for (String it in lstKATO) {
                     long idVal = UtCnv.toLong(it.substring(0, it.indexOf("_")))
                     String oldKATO = it.substring(it.indexOf("_") + 1)
-                    lstOldBranch.add(oldKATO) // obj_pv
-                    if (!objBranch.contains(oldKATO)) {
+                    if (!objKATO.contains(oldKATO)) {
                         //Delete idVal
                         mdb.execQueryNative("""
                         delete from DataPropVal where id=${idVal};
@@ -671,7 +704,7 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("Не известный режим ввода")
             }
         }
-        return loadReservoirs([codTyp: "", idObj: own] as Map<String, Object>)
+        return loadReservoirsFilial([codTyp: "", idObj: own, filial: pms.getLong("objBranch")] as Map<String, Object>)
     }
 
     //---------------- 3 TypesFish ----------------//
@@ -1709,8 +1742,14 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    void deleteReservoir(long id) {
+        checkForExistData(id, 1)
+        deleteOwnerWithProperties(id, 1)
+    }
+
+    @DaoMethod
     void deleteFishing(long id) {
-        //checkForExistData(id, 0)
+        checkForExistData(id, 1)
         deleteOwnerWithProperties(id, 1)
     }
 

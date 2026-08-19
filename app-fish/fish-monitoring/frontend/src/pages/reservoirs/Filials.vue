@@ -82,8 +82,6 @@ export default {
     hasTarget,
 
     fnChoose(row) {
-      console.log(row)
-
       this.$router["push"]({
         name: "ReservoirFilialPage",
         params: {
