@@ -111,6 +111,94 @@ class DataDao extends BaseMdbUtils {
 
     //---------------- Reservors---------------- //
     @DaoMethod
+    Store loadReservoirsFilial(Map<String, Object> params) {
+
+        String codTyp = UtCnv.toString(params.get("codTyp"))
+        long idObj = UtCnv.toLong(params.get("idObj"))
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        map.put("filial", UtCnv.toLong(params.get("filial")))
+        String whe = "o.id=${idObj}"
+        if (idObj == 0) {
+            Set<Object> ids = apiMeta().get(ApiMeta).idsChildClses(codTyp)
+            whe = "o.cls in (0${ids.join(",")})"
+        }
+        Store st = mdb.createStore("Obj.reservoirs")
+        mdb.loadQuery(st, """
+            with ob as (
+            select
+                o.id, o.cls , v.name
+                from Obj o
+                    left join ObjVer v on o.id=v.ownerVer and v.lastVer=1                
+                where ${whe}
+            )
+            select
+                ob.id as obj, ob.cls, ob.name,
+                t2.lstKATO,
+                v3.id as idReservoirType, v3.propval as pvReservoirType, null as fvReservoirType,
+                v4.id as idReservoirStatus, v4.propval as pvReservoirStatus, null as fvReservoirStatus,
+                v5.id as idFishFarmingType, v5.propval as pvFishFarmingType, null as fvFishFarmingType,
+                v6.id as idCoordinate, v6.strVal as Coordinate,
+                v7.id as idDescription, v7.multiStrVal as Description
+            from ob                
+                left join (
+                    select d2.objorrelobj, d2.prop,
+                    STRING_AGG (cast(v2.id||'_'||v2.obj||'_'||v2.propval as varchar(2000)), ',' order by v2.id) as lstKATO
+                    from ob
+                        left join DataProp d2  on d2.isobj=1 and d2.objorrelobj=ob.id and d2.prop=:Prop_KATO
+                        left join DataPropVal v2 on d2.id=v2.dataprop
+                    where 0=0
+                    group by d2.objorrelobj, d2.prop
+                    ) t2 on t2.objorrelobj=ob.id and t2.prop=:Prop_KATO
+                left join DataProp d3 on d3.isobj=1 and d3.objorrelobj =ob.id and d3.prop=:Prop_ReservoirType
+                left join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d4 on d4.isobj=1 and d4.objorrelobj=ob.id and d4.prop=:Prop_ReservoirStatus
+                left join DataPropVal v4 on d4.id=v4.dataprop
+                left join DataProp d5 on d5.isobj=1 and d5.objorrelobj=ob.id and d5.prop=:Prop_FishFarmingType
+                left join DataPropVal v5 on d5.id=v5.dataprop
+                left join DataProp d6 on d6.isobj=1 and d6.objorrelobj=ob.id and d6.prop=:Prop_Coordinate
+                left join DataPropVal v6 on d6.id=v6.dataprop
+                left join DataProp d7 on d7.isobj=1 and d7.objorrelobj=ob.id and d7.prop=:Prop_Description
+                left join DataPropVal v7 on d7.id=v7.dataprop
+                join DataProp d8 on d8.isobj=1 and d8.objorrelobj=ob.id and d8.prop=:Prop_Branch
+                join DataPropVal v8 on d8.id=v8.dataprop and v8.obj=:filial
+        """, map)
+        //mdb.outTable(st)
+
+        Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
+        StoreIndex indFV = stFV.getIndex("propval")
+
+        for (StoreRecord r in st) {
+            List<String> objKATO = new ArrayList<>()
+            String lstKATO = r.getString("lstKATO")
+            String [] arr0 = lstKATO.split(",")
+            List<Object> idsObj = new ArrayList<>()
+            for (String it in arr0) {
+                String[] arr1 = it.split("_")
+                objKATO.add(arr1[1] + "_" + arr1[2])
+                idsObj.add(arr1[1])
+            }
+            r.set("objKATO", objKATO.join(","))
+            Store stObj = loadSqlService("""
+                select v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.id in (${idsObj.join(",")})
+            """, "", "nsidata")
+            r.set("nameKATO", stObj.getUniqueValues("name").join("; "))
+            //
+            StoreRecord rec = indFV.get(r.getLong("pvReservoirType"))
+            if (rec != null)
+                r.set("fvReservoirType", rec.getLong("factorval"))
+            rec = indFV.get(r.getLong("pvReservoirStatus"))
+            if (rec != null)
+                r.set("fvReservoirStatus", rec.getLong("factorval"))
+            rec = indFV.get(r.getLong("pvFishFarmingType"))
+            if (rec != null)
+                r.set("fvFishFarmingType", rec.getLong("factorval"))
+        }
+        return st
+
+    }
+
+    //
+    @DaoMethod
     Store loadReservoirs(Map<String, Object> params) {
 
         String codTyp = UtCnv.toString(params.get("codTyp"))

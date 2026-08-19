@@ -67,7 +67,7 @@ import {api} from 'boot/axios'
 
 
 export default {
-  name: 'ReservoirsPage',
+  name: 'FilialsPage',
   props: [],
 
   data: function () {
@@ -75,8 +75,6 @@ export default {
       cols: [],
       rows: [],
       loading: true,
-      maxCnt: 4
-
     }
   },
 
@@ -85,6 +83,13 @@ export default {
 
     fnChoose(row) {
       console.log(row)
+
+      this.$router["push"]({
+        name: "ReservoirFilialPage",
+        params: {
+          filial: row.id,
+        },
+      });
     },
 
 

@@ -13,8 +13,13 @@ const routes = [
 
       {
         path: '/reservoirs2',
-        name: 'ReservoirsPage2',
-        component: () => import('pages/reservoirs/ReservoirsPage2.vue'),
+        name: 'FilialsPage',
+        component: () => import('pages/reservoirs/Filials.vue'),
+      },
+      {
+        path: '/reservoirs/:filial',
+        name: 'ReservoirFilialPage',
+        component: () => import('pages/reservoirs/ReservoirsFilialPage.vue'),
       },
 
 
