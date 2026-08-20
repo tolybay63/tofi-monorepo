@@ -125,7 +125,7 @@
 </template>
 
 <script setup>
-import {appAdmURL, appModelURL, appMonitoringURL, appNsiURL} from "../boot/axios";
+import {appAdmURL, appCalcURL, appModelURL, appMonitoringURL, appNsiURL} from "../boot/axios";
 import {Notify} from "quasar";
 
 function fnAdm() {
@@ -145,13 +145,14 @@ function fnMonitoring() {
 }
 
 function fnCalc() {
-  Notify.create({
+/*  Notify.create({
     type: 'negative',
     message: "На стадии реализации",
     position: 'top',
     timeout: 5000,
     actions: [{ icon: 'close', color: 'white' }]
-  });
+  });*/
+  window.open(appCalcURL, "_self");
 }
 
 function fnAnalyse() {
@@ -162,6 +163,7 @@ function fnAnalyse() {
     timeout: 5000,
     actions: [{ icon: 'close', color: 'white' }]
   });
+
 }
 </script>
 
