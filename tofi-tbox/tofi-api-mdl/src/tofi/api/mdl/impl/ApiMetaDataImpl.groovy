@@ -18,10 +18,6 @@ import java.util.stream.Stream
 
 class ApiMetaDataImpl extends BaseMdbUtils implements ApiMetaData {
 
-    ApinatorApi apiUserData() {
-        return app.bean(ApinatorService).getApi("userdata")
-    }
-
     @Override
     Store loadDataBase() {
         return mdb.loadQuery("""

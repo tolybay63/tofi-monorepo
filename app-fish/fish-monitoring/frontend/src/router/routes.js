@@ -25,12 +25,6 @@ const routes = [
         component: () => import('pages/typesfish/TypesFishPage.vue'),
       },
 
-/*      {
-        path: '/fishGear',
-        name: 'FishGearPage',
-        component: () => import('pages/fishgear/FishGearPage.vue'),
-      },*/
-
       {
         path: '/piscesreservoirs',
         name: 'PiscesReservoirsTabs',

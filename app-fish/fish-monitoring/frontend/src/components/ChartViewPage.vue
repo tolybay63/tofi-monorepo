@@ -302,10 +302,10 @@ const getCubeMetaData = async () => {
     databaseDictionary.age = response.data.result.age?.records || [];
     databaseDictionary.sex = response.data.result.sex?.records || [];
     databaseDictionary.year = ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-    console.info("dims", databaseDictionary.dims)
-    console.info("fishtype", databaseDictionary.fishtype)
-    console.info("age", databaseDictionary.age)
-    console.info("sex", databaseDictionary.sex)
+    //console.info("dims", databaseDictionary.dims)
+    //console.info("fishtype", databaseDictionary.fishtype)
+    //console.info("age", databaseDictionary.age)
+    //console.info("sex", databaseDictionary.sex)
   } catch (error) {
     console.error('Ошибка загрузки метаданных:', error);
   } finally {
@@ -331,7 +331,7 @@ const loadCubeData = async () => {
       }],
     });
 
-    console.log("Data response:", response.data.result);
+    //console.log("Data response:", response.data.result);
     cubeData.value = response.data.result.records || [];
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);

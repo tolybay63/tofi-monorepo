@@ -16,7 +16,6 @@ import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
-import tofi.api.dta.ApiUserData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.dta.model.utils.PeriodGenerator
 import tofi.api.dta.model.utils.UtPeriod
@@ -38,14 +37,13 @@ class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
 
-    ApinatorApi apiUserData() { return app.bean(ApinatorService).getApi("userdata") }
-
     ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
 
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
 
 
+/*
     Store loadObj(String codTyp, long idObj) {
         String whe = "o.id=${idObj}"
         if (idObj == 0) {
@@ -98,7 +96,6 @@ class DataDao extends BaseMdbUtils {
             return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
     }
 
-
     private StoreRecord loadObjRec(long obj) {
         StoreRecord st = mdb.createStoreRecord("Obj.full")
         mdb.loadQueryRecord(st, """
@@ -107,6 +104,7 @@ class DataDao extends BaseMdbUtils {
         """, [o: obj])
         return st
     }
+*/
 
 
     //---------------- Reservors---------------- //
@@ -223,7 +221,7 @@ class DataDao extends BaseMdbUtils {
         //
         return rez
     }
-    //
+
     @DaoMethod
     Store loadReservoirs(Map<String, Object> params) {
 
@@ -739,18 +737,17 @@ class DataDao extends BaseMdbUtils {
                 v4.propVal as pvReservoirShore, null as nameReservoirShore
             from Obj o
                 join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
+                left join DataProp d1 on d1.isObj=1 and d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
                 left join DataPropVal v1 on d1.id=v1.dataprop 
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_AreaOfTon
+                left join DataProp d2 on d2.isObj=1 and d2.objorrelobj=o.id and d2.prop=:Prop_AreaOfTon
                 left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataProp d3 on d3.isObj=1 and d3.objorrelobj=o.id and d3.prop=:Prop_Description
                 left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirShore
+                left join DataProp d4 on d4.isObj=1 and d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirShore
                 left join DataPropVal v4 on d4.id=v4.dataprop
             where ${whe}
         """, map)
         //
-
         st.each { StoreRecord r ->
             StoreRecord rec = indResoir.get(r.getLong("objReservoirShore"))
             if (rec != null) {
@@ -760,7 +757,6 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-    //todo ????
     private Store loadObjCustom(String codTypOrProp) {
         Store st = loadObjForSelect(codTypOrProp, "monitoringdata")
         Set<Object> idsCls = st.getUniqueValues("cls")
@@ -777,8 +773,6 @@ class DataDao extends BaseMdbUtils {
         }
         return st
     }
-
-
 
     @DaoMethod
     Store saveSamplingStation(Map<String, Object> params) {
@@ -834,6 +828,7 @@ class DataDao extends BaseMdbUtils {
         checkForExistData(id, 1)
         deleteOwnerWithProperties(id, 1)
     }
+
     //---------------- 3 TypesFish ----------------//
     @DaoMethod
     Store loadTypesFish(Map<String, Object> params) {
@@ -854,11 +849,11 @@ class DataDao extends BaseMdbUtils {
                 v3.id as idDescription, v3.multiStrVal as Description
             from Obj o
                 left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_FishFamily
+                left join DataProp d1 on d1.isObj=1 and d1.objorrelobj=o.id and d1.prop=:Prop_FishFamily
                 left join DataPropVal v1 on d1.id=v1.dataprop 
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_FishTyp
+                left join DataProp d2 on d2.isObj=1 and d2.objorrelobj=o.id and d2.prop=:Prop_FishTyp
                 left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
+                left join DataProp d3 on d3.isObj=1 and d3.objorrelobj=o.id and d3.prop=:Prop_Description
                 left join DataPropVal v3 on d3.id=v3.dataprop
             where ${whe}
         """, map)
@@ -1205,7 +1200,10 @@ class DataDao extends BaseMdbUtils {
         if (map1.size()==0)
             throw new XError("Не найден код свойств [Cls_Branch]")
         map.putAll(map1)
-
+        map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Branch", "")
+        if (map1.size()==0)
+            throw new XError("Не найден код свойств [Prop_Branch]")
+        map.putAll(map1)
         Store st = apiNSIData().get(ApiNSIData).loadSqlWithParams("""
             select o.id, v.name || ' (' || t.name || ')' as name, null as cnt 
             from Obj o
@@ -1222,7 +1220,7 @@ class DataDao extends BaseMdbUtils {
         Store stCount = mdb.loadQuery("""
             select v.obj, count(*) as cnt
             from datapropval v
-                left join dataprop d on d.id=v.dataprop and d.prop=1006
+                left join dataprop d on d.isObj=0 and d.id=v.dataprop and d.prop=${map.get("Prop_Branch")}
                 left join objver v1 on d.objorrelobj=v1.ownerver and v1.lastver=1
                 left join objver v2 on v.obj=v2.ownerver and v2.lastver=1
             where v.obj in (0${idsFilial.join(",")})
@@ -1724,16 +1722,16 @@ class DataDao extends BaseMdbUtils {
                 t1.lstFishParticipants, 
                 v6.id as idReservoirShore, v6.obj as objReservoirShore, v6.propval as pvReservoirShore, ov6.name as nameReservoirShore
             from ob
-                join DataProp d1 on d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
+                join DataProp d1 on d1.isObj=1 and d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
                 join DataPropVal v1 on d1.id=v1.dataprop 
-                join DataProp d2 on d2.objorrelobj=ob.id and d2.prop=:Prop_FishLocation
+                join DataProp d2 on d2.isObj=1 and d2.objorrelobj=ob.id and d2.prop=:Prop_FishLocation
                 join DataPropVal v2 on d2.id=v2.dataprop
                 left join ObjVer ov22 on v2.obj=ov22.ownerVer and ov22.lastVer=1
-                join DataProp d3 on d3.objorrelobj=ob.id and d3.prop=:Prop_AreaOfTon
+                join DataProp d3 on d3.isObj=1 and d3.objorrelobj=ob.id and d3.prop=:Prop_AreaOfTon
                 join DataPropVal v3 on d3.id=v3.dataprop
-                join DataProp d4 on d4.objorrelobj=ob.id and d4.prop=:Prop_FishGear
+                join DataProp d4 on d4.isObj=1 and d4.objorrelobj=ob.id and d4.prop=:Prop_FishGear
                 join DataPropVal v4 on d4.id=v4.dataprop
-                join DataProp d5 on d5.objorrelobj=ob.id and d5.prop=:Prop_FishManager
+                join DataProp d5 on d5.isObj=1 and d5.objorrelobj=ob.id and d5.prop=:Prop_FishManager
                 join DataPropVal v5 on d5.id=v5.dataprop
                 left join (
                     select d6.objorrelobj, d6.prop,
@@ -1744,7 +1742,7 @@ class DataDao extends BaseMdbUtils {
                     where 0=0
                     group by d6.objorrelobj, d6.prop
                     ) t1 on t1.objorrelobj=ob.id and t1.prop=:Prop_FishParticipants
-                left join DataProp d6 on d6.objorrelobj=ob.id and d6.prop=:Prop_ReservoirShore
+                left join DataProp d6 on d6.isObj=1 and d6.objorrelobj=ob.id and d6.prop=:Prop_ReservoirShore
                 left join DataPropVal v6 on d6.id=v6.dataprop
                 left join ObjVer ov6 on v6.obj=ov6.ownerVer and ov6.lastVer=1
         """, map)
@@ -2394,9 +2392,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     private void execSql(String sql, String model) {
-        if (model.equalsIgnoreCase("userdata"))
-            apiUserData().get(ApiUserData).execSql(sql)
-        else if (model.equalsIgnoreCase("nsidata"))
+        if (model.equalsIgnoreCase("nsidata"))
             apiNSIData().get(ApiNSIData).execSql(sql)
         else if (model.equalsIgnoreCase("monitoringdata"))
             apiMonitoringData().get(ApiMonitoringData).execSql(sql)
@@ -2405,9 +2401,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     private Store loadSqlService(String sql, String domain, String model) {
-        if (model.equalsIgnoreCase("userdata"))
-            return apiUserData().get(ApiUserData).loadSql(sql, domain)
-        else if (model.equalsIgnoreCase("nsidata"))
+        if (model.equalsIgnoreCase("nsidata"))
             return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("monitoringdata"))
             return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)

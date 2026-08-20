@@ -256,9 +256,6 @@ export default {
       this.form.mode = this.mode
       this.form.name = this.form.name.trim()
       this.form.objKATO = this.objKATO
-
-      console.info("form", this.form)
-
       //
       api
         .post('', {
@@ -289,7 +286,6 @@ export default {
     },
   },
   created() {
-    console.info("this.data", this.data)
     //
     this.loading = true
     api

@@ -256,9 +256,6 @@ export default defineComponent({
               to: '/chart7',
               target: 'mon:chart7',
             },
-
-
-
           ]
         },*/
 

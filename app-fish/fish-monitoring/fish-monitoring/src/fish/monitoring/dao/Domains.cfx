@@ -103,7 +103,6 @@
         <field name="idCoordinate" parent="long"/>
         <field name="Coordinate" parent="string"/>
 
-
         <field name="idReservoirShore" parent="long"/>
         <field name="objReservoirShore" parent="long"/>
         <field name="pvReservoirShore" parent="long"/>
@@ -132,15 +131,6 @@
         <field name="idDescription" parent="long"/>
         <field name="Description" parent="string"/>
     </domain>
-
-    <!--<domain name="Obj.FishGear" parent="base">
-        <field name="obj" parent="long"/>
-        <field name="cls" parent="long"/>
-        <field name="name" parent="string"/>
-        <field name="nameCls" parent="string"/>
-        <field name="idDescription" parent="long"/>
-        <field name="Description" parent="string"/>
-    </domain>-->
 
     <domain name="Obj.FishFamily" parent="base">
         <field name="obj" parent="long"/>

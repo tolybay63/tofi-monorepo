@@ -224,7 +224,6 @@ export default {
       if (mode === 'upd') {
         data = extend(true, {}, row)
       }
-      console.log("data 0", data)
 
       this.$q
         .dialog({
@@ -355,7 +354,7 @@ export default {
             obj = this.selected[0].obj
           }
           this.rows = response.data.result["records"]
-          console.info("rows", this.rows)
+          //console.info("rows", this.rows)
           if (obj > 0) {
             this.selected = []
             let sel = this.rows.filter((item) => {
@@ -367,15 +366,6 @@ export default {
           }
         })
         .catch((error) => {
-/*          if (error.response.data.error.message.includes('@')) {
-            let msgs = error.response.data.error.message.split('@')
-            let m1 = this.$t(`${msgs[0]}`)
-            let m2 = msgs.length > 1 ? ' [' + msgs[1] + ']' : ''
-            let msg = m1 + m2
-            notifyError(msg)
-          } else {
-            notifyError(this.$t(error.response.data.error.message))
-          }*/
           console.error(error.response?.data?.error.message)
         })
         .finally(() => {

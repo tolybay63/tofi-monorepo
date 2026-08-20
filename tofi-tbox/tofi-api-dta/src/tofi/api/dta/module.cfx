@@ -13,11 +13,6 @@
 
     <apinator>
 
-        <api name="userdata" invoker="model" model="userdata">
-            <item name="tofi.api.dta.ApiUserData"
-                  class="tofi.api.dta.impl.ApiUserDataImpl"/>
-        </api>
-
         <api name="monitoringdata" invoker="model" model="monitoringdata">
             <item name="tofi.api.dta.ApiMonitoringData"
                   class="tofi.api.dta.impl.ApiMonitoringDataImpl"/>
