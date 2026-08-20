@@ -84,11 +84,11 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
-import { useQuasar } from "quasar";
-import { api, authURL } from "@/boot/axios.js";
+import {reactive, ref} from "vue";
+import {useQuasar} from "quasar";
+import {api, authURL} from "@/boot/axios.js";
 import UpdaterPsw from "@/components/UpdaterPsw.vue";
-import { useUserStore } from "@/stores/user-store.js";
+import {useUserStore} from "@/stores/user-store.js";
 import axios from "axios";
 
 const $q = useQuasar();

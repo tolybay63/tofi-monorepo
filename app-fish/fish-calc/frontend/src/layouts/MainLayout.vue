@@ -117,17 +117,17 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useUserStore } from '@/stores/user-store'
+import {computed, onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {storeToRefs} from 'pinia'
+import {useUserStore} from '@/stores/user-store'
 
 import LoginUser from '@/components/LoginUser.vue'
 import SetLocale from '@/components/SetLocale.vue'
-import { api, authURL, urlMainApp } from '@/boot/axios'
-import { useQuasar } from 'quasar'
+import {authURL, urlMainApp} from '@/boot/axios'
+import {useQuasar} from 'quasar'
 import axios from 'axios'
-import { useI18n } from 'vue-i18n'
+import {useI18n} from 'vue-i18n'
 
 // Composables
 const router = useRouter()

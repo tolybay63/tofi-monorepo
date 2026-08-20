@@ -20,9 +20,10 @@
 </template>
 
 <script setup>
-import { api } from '../boot/axios.js'
-import { onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import {api} from '../boot/axios.js'
+import {onMounted, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+
 const { t } = useI18n()
 
 const rows = ref([])

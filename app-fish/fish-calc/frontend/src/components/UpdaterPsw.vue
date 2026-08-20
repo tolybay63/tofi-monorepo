@@ -1,9 +1,8 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
-    autofocus
     transition-show="slide-down"
     transition-hide="slide-down"
   >
@@ -35,7 +34,6 @@
         <q-input
           dense
           v-model="form.passwd"
-          :model-value="form.passwd"
           label="Новый пароль *"
           :type="isPwd ? 'password' : 'text'"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
@@ -53,7 +51,6 @@
         <q-input
           dense
           v-model="form.passwd2"
-          :model-value="form.passwd2"
           label="Подтверждение *"
           :type="isPwd ? 'password' : 'text'"
           :rules="[(val) => pswTest(val) || $t('errorPassword')]"
@@ -85,107 +82,101 @@
   </q-dialog>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive } from "vue";
+import { useQuasar } from "quasar";
 import { api } from "@/boot/axios.js";
 
-export default {
-  props: {
-    login: String,
-    force: Boolean
-  },
+const props = defineProps({
+  login: String,
+  force: Boolean
+});
 
-  data() {
-    return {
-      form: {
-        passwdold: "",
-        passwd: "",
-        passwd2: "",
-      },
-      loading: false,
-      isPwd: true, // Сделали обычным булевым флагом для Options API
-    };
-  },
+const emit = defineEmits(["ok", "hide"]);
+const $q = useQuasar();
 
-  emits: ["ok", "hide"],
+const dialogRef = ref(null);
+const loading = ref(false);
+const isPwd = ref(true);
 
-  methods: {
-    validSave() {
-      // Если смена принудительная, старый пароль проверять не нужно
-      const oldPswValid = this.force ? false : (this.form.passwdold === "");
-      return (
-        oldPswValid ||
-        this.form.passwd.trim() === "" ||
-        (this.form.passwd.trim() !== "" &&
-          this.form.passwd.trim() !== this.form.passwd2.trim())
-      );
-    },
+const form = reactive({
+  passwdold: "",
+  passwd: "",
+  passwd2: "",
+});
 
-    pswTest(val) {
-      return val === this.form.passwd;
-    },
-
-    show() {
-      this.$refs.dialog["show"]();
-    },
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      this.loading = true;
-      let err = false
-
-      // Если это принудительный перехват (force), шлем именованный объект на новый метод бэка
-      // Если обычная смена из профиля — шлем стандартный savePsw
-      const requestPromise = this.force
-        ? api.post('?method=auth/forceChangePsw', {
-          method: "auth/forceChangePsw",
-          params: [this.login, this.form.passwd]
-        })
-        : api.post('', { method: "auth/savePsw", params: [this.form] });
-
-      requestPromise
-        .then(() => {
-          // Зелёное уведомление успеха
-          this.$q.notify({
-            type: 'positive',
-            message: 'Пароль успешно изменен! Вход в систему...',
-            position: 'top',
-            timeout: 2000
-          });
-
-          // Генерируем событие OK для LoginUser.vue
-          this.$emit("ok", { res: true });
-        })
-        .catch((error) => {
-          err = true
-          console.error(error);
-        })
-        .finally(() => {
-          this.loading = false;
-
-          // Закрываем диалог смены пароля
-          if (!err)
-            this.$emit("hide");
-
-          // КРИТИЧЕСКИЙ ФИКС: Перезагружаем вкладку приложения ТОЛЬКО
-          // если пользователь менял пароль у себя в профиле самостоятельно.
-          // При force-входе релоад делать НЕЛЬЗЯ, иначе сотрется оперативная память Pinia!
-          if (!this.force) {
-            setTimeout(() => {
-              location.reload();
-            }, 1500);
-          }
-        });
-    },
-
-    onCancelClick() {
-      this.hide();
-    },
-  }
+const validSave = () => {
+  const oldPswValid = props.force ? false : (form.passwdold === "");
+  return (
+    oldPswValid ||
+    form.passwd.trim() === "" ||
+    (form.passwd.trim() !== "" &&
+      form.passwd.trim() !== form.passwd2.trim())
+  );
 };
+
+const pswTest = (val) => {
+  return val === form.passwd;
+};
+
+const show = () => {
+  dialogRef.value?.show();
+};
+
+const hide = () => {
+  dialogRef.value?.hide();
+};
+
+const onDialogHide = () => {
+  emit("hide");
+};
+
+const onOKClick = () => {
+  loading.value = true;
+  let err = false;
+
+  const requestPromise = props.force
+    ? api.post('?method=auth/forceChangePsw', {
+      method: "auth/forceChangePsw",
+      params: [props.login, form.passwd]
+    })
+    : api.post('', { method: "auth/savePsw", params: [form] });
+
+  requestPromise
+    .then(() => {
+      $q.notify({
+        type: 'positive',
+        message: 'Пароль успешно изменен! Вход в систему...',
+        position: 'top',
+        timeout: 2000
+      });
+
+      emit("ok", { res: true });
+    })
+    .catch((error) => {
+      err = true;
+      console.error(error);
+    })
+    .finally(() => {
+      loading.value = false;
+
+      if (!err)
+        emit("hide");
+
+      if (!props.force) {
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      }
+    });
+};
+
+const onCancelClick = () => {
+  hide();
+};
+
+defineExpose({
+  show,
+  hide
+});
 </script>
