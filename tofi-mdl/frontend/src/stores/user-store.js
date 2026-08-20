@@ -1,5 +1,5 @@
-import { defineStore } from "pinia";
-import { api } from 'boot/axios'
+import {defineStore} from "pinia";
+import {api} from 'boot/axios'
 
 function parseJwt(token) {
   try {

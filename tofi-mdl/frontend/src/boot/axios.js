@@ -1,7 +1,7 @@
-import { defineBoot } from '#q-app/wrappers'
+import {defineBoot} from '#q-app/wrappers'
 import axios from 'axios'
-import { LoadingBar, Notify } from 'quasar'
-import { useUserStore } from "stores/user-store.js"
+import {LoadingBar, Notify} from 'quasar'
+import {useUserStore} from "stores/user-store.js"
 
 // =========================================================================
 // 1. Настройка базовых URL (Одинаково для DEV и PROD)

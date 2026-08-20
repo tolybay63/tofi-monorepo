@@ -86,9 +86,8 @@
 </template>
 
 <script>
-import {ref} from "vue";
 import {api} from "boot/axios";
-import {expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
+import {expandAll, getParentNode, hasTarget, notifyInfo, pack,} from "src/utils/jsutils";
 import UpdateMeasure from "pages/measure/UpdateMeasure.vue";
 import QTreeTable from "components/QTreeTable.vue";
 
