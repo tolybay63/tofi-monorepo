@@ -38,11 +38,6 @@ public class FactorMdbUtils extends BaseMdbUtils {
     */
     @DaoMethod
     public Store loadFactorVal(Map<String, Object> params) throws Exception {
-        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
-        //AuthUser au = authSvc.getCurrentUser();
-        //todo AuthUser
-        //long al = 10; //au.getAttrs().getLong("accesslevel");
-        //params.put("al", al);
         Store st = getMdb().createStore("Factor");
         getMdb().loadQuery(st, "select * from factor where parent=:factor order by ord", params);
         return st;
@@ -53,10 +48,6 @@ public class FactorMdbUtils extends BaseMdbUtils {
      */
     @DaoMethod
     public Map<String, Object> loadFactorPaginate(Map<String, Object> params) throws Exception {
-        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
-        //AuthUser au = authSvc.getCurrentUser();
-        //long al = au.getAttrs().getLong("accesslevel");
-        //if (al==0) throw new XError("notLoginned");
 
         String sql0 = "select * from factor where parent is null order by ord";
         SqlText sqlText = getMdb().createSqlText(sql0);
@@ -70,7 +61,7 @@ public class FactorMdbUtils extends BaseMdbUtils {
             sqlText = sqlText.addWhere("name like '%" + filter + "%' or fullName like '%" + filter + "%' or cod like '%" + filter + "%'");
         int total = getMdb().loadQuery(sqlText).get(0).getInt("cnt");
         int lm = UtCnv.toInt(params.get("limit")) == 0 ? total : UtCnv.toInt(params.get("limit"));
-        Map<String, Object> meta = new HashMap<String, Object>();
+        Map<String, Object> meta = new HashMap<>();
         meta.put("total", total);
         meta.put("page", UtCnv.toInt(params.get("page")));
         meta.put("limit", lm);
@@ -206,9 +197,6 @@ public class FactorMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public void changeOrdFV(Map<String, Object> params) throws Exception {
-        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
-        //AuthUser au = authSvc.getCurrentUser();
-        //long al = au.getAttrs().getLong("accesslevel");
 
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         boolean up = UtCnv.toBoolean(params.get("up"));
@@ -244,16 +232,12 @@ public class FactorMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public void changeOrdF(Map<String, Object> params) throws Exception {
-        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
-        //AuthUser au = authSvc.getCurrentUser();
-        //long al = au.getAttrs().getLong("accesslevel");
 
         Map<String, Object> rec = UtCnv.toMap(params.get("rec"));
         boolean up = UtCnv.toBoolean(params.get("up"));
         long id1 = UtCnv.toLong(rec.get("id"));
         long ord1 = UtCnv.toLong(rec.get("ord"));
-        long id2 = 0;
-        long ord2 = 0;
+        long id2, ord2;
 
         Store st = getMdb().loadQuery("""
                     select * from Factor where parent is null order by ord
@@ -295,11 +279,6 @@ public class FactorMdbUtils extends BaseMdbUtils {
 
     @DaoMethod
     public Store loadForSelect() throws Exception {
-        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
-        //AuthUser au = authSvc.getCurrentUser();
-        //todo AuthUser
-        //long al = 10; //au.getAttrs().getLong("accesslevel");
-
         Store st = getMdb().createStore("Factor.select");
         return getMdb().loadQuery(st, """
                     select id, name from Factor where parent is null order by ord
@@ -317,19 +296,5 @@ public class FactorMdbUtils extends BaseMdbUtils {
 
     }
 
-    @DaoMethod
-    public Store loadFvForSelect(Map<String, Object> params) throws Exception {
-        //AuthService authSvc = getMdb().getApp().bean(AuthService.class);
-        //AuthUser au = authSvc.getCurrentUser();
-        //todo AuthUser
-        //long al = 10; //au.getAttrs().getLong("accesslevel");
-
-        return getMdb().loadQuery("""
-                    select id, name, fullName, parent,
-                        case when parent is null then -id else id end as factorval,
-                        case when parent is null then null else 'factorval' end as ent
-                    from Factor where 0=0 order by ord
-                """);
-    }
 
 }
