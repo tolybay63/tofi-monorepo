@@ -44,12 +44,12 @@
 </template>
 
 <script setup>
-import { ref, getCurrentInstance, onMounted } from "vue";
-import { useRoute } from "vue-router";
-import { useQuasar } from "quasar";
-import { api } from "@/boot/axios";
+import {getCurrentInstance, onMounted, ref} from "vue";
+import {useRoute} from "vue-router";
+import {useQuasar} from "quasar";
+import {api} from "@/boot/axios";
 import UpdaterUserRole from "@/pages/users/UpdaterUserRole.vue";
-import { hasTarget } from "../../utils/jsutils.js";
+import {hasTarget} from "../../utils/jsutils.js";
 
 const { proxy } = getCurrentInstance();
 const $q = useQuasar();

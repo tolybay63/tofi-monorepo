@@ -56,10 +56,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { api } from "@/boot/axios";
-import { notifyError } from "../../utils/jsutils";
+import {onMounted, ref} from "vue";
+import {useRoute, useRouter} from "vue-router";
+import {api} from "@/boot/axios";
+import {notifyError} from "../../utils/jsutils";
 import UserRole from "@/pages/users/UserRole.vue";
 import UserPermis from "@/pages/users/UserPermis.vue";
 

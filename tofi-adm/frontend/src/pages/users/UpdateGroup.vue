@@ -82,9 +82,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance, onMounted } from "vue";
-import { api } from "@/boot/axios";
-import { notifyError, notifySuccess, pack } from "../../utils/jsutils";
+import {getCurrentInstance, onMounted, reactive, ref} from "vue";
+import {api} from "@/boot/axios";
+import {notifyError, notifySuccess, pack} from "../../utils/jsutils";
 import TreeSelect from "../../components/TreeSelect.vue";
 
 const props = defineProps({

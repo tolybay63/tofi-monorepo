@@ -34,8 +34,8 @@
 
 <script setup>
 import languages from "quasar/lang/index.json";
-import { Quasar, useQuasar } from "quasar";
-import { useI18n } from "vue-i18n";
+import {Quasar, useQuasar} from "quasar";
+import {useI18n} from "vue-i18n";
 
 const $q = useQuasar();
 const { locale } = useI18n({ useScope: "global" });

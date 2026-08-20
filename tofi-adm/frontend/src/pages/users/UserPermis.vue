@@ -90,11 +90,11 @@
 </template>
 
 <script setup>
-import { ref, computed, getCurrentInstance, onMounted } from "vue";
-import { useRoute } from "vue-router";
-import { useQuasar } from "quasar";
-import { collapsAll, expandAll, hasTarget, pack } from "../../utils/jsutils";
-import { api } from "@/boot/axios";
+import {computed, getCurrentInstance, onMounted, ref} from "vue";
+import {useRoute} from "vue-router";
+import {useQuasar} from "quasar";
+import {collapsAll, expandAll, hasTarget, pack} from "../../utils/jsutils";
+import {api} from "@/boot/axios";
 import UpdaterUserPermis from "@/pages/users/UpdaterUserPermis.vue";
 
 const { proxy } = getCurrentInstance();

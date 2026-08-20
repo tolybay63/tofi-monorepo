@@ -83,9 +83,9 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
-import { useQuasar } from "quasar";
-import { api } from "@/boot/axios.js";
+import {reactive, ref} from "vue";
+import {useQuasar} from "quasar";
+import {api} from "@/boot/axios.js";
 
 const props = defineProps({
   login: String,

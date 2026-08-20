@@ -14,7 +14,6 @@ import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import tofi.api.adm.utils.PasswordGenerator;
 import tofi.api.dta.ApiNSIData;
-import tofi.api.dta.ApiUserData;
 import tofi.api.mdl.ApiMeta;
 import tofi.api.mdl.model.consts.FD_AccessLevel_consts;
 import tofi.apinator.ApinatorApi;
@@ -35,18 +34,6 @@ public class UsrMdbUtils extends BaseMdbUtils {
     }
 
     private final Argon2 argon2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id);
-
-    String checkAccount(long id) throws Exception {
-        Map<String, Long> mapCods = apiMeta().get(ApiMeta.class).getIdFromCodOfEntity("Prop", "", "Prop_");
-        Set<Object> setCls = apiMeta().get(ApiMeta.class).setIdsOfCls("Typ_Users");
-        if (setCls.isEmpty()) setCls.add(0L);
-
-        Store st = apiUserData().get(ApiUserData.class).infoUser(mapCods, id, UtString.join(setCls, ","), "0");
-        if (st.size() > 0)
-            return st.get(0).getString("name");
-        else
-            return "";
-    }
 
     @DaoMethod
     public Store loadGroup(Map<String, Object> params) throws Exception {
@@ -226,10 +213,12 @@ public class UsrMdbUtils extends BaseMdbUtils {
                 throw new XError("Пользователь привязан сотруднику "+st.get(0).getString("name"));
             }
             //
+            /* Была проверка для UserData (Account)
             String str = checkAccount(id);
             if (!str.isEmpty()) {
                 throw new XError("Существует аккаунт пользователя [" + str + "]");
             }
+            */
 
             try {
                 getMdb().execQuery("""

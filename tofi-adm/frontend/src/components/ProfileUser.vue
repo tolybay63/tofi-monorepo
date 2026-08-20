@@ -103,13 +103,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance } from "vue";
-import { useRouter } from "vue-router";
-import { useQuasar } from "quasar";
-import { api, authURL } from "@/boot/axios.js";
-import { notifyError } from "../utils/jsutils.js";
+import {getCurrentInstance, onMounted, reactive, ref} from "vue";
+import {useRouter} from "vue-router";
+import {useQuasar} from "quasar";
+import {api, authURL} from "@/boot/axios.js";
+import {notifyError} from "../utils/jsutils.js";
 import UpdaterPsw from "@/components/UpdaterPsw.vue";
-import { useUserStore } from "@/stores/user-store.js";
+import {useUserStore} from "@/stores/user-store.js";
 
 const props = defineProps({
   lg: String,

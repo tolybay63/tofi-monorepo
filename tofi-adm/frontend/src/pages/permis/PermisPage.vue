@@ -152,13 +152,12 @@
 </template>
 
 <script setup>
-import { ref, computed, getCurrentInstance, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useQuasar } from "quasar";
-import { collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack } from "../../utils/jsutils";
+import {computed, getCurrentInstance, onMounted, ref} from "vue";
+import {useRoute, useRouter} from "vue-router";
+import {exportFile, useQuasar} from "quasar";
+import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack} from "../../utils/jsutils";
 import UpdaterPermis from "@/pages/permis/UpdaterPermis.vue";
-import { api } from "@/boot/axios";
-import { exportFile } from "quasar";
+import {api} from "@/boot/axios";
 
 const { proxy } = getCurrentInstance();
 const $q = useQuasar();

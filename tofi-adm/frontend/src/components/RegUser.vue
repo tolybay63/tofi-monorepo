@@ -133,8 +133,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance } from "vue";
-import { api } from "@/boot/axios";
+import {getCurrentInstance, reactive, ref} from "vue";
+import {api} from "@/boot/axios";
 
 const props = defineProps({
   lg: String

@@ -155,9 +155,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance, onMounted } from "vue";
-import { notifyError } from "../../utils/jsutils";
-import { api } from "@/boot/axios";
+import {getCurrentInstance, onMounted, reactive, ref} from "vue";
+import {api} from "@/boot/axios";
 
 const props = defineProps({
   rec: Object,

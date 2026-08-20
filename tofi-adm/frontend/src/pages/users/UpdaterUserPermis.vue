@@ -135,10 +135,10 @@
 </template>
 
 <script setup>
-import { ref, computed, getCurrentInstance, onMounted } from "vue";
-import { useQuasar } from "quasar";
-import { api } from "@/boot/axios";
-import { collapsAll, expandAll, notifyError, pack } from "../../utils/jsutils";
+import {computed, getCurrentInstance, onMounted, ref} from "vue";
+import {useQuasar} from "quasar";
+import {api} from "@/boot/axios";
+import {collapsAll, expandAll, notifyError, pack} from "../../utils/jsutils";
 import UpdateAccessLevel from "@/pages/roles/UpdateAccessLevel.vue";
 
 const props = defineProps({

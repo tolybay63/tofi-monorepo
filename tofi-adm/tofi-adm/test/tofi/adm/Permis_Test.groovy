@@ -6,8 +6,6 @@ import jandcode.commons.UtString
 import jandcode.core.apx.test.Apx_Test
 import org.junit.jupiter.api.Test
 
-import java.awt.font.TextMeasurer
-
 class Permis_Test extends Apx_Test {
 
     private final Argon2 argon2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id);
