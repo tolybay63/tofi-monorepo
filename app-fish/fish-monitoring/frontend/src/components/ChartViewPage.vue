@@ -179,7 +179,7 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, reactive, ref} from 'vue';
 import * as echarts from 'echarts';
-import {api} from "boot/axios.js";
+import {api} from "@/boot/axios.js";
 import {useDialogPluginComponent} from 'quasar';
 
 // Описываем пропсы, принимаемые модальным окном

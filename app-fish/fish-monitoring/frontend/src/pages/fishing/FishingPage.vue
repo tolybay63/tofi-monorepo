@@ -1,16 +1,13 @@
 <template>
   <div class="q-pa-sm">
-
     <q-splitter
       v-model="splitterModel"
-      :model-value="splitterModel"
       :limits="[60, 100]"
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
       separator-class="bg-red"
       style="height: calc(100vh - 135px); width: 100%"
     >
-
       <template v-slot:before>
         <q-table
           style="height: calc(100vh - 140px); width: 100%"
@@ -35,9 +32,9 @@
           <template #bottom-row>
             <q-td colspan="100%" v-if="selected.length > 0">
               <span class="text-blue"> {{ $t('selectedRow') }}: </span>
-              <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+              <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
             </q-td>
-            <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+            <q-td colspan="100%" v-else-if="rows.length > 0" class="text-bold">
               {{ $t('infoRow') }}
             </q-td>
           </template>
@@ -48,7 +45,7 @@
               {{ $t('fishing') }}
             </div>
 
-            <q-space/>
+            <q-space />
             <q-btn
               v-if="hasTarget('mon:rpv:ins')"
               icon="post_add"
@@ -89,7 +86,7 @@
                 {{ $t('deletingRecord') }}
               </q-tooltip>
             </q-btn>
-            <q-space/>
+            <q-space />
             <q-input
               dense
               debounce="300"
@@ -98,7 +95,7 @@
               :label="$t('txt_filter')"
             >
               <template v-slot:append>
-                <q-icon name="search"/>
+                <q-icon name="search" />
               </template>
             </q-input>
           </template>
@@ -110,286 +107,263 @@
       </template>
 
       <template v-slot:after>
-        <FishingMeters ref="FishingMeters" :name="name"></FishingMeters>
-
+        <FishingMeters ref="fishingMetersRef" :name="name"></FishingMeters>
       </template>
-
     </q-splitter>
   </div>
-
-
 </template>
 
-<script>
-import {api, tofi_dbeg, tofi_dend} from 'boot/axios'
-import {hasTarget, notifyInfo, today} from 'src/utils/jsutils'
-import {date, extend} from 'quasar'
-import UpdaterFishingRefs from "pages/fishing/UpdaterFishingRefs.vue";
-import FishingMeters from "pages/fishing/FishingMeters.vue";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from 'vue'
+import { useQuasar, date, extend } from 'quasar'
+import { api, tofi_dbeg, tofi_dend } from '@/boot/axios'
+import { hasTarget, notifyInfo, today } from '@/utils/jsutils'
+import UpdaterFishingRefs from '@/pages/fishing/UpdaterFishingRefs.vue'
+import FishingMeters from '@/pages/fishing/FishingMeters.vue'
 
-export default {
-  name: 'FishingPage',
-  components: {FishingMeters},
-  props: [],
+const $q = useQuasar()
+const { proxy } = getCurrentInstance()
 
-  data: function () {
-    return {
+const splitterModel = ref(100)
+const rows = ref([])
+const filter = ref('')
+const selected = ref([])
+const loading = ref(false)
+const name = ref('')
+const fishingMetersRef = ref(null)
 
-      splitterModel: 100,
-      cols: [],
-      rows: [],
-      filter: '',
-      selected: [],
-      loading: false,
-      name: "",
+const mapFishGear = ref(new Map())
+const mapFishManager = ref(new Map())
 
-      mapFishGear: new Map(),
-      mapFishManager: new Map(),
-
-    }
+const getColumns = () => [
+  {
+    name: 'nameCls',
+    label: proxy?.$t('fishingType') + '*',
+    field: 'nameCls',
+    align: 'left',
+    sortable: true,
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 10%',
   },
+  {
+    name: 'StartDate',
+    label: proxy?.$t('StartDate') + '*',
+    field: 'StartDate',
+    align: 'left',
+    sortable: true,
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 10%',
+    format: (val) =>
+      val <= tofi_dbeg || val >= tofi_dend ? '...' : date.formatDate(val, 'DD.MM.YYYY'),
+  },
+  {
+    name: 'nameFishLocation',
+    label: proxy?.$t('FishLocation') + '*',
+    field: 'nameFishLocation',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 10%',
+  },
+  {
+    name: 'nameReservoirShore',
+    label: proxy?.$t('reservoir') + '*',
+    field: 'nameReservoirShore',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 10%',
+  },
+  {
+    name: 'AreaOfTon',
+    label: proxy?.$t('AreaOfTon') + '*',
+    field: 'AreaOfTon',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 10%',
+  },
+  {
+    name: 'objFishGear',
+    label: proxy?.$t('FishGear') + '*',
+    field: 'objFishGear',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 10%',
+    format: (v) => (mapFishGear.value ? mapFishGear.value.get(v) : null),
+  },
+  {
+    name: 'objFishManager',
+    label: proxy?.$t('FishManager') + '*',
+    field: 'objFishManager',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 15%',
+    format: (v) => (mapFishManager.value ? mapFishManager.value.get(v) : null),
+  },
+  {
+    name: 'nameFishParticipants',
+    label: proxy?.$t('FishParticipants') + '*',
+    field: 'nameFishParticipants',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 25%',
+  },
+]
 
-  methods: {
-    hasTarget,
-    updateSelected() {
-      let obj = 0
+const cols = ref(getColumns())
 
-      if (this.selected.length > 0) {
-        this.splitterModel = 70
-        obj = this.selected[0].obj
-        this.name = this.selected[0].nameFishLocation +
-          ' (' + this.selected[0].nameCls + ' - ' + date.formatDate(this.selected[0].StartDate, 'DD.MM.YYYY') + ')'
-      } else {
-        this.splitterModel = 100
-        obj = 0
-        this.name = ""
-        this.$refs.FishingMeters.clearFishingData()
+const updateSelected = () => {
+  let obj = 0
+  if (selected.value.length > 0) {
+    splitterModel.value = 70
+    obj = selected.value[0].obj
+    name.value =
+      selected.value[0].nameFishLocation +
+      ' (' +
+      selected.value[0].nameCls +
+      ' - ' +
+      date.formatDate(selected.value[0].StartDate, 'DD.MM.YYYY') +
+      ')'
+  } else {
+    splitterModel.value = 100
+    obj = 0
+    name.value = ''
+    fishingMetersRef.value?.clearFishingData()
+  }
+  fishingMetersRef.value?.loadFishingMeters(obj)
+}
+
+const editRow = (row, mode) => {
+  let data = { accessLevel: 1, StartDate: today() }
+  if (mode === 'upd') {
+    extend(true, data, row)
+  }
+
+  $q.dialog({
+    component: UpdaterFishingRefs,
+    componentProps: {
+      mode: mode,
+      data: data,
+    },
+  }).onOk((r) => {
+    if (mode === 'ins') {
+      rows.value.push(r)
+      selected.value = [r]
+    } else {
+      for (let key in r) {
+        if (Object.prototype.hasOwnProperty.call(r, key)) {
+          row[key] = r[key]
+        }
       }
-      this.$refs.FishingMeters.loadFishingMeters(obj)
+    }
+  })
+}
 
-    },
-
-    editRow(row, mode) {
-
-      let data = {accessLevel: 1, StartDate: today()}
-      if (mode === 'upd') {
-        extend(true, data, row)
-      }
-
-      this.$q
-        .dialog({
-          component: UpdaterFishingRefs,
-          componentProps: {
-            mode: mode,
-            data: data,
-            // ...
-          },
-        })
-        .onOk((r) => {
-          //console.log("Ok! updated", r);
-          if (mode === 'ins') {
-            this.rows.push(r)
-            this.selected = []
-            this.selected.push(r)
-          } else {
-            for (let key in r) {
-              if (r.hasOwnProperty(key)) {
-                row[key] = r[key]
-              }
-            }
-          }
-        })
-    },
-
-    removeRow(row) {
-      this.$q
-        .dialog({
-          title: this.$t('confirmation'),
-          message:
-            this.$t('deleteRecord') +
-            '<div style="color: plum">(' +
-            row.nameFishLocation +
-            ' (' + row.nameCls + ' - ' + date.formatDate(row.StartDate, 'DD.MM.YYYY') + ')' +
-            ')</div>',
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: 'cancel',
-        })
-        .onOk(() => {
-          api
-            .post('', {
-              method: 'data/deleteFishing',
-              params: [row.obj],
-            })
-            .then(() => {
-              this.loadData()
-              this.selected = []
-              this.updateSelected()
-            })
-            .catch((error) => {
-              console.log(error.message)
-            })
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t('canceled'))
-        })
-    },
-
-    loadData() {
-      this.loading = true
+const removeRow = (row) => {
+  $q.dialog({
+    title: proxy?.$t('confirmation'),
+    message:
+      proxy?.$t('deleteRecord') +
+      '<div style="color: plum">(' +
+      row.nameFishLocation +
+      ' (' +
+      row.nameCls +
+      ' - ' +
+      date.formatDate(row.StartDate, 'DD.MM.YYYY') +
+      ')' +
+      ')</div>',
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: 'cancel',
+  })
+    .onOk(() => {
       api
         .post('', {
-          method: 'data/loadFishing',
-          params: [0],
+          method: 'data/deleteFishing',
+          params: [row.obj],
         })
-        .then(
-          (response) => {
-            this.rows = response.data.result["records"]
-            //console.info("load", this.rows)
-          })
-        .finally(() => {
-          //setTimeout(()=> {
-          this.loading = false
-          //}, 3000)
+        .then(() => {
+          loadData()
+          selected.value = []
+          updateSelected()
         })
-    },
-
-    getColumns() {
-      return [
-        {
-          name: 'nameCls',
-          label: this.$t('fishingType') + "*",
-          field: 'nameCls',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 10%',
-        },
-        {
-          name: 'StartDate',
-          label: this.$t('StartDate') + "*",
-          field: 'StartDate',
-          algn: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 10%',
-          format: (val) =>
-            val <= tofi_dbeg || val >= tofi_dend ? '...' : date.formatDate(val, 'DD.MM.YYYY'),
-        },
-        {
-          name: 'nameFishLocation',
-          label: this.$t('FishLocation') + "*",
-          field: 'nameFishLocation',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 10%',
-        },
-        {
-          name: 'nameReservoirShore',
-          label: this.$t('reservoir') + "*",
-          field: 'nameReservoirShore',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 10%',
-        },
-        {
-          name: 'AreaOfTon',
-          label: this.$t('AreaOfTon') + "*",
-          field: 'AreaOfTon',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 10%',
-        },
-        {
-          name: 'objFishGear',
-          label: this.$t('FishGear') + "*",
-          field: 'objFishGear',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 10%',
-          format: (v) => (this.mapFishGear ? this.mapFishGear.get(v) : null),
-        },
-        {
-          name: 'objFishManager',
-          label: this.$t('FishManager') + "*",
-          field: 'objFishManager',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 15%',
-          format: (v) => (this.mapFishManager ? this.mapFishManager.get(v) : null),
-        },
-        {
-          name: 'nameFishParticipants',
-          label: this.$t('FishParticipants') + "*",
-          field: 'nameFishParticipants',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 25%',
-        },
-
-      ]
-    },
-
-    infoSelected(row) {
-      return (
-        ' ' +
-        row.nameFishLocation +
-        ' (' + row.nameCls + ' - ' + date.formatDate(row.StartDate, 'DD.MM.YYYY') + ')'
-      )
-    },
-  },
-
-  created() {
-    this.cols = this.getColumns()
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFishGearForSelect',
-        params: ["Prop_FishGear"],
-      })
-      .then(
-        (response) => {
-          response.data.result.records.forEach((it) => {
-            this.mapFishGear.set(it["id"], it["name"])
-          })
+        .catch((error) => {
+          console.log(error.message)
         })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFishManagerForSelect',
-        params: ["Prop_FishManager"],
-      })
-      .then(
-        (response) => {
-          response.data.result.records.forEach((it) => {
-            this.mapFishManager.set(it["id"], it["name"])
-          })
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    setTimeout(() => {
-      this.loadData()
-    }, 200)
-
-  },
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t('canceled'))
+    })
 }
+
+const loadData = () => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadFishing',
+      params: [0],
+    })
+    .then((response) => {
+      rows.value = response.data.result['records']
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
+
+const infoSelected = (row) => {
+  return (
+    ' ' +
+    row.nameFishLocation +
+    ' (' +
+    row.nameCls +
+    ' - ' +
+    date.formatDate(row.StartDate, 'DD.MM.YYYY') +
+    ')'
+  )
+}
+
+onMounted(() => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadFishGearForSelect',
+      params: ['Prop_FishGear'],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        mapFishGear.value.set(it['id'], it['name'])
+      })
+    })
+    .finally(() => {
+      loading.value = false
+    })
+
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadFishManagerForSelect',
+      params: ['Prop_FishManager'],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        mapFishManager.value.set(it['id'], it['name'])
+      })
+    })
+    .finally(() => {
+      loading.value = false
+    })
+
+  setTimeout(() => {
+    loadData()
+  }, 200)
+})
 </script>
 
 <style lang="sass">
 .my-sticky-header-table
-  /* height or max-height is important */
   height: calc(100vh - 190px)
 
   thead tr:first-child th
-    /* bg color is important for th; just specify one  #bdbdbd*/
     background-color: #607d8b
 
   thead tr th
@@ -399,21 +373,9 @@ export default {
   thead tr:first-child th
     top: 0
 
-  /* this is when the loading indicator appears */
-
-
-
-
   &.q-table--loading thead tr:last-child th
-    /* height of all previous header rows */
     top: 48px
 
-  /* prevent scrolling behind sticky top row on focus */
-
-
-
-
   tbody
-    /* height of all previous header rows */
     scroll-margin-top: 48px
 </style>

@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -17,10 +17,10 @@
       </q-bar>
 
       <q-card-section>
-
         <!-- name -->
         <q-input
-          autofocus dense
+          autofocus
+          dense
           v-model="form.name"
           :label="fmReqLabel('fldName')"
           class="q-mt-md"
@@ -31,13 +31,14 @@
         <q-select
           class="q-mt-md"
           v-model="form.cls"
-          dense options-dense
+          dense
+          options-dense
           :options="optCls"
           :label="fmReqLabel('typeOfFish')"
           option-value="id"
           option-label="name"
           map-options
-          :disable="mode==='upd'"
+          :disable="mode === 'upd'"
           @update:model-value="fnSelectCls"
         />
 
@@ -45,7 +46,8 @@
         <q-select
           class="q-mt-md"
           v-model="form.fvFishFamily"
-          dense options-dense
+          dense
+          options-dense
           :options="optFishFamily"
           :label="fmReqLabel('FishFamily')"
           option-value="id"
@@ -58,7 +60,8 @@
         <q-select
           class="q-mt-md"
           v-model="form.fvFishTyp"
-          dense options-dense
+          dense
+          options-dense
           :options="optFishTyp"
           :label="fmReqLabel('FishType')"
           option-value="id"
@@ -68,9 +71,13 @@
         />
 
         <!-- Description -->
-        <q-input v-model="form['Description']" type="textarea" :label="$t('description')" class="q-mt-md"/>
+        <q-input
+          v-model="form['Description']"
+          type="textarea"
+          :label="$t('description')"
+          class="q-mt-md"
+        />
       </q-card-section>
-      <!---->
 
       <q-card-actions align="right">
         <q-btn
@@ -80,144 +87,121 @@
           @click="onOKClick"
           :disable="validSave()"
         />
-        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick"/>
+        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from 'boot/axios'
-import {notifySuccess} from 'src/utils/jsutils'
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { api } from '@/boot/axios'
+import { notifySuccess } from '@/utils/jsutils'
 
-export default {
-  props: ['mode', 'data'],
+const props = defineProps({
+  mode: String,
+  data: Object,
+})
 
-  data() {
-    return {
-      form: this.data,
-      loading: false,
+const emit = defineEmits(['ok', 'hide'])
+const { proxy } = getCurrentInstance()
 
-      optCls: [],
-      optFishFamily: [],
-      optFishTyp: [],
-    }
-  },
+const dialogRef = ref(null)
+const loading = ref(false)
+const form = reactive({ ...props.data })
 
-  emits: [
-    // REQUIRED
-    'ok',
-    'hide',
-  ],
+const optCls = ref([])
+const optFishFamily = ref([])
+const optFishTyp = ref([])
 
-  methods: {
-    fmReqLabel(label) {
-      return this.$t(label) + '*'
-    },
-
-    fnSelectCls(v) {
-      this.form.cls = v.id
-    },
-
-    fnSelectFishFamily(v) {
-      this.form.fvFishFamily = v.id
-      this.form.pvFishFamily = v.pv
-    },
-
-    fnSelectFishTyp(v) {
-      this.form.fvFishTyp = v.id
-      this.form.pvFishTyp = v.pv
-    },
-
-    validSave() {
-      if (!this.form.cls || !this.form.fvFishFamily || !this.form.fvFishTyp || !this.form.name) return true
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]()
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]()
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit('hide')
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      let err = false
-      this.form.mode = this.mode
-      api
-        .post('', {
-          method: 'data/saveTypesFish',
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            err = false
-            this.$emit('ok', response.data.result["records"][0])
-            notifySuccess(this.$t('success'))
-          })
-        .finally(() => {
-          if (!err) this.hide()
-        })
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide()
-    },
-  },
-  created() {
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadCls',
-        params: ['Typ_Fish'],
-      })
-      .then(
-        (response) => {
-          this.optCls = response.data.result["records"]
-        })
-      .then(() => {
-        api
-          .post('', {
-            method: 'data/loadFVasStore',
-            params: ['Prop_FishFamily'],
-          })
-          .then(
-            (response) => {
-              this.optFishFamily = response.data.result["records"]
-            })
-      })
-      .then(() => {
-        api
-          .post('', {
-            method: 'data/loadFVasStore',
-            params: ['Prop_FishTyp'],
-          })
-          .then(
-            (response) => {
-              this.optFishTyp = response.data.result["records"]
-            })
-      })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-
-
-  },
+const fmReqLabel = (label) => {
+  return proxy?.$t(label) + '*'
 }
+
+const fnSelectCls = (v) => {
+  if (v) {
+    form.cls = v.id
+  }
+}
+
+const fnSelectFishFamily = (v) => {
+  if (v) {
+    form.fvFishFamily = v.id
+    form.pvFishFamily = v.pv
+  }
+}
+
+const fnSelectFishTyp = (v) => {
+  if (v) {
+    form.fvFishTyp = v.id
+    form.pvFishTyp = v.pv
+  }
+}
+
+const validSave = () => {
+  if (!form.cls || !form.fvFishFamily || !form.fvFishTyp || !form.name) return true
+}
+
+const show = () => {
+  dialogRef.value?.show()
+}
+
+const hide = () => {
+  dialogRef.value?.hide()
+}
+
+const onDialogHide = () => {
+  emit('hide')
+}
+
+const onOKClick = () => {
+  let err = false
+  form.mode = props.mode
+  api
+    .post('', {
+      method: 'data/saveTypesFish',
+      params: [form],
+    })
+    .then((response) => {
+      err = false
+      emit('ok', response.data.result['records'][0])
+      notifySuccess(proxy?.$t('success'))
+    })
+    .catch(() => {
+      err = true
+    })
+    .finally(() => {
+      if (!err) hide()
+    })
+}
+
+const onCancelClick = () => {
+  hide()
+}
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    const clsRes = await api.post('', { method: 'data/loadCls', params: ['Typ_Fish'] })
+    optCls.value = clsRes.data.result['records']
+
+    const familyRes = await api.post('', {
+      method: 'data/loadFVasStore',
+      params: ['Prop_FishFamily'],
+    })
+    optFishFamily.value = familyRes.data.result['records']
+
+    const typRes = await api.post('', { method: 'data/loadFVasStore', params: ['Prop_FishTyp'] })
+    optFishTyp.value = typRes.data.result['records']
+  } catch (error) {
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+})
+
+defineExpose({
+  show,
+  hide,
+})
 </script>

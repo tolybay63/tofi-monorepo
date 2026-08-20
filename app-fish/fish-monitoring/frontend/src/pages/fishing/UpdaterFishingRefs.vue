@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     autofocus
     persistent
     transition-hide="slide-down"
@@ -19,9 +19,8 @@
         <!-- class -->
         <q-select
           v-model="form.cls"
-          :disable="mode==='upd'"
+          :disable="mode === 'upd'"
           :label="fmReqLabel('fishingType')"
-          :model-value="form.cls"
           :options="optCls"
           autofocus
           class="q-ma-md"
@@ -34,20 +33,18 @@
         <!-- StartDate -->
         <q-input
           v-model="form.StartDate"
-          :model-value="form.StartDate"
           :label="fmReqLabel('StartDate')"
           type="date"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-          class="q-ma-md" dense
-          @update:model-value="fnSelectDte"
+          class="q-ma-md"
+          dense
         />
 
         <!-- Reservoir -->
         <q-select
-          :disable="mode==='upd'"
+          :disable="mode === 'upd'"
           v-model="form.objReservoirShore"
           :label="fmReqLabel('reservoir')"
-          :model-value="form.objReservoirShore"
           :options="optReservoir"
           class="q-ma-md"
           dense
@@ -61,9 +58,8 @@
 
         <!-- objFishLocation -->
         <q-select
-          :disable="mode==='upd'"
+          :disable="mode === 'upd'"
           v-model="objFishLocation"
-          :model-value="objFishLocation"
           :label="fmReqLabel('FishLocation')"
           :options="optFishLocation"
           class="q-ma-md"
@@ -86,9 +82,8 @@
         />
         <!-- objFishGear -->
         <q-select
-          :disable="mode==='upd'"
+          :disable="mode === 'upd'"
           v-model="objFishGear"
-          :model-value="objFishGear"
           :label="fmReqLabel('FishGear')"
           :options="optFishGear"
           class="q-ma-md"
@@ -102,11 +97,8 @@
           @update:model-value="fnSelectFishGear"
         />
         <!-- objFishManager -->
-<!--        :disable="mode==='upd'"-->
         <q-select
-
           v-model="objFishManager"
-          :model-value="objFishManager"
           :label="fmReqLabel('FishManager')"
           :options="optFishManager"
           class="q-ma-md"
@@ -121,21 +113,20 @@
         />
 
         <!-- FishParticipants -->
-
         <q-select
           v-model="FishParticipants"
-          :model-value="FishParticipants"
           :label="fmReqLabel('FishParticipants')"
           :options="optFishParticipants"
           class="q-ma-md"
           options-dense
-          dense map-options
-          multiple use-chips
+          dense
+          map-options
+          multiple
+          use-chips
           option-label="name"
           option-value="id"
           options-selected-class="text-blue"
         />
-
       </q-card-section>
 
       <q-card-actions align="right">
@@ -147,304 +138,253 @@
           icon="save"
           @click="onOKClick"
         />
-        <q-btn :label="$t('cancel')" color="primary" dense icon="cancel" @click="onCancelClick"/>
+        <q-btn :label="$t('cancel')" color="primary" dense icon="cancel" @click="onCancelClick" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { api } from '@/boot/axios'
+import { notifySuccess } from '@/utils/jsutils'
 
+const props = defineProps({
+  mode: String,
+  data: Object,
+})
 
-import {api} from 'boot/axios'
-import {notifySuccess} from 'src/utils/jsutils'
+const emit = defineEmits(['ok', 'hide'])
+const { proxy } = getCurrentInstance()
 
-export default {
+const dialogRef = ref(null)
+const form = reactive({ ...props.data })
 
-  props: ['mode', 'data'],
+const optCls = ref([])
+const objFishLocation = ref(null)
+const optFishLocation = ref([])
+const objFishGear = ref(null)
+const optFishGear = ref([])
+const objFishManager = ref(null)
+const optFishManager = ref([])
+const FishParticipants = ref([])
+const optFishParticipants = ref([])
+const optReservoir = ref([])
+const optReservoirOrg = ref([])
+const loading = ref(false)
 
-  data() {
-    return {
-      form: this.data,
-      optCls: [],
+const fmReqLabel = (label) => {
+  return proxy?.$t(label) + '*'
+}
 
-      objFishLocation: null,
-      optFishLocation: [],
+const fnSelectCls = (val) => {
+  if (val) {
+    form.cls = val.id
+  }
+}
 
-      objFishGear: null,
-      optFishGear: [],
+const fnSelectFishLocation = (v) => {
+  if (v) {
+    form.objFishLocation = v.id
+    form.pvFishLocation = v.pv
+  }
+}
 
-      objFishManager: null,
-      optFishManager: [],
+const fnSelectReservoir = (v) => {
+  if (v) {
+    objFishLocation.value = null
+    form.objFishLocation = null
+    form.pvFishLocation = null
 
-      FishParticipants: [],
-      optFishParticipants: [],
+    form.objReservoirShore = v.id
+    form.pvReservoirShore = v.pv
+    loadFishLocationForSelect(v.id)
+  } else {
+    form.objReservoirShore = null
+    form.pvReservoirShore = null
+    loadFishLocationForSelect(0)
+  }
+}
 
-      optReservoir: [],
-      optReservoirOrg: [],
+const filterReservoir = (val, update) => {
+  if (val === null || val === '') {
+    update(() => {
+      optReservoir.value = optReservoirOrg.value
+    })
+    return
+  }
+  update(() => {
+    if (optReservoirOrg.value.length < 2) return
+    const needle = val.toLowerCase()
+    optReservoir.value = optReservoirOrg.value.filter((v) => {
+      return v.name?.toLowerCase().indexOf(needle) > -1
+    })
+  })
+}
 
-      loading: false,
+const fnSelectFishGear = (v) => {
+  if (v) {
+    form.objFishGear = v.id
+    form.pvFishGear = v.pv
+  }
+}
 
-    }
-  },
+const fnSelectFishManager = (v) => {
+  if (v) {
+    form.objFishManager = v.id
+    form.pvFishManager = v.pv
+  }
+}
 
-  emits: [
-    // REQUIRED
-    'ok',
-    'hide',
-  ],
+const loadFishLocationForSelect = (reservoir) => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadFishLocationForSelect',
+      params: [reservoir],
+    })
+    .then((response) => {
+      optFishLocation.value = response.data.result.records
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
 
-  methods: {
+const validSave = () => {
+  if (
+    !form.cls ||
+    !form.AreaOfTon ||
+    !objFishLocation.value ||
+    !objFishGear.value ||
+    !objFishManager.value ||
+    FishParticipants.value.length === 0
+  )
+    return true
+  else return false
+}
 
-    fmReqLabel(label) {
-      return this.$t(label) + '*'
-    },
+const show = () => {
+  dialogRef.value?.show()
+}
 
-    fnSelectCls(val) {
-      this.form.cls = val.id
-    },
+const hide = () => {
+  dialogRef.value?.hide()
+}
 
-    fnSelectDte(val) {
-      //this.form.StartDate = val
-    },
+const onDialogHide = () => {
+  emit('hide')
+}
 
-    fnSelectFishLocation(v) {
-      if (v) {
-        this.form.objFishLocation = v.id
-        this.form.pvFishLocation = v.pv
-      }
-    },
+const onOKClick = () => {
+  let err = false
+  form.mode = props.mode
 
-    fnSelectReservoir(v) {
-      if (v) {
-        this.objFishLocation = null
-        this.form.objFishLocation = null
-        this.form.pvFishLocation = null
+  form.FishParticipants = []
+  FishParticipants.value.forEach((it) => {
+    form.FishParticipants.push(it.id)
+  })
 
-        this.form.objReservoirShore = v.id
-        this.form.pvReservoirShore = v.pv
-        this.loadFishLocationForSelect(v.id)
-      } else {
-        this.form.objReservoirShore = null
-        this.form.pvReservoirShore = null
-        this.loadFishLocationForSelect(0)
-      }
-    },
+  api
+    .post('', {
+      method: 'data/saveFishingPropertiesRef',
+      params: [form],
+    })
+    .then((response) => {
+      err = false
+      emit('ok', response.data.result.records[0])
+      notifySuccess(proxy?.$t('success'))
+    })
+    .catch((error) => {
+      console.error(error.message)
+      err = true
+    })
+    .finally(() => {
+      if (!err) hide()
+    })
+}
 
-    filterReservoir(val, update) {
-      if (val === null || val === '') {
-        update(() => {
-          this.optReservoir = this.optReservoirOrg
-        })
-        return
-      }
-      update(() => {
-        if (this.optReservoirOrg.length < 2) return
-        const needle = val.toLowerCase()
-        this.optReservoir = this.optReservoirOrg.filter((v) => {
-          return v.name?.toLowerCase().indexOf(needle) > -1
-        })
-      })
-    },
+const onCancelClick = () => {
+  hide()
+}
 
-    fnSelectFishGear(v) {
-      if (v) {
-        this.form.objFishGear = v.id
-        this.form.pvFishGear = v.pv
-      }
-    },
+onMounted(() => {
+  loading.value = true
+  api
+    .post('', { method: 'data/loadCls', params: ['Typ_FishCatch'] })
+    .then((res) => {
+      optCls.value = res.data.result.records
+    })
+    .finally(() => {
+      loading.value = false
+    })
 
-    fnSelectFishManager(v) {
-      if (v) {
-        this.form.objFishManager = v.id
-        this.form.pvFishManager = v.pv
-      }
-    },
+  loading.value = true
+  api
+    .post('', { method: 'data/loadReservoir', params: ['Prop_ReservoirShore'] })
+    .then((res) => {
+      optReservoir.value = res.data.result['records']
+      optReservoirOrg.value = res.data.result['records']
+    })
+    .finally(() => {
+      loading.value = false
+    })
 
-    loadFishLocationForSelect(resorvoir) {
-      this.loading = true
-      api
-        .post('', {
-          method: 'data/loadFishLocationForSelect',
-          params: [resorvoir],
-        })
-        .then(
-          (response) => {
-            this.optFishLocation = response.data.result.records
-          })
-        .finally(() => {
-          this.loading = false
-        })
-    },
+  loading.value = true
+  api
+    .post('', { method: 'data/loadFishGearForSelect', params: ['Prop_FishGear'] })
+    .then((res) => {
+      optFishGear.value = res.data.result.records
+    })
+    .finally(() => {
+      loading.value = false
+    })
 
-    validSave() {
-      //console.info("form", this.form)
+  loading.value = true
+  api
+    .post('', { method: 'data/loadFishManagerForSelect', params: ['Prop_FishManager'] })
+    .then((res) => {
+      optFishManager.value = res.data.result.records
+    })
+    .finally(() => {
+      loading.value = false
+    })
 
-      if (!this.form.cls || !this.form.AreaOfTon ||
-        !this.objFishLocation || !this.objFishGear || !this.objFishManager || this.FishParticipants.length === 0)
-        return true
-      else
-        return false
+  loading.value = true
+  api
+    .post('', { method: 'data/loadFishParticipantsForSelect', params: ['Prop_FishParticipants'] })
+    .then((res) => {
+      optFishParticipants.value = res.data.result.records
+    })
+    .finally(() => {
+      loading.value = false
+      if (props.mode === 'upd') {
+        loadFishLocationForSelect(props.data.objReservoirShore)
+        objFishLocation.value = props.data.objFishLocation
+        objFishGear.value = props.data.objFishGear
+        objFishManager.value = props.data.objFishManager
 
-    },
+        FishParticipants.value = []
+        let lstData = props.data.lstFishParticipants
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]()
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]()
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit('hide')
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      let err = false
-      this.form.mode = this.mode
-
-      //console.info("FishParticipants", this.FishParticipants)
-      this.form.FishParticipants = []
-      this.FishParticipants.forEach(it => {
-        this.form.FishParticipants.push(it.id)
-      })
-
-      api
-        .post('', {
-          method: 'data/saveFishingPropertiesRef',
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            err = false
-            this.$emit('ok', response.data.result.records[0])
-            notifySuccess(this.$t('success'))
-          },
-          (error) => {
-            console.error(error.message)
-            err = true
-          }
-        )
-        .finally(() => {
-          if (!err) this.hide()
-        })
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide()
-    },
-  },
-  created() {
-    //console.info("this.cls", this.cls)
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadCls',
-        params: ['Typ_FishCatch'],
-      })
-      .then(
-        (response) => {
-          this.optCls = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadReservoir',
-        params: ['Prop_ReservoirShore'],
-      })
-      .then((response) => {
-        this.optReservoir = response.data.result['records']
-        this.optReservoirOrg = response.data.result['records']
-      })
-      .finally(() => {
-        this.loading = false
-      })
-
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFishGearForSelect',
-        params: ['Prop_FishGear'],
-      })
-      .then(
-        (response) => {
-          this.optFishGear = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFishManagerForSelect',
-        params: ['Prop_FishManager'],
-      })
-      .then(
-        (response) => {
-          this.optFishManager = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFishParticipantsForSelect',
-        params: ['Prop_FishParticipants'],
-      })
-      .then(
-        (response) => {
-          this.optFishParticipants = response.data.result.records
-          //console.info("this.optFishParticipants", this.optFishParticipants)
-        })
-      .finally(() => {
-        this.loading = false
-      })
-      .then(() => {
-        if (this.mode === "upd") {
-          this.loadFishLocationForSelect(this.data.objReservoirShore)
-          //
-          this.objFishLocation = this.data.objFishLocation
-          this.objFishGear = this.data.objFishGear
-          this.objFishManager = this.data.objFishManager
-
-          this.FishParticipants = []
-          let lstData = this.data.lstFishParticipants
-
-          lstData.split(",").forEach(id => {
-            let arr = id.split("_")
-            let key = arr[1] + "_" + arr[2]
-            for (let i = 0; i < this.optFishParticipants.length; i++) {
-              const it = this.optFishParticipants[i];
+        if (lstData) {
+          lstData.split(',').forEach((id) => {
+            let arr = id.split('_')
+            let key = arr[1] + '_' + arr[2]
+            for (let i = 0; i < optFishParticipants.value.length; i++) {
+              const it = optFishParticipants.value[i]
               if (key === it.id) {
-                this.FishParticipants.push({id: id, name: it.name})
+                FishParticipants.value.push({ id: id, name: it.name })
               }
             }
           })
         }
-      })
-    //
+      }
+    })
+})
 
-
-  },
-}
+defineExpose({
+  show,
+  hide,
+})
 </script>

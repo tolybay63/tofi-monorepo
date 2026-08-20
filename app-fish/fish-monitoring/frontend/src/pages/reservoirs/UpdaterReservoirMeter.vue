@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -13,13 +13,16 @@
       </q-bar>
 
       <q-card-section>
-        <q-input autofocus class="q-my-lg" dense
-                 v-model="form.numberval"
-                 :model-value="form.numberval"
-                 type="number" :label="form.name" />
-
+        <q-input
+          autofocus
+          class="q-my-lg"
+          dense
+          v-model="form.numberval"
+          type="number"
+          :label="form.name"
+        />
       </q-card-section>
-      <!---->
+
       <q-card-actions align="right">
         <q-btn
           color="primary"
@@ -29,105 +32,77 @@
           :disable="validSave()"
           class="q-mt-xl"
         />
-        <q-btn color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick" class="q-mt-xl"/>
+        <q-btn
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onCancelClick"
+          class="q-mt-xl"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, getCurrentInstance } from 'vue'
+import { notifySuccess } from '@/utils/jsutils'
+import { api } from '@/boot/axios'
 
-import {notifySuccess} from 'src/utils/jsutils'
-import {api} from "boot/axios.js";
+const props = defineProps({
+  data: Object,
+})
 
-export default {
-  props: ['data'],
+const emit = defineEmits(['ok', 'hide'])
+const { proxy } = getCurrentInstance()
 
-  data() {
-    return {
-      form: this.data,
-      loading: false,
-    }
-  },
+const dialogRef = ref(null)
+const form = reactive({ ...props.data })
 
-  emits: [
-    // REQUIRED
-    'ok',
-    'hide',
-  ],
-
-  methods: {
-
-    validSave() {
-      if (!this.form.numberval) return true
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]()
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]()
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit('hide')
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      let err = false
-      this.form.mode = this.mode
-      api
-        .post('', {
-          method: 'data/saveReservoirMeter',
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            err = false
-            let index = response.data.result.records.findIndex((rec) => rec.id === this.form.prop);
-            this.$emit('ok', response.data.result.records[index])
-            notifySuccess(this.$t('success'))
-          },
-          (error) => {
-            err = true
-            console.error(error.message)
-
-            /*
-                        if (error.response.data.error.message.includes('@')) {
-                          let msgs = error.response.data.error.message.split('@')
-                          let m1 = this.$t(`${msgs[0]}`)
-                          let m2 = msgs.length > 1 ? ': [' + msgs[1] + ']' : ''
-                          let msg = m1 + m2
-                          notifyError(msg)
-                        } else {
-                          notifyError(this.$t(error.response.data.error.message))
-                        }
-            */
-          }
-        )
-        .finally(() => {
-          if (!err) this.hide()
-        })
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide()
-    },
-  },
-
-  created() {
-  },
+const validSave = () => {
+  if (!form.numberval) return true
 }
+
+const show = () => {
+  dialogRef.value?.show()
+}
+
+const hide = () => {
+  dialogRef.value?.hide()
+}
+
+const onDialogHide = () => {
+  emit('hide')
+}
+
+const onOKClick = () => {
+  let err = false
+  api
+    .post('', {
+      method: 'data/saveReservoirMeter',
+      params: [form],
+    })
+    .then((response) => {
+      err = false
+      let index = response.data.result.records.findIndex((rec) => rec.id === form.prop)
+      emit('ok', response.data.result.records[index])
+      notifySuccess(proxy?.$t('success'))
+    })
+    .catch((error) => {
+      err = true
+      console.error(error.message)
+    })
+    .finally(() => {
+      if (!err) hide()
+    })
+}
+
+const onCancelClick = () => {
+  hide()
+}
+
+defineExpose({
+  show,
+  hide,
+})
 </script>

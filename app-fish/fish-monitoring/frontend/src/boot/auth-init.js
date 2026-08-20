@@ -1,6 +1,6 @@
-import {boot} from 'quasar/wrappers'
-import {useUserStore} from 'stores/user-store.js'
-import {api} from 'boot/axios'
+import { boot } from 'quasar/wrappers'
+import { useUserStore } from '@/stores/user-store.js'
+import { api } from '@/boot/axios'
 
 export default boot(async ({ store }) => {
   const userStore = useUserStore(store)

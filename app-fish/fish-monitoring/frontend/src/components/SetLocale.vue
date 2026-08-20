@@ -10,7 +10,7 @@
     options-dense
     @update:model-value="
       () => {
-        setLang(locale)
+        setLang(locale);
       }
     "
     hide-dropdown-icon
@@ -19,8 +19,9 @@
       <q-chip color="primary" text-color="white" dense>
         <q-avatar>
           <q-btn class="q-pa-none" round color="primary" dense icon="language">
-            <q-tooltip transition-show="rotate" transition-hide="rotate"
-              >{{ $t('chooseLanguage') }}
+            <q-tooltip transition-show="rotate" transition-hide="rotate">{{
+                $t("chooseLanguage")
+              }}
             </q-tooltip>
           </q-btn>
         </q-avatar>
@@ -31,58 +32,48 @@
   </q-select>
 </template>
 
-<script>
-import languages from 'quasar/lang/index.json'
-import {Quasar} from 'quasar'
-import {useI18n} from 'vue-i18n'
+<script setup>
+import languages from "quasar/lang/index.json";
+import { Quasar, useQuasar } from "quasar";
+import { useI18n } from "vue-i18n";
 
-let localeOptions
+const $q = useQuasar();
+const { locale } = useI18n({ useScope: "global" });
 
-export default {
-  methods: {
-    setLang(e) {
-      console.info('setLang')
-      import(`../../node_modules/quasar/lang/${e}.js`)
-        .then((l) => {
-          this.$q.lang.set(l.default)
-          let curLang = l.default.isoName
-          //
-          localStorage.setItem('curLang', curLang)
-        })
-        .then(() => {
-          //location.reload()
-        })
-    },
-  },
-  created() {
-    console.info('created')
-  },
+const appLanguages = languages.filter((lang) =>
+  ["kk", "ru", "en-US"].includes(lang.isoName)
+);
 
-  setup() {
-    console.info('setup')
-    const appLanguages = languages.filter((lang) => ['kk', 'ru', 'en-US'].includes(lang.isoName))
-    localeOptions = appLanguages.map((lang) => ({
-      label: lang.nativeName,
-      value: lang.isoName,
-    }))
-    if (!localStorage.getItem('curLang')) localStorage.setItem('curLang', 'ru')
-    let curLang = localStorage.getItem('curLang')
-    const { locale } = useI18n({ useScope: 'global' })
-    import(`../../node_modules/quasar/lang/${curLang}.js`)
-      .then((l) => {
-        Quasar.lang.set(l.default)
-      })
-      .then(() => {
-        //const {locale} = useI18n({useScope: "global"})
-        locale.value = curLang
-      })
+const localeOptions = appLanguages.map((lang) => ({
+  label: lang.nativeName,
+  value: lang.isoName,
+}));
 
-    return {
-      locale,
-      localeOptions,
-    }
-  },
+if (!localStorage.getItem("curLang")) {
+  localStorage.setItem("curLang", "ru");
 }
+
+let curLang = localStorage.getItem("curLang");
+
+import(`../../node_modules/quasar/lang/${curLang}.js`)
+  .then((l) => {
+    Quasar.lang.set(l.default);
+  })
+  .then(() => {
+    locale.value = curLang;
+  });
+
+const setLang = (e) => {
+  import(`../../node_modules/quasar/lang/${e}.js`)
+    .then((l) => {
+      $q.lang.set(l.default);
+      let curLangName = l.default.isoName;
+      localStorage.setItem("curLang", curLangName);
+    })
+    .then(() => {
+      //location.reload();
+    });
+};
 </script>
 
 <style scoped></style>

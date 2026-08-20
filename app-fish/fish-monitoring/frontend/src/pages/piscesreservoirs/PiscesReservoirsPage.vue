@@ -1,16 +1,13 @@
 <template>
   <div class="q-pa-sm">
-
     <q-splitter
       v-model="splitterModel"
-      :model-value="splitterModel"
       :limits="[70, 100]"
       before-class="overflow-hidden q-mr-sm"
       after-class="overflow-hidden q-ml-sm"
       separator-class="bg-red"
       style="height: calc(100vh - 135px); width: 100%"
     >
-
       <template v-slot:before>
         <q-table
           style="height: calc(100vh - 140px); width: 100%"
@@ -35,9 +32,9 @@
           <template #bottom-row>
             <q-td colspan="100%" v-if="selected.length > 0">
               <span class="text-blue"> {{ $t('selectedRow') }}: </span>
-              <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+              <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
             </q-td>
-            <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+            <q-td colspan="100%" v-else-if="rows.length > 0" class="text-bold">
               {{ $t('infoRow') }}
             </q-td>
           </template>
@@ -48,7 +45,7 @@
               {{ $t('piscesInReservoirs') }}
             </div>
 
-            <q-space/>
+            <q-space />
             <q-btn
               v-if="hasTarget('mon:rpv:ins')"
               icon="post_add"
@@ -89,7 +86,7 @@
                 {{ $t('deletingRecord') }}
               </q-tooltip>
             </q-btn>
-            <q-space/>
+            <q-space />
             <q-input
               dense
               debounce="300"
@@ -98,7 +95,7 @@
               :label="$t('txt_filter')"
             >
               <template v-slot:append>
-                <q-icon name="search"/>
+                <q-icon name="search" />
               </template>
             </q-input>
           </template>
@@ -110,284 +107,237 @@
       </template>
 
       <template v-slot:after>
-        <FishFecundityPage ref="FishFecundity" :name="name"></FishFecundityPage>
-
+        <FishFecundityPage ref="fishFecundityRef" :name="name"></FishFecundityPage>
       </template>
-
     </q-splitter>
   </div>
-
-
 </template>
 
-<script>
-import {api} from 'boot/axios'
-import {hasTarget, notifyInfo} from 'src/utils/jsutils'
-import {extend} from 'quasar'
-import UpdaterPiscesReservoir from 'pages/piscesreservoirs/UpdaterPiscesReservoir.vue'
-import FishFecundityPage from "pages/piscesreservoirs/FishFecundityPage.vue";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from 'vue'
+import { useQuasar, extend } from 'quasar'
+import { api } from '@/boot/axios'
+import { hasTarget, notifyInfo } from '@/utils/jsutils'
+import UpdaterPiscesReservoir from '@/pages/piscesreservoirs/UpdaterPiscesReservoir.vue'
+import FishFecundityPage from '@/pages/piscesreservoirs/FishFecundityPage.vue'
 
-export default {
-  name: 'PiscesReservoirsPage',
-  components: {FishFecundityPage},
-  props: [],
+const $q = useQuasar()
+const { proxy } = getCurrentInstance()
 
-  data: function () {
-    return {
+const splitterModel = ref(100)
+const rows = ref([])
+const filter = ref('')
+const selected = ref([])
+const loading = ref(false)
+const name = ref('')
+const fishFecundityRef = ref(null)
 
-      splitterModel: 100,
-      cols: [],
-      rows: [],
-      filter: '',
-      selected: [],
-      loading: false,
-      name: "",
+const mapReservoir = ref(new Map())
+const mapTypeOfFish = ref(new Map())
 
-      mapReservoir: new Map(),
-      mapTypeOfFish: new Map(),
-    }
+const getColumns = () => [
+  {
+    name: 'reservoir',
+    label: proxy?.$t('reservoir') + '*',
+    field: 'reservoir',
+    align: 'left',
+    sortable: true,
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 20%',
+    format: (v) => (mapReservoir.value ? mapReservoir.value.get(v) : null),
   },
+  {
+    name: 'typeOfFish',
+    label: proxy?.$t('typeOfFish') + '*',
+    field: 'typeOfFish',
+    align: 'left',
+    sortable: true,
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 20%',
+    format: (v) => (mapTypeOfFish.value ? mapTypeOfFish.value.get(v) : null),
+  },
+  {
+    name: 'FishSpawPeriod',
+    label: proxy?.$t('FishSpawPeriod'),
+    field: 'FishSpawPeriod',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 15%',
+  },
+  {
+    name: 'FishStartPuberty',
+    label: proxy?.$t('FishStartPuberty'),
+    field: 'FishStartPuberty',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 15%',
+  },
+  {
+    name: 'FishEndPuberty',
+    label: proxy?.$t('FishEndPuberty'),
+    field: 'FishEndPuberty',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 15%',
+  },
+  {
+    name: 'FishSpawFrequency',
+    label: proxy?.$t('FishSpawFrequency'),
+    field: 'FishSpawFrequency',
+    align: 'left',
+    classes: 'bg-blue-grey-1',
+    headerStyle: 'font-size: 1.2em; width: 15%',
+  },
+]
 
-  methods: {
-    hasTarget,
-    updateSelected() {
-      let relobj = 0
+const cols = ref(getColumns())
 
-      if (this.selected.length > 0) {
-        //console.info(this.selected[0]);
-        this.splitterModel = 70
-        relobj = this.selected[0].relobj
-        this.name = this.mapReservoir.get(this.selected[0].reservoir) + " - " + this.mapTypeOfFish.get(this.selected[0].typeOfFish)
-        //this.recUpd = extend(true, {}, this.selected[0], {dte: this.dte})
-        //console.info(this.recUpd);
-      } else {
-        this.splitterModel = 100
-        relobj = 0
-        this.name = ""
-        this.$refs.FishFecundity.clearData()
+const updateSelected = () => {
+  let relobj = 0
+  if (selected.value.length > 0) {
+    splitterModel.value = 70
+    relobj = selected.value[0].relobj
+    name.value =
+      mapReservoir.value.get(selected.value[0].reservoir) +
+      ' - ' +
+      mapTypeOfFish.value.get(selected.value[0].typeOfFish)
+  } else {
+    splitterModel.value = 100
+    relobj = 0
+    name.value = ''
+    fishFecundityRef.value?.clearData()
+  }
+  fishFecundityRef.value?.loadFishFecundity(relobj)
+}
+
+const editRow = (row, mode) => {
+  let data = { accessLevel: 1 }
+  if (mode === 'upd') {
+    data = extend(true, {}, row)
+  }
+
+  $q.dialog({
+    component: UpdaterPiscesReservoir,
+    componentProps: {
+      mode: mode,
+      data: data,
+    },
+  }).onOk((r) => {
+    if (mode === 'ins') {
+      rows.value.push(r)
+      selected.value = [r]
+    } else {
+      for (let key in r) {
+        if (Object.prototype.hasOwnProperty.call(r, key)) {
+          row[key] = r[key]
+        }
       }
-      this.$refs.FishFecundity.loadFishFecundity(relobj)
+      if (r['FishSpawPeriod'] !== null) row['FishSpawPeriod'] = r['FishSpawPeriod']
+      if (r['FishStartPuberty'] !== null) row['FishStartPuberty'] = r['FishStartPuberty']
+      if (r['FishEndPuberty'] !== null) row['FishEndPuberty'] = r['FishEndPuberty']
+      if (r['FishSpawFrequency'] !== null) row['FishSpawFrequency'] = r['FishSpawFrequency']
+    }
+  })
+}
 
-    },
-
-    editRow(row, mode) {
-      let data = {accessLevel: 1}
-      if (mode === 'upd') {
-        data = extend(true, {}, row)
-      }
-
-      this.$q
-        .dialog({
-          component: UpdaterPiscesReservoir,
-          componentProps: {
-            mode: mode,
-            data: data,
-            // ...
-          },
-        })
-        .onOk((r) => {
-          //console.log("Ok! updated", r);
-          if (mode === 'ins') {
-            this.rows.push(r)
-            this.selected = []
-            this.selected.push(r)
-          } else {
-            for (let key in r) {
-              if (r.hasOwnProperty(key)) {
-                row[key] = r[key]
-              }
-            }
-            if (r["FishSpawPeriod"] !== null)
-              row["FishSpawPeriod"] = r["FishSpawPeriod"]
-            if (r["FishStartPuberty"] !== null)
-              row["FishStartPuberty"] = r["FishStartPuberty"]
-            if (r["FishEndPuberty"] !== null)
-              row["FishEndPuberty"] = r["FishEndPuberty"]
-            if (r["FishSpawFrequency"] !== null)
-              row["FishSpawFrequency"] = r["FishSpawFrequency"]
-          }
-        })
-    },
-
-    removeRow(row) {
-      this.$q
-        .dialog({
-          title: this.$t('confirmation'),
-          message:
-            this.$t('deleteRecord') +
-            '<div style="color: plum">(' +
-            this.mapReservoir.get(row.reservoir) +
-            ' - ' +
-            this.mapTypeOfFish.get(row.typeoffish) +
-            ')</div>',
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: 'cancel',
-        })
-        .onOk(() => {
-          api
-            .post('', {
-              method: 'data/deletePiscesReservoir',
-              params: [row.relobj],
-            })
-            .then(() => {
-              this.loadData()
-              this.selected = []
-            })
-          /*
-                      .catch((error) => {
-                        console.log(error.message)
-                        let msg = error.message
-                        if (error.response) {
-                          msg = error.response.data.error.message
-                          if (msg==="existsFishInResoirvoir")
-                            msg = "["+this.mapTypeOfFish.get(row.typeoffish)+"] используется в результатах исследования"
-                        }
-                        notifyError(msg)
-                      })
-          */
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t('canceled'))
-        })
-    },
-
-    loadData() {
-      this.loading = true
+const removeRow = (row) => {
+  $q.dialog({
+    title: proxy?.$t('confirmation'),
+    message:
+      proxy?.$t('deleteRecord') +
+      '<div style="color: plum">(' +
+      mapReservoir.value.get(row.reservoir) +
+      ' - ' +
+      mapTypeOfFish.value.get(row.typeoffish) +
+      ')</div>',
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: 'cancel',
+  })
+    .onOk(() => {
       api
         .post('', {
-          method: 'data/loadPiscesReservoir',
-          params: [{codRelTyp: 'RelTyp_FishReservoir'}],
+          method: 'data/deletePiscesReservoir',
+          params: [row.relobj],
         })
-        .then(
-          (response) => {
-            this.rows = response.data.result["records"]
-          })
-        .finally(() => {
-          //setTimeout(()=> {
-          this.loading = false
-          //}, 3000)
+        .then(() => {
+          loadData()
+          selected.value = []
         })
-    },
-
-    getColumns() {
-      return [
-        {
-          name: 'reservoir',
-          label: this.$t('reservoir') + "*",
-          field: 'reservoir',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 20%',
-          format: (v) => (this.mapReservoir ? this.mapReservoir.get(v) : null),
-        },
-        {
-          name: 'typeOfFish',
-          label: this.$t('typeOfFish') + "*",
-          field: 'typeOfFish',
-          align: 'left',
-          sortable: true,
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 20%',
-          format: (v) => (this.mapTypeOfFish ? this.mapTypeOfFish.get(v) : null),
-        },
-        {
-          name: 'FishSpawPeriod',
-          label: this.$t('FishSpawPeriod'),
-          field: 'FishSpawPeriod',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 15%',
-        },
-        {
-          name: 'FishStartPuberty',
-          label: this.$t('FishStartPuberty'),
-          field: 'FishStartPuberty',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 15%',
-        },
-        {
-          name: 'FishEndPuberty',
-          label: this.$t('FishEndPuberty'),
-          field: 'FishEndPuberty',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 15%',
-        },
-        {
-          name: 'FishSpawFrequency',
-          label: this.$t('FishSpawFrequency'),
-          field: 'FishSpawFrequency',
-          align: 'left',
-          classes: 'bg-blue-grey-1',
-          headerStyle: 'font-size: 1.2em; width: 15%',
-        },
-      ]
-    },
-
-    infoSelected(row) {
-      return (
-        ' ' +
-        this.mapReservoir.get(row.reservoir) +
-        ' (' +
-        this.mapTypeOfFish.get(row.typeoffish) +
-        ')'
-      )
-    },
-  },
-
-  created() {
-    this.cols = this.getColumns()
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadReservoir',
-        params: ["Typ_WaterBodies"],
-      })
-      .then(
-        (response) => {
-          response.data.result.records.forEach((it) => {
-            this.mapReservoir.set(it["id"], it["name"])
-          })
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadTypeOfFish',
-        params: ['Typ_Fish'],
-      })
-      .then(
-        (response) => {
-          response.data.result.records.forEach((it) => {
-            this.mapTypeOfFish.set(it["id"], it["name"])
-          })
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    setTimeout(() => {
-      this.loadData()
-    }, 200)
-
-  },
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t('canceled'))
+    })
 }
+
+const loadData = () => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadPiscesReservoir',
+      params: [{ codRelTyp: 'RelTyp_FishReservoir' }],
+    })
+    .then((response) => {
+      rows.value = response.data.result['records']
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
+
+const infoSelected = (row) => {
+  return (
+    ' ' +
+    mapReservoir.value.get(row.reservoir) +
+    ' (' +
+    mapTypeOfFish.value.get(row.typeoffish) +
+    ')'
+  )
+}
+
+onMounted(() => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadReservoir',
+      params: ['Typ_WaterBodies'],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        mapReservoir.value.set(it['id'], it['name'])
+      })
+    })
+    .finally(() => {
+      loading.value = false
+    })
+
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadTypeOfFish',
+      params: ['Typ_Fish'],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        mapTypeOfFish.value.set(it['id'], it['name'])
+      })
+    })
+    .finally(() => {
+      loading.value = false
+    })
+
+  setTimeout(() => {
+    loadData()
+  }, 200)
+})
 </script>
 
 <style lang="sass">
 .my-sticky-header-table
-  /* height or max-height is important */
   height: calc(100vh - 190px)
 
   thead tr:first-child th
-    /* bg color is important for th; just specify one  #bdbdbd*/
     background-color: #607d8b
 
   thead tr th
@@ -397,19 +347,9 @@ export default {
   thead tr:first-child th
     top: 0
 
-  /* this is when the loading indicator appears */
-
-
-
   &.q-table--loading thead tr:last-child th
-    /* height of all previous header rows */
     top: 48px
 
-  /* prevent scrolling behind sticky top row on focus */
-
-
-
   tbody
-    /* height of all previous header rows */
     scroll-margin-top: 48px
 </style>

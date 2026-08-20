@@ -159,7 +159,7 @@
 
 <script>
 import {ref} from 'vue'
-import {api, filldataURL} from "boot/axios.js";
+import {api, filldataURL} from "@/boot/axios.js";
 import axios from "axios";
 
 export default {

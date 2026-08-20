@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     autofocus
     persistent
     transition-hide="slide-down"
@@ -21,9 +21,8 @@
           <div class="col">
             <q-select
               v-model="form.cls"
-              :disable="mode==='upd'"
+              :disable="mode === 'upd'"
               :label="fmReqLabel('vidReservoir')"
-              :model-value="form.cls"
               :options="optCls"
               autofocus
               class="q-ma-md"
@@ -45,22 +44,18 @@
               node-key="key"
             />
           </div>
-
         </div>
         <div class="row">
-
           <!-- name -->
           <div class="col">
             <q-input
               v-model="form.name"
               :label="fmReqLabel('fldName')"
-              :model-value="form.name"
               :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
               class="q-ma-md"
               dense
             />
           </div>
-
         </div>
 
         <div class="row">
@@ -69,7 +64,6 @@
             <q-select
               v-model="form.fvReservoirType"
               :label="fmReqLabel('ReservoirType')"
-              :model-value="form.fvReservoirType"
               :options="optFvReservoirType"
               class="q-ma-md"
               dense
@@ -85,7 +79,6 @@
             <q-select
               v-model="form.fvReservoirStatus"
               :label="fmReqLabel('ReservoirStatus')"
-              :model-value="form.fvReservoirStatus"
               :options="optFvReservoirStatus"
               class="q-ma-md"
               dense
@@ -100,11 +93,10 @@
 
         <div class="row">
           <div class="col">
-            <!--  F_FishFarmingType   -->
+            <!-- F_FishFarmingType -->
             <q-select
               v-model="form.fvFishFarmingType"
               :label="$t('FishFarmingType')"
-              :model-value="form.fvFishFarmingType"
               :options="optFvFishFarmingType"
               class="q-ma-md"
               clearable
@@ -131,7 +123,12 @@
         <div class="row">
           <div class="col">
             <!-- Description -->
-            <q-input v-model="form['Description']" :label="$t('description')" class="q-ma-md" type="textarea"/>
+            <q-input
+              v-model="form['Description']"
+              :label="$t('description')"
+              class="q-ma-md"
+              type="textarea"
+            />
           </div>
         </div>
       </q-card-section>
@@ -145,244 +142,160 @@
           icon="save"
           @click="onOKClick"
         />
-        <q-btn :label="$t('cancel')" color="primary" dense icon="cancel" @click="onCancelClick"/>
+        <q-btn :label="$t('cancel')" color="primary" dense icon="cancel" @click="onCancelClick" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { api } from '@/boot/axios'
+import { notifyError, notifySuccess, pack  } from '@/utils/jsutils'
+import TreeSelect from '@/components/TreeSelect.vue'
 
-import {api} from 'boot/axios'
-import {notifyError, notifySuccess, pack, today} from 'src/utils/jsutils'
-import TreeSelect from "components/TreeSelect.vue";
+const props = defineProps({
+  mode: String,
+  data: Object,
+})
 
-export default {
-  components: {TreeSelect},
-  props: ['mode', 'data'],
+const emit = defineEmits(['ok', 'hide'])
+const { proxy } = getCurrentInstance()
 
-  data() {
-    return {
-      form: this.data,
-      optCls: [],
+const dialogRef = ref(null)
+const form = reactive({ ...props.data })
 
-      objKATO: [],
-      optKATO: [],
+const optCls = ref([])
+const objKATO = ref([])
+const optKATO = ref([])
+const optFvReservoirType = ref([])
+const optFvReservoirStatus = ref([])
+const optFvFishFarmingType = ref([])
 
-      optFvReservoirType: [],
-      optFvReservoirStatus: [],
-      optFvFishFarmingType: [],
-      loading: false,
-      today: today(),
-    }
-  },
-
-  emits: [
-    // REQUIRED
-    'ok',
-    'hide',
-  ],
-
-  methods: {
-
-
-    fmReqLabel(label) {
-      return this.$t(label) + '*'
-    },
-
-    fnSelectCls(val) {
-      this.form.cls = val.id
-    },
-
-    fnSelectFvReservoirType(v) {
-      if (v) {
-        this.form.fvReservoirType = v.id
-        this.form.pvReservoirType = v["pv"]
-      }
-    },
-
-
-    fnSelectFvFishFarmingType(v) {
-      if (v) {
-        this.form.fvFishFarmingType = v.id
-        this.form.pvFishFarmingType = v["pv"]
-      }
-    },
-
-    fnClearFvFishFarmingType() {
-      this.form.fvFishFarmingType = null
-      this.form.pvFishFarmingType = null
-    },
-
-    fnSelectFvReservoirStatus(v) {
-      if (v) {
-        this.form.fvReservoirStatus = v.id
-        this.form.pvReservoirStatus = v["pv"]
-      }
-    },
-
-    validSave() {
-      let nm = this.form.name
-      nm = nm ? nm.trim() : null
-      if (!nm || !this.form.cls || this.objKATO.length === 0 ||
-        !this.form.fvReservoirType || !this.form.fvReservoirStatus) return true
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]()
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]()
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit('hide')
-    },
-
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      let err = false
-      this.form.mode = this.mode
-      this.form.name = this.form.name.trim()
-      this.form.objKATO = this.objKATO
-      //
-      api
-        .post('', {
-          method: 'data/saveReservoirPropertiesRef',
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            //console.log("recResoirvor", response.data.result.records[0]);
-            err = false
-            this.$emit('ok', response.data.result.records[0])
-            notifySuccess(this.$t('success'))
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            err = true
-            notifyError(error?.response?.data?.error.message)
-          }
-        )
-        .finally(() => {
-          if (!err) this.hide()
-        })
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide()
-    },
-  },
-  created() {
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadCls',
-        params: ['Typ_WaterBodies'],
-      })
-      .then(
-        (response) => {
-          this.optCls = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadBranchForSelect',
-        params: ['Prop_Branch'],
-      })
-      .then(
-        (response) => {
-          this.optBranch = response.data.result.records
-          //console.info("optBranch", this.optBranch)
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadKatoForSelect',
-        params: ['Prop_KATO'],
-      })
-      .then(
-        (response) => {
-          this.optKATO = pack(response.data.result.records, "id")
-          //console.info("optKATO", this.optKATO)
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFvReservoirTypeAsStore',
-        params: ['Prop_ReservoirType'],
-      })
-      .then(
-        (response) => {
-          this.optFvReservoirType = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFvReservoirStatusAsStore',
-        params: ['Prop_ReservoirStatus'],
-      })
-      .then(
-        (response) => {
-          this.optFvReservoirStatus = response.data.result.records
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post('', {
-        method: 'data/loadFvFishFarmingTypeAsStore',
-        params: ['Prop_FishFarmingType'],
-      })
-      .then(
-        (response) => {
-          this.optFvFishFarmingType = response.data.result.records
-          //console.info("this.optFvFishFarmingType", this.optFvFishFarmingType)
-        })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-
-    if (this.mode === "upd") {
-      //
-      let arr = this.data.objKATO.split(',') || []
-      arr.forEach(item => {
-        this.objKATO.push(item)
-      })
-    }
-  },
+const fmReqLabel = (label) => {
+  return proxy?.$t(label) + '*'
 }
+
+const fnSelectCls = (val) => {
+  form.cls = val.id
+}
+
+const fnSelectFvReservoirType = (v) => {
+  if (v) {
+    form.fvReservoirType = v.id
+    form.pvReservoirType = v['pv']
+  }
+}
+
+const fnSelectFvFishFarmingType = (v) => {
+  if (v) {
+    form.fvFishFarmingType = v.id
+    form.pvFishFarmingType = v['pv']
+  }
+}
+
+const fnClearFvFishFarmingType = () => {
+  form.fvFishFarmingType = null
+  form.pvFishFarmingType = null
+}
+
+const fnSelectFvReservoirStatus = (v) => {
+  if (v) {
+    form.fvReservoirStatus = v.id
+    form.pvReservoirStatus = v['pv']
+  }
+}
+
+const validSave = () => {
+  let nm = form.name
+  nm = nm ? nm.trim() : null
+  if (
+    !nm ||
+    !form.cls ||
+    objKATO.value.length === 0 ||
+    !form.fvReservoirType ||
+    !form.fvReservoirStatus
+  )
+    return true
+}
+
+const show = () => {
+  dialogRef.value?.show()
+}
+
+const hide = () => {
+  dialogRef.value?.hide()
+}
+
+const onDialogHide = () => {
+  emit('hide')
+}
+
+const onOKClick = () => {
+  let err = false
+  form.mode = props.mode
+  if (form.name) {
+    form.name = form.name.trim()
+  }
+  form.objKATO = objKATO.value
+
+  api
+    .post('', {
+      method: 'data/saveReservoirPropertiesRef',
+      params: [form],
+    })
+    .then((response) => {
+      err = false
+      emit('ok', response.data.result.records[0])
+      notifySuccess(proxy?.$t('success'))
+    })
+    .catch((error) => {
+      err = true
+      notifyError(error?.response?.data?.error?.message)
+    })
+    .finally(() => {
+      if (!err) hide()
+    })
+}
+
+const onCancelClick = () => {
+  hide()
+}
+
+onMounted(() => {
+  api.post('', { method: 'data/loadCls', params: ['Typ_WaterBodies'] }).then((res) => {
+    optCls.value = res.data.result.records
+  })
+
+  api.post('', { method: 'data/loadKatoForSelect', params: ['Prop_KATO'] }).then((res) => {
+    optKATO.value = pack(res.data.result.records, 'id')
+  })
+
+  api
+    .post('', { method: 'data/loadFvReservoirTypeAsStore', params: ['Prop_ReservoirType'] })
+    .then((res) => {
+      optFvReservoirType.value = res.data.result.records
+    })
+
+  api
+    .post('', { method: 'data/loadFvReservoirStatusAsStore', params: ['Prop_ReservoirStatus'] })
+    .then((res) => {
+      optFvReservoirStatus.value = res.data.result.records
+    })
+
+  api
+    .post('', { method: 'data/loadFvFishFarmingTypeAsStore', params: ['Prop_FishFarmingType'] })
+    .then((res) => {
+      optFvFishFarmingType.value = res.data.result.records
+      if (props.mode === 'upd' && props.data.objKATO) {
+        let arr = props.data.objKATO.split(',') || []
+        arr.forEach((item) => objKATO.value.push(item))
+      }
+    })
+})
+
+defineExpose({
+  show,
+  hide,
+})
 </script>
