@@ -10,7 +10,7 @@ import jandcode.core.store.Store;
 import jandcode.core.store.StoreIndex;
 import jandcode.core.store.StoreRecord;
 import tofi.api.dta.ApiMonitoringData;
-import tofi.api.dta.ApiUserData;
+import tofi.api.dta.ApiNSIData;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.FD_MemberType_consts;
@@ -26,8 +26,8 @@ public class RelClsMdbUtils extends BaseMdbUtils {
     ApinatorApi apiMonitoringData() {
         return getMdb().getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
-    ApinatorApi apiUserData() {
-        return  getMdb().getApp().bean(ApinatorService.class).getApi("userdata");
+    ApinatorApi apiNSIData() {
+        return  getMdb().getApp().bean(ApinatorService.class).getApi("nsidata");
     }
     //---------------------------------------------------
 
@@ -70,8 +70,8 @@ public class RelClsMdbUtils extends BaseMdbUtils {
         List<String> lstApp = new ArrayList<>();
         if (modelMeta.equalsIgnoreCase("fish")) {
             //1
-            boolean b = apiUserData().get(ApiUserData.class).checkExistOwners(relcls, false);
-            if (b) lstApp.add("userdata");
+            boolean b = apiNSIData().get(ApiNSIData.class).checkExistOwners(relcls, false);
+            if (b) lstApp.add("nsidata");
             //3
             b = apiMonitoringData().get(ApiMonitoringData.class).checkExistOwners(relcls, false);
             if (b) lstApp.add("monitoringdata");

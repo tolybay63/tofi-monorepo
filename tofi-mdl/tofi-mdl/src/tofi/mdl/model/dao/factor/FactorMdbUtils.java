@@ -11,7 +11,7 @@ import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreRecord;
 import tofi.api.dta.ApiMonitoringData;
-import tofi.api.dta.ApiUserData;
+import tofi.api.dta.ApiNSIData;
 import tofi.apinator.ApinatorApi;
 import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.FD_PropType_consts;
@@ -25,8 +25,8 @@ import java.util.Map;
 
 public class FactorMdbUtils extends BaseMdbUtils {
 
-    ApinatorApi apiUserData() {
-        return  getMdb().getApp().bean(ApinatorService.class).getApi("userdata");
+    ApinatorApi apiNSIData() {
+        return  getMdb().getApp().bean(ApinatorService.class).getApi("nsidata");
     }
     ApinatorApi apiMonitoringData() {
         return getMdb().getApp().bean(ApinatorService.class).getApi("monitoringdata");
@@ -100,8 +100,8 @@ public class FactorMdbUtils extends BaseMdbUtils {
     void is_exist_entity_as_data(long propVal, String metaModel) {
         List<String> lstApp = new ArrayList<>();
         if (metaModel.equalsIgnoreCase("fish")) {
-            boolean b = apiUserData().get(ApiUserData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
-            if (b) lstApp.add("userdata");
+            boolean b = apiNSIData().get(ApiNSIData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
+            if (b) lstApp.add("nsidata");
             b = apiMonitoringData().get(ApiMonitoringData.class).is_exist_entity_as_dataOld(0, "factorVal", propVal);
             if (b) lstApp.add("monitoringdata");
         }

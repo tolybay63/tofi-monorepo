@@ -11,8 +11,6 @@ import tofi.api.mdl.ApiMetaData
 import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.EntityConst
 import tofi.api.mdl.utils.UtMeterSoft
-import tofi.apinator.ApinatorApi
-import tofi.apinator.ApinatorService
 
 import java.util.stream.Stream
 
