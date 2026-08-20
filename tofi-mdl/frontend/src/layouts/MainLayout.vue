@@ -98,6 +98,7 @@
       class="bg-blue-1"
       elevated
       show-if-above
+      bordered
     >
 
       <h6 v-if="notAccess" class="q-pa-md text-red text-bold">
@@ -134,6 +135,7 @@
                   :active="isActive(item.to)"
                   :to="item.to"
                   active-class="text-bold text-blue bg-blue-2"
+                  class="q-table--bordered"
                   clickable>
             <q-item-section avatar>
               <q-icon :name="item.icon"/>
