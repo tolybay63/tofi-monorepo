@@ -13,7 +13,7 @@ let authURL = "/auth";
 let baseURL = "/api";
 
 // Если это ПРОД (сборка через Nginx или запуск без портов в браузере)
-if (import.meta.env.NODE_ENV === 'production' || (typeof window !== 'undefined' && !window.location.port)) {
+if (import.meta.env.QUASAR_PROD || (typeof window !== 'undefined' && !window.location.port)) {
   baseURL = `/fish/${SERVICE_NAME}/api/`;
   authURL = `/fish/${SERVICE_NAME}/auth`; // С закрывающим слэшем для идеальной работы proxy_cookie_path
 }
@@ -30,7 +30,7 @@ const api = axios.create({
 // Автоматический перехватчик: вытаскивает токен из сессии НАПРЯМУЮ перед КАЖДЫМ запросом
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('fish_token');
+    const token = sessionStorage.getItem('fish_token');
     if (token && token !== 'null' && token !== 'undefined') {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -72,7 +72,7 @@ LoadingBar.setDefaults({ color: 'amber-14', size: '10px', position: 'top' })
 api.interceptors.request.use((config) => {
   LoadingBar.start()
 
-  const token = localStorage.getItem('fish_token')
+  const token = sessionStorage.getItem('fish_token')
   if (token && typeof token === 'string' && token !== 'null') {
     config.headers['Authorization'] = `Bearer ${token}`
   }
@@ -86,7 +86,7 @@ export default defineBoot(({ app, router }) => {
   const userStore = useUserStore();
 
   // Автоматическая инициализация сессии при перезагрузке страницы
-  const currentToken = localStorage.getItem('fish_token')
+  const currentToken = sessionStorage.getItem('fish_token')
   if (currentToken && currentToken.length > 10 && currentToken !== 'null') {
     userStore.initFromToken();
   }
