@@ -84,7 +84,7 @@ import { useQuasar } from 'quasar'
 import { api } from '../../boot/axios'
 import { expandAll, getParentNode, hasTarget, notifyInfo, pack } from '../../utils/jsutils'
 import QTreeTable from '../../components/QTreeTable.vue'
-import UpdaterStructEnterprise2 from './UpdaterStructEnterprise2.vue'
+import UpdaterStructEnterprise from './UpdaterStructEnterprise.vue'
 
 const $q = useQuasar()
 const { proxy } = getCurrentInstance()
@@ -200,7 +200,7 @@ const fnIns = (mode, isChild) => {
   }
 
   $q.dialog({
-    component: UpdaterStructEnterprise2,
+    component: UpdaterStructEnterprise,
     componentProps: {
       mode: mode,
       isChild: isChild,

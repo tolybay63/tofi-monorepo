@@ -155,12 +155,6 @@ export default defineComponent({
         link: '/kato',
         target: 'mon:kato',
       },
-/*      {
-        title: 'samplingStations',
-        icon: 'houseboat',
-        link: '/samplingstations',
-        target: 'mon:st',
-      },*/
       {
         title: 'FishGear',
         icon: 'phishing',
@@ -171,7 +165,7 @@ export default defineComponent({
         title: 'struct_enterprise',
         info: '',
         icon: 'apartment',
-        link: '/struct_enterprise2',
+        link: '/struct_enterprise',
         target: 'st:org',
       },
       {

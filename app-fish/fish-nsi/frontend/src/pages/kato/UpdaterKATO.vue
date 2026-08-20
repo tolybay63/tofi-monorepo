@@ -105,7 +105,7 @@ const onDialogHide = () => {
 }
 
 const onOKClick = () => {
-  const method = props.mode === 'ins' ? 'insertBranch' : 'updateBranch'
+  const method = props.mode === 'ins' ? 'insertKATO' : 'updateKATO'
   form.cls = props.isChild ? clsDistrict.value : clsRegion.value
 
   api

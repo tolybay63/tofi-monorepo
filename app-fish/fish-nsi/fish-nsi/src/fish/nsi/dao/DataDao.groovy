@@ -65,134 +65,37 @@ class DataDao extends BaseMdbUtils {
         eu.deleteEntity(id)
     }
 
-/*    //---------------- 2 SamplingStation ----------------//
     @DaoMethod
-    Store loadSamplingStations(Map<String, Object> params) {
-
-        Store stResoir = loadObjCustom("Prop_ReservoirShore")
-        StoreIndex indResoir = stResoir.getIndex("id")
-
-        String codCls = UtCnv.toString(params.get("codCls"))
-        long idObj = UtCnv.toLong(params.get("idObj"))
-
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-        String whe = "o.id=${idObj}"
-        if (idObj == 0) {
-            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
-            whe = "o.cls = ${map1.get(codCls)}"
-        }
-        Store st = mdb.createStore("Obj.sampling.station")
-        mdb.loadQuery(st, """
-            select o.id as obj, o.cls, v.name, 
-                v1.id as idCoordinate, v1.strVal as Coordinate, 
-                v2.id as idAreaOfTon, v2.numberVal as AreaOfTon,
-                v3.id as idDescription, v3.multiStrVal as Description,
-                v4.id as idReservoirShore, v4.obj as objReservoirShore, 
-                v4.propVal as pvReservoirShore, null as nameReservoirShore
-            from Obj o
-                join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d1 on d1.objorrelobj=o.id and d1.prop=:Prop_Coordinate
-                left join DataPropVal v1 on d1.id=v1.dataprop 
-                left join DataProp d2 on d2.objorrelobj=o.id and d2.prop=:Prop_AreaOfTon
-                left join DataPropVal v2 on d2.id=v2.dataprop
-                left join DataProp d3 on d3.objorrelobj=o.id and d3.prop=:Prop_Description
-                left join DataPropVal v3 on d3.id=v3.dataprop
-                left join DataProp d4 on d4.objorrelobj=o.id and d4.prop=:Prop_ReservoirShore
-                left join DataPropVal v4 on d4.id=v4.dataprop
-            where ${whe}
-        """, map)
-        //
-
-        st.each { StoreRecord r ->
-            StoreRecord rec = indResoir.get(r.getLong("objReservoirShore"))
-            if (rec != null) {
-                r.set("nameReservoirShore", rec.getString("name"))
-            }
-        }
-
-        return st
-    }
-
-    @DaoMethod
-    Store saveSamplingStation(Map<String, Object> params) {
-        VariantMap pms = new VariantMap(params)
-        long own
+    StoreRecord insertKATO(Map<String, Object> rec) {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        Map<String, Object> par = new HashMap<>(pms)
-        par.put("fullName", pms.get("name"))
-        if (pms.getString("mode").equalsIgnoreCase("ins")) {
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Station", "")
-            if (map.isEmpty()) throw new XError("NotFoundCod@Cls_Station")
-            par.put("cls", map.get("Cls_Station"))
-            own = eu.insertEntity(par)
-            pms.put("own", own)
-            //Prop_AreaOfTon
-            fillProperties(true, "Prop_AreaOfTon", pms)
-            //Prop_Coordinate
-            fillProperties(true, "Prop_Coordinate", pms)
-            //Prop_ReservoirShore
-            fillProperties(true, "Prop_ReservoirShore", pms)
-            //Prop_Description
-            if (!pms.getString("Description").isEmpty())
-                fillProperties(true, "Prop_Description", pms)
-        } else {
-            own = pms.getLong("obj")
-            par.put("id", own)
-            eu.updateEntity(par)
-            //
-            pms.put("own", own)
-            //1 Prop_AreaOfTon
-            if (pms.containsKey("idAreaOfTon"))
-                updateProperties("Prop_AreaOfTon", pms)
-            //2 Prop_Coordinate
-            if (pms.containsKey("idCoordinate"))
-                updateProperties("Prop_Coordinate", pms)
-            //3 Prop_Description
-            if (pms.containsKey("idDescription"))
-                updateProperties("Prop_Description", pms)
-            else if (!pms.getString("Description").isEmpty())
-                fillProperties(true, "Prop_Description", pms)
-
-            //3 Prop_Description
-            if (pms.getLong("idReservoirShore") > 0)
-                updateProperties("Prop_ReservoirShore", pms)
-            else if (pms.getLong("objReservoirShore") > 0)
-                fillProperties(true, "Prop_ReservoirShore", pms)
-        }
-        return loadSamplingStations([codCls: "", idObj: own] as Map<String, Object>)
+        long own = eu.insertEntity(rec)
+        return loadObjRec(own)
     }
 
     @DaoMethod
-    void deleteSamplingStation(long id) {
-        checkForExistData(id, 1)
-        deleteOwnerWithProperties(id, 1)
+    StoreRecord updateKATO(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        long id = UtCnv.toLong(rec.get("id"))
+        eu.updateEntity(rec)
+        return loadObjRec(id)
     }
 
-    //todo ????
-    @DaoMethod
-    Store loadReservoir(String codTypOrProp) {
-        return loadObjCustom(codTypOrProp)
-    }
-    //
-    //todo ????
-    private Store loadObjCustom(String codTypOrProp) {
-        Store st = loadObjForSelect(codTypOrProp, "monitoringdata")
-        Set<Object> idsCls = st.getUniqueValues("cls")
-        Store stCls = apiMeta().get(ApiMeta).loadSql("""
-            select c.id, v.name from Cls c, ClsVer v 
-            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
-        """, "")
-        StoreIndex indCls = stCls.getIndex("id")
-        for (StoreRecord r in st) {
-            StoreRecord rec = indCls.get(r.getLong("cls"))
-            if (rec != null) {
-                r.set("name", r.getString("name") + " (" + rec.getString("name") + ")")
-            }
-        }
+    private StoreRecord loadObjRec(long obj) {
+        StoreRecord st = mdb.createStoreRecord("Obj.full")
+        mdb.loadQueryRecord(st, """
+            select o.*, v.name, v.fullName, v.objParent as parent from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id=:o
+        """, [o: obj])
         return st
     }
-*/
 
+    @DaoMethod
+    Map<String, Long> getClsIds(String codCls) {
+        if (codCls == "")
+            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_%")
+        else
+            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
+    }
 
     //---------------- 4 TypesFishGear ----------------//
     @DaoMethod
@@ -270,10 +173,101 @@ class DataDao extends BaseMdbUtils {
         deleteOwnerWithProperties(id, 1)
     }
 
+    @DaoMethod
+    Store loadClsList(String codTyp) {
+        Store st = apiMeta().get(ApiMeta).loadCls(codTyp)
+        if (st.size() == 0)
+            throw new XError("NotFoundCod@${codTyp}")
+        return st
+    }
 
 
+    //---------------------------------- StructureEnterprise --------------------------------- //
+    @DaoMethod
+    Store loadEnterprise(String codTyp) {
+        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
+        if (idsCls.size() == 0)
+            idsCls.add(0L)
 
-    //---------------------------------- Branch --------------------------------- //
+        Store stCls = apiMeta().get(ApiMeta).loadSql("""
+            select c.id, v.name
+            from Cls c, ClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (${idsCls.join(",")})
+        """, "")
+
+        StoreIndex indCls = stCls.getIndex("id")
+
+        Store st = mdb.loadQuery("""
+            select o.id, v.objparent as parent, v.name, v.fullname, o.cls, null as namecls, v.cmtver as cmt 
+            from obj o, objver v  
+            where o.id=v.ownerver and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            order by o.ord
+        """)
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("namecls", rec.getString("name"))
+            }
+        }
+        return st
+    }
+
+    @DaoMethod
+    void insertEnterprise(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.insertEntity(rec)
+    }
+
+    @DaoMethod
+    void updateEnterprise(Map<String, Object> rec) {
+        long id = UtCnv.toLong(rec.get("id"))
+        if (id==0)
+            throw new XError("id=0")
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.updateEntity(rec)
+    }
+
+    @DaoMethod
+    void deleteEnterprise(long id) {
+        checkForExistData(id, 1)
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        eu.deleteEntity(id)
+    }
+
+    @DaoMethod
+    Store loadCls(String codTyp, String flag) {
+        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
+        if (idsCls.size() == 0)
+            idsCls.add(0L)
+
+        String sql = """
+            select cls
+            from clsfactorval
+            where cls in (${idsCls.join(",")})
+            group by cls
+            having count(*) = 1
+        """
+        if (flag.equalsIgnoreCase("childs")) {
+            sql = """
+                    select cls
+                    from clsfactorval
+                    where cls in (${idsCls.join(",")})
+                    group by cls
+                    having count(*) > 1
+                """
+        }
+        Store stCls = apiMeta().get(ApiMeta).loadSql(sql, "")
+        Set<Object> setCls = stCls.getUniqueValues("cls")
+        return apiMeta().get(ApiMeta).loadSql("""
+            select c.id, v.name
+            from Cls c, ClsVer v
+            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${setCls.join(",")})        
+        """, "")
+    }
+
+
+/*
     @DaoMethod
     Store loadClsTree(Map<String, Object> params) {
         return apiMeta().get(ApiMeta).loadClsTree(params)
@@ -308,64 +302,9 @@ class DataDao extends BaseMdbUtils {
         return res
     }
 
-    @DaoMethod
-    Map<String, Long> getClsIds(String codCls) {
-        if (codCls == "")
-            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_%")
-        else
-            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
-    }
+*/
 
-    @DaoMethod
-    StoreRecord insertBranch(Map<String, Object> rec) {
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        long own = eu.insertEntity(rec)
-        return loadObjRec(own)
-    }
 
-    @DaoMethod
-    StoreRecord updateBranch(Map<String, Object> rec) {
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        long id = UtCnv.toLong(rec.get("id"))
-        eu.updateEntity(rec)
-        return loadObjRec(id)
-    }
-
-    private StoreRecord loadObjRec(long obj) {
-        StoreRecord st = mdb.createStoreRecord("Obj.full")
-        mdb.loadQueryRecord(st, """
-            select o.*, v.name, v.fullName, v.objParent as parent from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id=:o
-        """, [o: obj])
-        return st
-    }
-
-    @DaoMethod
-    void deleteBranch(long id) {
-        checkForExistData(id, 1)
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        eu.deleteEntity(id)
-    }
-
-    @DaoMethod
-    void deletePersonnel(long id) {
-        //checkForExistData(id, 1)
-        Store st = loadSqlService("""
-            select distinct v.name 
-            from Obj o
-            join ObjVer v on o.id=v.ownerVer and v.lastVer=1
-            join DataProp d1 on d1.objorrelobj=o.id-- and d1.prop in (1047,1048)
-            join DataPropVal v1 on d1.id=v1.dataProp
-            where v1.obj=${id}
-        """, "", "monitoringdata")
-
-        if (st.size() > 0) {
-            String msg = st.getUniqueValues("name").join(";\n\r")
-            throw new XError("Cотрудник используется в следующих ловлах:\n\r${msg}")
-        }
-
-        deleteOwnerWithProperties(id, 1)
-    }
 
     private void deleteOwnerWithProperties(long id, int isObj) {
         if (id == 0)
@@ -531,7 +470,7 @@ class DataDao extends BaseMdbUtils {
         return mapRes
     }
 
-    Store loadPersonnelRec(long id) throws Exception {
+    private Store loadPersonnelRec(long id) throws Exception {
         Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_User%")
         mapProp.put("obj", id)
         String sql = """
@@ -607,25 +546,6 @@ class DataDao extends BaseMdbUtils {
         //checkTarget("default-target")
         Store st = getMdb().createStore("Personnel")
         return st.add()
-    }
-
-    private void checkUser(long user, long own) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
-        long cls = map.get("Cls_Personnel")
-        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
-        map.put("cls", cls)
-        Store st = mdb.loadQuery("""
-            select v1.strVal::numeric::bigint as user, o.id as own
-            from Obj o
-                left join DataProp d1 on d1.isObj=1 and d1.objOrRelobj=o.id and d1.prop=:Prop_UserId
-                left join DataPropVal v1 on d1.id=v1.dataProp
-            where o.cls=:cls
-        """, map)
-        for (StoreRecord r in st) {
-            if (r.getLong("user") == user && r.getLong("own") != own) {
-                throw new XError("Указанный пользователь уже назначен другому сотруднику")
-            }
-        }
     }
 
     @DaoMethod
@@ -739,6 +659,25 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    void deletePersonnel(long id) {
+        Store st = loadSqlService("""
+            select distinct v.name 
+            from Obj o
+            join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+            join DataProp d1 on d1.objorrelobj=o.id-- and d1.prop in (1047,1048)
+            join DataPropVal v1 on d1.id=v1.dataProp
+            where v1.obj=${id}
+        """, "", "monitoringdata")
+
+        if (st.size() > 0) {
+            String msg = st.getUniqueValues("name").join(";\n\r")
+            throw new XError("Cотрудник используется в следующих ловлах:\n\r${msg}")
+        }
+
+        deleteOwnerWithProperties(id, 1)
+    }
+
+    @DaoMethod
     Store selectFV(String codProp) {
         return apiMeta().get(ApiMeta).storePropValForSelectFV(codProp)
     }
@@ -767,140 +706,25 @@ class DataDao extends BaseMdbUtils {
         """, "")
     }
 
-    @DaoMethod
-    Map<Long, String> mapFvNameFromId() {
-        return apiMeta().get(ApiMeta).mapFvNameFromId()
-    }
-
-    //------------------
-    @DaoMethod
-    Store loadEnterprise(String codTyp) {
-        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
-        if (idsCls.size() == 0)
-            idsCls.add(0L)
-
-        Store stCls = apiMeta().get(ApiMeta).loadSql("""
-            select c.id, v.name
-            from Cls c, ClsVer v
-            where c.id=v.ownerVer and v.lastVer=1 and c.id in (${idsCls.join(",")})
-        """, "")
-
-        StoreIndex indCls = stCls.getIndex("id")
-
+    private void checkUser(long user, long own) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Personnel", "")
+        long cls = map.get("Cls_Personnel")
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
+        map.put("cls", cls)
         Store st = mdb.loadQuery("""
-            select o.id, v.objparent as parent, v.name, v.fullname, o.cls, null as namecls, v.cmtver as cmt 
-            from obj o, objver v  
-            where o.id=v.ownerver and v.lastVer=1 and o.cls in (${idsCls.join(",")})
-            order by o.ord
-        """)
-
+            select v1.strVal::numeric::bigint as user, o.id as own
+            from Obj o
+                left join DataProp d1 on d1.isObj=1 and d1.objOrRelobj=o.id and d1.prop=:Prop_UserId
+                left join DataPropVal v1 on d1.id=v1.dataProp
+            where o.cls=:cls
+        """, map)
         for (StoreRecord r in st) {
-            StoreRecord rec = indCls.get(r.getLong("cls"))
-            if (rec != null) {
-                r.set("namecls", rec.getString("name"))
+            if (r.getLong("user") == user && r.getLong("own") != own) {
+                throw new XError("Указанный пользователь уже назначен другому сотруднику")
             }
         }
-        return st
     }
 
-    @DaoMethod
-    Store loadClsList(String codTyp) {
-        Store st = apiMeta().get(ApiMeta).loadCls(codTyp)
-        if (st.size() == 0)
-            throw new XError("NotFoundCod@${codTyp}")
-        return st
-    }
-
-    @DaoMethod
-    Store loadCls(String codTyp, String flag) {
-        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
-        if (idsCls.size() == 0)
-            idsCls.add(0L)
-
-        String sql = """
-            select cls
-            from clsfactorval
-            where cls in (${idsCls.join(",")})
-            group by cls
-            having count(*) = 1
-        """
-        if (flag.equalsIgnoreCase("childs")) {
-            sql = """
-                    select cls
-                    from clsfactorval
-                    where cls in (${idsCls.join(",")})
-                    group by cls
-                    having count(*) > 1
-                """
-        }
-        Store stCls = apiMeta().get(ApiMeta).loadSql(sql, "")
-        Set<Object> setCls = stCls.getUniqueValues("cls")
-        return apiMeta().get(ApiMeta).loadSql("""
-            select c.id, v.name
-            from Cls c, ClsVer v
-            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${setCls.join(",")})        
-        """, "")
-    }
-
-    @DaoMethod
-    void insertEnterprise(Map<String, Object> rec) {
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        eu.insertEntity(rec)
-    }
-
-    @DaoMethod
-    void updateEnterprise(Map<String, Object> rec) {
-        long id = UtCnv.toLong(rec.get("id"))
-        if (id==0)
-            throw new XError("id=0")
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        eu.updateEntity(rec)
-    }
-
-    @DaoMethod
-    void deleteEnterprise(long id) {
-        checkForExistData(id, 1)
-        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        eu.deleteEntity(id)
-    }
-
-
-    private Store loadObjForSelect(String codTypOrProp, String model) {
-        if (codTypOrProp.startsWith("Typ_")) {
-            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
-            idsCls.add(0)
-            return loadSqlService("""
-                select o.id, o.cls, v.name
-                from Obj o, ObjVer v
-                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
-            """, "", model)
-        } else if (codTypOrProp.startsWith("Prop_")) {
-            Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codTypOrProp, "")
-            Store stProp = apiMeta().get(ApiMeta).loadSql("""
-                select cls, id as propval
-                from PropVal
-                where prop=${mapProp.get(codTypOrProp)} and cls is not null
-            """, "")
-            StoreIndex indProp = stProp.getIndex("cls")
-
-            Set<Object> idsCls = stProp.getUniqueValues("cls")
-
-            Store stObj = loadSqlService("""
-                select o.id, o.cls, v.name, null as pv
-                from Obj o, ObjVer v
-                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
-            """, "", model)
-            for (StoreRecord r in stObj) {
-                StoreRecord rec = indProp.get(r.getLong("cls"))
-                if (rec != null) {
-                    r.set("pv", rec.getLong("propval"))
-                }
-            }
-            return stObj
-        } else {
-            throw new XError("Неверный параметр")
-        }
-    }
 
 //-----------------------------------------------------------------------------------------------//
     private void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
@@ -1259,7 +1083,6 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Unknown model [${model}]")
     }
 
-
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
     }
@@ -1398,7 +1221,6 @@ class DataDao extends BaseMdbUtils {
             }
         }
     }
-
 
     @DaoMethod
     void checkTarget(String target) {
