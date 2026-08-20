@@ -48,15 +48,15 @@
 </template>
 
 <script setup>
-import { ref, computed, provide } from 'vue'
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { VisualMapComponent, TooltipComponent } from 'echarts/components'
-import VChart, { THEME_KEY } from 'vue-echarts'
+import {computed, provide, ref} from 'vue'
+import {use} from 'echarts/core'
+import {CanvasRenderer} from 'echarts/renderers'
+import {TooltipComponent, VisualMapComponent} from 'echarts/components'
+import VChart, {THEME_KEY} from 'vue-echarts'
 
 // ИМПОРТИРУЕМ ИЗ ECHARTS-GL С ПРАВИЛЬНЫМИ НАЗВАНИЯМИ КЛАССОВ:
-import { Grid3DComponent } from 'echarts-gl/components'
-import { Scatter3DChart } from 'echarts-gl/charts' // <-- Здесь изменен суффикс с Series на Chart
+import {Grid3DComponent} from 'echarts-gl/components'
+import {Scatter3DChart} from 'echarts-gl/charts' // <-- Здесь изменен суффикс с Series на Chart
 
 // Регистрируем компоненты
 use([

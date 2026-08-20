@@ -142,9 +142,9 @@
 </template>
 
 <script>
-import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
+import {hasTarget, notifyInfo} from 'src/utils/jsutils'
 import {api} from 'boot/axios'
-import {extend, useQuasar} from 'quasar'
+import {extend} from 'quasar'
 import {ref} from 'vue'
 import ReservoirsMeter from "pages/reservoirs/ReservoirsMeter.vue";
 import ChartViewPage from "components/ChartViewPage.vue";

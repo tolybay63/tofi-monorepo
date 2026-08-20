@@ -1,7 +1,7 @@
-import jandcode.core.jc.*
-import jandcode.core.web.jc.*
-import jandcode.jc.*
-import jandcode.jc.std.*
+import jandcode.core.jc.AppRunBat
+import jandcode.jc.ProjectScript
+import jandcode.jc.std.GitVersion
+import jandcode.jc.std.RootProject
 
 class P extends ProjectScript {
 

@@ -94,10 +94,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, getCurrentInstance } from 'vue'
-import { useQuasar, extend } from 'quasar'
-import { api } from 'boot/axios'
-import { hasTarget, notifyInfo } from '../../utils/jsutils'
+import {getCurrentInstance, onMounted, ref} from 'vue'
+import {extend, useQuasar} from 'quasar'
+import {api} from 'boot/axios'
+import {hasTarget, notifyInfo} from '../../utils/jsutils'
 import UpdaterSamplingStation from './UpdaterSamplingStation.vue'
 
 const $q = useQuasar()

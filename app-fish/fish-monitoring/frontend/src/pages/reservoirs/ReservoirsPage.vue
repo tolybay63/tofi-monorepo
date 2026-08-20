@@ -132,7 +132,7 @@
 <script>
 import {hasTarget, notifyError, notifyInfo} from 'src/utils/jsutils'
 import {api} from 'boot/axios'
-import {extend, useQuasar} from 'quasar'
+import {extend} from 'quasar'
 import {ref} from 'vue'
 import UpdaterReservoirRefs from 'pages/reservoirs/UpdaterReservoirRefs.vue'
 import ReservoirsMeter from "pages/reservoirs/ReservoirsMeter.vue";
