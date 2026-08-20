@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import {defineComponent} from "vue";
 import SetLocale from "../components/SetLocale.vue";
 
 export default defineComponent({

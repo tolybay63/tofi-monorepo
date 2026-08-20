@@ -125,14 +125,8 @@
 </template>
 
 <script setup>
-import {
-  appAdmURL,
-  appCalcURL,
-  appModelURL,
-  appNsiURL,
-  appMonitoringURL
-} from "../boot/axios";
-import { Notify } from "quasar";
+import {appAdmURL, appModelURL, appMonitoringURL, appNsiURL} from "../boot/axios";
+import {Notify} from "quasar";
 
 function fnAdm() {
   window.open(appAdmURL, "_self");
