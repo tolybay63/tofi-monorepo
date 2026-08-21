@@ -18,7 +18,7 @@ class AuthDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    public void checkTarget(String target) {
+    void checkTarget(String target) {
         AuthService authService = getModel().getApp().bean(AuthService.class);
         AuthUser usr = authService.getCurrentUser();
 

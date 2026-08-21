@@ -128,6 +128,7 @@ import {authURL, urlMainApp} from '@/boot/axios'
 import {useQuasar} from 'quasar'
 import axios from 'axios'
 import {useI18n} from 'vue-i18n'
+import {api} from "../boot/axios.js";
 
 // Composables
 const router = useRouter()
@@ -190,10 +191,10 @@ const loginOnOff = () => {
     }).onOk((res) => {
       setUserStore(res)
       router.push('/')
-/*      api.post('', {
-        method: 'usr/checkTarget',
-        params: ['adm'],
-      })*/
+      api.post('', {
+        method: 'auth/checkTarget',
+        params: ['calc'],
+      })
     })
   } else {
     axios
