@@ -161,7 +161,6 @@ import {api} from "@/boot/axios";
 
 const { proxy } = getCurrentInstance();
 const $q = useQuasar();
-//const route = useRoute();
 const router = useRouter();
 
 const isExpanded = ref(true);
