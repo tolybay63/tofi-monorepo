@@ -153,7 +153,7 @@
 
 <script setup>
 import {computed, getCurrentInstance, onMounted, ref} from "vue";
-import {useRoute, useRouter} from "vue-router";
+import {useRouter} from "vue-router";
 import {exportFile, useQuasar} from "quasar";
 import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack} from "../../utils/jsutils";
 import UpdaterPermis from "@/pages/permis/UpdaterPermis.vue";
@@ -161,7 +161,7 @@ import {api} from "@/boot/axios";
 
 const { proxy } = getCurrentInstance();
 const $q = useQuasar();
-const route = useRoute();
+//const route = useRoute();
 const router = useRouter();
 
 const isExpanded = ref(true);
@@ -340,10 +340,10 @@ const fetchData = () => {
     })
     .then(
       (response) => {
-        table.value = pack(response.data.result.records, "ord");
+        table.value = pack(response.data.result["records"], "ord");
       },
       (error) => {
-        router.push("/");
+        router["push"]("/");
         let msg = error.message;
         if (error.response)
           msg = proxy?.$t(error.response.data.error.message);
