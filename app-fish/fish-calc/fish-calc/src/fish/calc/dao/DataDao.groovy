@@ -3,6 +3,7 @@ package fish.calc.dao
 import groovy.transform.CompileStatic
 import jandcode.commons.error.XError
 import jandcode.core.auth.AuthService
+import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import tofi.api.mdl.ApiMeta
@@ -14,6 +15,13 @@ class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
     //-----------------------------------------------------------------------------------------------//
+
+    @DaoMethod
+    Store loadCalc() {
+
+        return null
+    }
+
 
 
     private Store loadSqlMeta(String sql, String domain) {

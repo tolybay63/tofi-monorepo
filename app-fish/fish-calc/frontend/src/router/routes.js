@@ -4,8 +4,9 @@ const routes = [
     component: () => import('../layouts/MainLayout.vue'),
     children: [
       {path: '', component: () => import('../pages/IndexPage.vue') },
-      {path: '/calcA', name: "CalculationA", component: () => import('../pages/CalcA.vue')},
-      {path: '/calcB', name: "CalculationB", component: () => import('../pages/CalcB.vue')},
+      {path: '/calc_stock', component: () => import('../pages/calcstock/CalcStockPage.vue')},
+      {path: '/calcA', component: () => import('../pages/CalcA.vue')},
+      {path: '/calcB', component: () => import('../pages/CalcB.vue')},
     ],
   },
 

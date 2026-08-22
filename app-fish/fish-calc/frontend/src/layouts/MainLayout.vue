@@ -174,12 +174,14 @@ const essentialLinks = computed(() => [
     label: t('calcStock'),
     info: '',
     icon: 'calculate',
+    to: '/calc_stock',
     target: '',
   },
   {
     label: t('calcMPC'),
     info: '',
     icon: 'calculate',
+    //to: '/calc_mpc',
     target: '',
   },
   {
