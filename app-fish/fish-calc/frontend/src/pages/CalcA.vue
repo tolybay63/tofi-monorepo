@@ -48,13 +48,16 @@ const getColumns = () => [
   },
 ]
 
-const fetchData = () => {
-
-  api.post('', {
+const checkTarget = async () => {
+  await api.post('', {
     method: 'auth/checkTarget',
     params: ['calc'],
   })
+}
 
+const fetchData = () => {
+  checkTarget()
+  //
   const apiPrefix = import.meta.env.PROD ? 'fast/' : 'http://127.0.0.1:8000/'
   api
     .get(`${apiPrefix}factor_vals_by_cod/Factor_FishType`)

@@ -160,7 +160,7 @@ const { setUserStore, clearUserStore } = store
 // Проверка сессии при инициализации[cite: 15]
 if (getUserId.value === 0) {
   clearUserStore()
-  router.push('/')
+  router["push"]('/')
 }
 
 const essentialLinks = [
@@ -187,14 +187,14 @@ const isActive = (menuTo) => {
 
 const reqAuth = () => getUserName.value === ''
 
-const notAccess = () => !getTarget.value.includes("mon") && !isSysAdmin.value
+const notAccess = () => !getTarget.value["includes"]("mon") && !isSysAdmin.value
 
 const nameIcon = () => (getUserName.value === '' ? 'login' : 'logout')
 
 const hasTarget = (tg) => {
   if (isSysAdmin.value) return true
-  if (getTarget.value.length === 0) return false
-  return getTarget.value.includes(tg)
+  if (getTarget.value["length"] === 0) return false
+  return getTarget.value["includes"](tg)
 }
 
 const loginOnOff = () => {
@@ -205,7 +205,7 @@ const loginOnOff = () => {
       componentProps: {},
     }).onOk((res) => {
       setUserStore(res)
-      router.push('/')
+      router["push"]('/')
 
       api.post('', {
         method: "auth/checkTarget",
@@ -223,7 +223,7 @@ const loginOnOff = () => {
         clearUserStore()
       })
       .finally(() => {
-        router.push('/')
+        router["push"]('/')
       })
   }
 }

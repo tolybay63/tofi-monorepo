@@ -5,18 +5,18 @@
         <!--Main App -->
         <q-btn class="q-mr-md" rounded color="primary" dense icon="grid_view" @click="mainApp()">
           <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('appName') }}
+            {{ tr('appName') }}
           </q-tooltip>
         </q-btn>
 
         <q-btn flat dense round icon="menu" @click="toggleLeftDrawer()">
           <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('menu') }}
+            {{ tr('menu') }}
           </q-tooltip>
         </q-btn>
 
         <q-toolbar-title class="text-center">
-          {{ $t('appCalcName') }}
+          {{ tr('appCalcName') }}
         </q-toolbar-title>
 
         <!--Home -->
@@ -26,10 +26,10 @@
           color="primary"
           dense
           icon="home"
-          @click="this.$router['push']('/')"
+          @click="router['push']('/')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('mainPage') }}
+            {{ tr('mainPage') }}
           </q-tooltip>
         </q-btn>
 
@@ -45,10 +45,10 @@
             no-caps
           >
             <q-tooltip transition-show="rotate" transition-hide="rotate" v-if="getUserName === ''"
-              >{{ $t('logIn') }}
+              >{{ tr('logIn') }}
             </q-tooltip>
             <q-tooltip v-else transition-show="rotate" transition-hide="rotate"
-              >{{ $t('logOut') }}
+              >{{ tr('logOut') }}
             </q-tooltip>
 
             {{ getUserName }}
@@ -70,43 +70,60 @@
           <q-icon class="q-pa-sm">
             <img src="../assets/factor.png" alt="Logo" />
           </q-icon>
-          {{ $t('company') }}
+          {{ tr('company') }}
 
           <span class="absolute-right q-pt-sm">
             <a :href="site_url" target="_blank" style="font-size: 12px" class="q-pr-md text-white">
-              {{ $t('fish_model') }}
+              {{ tr('fish_model') }}
             </a>
           </span>
         </q-toolbar-title>
       </q-toolbar>
     </q-footer>
 
-    <q-drawer :width="230" v-model="leftDrawerOpen" show-if-above bordered elevated class="q-pa-sm">
+    <q-drawer :width="230" v-model="leftDrawerOpen" show-if-above bordered elevated class="q-pa-sm bg-grey-3">
       <h6 class="q-pa-md text-red text-bold" v-if="reqAuth">
-        {{ $t('notLoginned') }}
+        {{ tr('notLoginned') }}
       </h6>
       <h6 class="q-pa-md text-red text-bold" v-else-if="notAccess">
-        {{ $t('notAccessService') }}
+        {{ tr('notAccessService') }}
       </h6>
+      <q-list v-else class="q-list--bordered bg-blue-1">
+        <template v-for="item in essentialLinks" :key="item.label">
+          <q-expansion-item v-if="item.children && hasTarget(item.target)"
+                            :icon="item.icon" :label="item.label"
+                            class="q-list--bordered"
+          >
+            <q-item
+              v-for="subItem in item.children"
+              :key="subItem.label"
+              v-ripple
+              :active="isActive(subItem.to)"
+              :to="subItem.to"
+              active-class="text-bold text-blue bg-blue-2"
+              class="q-pl-xl q-table--bordered bg-blue-1"
+              clickable
+            >
+              <q-item-section avatar>
+                <q-icon :name="subItem.icon"/>
+              </q-item-section>
+              <q-item-section>{{ subItem.label }}</q-item-section>
+            </q-item>
+          </q-expansion-item>
 
-      <q-list v-for="link in essentialLinks" :key="link.title">
-        <q-item
-          class="q-table--bordered bg-blue-1"
-          v-if="hasTarget(link.target)"
-          clickable
-          tag="a"
-          :to="link.link"
-          active-class="text-bold text-blue"
-        >
-          <q-item-section v-if="link.icon" avatar>
-            <q-icon :name="link.icon" size="32px" />
-          </q-item-section>
-
-          <q-item-section>
-            <q-item-label>{{ link.title }}</q-item-label>
-            <q-item-label caption>{{ link.info }}</q-item-label>
-          </q-item-section>
-        </q-item>
+          <q-item v-else v-if="hasTarget(item.target)"
+                  v-ripple
+                  :active="isActive(item.to)"
+                  :to="item.to"
+                  active-class="text-bold text-blue bg-blue-2"
+                  class="q-table--bordered bg-blue-1"
+                  clickable>
+            <q-item-section avatar>
+              <q-icon :name="item.icon"/>
+            </q-item-section>
+            <q-item-section>{{ item.label }}</q-item-section>
+          </q-item>
+        </template>
       </q-list>
     </q-drawer>
 
@@ -118,7 +135,7 @@
 
 <script setup>
 import {computed, onMounted, ref} from 'vue'
-import {useRouter} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import {storeToRefs} from 'pinia'
 import {useUserStore} from '@/stores/user-store'
 
@@ -132,6 +149,7 @@ import {api} from "../boot/axios.js";
 
 // Composables
 const router = useRouter()
+const route = useRoute()
 const $q = useQuasar()
 const { t } = useI18n()
 const store = useUserStore()
@@ -150,22 +168,39 @@ const nameIcon = computed(() => (getUserName.value === '' ? 'login' : 'logout'))
 // Essential links
 const essentialLinks = computed(() => [
   {
-    title: t('calc_A'),
+    label: 'endPoints',
+    children: [
+      {
+        label: t('calc_A'),
+        info: '',
+        icon: 'apartment',
+        to: '/calcA',
+        target: '',
+      },
+      {
+        label: t('calc_B'),
+        info: '',
+        icon: 'home_work',
+        to: '/calcB',
+        target: '',
+      }
+    ],
     info: '',
     icon: 'apartment',
-    link: '/calcA',
     target: '',
   },
-  {
-    title: t('calc_B'),
-    info: '',
-    icon: 'home_work',
-    link: '/calcB',
-    target: '',
-  },
+
 ])
 
 // Methods
+
+const isActive = (menuTo) => {
+  if (!menuTo || !route.path) return false
+  const menuBase = menuTo.split('/')[1]
+  const currentBase = route.path.split('/')[1]
+  return menuBase === currentBase
+}
+
 const mainApp = () => {
   window.open(urlMainApp, '_self')
 }
@@ -174,6 +209,9 @@ const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 
+const tr = (label) => {
+  return t(label)
+}
 const hasTarget = (tg) => {
   if (isSysAdmin.value) return true
   if (getTarget.value.length === 0) return false
@@ -183,14 +221,14 @@ const hasTarget = (tg) => {
 const loginOnOff = () => {
   if (getUserName.value === '') {
     leftDrawerOpen.value = true
-    $q.dialog({
+    $q["dialog"]({
       component: LoginUser,
       componentProps: {
         // ...
       },
     }).onOk((res) => {
       setUserStore(res)
-      router.push('/')
+      router["push"]('/')
       api.post('', {
         method: 'auth/checkTarget',
         params: ['calc'],
@@ -207,7 +245,7 @@ const loginOnOff = () => {
         clearUserStore()
       })
       .finally(() => {
-        router.push('/')
+        router["push"]('/')
       })
   }
 }
@@ -216,7 +254,7 @@ const loginOnOff = () => {
 onMounted(() => {
   if (!getUserId.value > 0) {
     clearUserStore()
-    router.push('/')
+    router["push"]('/')
   }
 })
 </script>

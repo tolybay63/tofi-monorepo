@@ -95,10 +95,10 @@
     <q-drawer
       v-model="leftDrawerOpen"
       :width="270"
-      class="bg-blue-1"
       elevated
       show-if-above
       bordered
+      class="bg-grey-3"
     >
 
       <h6 v-if="notAccess" class="q-pa-md text-red text-bold">
@@ -108,10 +108,11 @@
         {{ $t("notLoginned") }}
       </h6>
 
-      <q-list v-else>
+      <q-list v-else class="q-list--bordered bg-blue-1">
         <template v-for="item in linksList()" :key="item.label">
           <q-expansion-item v-if="item.children && hasTarget(item.target)"
                             :icon="item.icon" :label="item.label"
+                            class="q-list--bordered"
           >
             <q-item
               v-for="subItem in item.children"
@@ -120,7 +121,7 @@
               :active="isActive(subItem.to)"
               :to="subItem.to"
               active-class="text-bold text-blue bg-blue-2"
-              class="q-pl-xl q-table--bordered"
+              class="q-pl-xl q-table--bordered bg-blue-1"
               clickable
             >
               <q-item-section avatar>
@@ -135,7 +136,7 @@
                   :active="isActive(item.to)"
                   :to="item.to"
                   active-class="text-bold text-blue bg-blue-2"
-                  class="q-table--bordered"
+                  class="q-table--bordered bg-blue-1"
                   clickable>
             <q-item-section avatar>
               <q-icon :name="item.icon"/>
