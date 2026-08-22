@@ -34,8 +34,9 @@ export default {
   locked: 'Бұғатталған',
   forgotPsw: 'Құпия сөзіңізді ұмыттыңыз ба?',
 
-  calc_A: 'Расчет А',
-  calc_B: 'Расчет В',
+  calc: 'Есептеу',
+  calcStock: 'Қор есептеулері',
+  calcMPC: 'Рұқсат етілген ең жоғары аулау есептеулері',
 
   //Dialog
   confirmation: 'Растау',

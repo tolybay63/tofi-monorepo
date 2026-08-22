@@ -1,5 +1,5 @@
 <template>
-  <h6 class="q-mx-lg">Calculation B: Данные из [НСИ]</h6>
+  <h6 class="q-mx-lg">Данные из [НСИ]</h6>
 
   <div class="no-padding no-margin">
     <q-table

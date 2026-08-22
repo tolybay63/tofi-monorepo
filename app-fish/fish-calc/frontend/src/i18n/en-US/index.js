@@ -33,8 +33,9 @@ export default {
   locked: 'Blocked',
   forgotPsw: 'Forgot your password?',
 
-  calc_A: 'Calculation А',
-  calc_B: 'Calculation В',
+  calc: 'Calculation',
+  calcStock: 'Stock calculations',
+  calcMPC: 'Maximum permissible catch calculations',
 
   //Dialog
   confirmation: 'Confirmation',

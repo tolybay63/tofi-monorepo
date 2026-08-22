@@ -1,5 +1,5 @@
 <template>
-  <h6 class="q-mx-lg">Calculation A: Данные из [Meta]</h6>
+  <h6 class="q-mx-lg">Данные из [Meta]</h6>
 
   <div class="no-padding no-margin">
     <q-table

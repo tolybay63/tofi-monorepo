@@ -81,7 +81,7 @@
       </q-toolbar>
     </q-footer>
 
-    <q-drawer :width="230" v-model="leftDrawerOpen" show-if-above bordered elevated class="q-pa-sm bg-grey-3">
+    <q-drawer :width="260" v-model="leftDrawerOpen" show-if-above bordered elevated class="q-pa-sm bg-grey-3">
       <h6 class="q-pa-md text-red text-bold" v-if="reqAuth">
         {{ tr('notLoginned') }}
       </h6>
@@ -107,7 +107,10 @@
               <q-item-section avatar>
                 <q-icon :name="subItem.icon"/>
               </q-item-section>
-              <q-item-section>{{ subItem.label }}</q-item-section>
+              <q-item-section>
+                <q-item-label>{{ subItem.label }}</q-item-label>
+                <q-item-label caption>{{ subItem.info }}</q-item-label>
+              </q-item-section>
             </q-item>
           </q-expansion-item>
 
@@ -168,26 +171,38 @@ const nameIcon = computed(() => (getUserName.value === '' ? 'login' : 'logout'))
 // Essential links
 const essentialLinks = computed(() => [
   {
-    label: 'endPoints',
+    label: t('calcStock'),
+    info: '',
+    icon: 'calculate',
+    target: '',
+  },
+  {
+    label: t('calcMPC'),
+    info: '',
+    icon: 'calculate',
+    target: '',
+  },
+  {
+    label: 'Fast API EndPoints',
+    info: '',
+    icon: 'link',
+    target: '',
     children: [
       {
-        label: t('calc_A'),
-        info: '',
-        icon: 'apartment',
+        label: "Test 1",
+        info: 'Fast API from Meta',
+        icon: 'link',
         to: '/calcA',
         target: '',
       },
       {
-        label: t('calc_B'),
-        info: '',
-        icon: 'home_work',
+        label: "Test 2",
+        info: 'Fast API from NSI',
+        icon: 'link',
         to: '/calcB',
         target: '',
       }
-    ],
-    info: '',
-    icon: 'apartment',
-    target: '',
+    ]
   },
 
 ])

@@ -36,8 +36,9 @@ export default {
   locked: 'Заблокирован',
   forgotPsw: 'Забыли пароль?',
 
-  calc_A: 'Расчет А',
-  calc_B: 'Расчет В',
+  calc: 'Расчет',
+  calcStock: 'Расчеты запаса',
+  calcMPC: 'Расчеты предельно допустимого улова',
 
   //Dialog
   confirmation: 'Подтверждение',
