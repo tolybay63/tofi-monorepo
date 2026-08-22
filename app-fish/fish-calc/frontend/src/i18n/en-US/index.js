@@ -33,6 +33,8 @@ export default {
   locked: 'Blocked',
   forgotPsw: 'Forgot your password?',
 
+  selectedCalc: 'Selected calculation',
+  nameCalc: 'Calculation name',
   calc: 'Calculation',
   calcStock: 'Stock calculations',
   calcMPC: 'Maximum permissible catch calculations',

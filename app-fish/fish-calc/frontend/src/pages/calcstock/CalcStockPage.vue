@@ -1,149 +1,197 @@
 <template>
   <div class="q-pa-md" style="height: calc(100vh - 180px)">
-    <q-banner class="bg-amber-1" dense inline-actions>
-      <div style="font-size: 1.2em; font-weight: bold">
-        <q-avatar color="black" icon="code" text-color="white"></q-avatar>
-        {{ $t("calcStock") }}
-      </div>
 
-      <template v-slot:action>
-        <q-btn color="secondary" dense icon="save" @click="fnSave()">
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("save") }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          class="q-ml-sm"
-          color="secondary"
-          dense
-          icon="expand_more"
-          @click="fnExpand()"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("expandAll") }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          class="q-ml-sm"
-          color="secondary"
-          dense
-          icon="expand_less"
-          @click="fnCollapse()"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("collapseAll") }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('adm:tml:ins')"
-          class="q-ml-sm"
-          color="secondary"
-          dense
-          icon="post_add"
-          @click="fnIns('ins', false)"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("create1level") }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('adm:tml:ins')"
-          :disable="currentNode == null"
-          class="q-ml-sm img-vert"
-          color="secondary"
-          dense
-          icon="post_add"
-          @click="fnIns('ins', true)"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("createChild") }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('adm:tml:upd')"
-          :disable="currentNode == null"
-          class="q-ml-sm"
-          color="secondary"
-          dense
-          icon="edit"
-          @click="fnIns('upd', null)"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("editRecord") }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('adm:tml:del')"
-          :disable="currentNode == null"
-          class="q-ml-sm"
-          color="red"
-          dense
-          icon="delete"
-          @click="fnDel(currentNode)"
-        >
-          <q-tooltip transition-hide="rotate" transition-show="rotate">
-            {{ $t("deletingRecord") }}
-          </q-tooltip>
-        </q-btn>
-      </template>
-    </q-banner>
-
-    <div class="q-pa-md-md">
-      <span style="color: #1976d2"> {{ $t("selectedNode") }}: </span>
-      {{ nodeInfo() }}
-    </div>
-
-    <div
-      class="q-table-container q-table--dense wrap bg-amber-1 scroll sticky-header-table"
-      style="height: 100%; width: 100%"
+    <q-splitter
+      v-model="splitterModel"
+      :limits="[80, 100]"
+      after-class="overflow-hidden q-pl-sm"
+      before-class="overflow-hidden q-pr-sm"
+      separator-class="bg-red"
+      style="height: calc(100vh - 150px); width: 100%"
     >
-      <table class="q-table q-table--cell-separator q-table--bordered wrap">
-        <thead class="text-bold text-white bg-blue-grey-13">
-        <tr>
-          <th :style="columns[0]?.headerStyle">{{ columns[0]?.label }}</th>
-        </tr>
-        </thead>
+      <template v-slot:before>
+        <q-banner class="bg-amber-1" dense inline-actions>
+          <div style="font-size: 1.2em; font-weight: bold">
+            <q-avatar color="black" icon="code" text-color="white"></q-avatar>
+            {{ $t("calcStock") }}
+          </div>
 
-        <tbody style="background: aliceblue;">
-        <tr v-for="(item, index) in arrayTreeObj" :key="index">
-          <td :data-th="columns[0]?.name" @click="toggle(item, index)">
-              <span
-                class="q-tree-link q-tree-label"
-                :style="setPadding(item)"
-              >
-                <q-icon
-                  :name="iconName(item)"
-                  color="secondary"
-                  style="cursor: pointer"
-                ></q-icon>
+<!--          <template v-slot:action>
+            <q-btn
+              class="q-ml-sm"
+              color="secondary"
+              dense
+              icon="expand_more"
+              @click="fnExpand()"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ tr("expandAll") }}
+              </q-tooltip>
+            </q-btn>
 
-                <q-btn
-                  :disable="!hasTarget('adm:tml:upd')"
-                  :icon="
-                    selected.length === 1 && item.id === selected[0].id
-                      ? 'check_box'
-                      : 'check_box_outline_blank'
-                  "
-                  color="blue"
-                  dense
-                  flat
-                  @click.stop="selectedRow(item)"
-                >
-                </q-btn>
+            <q-btn
+              class="q-ml-sm"
+              color="secondary"
+              dense
+              icon="expand_less"
+              @click="fnCollapse()"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ tr("collapseAll") }}
+              </q-tooltip>
+            </q-btn>
 
-                {{ item.text }}
-              </span>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+            <q-btn
+              v-if="hasTarget('adm:tml:ins')"
+              class="q-ml-sm"
+              color="secondary"
+              dense
+              icon="post_add"
+              @click="fnIns('ins', false)"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ tr("create1level") }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('adm:tml:ins')"
+              :disable="currentNode == null"
+              class="q-ml-sm img-vert"
+              color="secondary"
+              dense
+              icon="post_add"
+              @click="fnIns('ins', true)"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ tr("createChild") }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('adm:tml:upd')"
+              :disable="currentNode == null"
+              class="q-ml-sm"
+              color="secondary"
+              dense
+              icon="edit"
+              @click="fnIns('upd', null)"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ tr("editRecord") }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('adm:tml:del')"
+              :disable="currentNode == null"
+              class="q-ml-sm"
+              color="red"
+              dense
+              icon="delete"
+              @click="fnDel(currentNode)"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ tr("deletingRecord") }}
+              </q-tooltip>
+            </q-btn>
+          </template>-->
+        </q-banner>
+
+        <div class="q-pa-md-md">
+          {{ tr("selectedCalc") }}:
+          <span :class="clsNodeInfo()"> {{ nodeInfo() }} </span>
+        </div>
+
+        <div
+          class="q-table-container q-table--dense wrap bg-amber-1 scroll sticky-header-table"
+          style="height: 100%; width: 100%"
+        >
+          <table class="q-table q-table--cell-separator wrap">
+            <thead class="text-bold text-white bg-blue-grey-13">
+            <tr>
+              <th :style="columns[0]?.headerStyle">{{ columns[0]?.label }}</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr v-for="(item, index) in arrayTreeObj" :key="index">
+              <td :data-th="columns[0]?.name" @click="toggle(item, index)">
+                  <span
+                    :style="setPadding(item)"
+                    class="q-tree-link q-tree-label"
+                  >
+                    <q-icon
+                      :name="iconName(item)"
+                      color="secondary"
+                      style="cursor: pointer"
+                    ></q-icon>
+
+                    <q-btn
+                      :disable="!hasTarget('adm:tml:upd')"
+                      :icon="
+                        selected.length === 1 && item.id === selected[0].id
+                          ? 'check_box'
+                          : 'check_box_outline_blank'
+                      "
+                      color="blue"
+                      dense
+                      flat
+                      @click.stop="selectedRow(item)"
+                    >
+                    </q-btn>
+
+                    <q-chip :color="fnColor(item)" class="cursor-pointer">
+                      <q-menu auto-close context-menu>
+                        <q-list>
+                          <div v-if="item.iscls">
+                            <q-item clickable>
+                              <q-item-section @click="showMenu(item, 'ins')">
+                                Создать главный расчет
+                              </q-item-section>
+                             </q-item>
+                          </div>
+
+                          <div v-else>
+                            <q-item clickable>
+                              <q-item-section @click="showMenu(item, 'ins')">
+                                Создать дочерний расчет
+                              </q-item-section>
+                             </q-item>
+                             <q-item clickable>
+                              <q-item-section @click="showMenu(item, 'upd')">
+                                Редактировать расчет
+                              </q-item-section>
+                             </q-item>
+                             <q-item clickable>
+                              <q-item-section @click="showMenu(item, 'del')">
+                                Удалить расчет
+                              </q-item-section>
+                             </q-item>
+
+                          </div>
+
+                        </q-list>
+                      </q-menu>
+                          {{ item.name }}
+                        <q-tooltip>
+                          Используйте контекстное меню
+                        </q-tooltip>
+                    </q-chip>
+                  </span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+
+      <template v-slot:after>
+
+      </template>
+
+    </q-splitter>
+
 
   </div>
 </template>
@@ -151,18 +199,20 @@
 <script setup>
 import {computed, getCurrentInstance, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
-import {exportFile, useQuasar} from "quasar";
-import {collapsAll, expandAll, getParentNode, hasTarget, notifyInfo, pack} from "../../utils/jsutils";
+import {useQuasar} from "quasar";
+import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack} from "../../utils/jsutils";
 
 import {api} from "@/boot/axios";
 import {useI18n} from "vue-i18n";
 import UpdaterCalcStock from "./UpdaterCalcStock.vue";
 
-const { proxy } = getCurrentInstance();
+const {proxy} = getCurrentInstance();
 const $q = useQuasar();
 const router = useRouter();
-const { t } = useI18n()
+const {t} = useI18n()
 
+
+const splitterModel = ref(50)
 const isExpanded = ref(true);
 const selected = ref([]);
 const currentNode = ref(null);
@@ -171,15 +221,69 @@ const columns = ref([]);
 const table = ref([]);
 const loading = ref(false);
 
-const fnSave = () => {
-  const data = JSON.stringify(table.value);
-  const status = exportFile("important.txt", data);
-  if (status === true) {
-    console.log("Ok: " + status);
+const fnColor = (item) => {
+  if (item.iscls) {
+    if (item.ind === 1)
+      return "orange-3";
+    else
+      return "blue-3";
   } else {
-    console.log("Error: " + status);
+    if (item.ind === 1)
+      return "orange-3";
+    else
+      return "blue-3";
   }
-};
+}
+
+const clsNodeInfo = () => {
+  if (currentNode.value) {
+    if (currentNode.value.ind === 1)
+      return "text-bold text-orange";
+    else
+      return "text-bold text-blue";
+  }
+}
+
+
+const showMenu = (item, mode) => {
+  console.log("item", item);
+  let data = {cls: item["cls"]}
+  let isChild = false;
+  let parentName = ""
+  if (!item["iscls"]) {
+    if (mode === "ins") {
+      data.parentName = item.name
+      data.parent = item.id
+      isChild = true;
+    } else if (mode === "upd") {
+
+    } else if (mode === "del") {
+
+    } else {
+      notifyError("Не известный режим")
+    }
+  }
+
+  $q.dialog({
+    component: UpdaterCalcStock,
+    componentProps: {
+      mode: mode,
+      isChild: isChild,
+      parentName: parentName,
+      data: data,
+    },
+  })
+    .onOk((respData) => {
+      fetchData();
+      fnExpand();
+    });
+
+
+}
+
+const tr = (item) => {
+  return t(item)
+}
 
 const recursive = (obj, newObj, level, currentItemId, isExpend) => {
   if (!obj) return;
@@ -257,53 +361,8 @@ const fnCollapse = () => {
   collapsAll(table.value);
 };
 
-const fnIns = (mode, isChild) => {
-  let data = {
-    id: "",
-    text: "",
-  };
-
-  let parent = null;
-  let parentName = null;
-  if (isChild) {
-    parent = currentNode.value.id;
-    parentName = currentNode.value.text;
-  }
-  if (mode === "ins") {
-    data.parent = parent;
-  } else if (mode === "upd") {
-    data = {
-      id: currentNode.value.id,
-      parent: currentNode.value.parent,
-      text: currentNode.value.text,
-    };
-    if (currentNode.value.parent > 0) {
-      let parentNode = [];
-      getParentNode(table.value, currentNode.value.parent, parentNode);
-      parentName = parentNode[0].text;
-      isChild = true;
-    }
-  }
-
-  $q["dialog"]({
-    component: UpdaterCalcStock,
-    componentProps: {
-      mode: mode,
-      isChild: isChild,
-      parentName: parentName,
-      data: data,
-    },
-  })
-    .onOk((respData) => {
-      fetchData();
-      selected.value.push(respData);
-      selectedRow(respData);
-      fnExpand();
-    });
-};
-
 const fnDel = (rec) => {
-  $q.dialog({
+  $q["dialog"]({
     title: proxy?.t("confirmation"),
     message:
       t("deleteRecord") +
@@ -335,41 +394,43 @@ const fetchData = () => {
   api
     .post("", {
       method: "data/loadCalc",
-      params: [],
+      params: ["Typ_Stock"],
     })
     .then(
       (response) => {
-        table.value = pack(response.data.result["records"], "ord");
+        table.value = pack(response.data.result["records"], "id");
+        console.log("response", response.data.result["records"]);
+        console.log("response 2", table.value);
       },
       (error) => {
         router["push"]("/");
         let msg = error.message;
         if (error.response)
-          msg = t(error.response.data.error.message);
+          msg = t(error.response.data?.error?.message);
         console.error(msg);
       }
     )
     .finally(() => {
-      fnCollapse();
+      fnExpand();
       loading.value = false;
     });
 };
 
 const getColumns = () => [
   {
-    name: "text",
-    label: t("fldName"),
-    field: "text",
+    name: "name",
+    label: t("nameCalc"),
+    field: "name",
     align: "left",
     classes: "text-bold text-white bg-blue-grey-13",
-    headerStyle: "font-size: 1.2em; width:70%",
+    headerStyle: "font-size: 1.2em; width:100%",
   }
 ];
 
 const nodeInfo = () => {
   let res = "";
   if (currentNode.value) {
-    res = currentNode.value.text;
+    res = currentNode.value.name;
   }
   return res;
 };
@@ -392,20 +453,24 @@ onMounted(() => {
   filter: "FlipV";
   -ms-filter: "FlipV";
 }
+
 .sticky-header-table {
   max-height: 95%;
   overflow: auto;
 }
+
 .sticky-header-table table {
   border-collapse: separate;
   border-spacing: 0;
 }
+
 .sticky-header-table thead th {
   position: sticky;
   top: 0;
   z-index: 1;
   background-color: #607d8b;
 }
+
 .sticky-header-table .q-table--bordered {
   border-top: none;
 }

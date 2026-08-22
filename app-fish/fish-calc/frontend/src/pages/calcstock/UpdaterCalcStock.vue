@@ -23,22 +23,14 @@
 
         <!-- name -->
         <q-input
-          :model-value="form.text"
-          v-model="form.text"
+          :model-value="form.name"
+          v-model="form.name"
           autofocus
-          :label="$t('fldName')"
+          :label="$t('nameCalc')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
         </q-input>
 
-        <!-- id -->
-        <q-input
-          v-model="form.id"
-          :model-value="form.id"
-          :label="$t('target')"
-          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-          :disable="mode === 'upd'"
-        />
       </q-card-section>
 
       <q-card-actions align="right">
@@ -79,7 +71,7 @@ const dialog = ref(null);
 const form = reactive({ ...props.data });
 
 const validName = () => {
-  return !!(form.text === "" || form.id === "");
+  return (form.name === "");
 };
 
 const show = () => {
@@ -95,23 +87,23 @@ const onDialogHide = () => {
 };
 
 const onOKClick = () => {
-  const method = props.mode === "ins" ? "insert" : "update";
+  const method = props.mode === "ins" ? "insertCalc" : "updateCalc";
 
   api
     .post("", {
-      method: "permis/" + method,
-      params: [{ rec: form }],
+      method: "data/" + method,
+      params: [form],
     })
     .then(
-      (response) => {
-        emit("ok", response.data.result.records[0]);
+      () => {
+        emit("ok", {res: true});
         notifySuccess(proxy?.$t("success"));
       },
       (error) => {
         let msg = error.message;
         if (error.response)
-          msg = proxy?.$t(error.response.data.error.message);
-        notifyError(msg);
+          msg = error.response.data?.error?.message;
+        console.error(msg);
       }
     )
     .finally(() => {
