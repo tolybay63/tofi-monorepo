@@ -293,7 +293,7 @@ const loadReservoirs = () => {
   loading.value = true
   api
     .post('', {
-      method: 'data/loadReservoirs',
+      method: 'data/loadReservoirsPage',
       params: [{ codTyp: 'Typ_WaterBodies', idObj: 0 }],
     })
     .then((response) => {

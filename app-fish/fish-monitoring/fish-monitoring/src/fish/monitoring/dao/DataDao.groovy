@@ -223,7 +223,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadReservoirs(Map<String, Object> params) {
+    Store loadReservoirsPage(Map<String, Object> params) {
 
         String codTyp = UtCnv.toString(params.get("codTyp"))
         long idObj = UtCnv.toLong(params.get("idObj"))
@@ -1237,21 +1237,55 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadReservoir(String codTyp) {
+    Store loadReservoirAll(String codTyp) {
         Store st = loadObjForSelect(codTyp, "monitoringdata")
-        Set<Object> idsCls = st.getUniqueValues("cls")
+        return st
+    }
+
+
+    @DaoMethod
+    Store loadReservoir(String codTypOrProp) {
+        Store st = loadObjForSelect(codTypOrProp, "monitoringdata")
+        return st
+    }
+
+
+    @DaoMethod
+    Store loadReservoirs(String reservoirs) {
+        //Prop_ReservoirShore
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
+        Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select cls, id as propval
+                from PropVal
+                where prop=${mapProp.get("Prop_ReservoirShore")} and cls is not null
+            """, "")
+        StoreIndex indProp = stProp.getIndex("cls")
+        //
+        Store stObj = mdb.loadQuery("""
+            select o.id, o.cls, v.name, null as pv
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (${reservoirs})
+        """)
+        for (StoreRecord r in stObj) {
+            StoreRecord rec = indProp.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("pv", rec.getLong("propval"))
+            }
+        }
+        //
+        Set<Object> idsCls = stObj.getUniqueValues("cls")
         Store stCls = apiMeta().get(ApiMeta).loadSql("""
             select c.id, v.name from Cls c, ClsVer v 
             where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
         """, "")
         StoreIndex indCls = stCls.getIndex("id")
-        for (StoreRecord r in st) {
+        for (StoreRecord r in stObj) {
             StoreRecord rec = indCls.get(r.getLong("cls"))
             if (rec != null) {
                 r.set("name", r.getString("name") + " (" + rec.getString("name") + ")")
             }
         }
-        return st
+        return stObj
     }
 
     @DaoMethod
@@ -1696,13 +1730,15 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadFishing(long obj) {
+    Store loadFishing(long obj, String reservoirs, String dbeg, String dend) {
         String whe = "id=${obj}"
+        String wheReservoirs = "0=0"
 
         if (obj == 0) {
             Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
             if (setCls.isEmpty()) setCls.add(0L)
             whe = "cls in (${setCls.join(",")})"
+            wheReservoirs = "v6.obj in (${reservoirs}) and v1.dateTimeVal between '${dbeg}' and '${dend}'"
         }
 
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
@@ -1745,6 +1781,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataProp d6 on d6.isObj=1 and d6.objorrelobj=ob.id and d6.prop=:Prop_ReservoirShore
                 left join DataPropVal v6 on d6.id=v6.dataprop
                 left join ObjVer ov6 on v6.obj=ov6.ownerVer and ov6.lastVer=1
+            where ${wheReservoirs}
         """, map)
 
         Set<Object> idsCls = st.getUniqueValues("cls")
@@ -1779,6 +1816,16 @@ class DataDao extends BaseMdbUtils {
         //mdb.outTable(st)
         return st
 
+    }
+
+    @DaoMethod
+    String getReservoirName(String ids) {
+        Store st = mdb.loadQuery("""
+            select v.name
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.id in (${ids})
+        """)
+        return st.getUniqueValues("name").join("; ")
     }
 
     @DaoMethod
@@ -1900,7 +1947,7 @@ class DataDao extends BaseMdbUtils {
                 }
             }
         }
-        return loadFishing(own)
+        return loadFishing(own, "", "", "")
 
     }
 

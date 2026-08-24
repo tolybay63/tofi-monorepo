@@ -32,12 +32,12 @@ const routes = [
       },
 
       {
-        path: '/fishing',
+        path: '/fishing/:reservoirs/:dbeg/:dend', name: 'FishingPage',
         component: () => import('@/pages/fishing/FishingPage.vue'),
       },
 
       {
-        path: '/choosfishing',
+        path: '/chosefishing',
         component: () => import('@/pages/fishing/SelectFishingPage.vue'),
       },
 

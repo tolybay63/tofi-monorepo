@@ -35,7 +35,12 @@
           v-model="form.StartDate"
           :label="fmReqLabel('StartDate')"
           type="date"
-          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+          :min="dbeg"
+          :max="dend"
+          :rules="[
+            (val) => (!!val && !!val.trim()) || $t('req'),
+            (val) => (!dbeg || !dend || (val >= dbeg && val <= dend)) || 'Дата вне допустимого диапазона'
+          ]"
           class="q-ma-md"
           dense
         />
@@ -152,6 +157,9 @@ import { notifySuccess } from '@/utils/jsutils'
 const props = defineProps({
   mode: String,
   data: Object,
+  reservoirs: String,
+  dbeg: String,
+  dend: String,
 })
 
 const emit = defineEmits(['ok', 'hide'])
@@ -321,7 +329,8 @@ onMounted(() => {
 
   loading.value = true
   api
-    .post('', { method: 'data/loadReservoir', params: ['Prop_ReservoirShore'] })
+    .post('', { method: 'data/loadReservoirs',
+      params: [props.reservoirs] })
     .then((res) => {
       optReservoir.value = res.data.result['records']
       optReservoirOrg.value = res.data.result['records']

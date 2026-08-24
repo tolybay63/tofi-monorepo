@@ -145,8 +145,9 @@ import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import LoginUser from '@/components/LoginUser.vue'
 import SetLocale from '@/components/SetLocale.vue'
-import { api, urlMainApp } from '@/boot/axios'
+import {api, authURL, urlMainApp} from '@/boot/axios'
 import { useUserStore } from '@/stores/user-store'
+import axios from "axios";
 
 const $q = useQuasar()
 const router = useRouter()
@@ -168,7 +169,7 @@ const essentialLinks = [
   { label: 'samplingStations', icon: 'houseboat', to: '/samplingstations', target: 'mon:st' },
   { label: 'typesOfFish', icon: 'set_meal', to: '/typesfish', target: 'mon:tf' },
   { label: 'piscesInReservoirs', icon: 'tsunami', to: '/piscesreservoirs', target: 'mon:rpv' },
-  { label: 'fishing', icon: 'location_on', to: '/fishing', target: 'mon:fish' },
+  { label: 'fishing', icon: 'location_on', to: '/chosefishing', target: 'mon:fish' },
   { label: 'fill', icon: 'download', to: '/fill', target: 'mon:fill' },
 ]
 
@@ -214,7 +215,7 @@ const loginOnOff = () => {
     })
   } else {
     // Исправленный вызов выхода через шлюз api.post вместо прямого axios 404
-    api.post('', { method: 'auth/logout' })
+    axios.post(authURL, { method: '/logout' })
       .then(() => {
         clearUserStore()
       })

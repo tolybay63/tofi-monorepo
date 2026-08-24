@@ -40,65 +40,77 @@
           </template>
 
           <template v-slot:top>
-            <div style="font-size: 1.2em; font-weight: bold">
-              <q-avatar color="black" text-color="white" icon="location_on"></q-avatar>
-              {{ $t('fishing') }}
+            <!-- Главный контейнер шапки, выстроенный в колонку (сверху вниз) -->
+            <div class="column full-width">
+
+              <!-- РЯД 1: Основная панель инструментов (Заголовок, кнопки, поиск) -->
+              <div class="row items-center full-width">
+                <div style="font-size: 1.2em; font-weight: bold">
+                  <q-avatar color="black" text-color="white" icon="location_on"></q-avatar>
+                  {{ $t('fishing') }}
+                </div>
+                <q-space />
+                <q-btn
+                  v-if="hasTarget('mon:rpv:ins')"
+                  icon="post_add"
+                  dense
+                  color="secondary"
+                  :disable="loading"
+                  @click="editRow(null, 'ins')"
+                >
+                  <q-tooltip transition-show="rotate" transition-hide="rotate">
+                    {{ $t('newRecord') }}
+                  </q-tooltip>
+                </q-btn>
+                <q-btn
+                  v-if="hasTarget('mon:rpv:upd')"
+                  icon="edit"
+                  dense
+                  color="secondary"
+                  class="q-ml-sm"
+                  :disable="loading || selected.length === 0"
+                  @click="editRow(selected[0], 'upd')"
+                >
+                  <q-tooltip transition-show="rotate" transition-hide="rotate">
+                    {{ $t('editRecord') }}
+                  </q-tooltip>
+                </q-btn>
+                <q-btn
+                  v-if="hasTarget('mon:rpv:del')"
+                  icon="delete"
+                  dense
+                  color="red"
+                  class="q-ml-lg"
+                  :disable="loading || selected.length === 0"
+                  @click="removeRow(selected[0])"
+                >
+                  <q-tooltip transition-show="rotate" transition-hide="rotate">
+                    {{ $t('deletingRecord') }}
+                  </q-tooltip>
+                </q-btn>
+                <q-space />
+                <q-input
+                  dense
+                  debounce="300"
+                  color="primary"
+                  v-model="filter"
+                  :label="$t('txt_filter')"
+                >
+                  <template v-slot:append>
+                    <q-icon name="search" />
+                  </template>
+                </q-input>
+              </div>
+              <!-- РЯД 2: Информация с новой строки под фильтром (в одну строку) -->
+              <div class="row justify-lg-start full-width q-mt-xs">
+                <div class="text-right" style="font-size: 0.85em;">
+                  <span class="text-weight-bold text-dark">{{ reservoirName }}</span>
+                  <span class="text-grey-7 q-ml-sm">[{{ dbegUpd}}; {{ dendUpd }}]</span>
+                </div>
+              </div>
             </div>
-
-            <q-space />
-            <q-btn
-              v-if="hasTarget('mon:rpv:ins')"
-              icon="post_add"
-              dense
-              color="secondary"
-              :disable="loading"
-              @click="editRow(null, 'ins')"
-            >
-              <q-tooltip transition-show="rotate" transition-hide="rotate">
-                {{ $t('newRecord') }}
-              </q-tooltip>
-            </q-btn>
-
-            <q-btn
-              v-if="hasTarget('mon:rpv:upd')"
-              icon="edit"
-              dense
-              color="secondary"
-              class="q-ml-sm"
-              :disable="loading || selected.length === 0"
-              @click="editRow(selected[0], 'upd')"
-            >
-              <q-tooltip transition-show="rotate" transition-hide="rotate">
-                {{ $t('editRecord') }}
-              </q-tooltip>
-            </q-btn>
-
-            <q-btn
-              v-if="hasTarget('mon:rpv:del')"
-              icon="delete"
-              dense
-              color="red"
-              class="q-ml-lg"
-              :disable="loading || selected.length === 0"
-              @click="removeRow(selected[0])"
-            >
-              <q-tooltip transition-show="rotate" transition-hide="rotate">
-                {{ $t('deletingRecord') }}
-              </q-tooltip>
-            </q-btn>
-            <q-space />
-            <q-input
-              dense
-              debounce="300"
-              color="primary"
-              v-model="filter"
-              :label="$t('txt_filter')"
-            >
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
           </template>
+
 
           <template #loading>
             <q-inner-loading showing color="secondary"></q-inner-loading>
@@ -120,9 +132,13 @@ import { api, tofi_dbeg, tofi_dend } from '@/boot/axios'
 import { hasTarget, notifyInfo, today } from '@/utils/jsutils'
 import UpdaterFishingRefs from '@/pages/fishing/UpdaterFishingRefs.vue'
 import FishingMeters from '@/pages/fishing/FishingMeters.vue'
+import {useRoute} from "vue-router";
+
+const route = useRoute()
 
 const $q = useQuasar()
 const { proxy } = getCurrentInstance()
+
 
 const splitterModel = ref(100)
 const rows = ref([])
@@ -131,6 +147,12 @@ const selected = ref([])
 const loading = ref(false)
 const name = ref('')
 const fishingMetersRef = ref(null)
+let reservoirs = ref("")
+let dbeg = ref("")
+let dend = ref("")
+const reservoirName = ref("")
+const dbegUpd = ref("")
+const dendUpd = ref("")
 
 const mapFishGear = ref(new Map())
 const mapFishManager = ref(new Map())
@@ -242,6 +264,9 @@ const editRow = (row, mode) => {
     componentProps: {
       mode: mode,
       data: data,
+      reservoirs: reservoirs.value,
+      dbeg: dbeg.value,
+      dend: dend.value
     },
   }).onOk((r) => {
     if (mode === 'ins') {
@@ -282,6 +307,7 @@ const removeRow = (row) => {
           params: [row.obj],
         })
         .then(() => {
+          //loadData(reservoirs, dbeg, dend)
           loadData()
           selected.value = []
           updateSelected()
@@ -300,7 +326,7 @@ const loadData = () => {
   api
     .post('', {
       method: 'data/loadFishing',
-      params: [0],
+      params: [0, reservoirs.value, dbeg.value, dend.value],
     })
     .then((response) => {
       rows.value = response.data.result['records']
@@ -324,6 +350,19 @@ const infoSelected = (row) => {
 
 onMounted(() => {
   loading.value = true
+
+/*
+  reservoirs = route.params.reservoirs
+  dbeg = route["params"]["dbeg"]
+  dend = route["params"]["dend"]
+*/
+
+  reservoirs.value = route.params.reservoirs || ''
+  dbeg.value = route.params.dbeg || ''
+  dend.value = route.params.dend || ''
+
+  //console.log("Fishing", reservoirs.value, dbeg.value, dend.value)
+
   api
     .post('', {
       method: 'data/loadFishGearForSelect',
@@ -352,6 +391,24 @@ onMounted(() => {
     .finally(() => {
       loading.value = false
     })
+
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/getReservoirName',
+      params: [reservoirs.value],
+    })
+    .then((response) => {
+      reservoirName.value = response.data.result
+      dbegUpd.value = dbeg.value.split("-")[2] + "." + dbeg.value.split("-")[1] + "." + dbeg.value.split("-")[0]
+      dendUpd.value = dend.value.split("-")[2] + "." + dend.value.split("-")[1] + "." + dend.value.split("-")[0]
+
+      //console.log("Fishing Upd", reservoirName.value, dbegUpd.value, dendUpd.value)
+    })
+    .finally(() => {
+      loading.value = false
+    })
+
 
   setTimeout(() => {
     loadData()

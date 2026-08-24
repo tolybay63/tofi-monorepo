@@ -50,16 +50,9 @@
         <q-btn
           color="primary"
           icon="save"
-          :label="$t('save')"
+          :label="$t('select')"
           @click="onOKClick"
           :disable="validSave()"
-          class="q-mt-xl"
-        />
-        <q-btn
-          color="primary"
-          icon="cancel"
-          :label="$t('cancel')"
-          @click="onCancelClick"
           class="q-mt-xl"
         />
       </q-card-actions>
@@ -129,7 +122,7 @@ onMounted(()=> {
 
   loading.value = true
   api
-    .post('', { method: 'data/loadReservoir', params: ['Prop_ReservoirShore'] })
+    .post('', { method: 'data/loadReservoirAll', params: ['Typ_WaterBodies'] })
     .then((res) => {
       optReservoir.value = res.data.result['records']
     })

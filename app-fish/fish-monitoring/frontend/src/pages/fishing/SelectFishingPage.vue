@@ -2,32 +2,40 @@
 
 import ChooseFishing from "@/pages/fishing/ChooseFishing.vue";
 import {useQuasar} from "quasar";
-import FishingPage from "@/pages/fishing/FishingPage.vue";
 import {useRouter} from "vue-router";
+import {useI18n} from "vue-i18n";
+import {notifyInfo} from "@/utils/jsutils.js";
+
 const router = useRouter()
 const $q = useQuasar()
-
-let isFishing = false
+const {t} = useI18n()
 
 $q.dialog({
   component: ChooseFishing,
-  componentProps: {
-  },
-}).onOk((r) => {
-  console.log(r)
-  isFishing = true
-  router.push({ path: "/fishing" })
+  componentProps: {},
 })
-.onCancel(()=> {
-  console.log("Cancelled")
+  .onOk((r) => {
+    //console.log("onOk", r)
+    const reservoirs = r.reservoirs.join(",")
+    const dbeg = r.dbeg
+    const dend = r.dend
+
+    router.push({
+      name: "FishingPage",
+      params: {
+        reservoirs: reservoirs,
+        dbeg: dbeg,
+        dend: dend
+      }
+    })
+  })
+  .onCancel(() => {
+    notifyInfo(t("canceled"))
   })
 </script>
 
 <template>
 
-  <div v-if="isFishing">
-    <fishing-page></fishing-page>
-  </div>
 </template>
 
 <style scoped>
