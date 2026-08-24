@@ -200,7 +200,7 @@
 import {computed, getCurrentInstance, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import {useQuasar} from "quasar";
-import {collapsAll, expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack} from "../../utils/jsutils";
+import {collapsAll, expandAll, findRowForId, hasTarget, notifyError, notifyInfo, pack} from "../../utils/jsutils";
 
 import {api} from "@/boot/axios";
 import {useI18n} from "vue-i18n";
@@ -258,28 +258,36 @@ const showMenu = (item, mode) => {
       console.info("ins", item);
       console.info("data", data);
     } else if (mode === "upd") {
-
+      if (item.parent) {
+        isChild = true;
+        const recPrt = findRowForId(table, parseInt(item.parent, 10))
+        if (recPrt) {
+          parentName = recPrt.name;
+        }
+      }
     } else if (mode === "del") {
       data.id = item.id
     } else {
       notifyError("Не известный режим")
     }
   }
+  if (mode === "del") {
 
-  $q.dialog({
-    component: UpdaterCalcStock,
-    componentProps: {
-      mode: mode,
-      isChild: isChild,
-      parentName: parentName,
-      data: data,
-    },
-  })
-    .onOk((respData) => {
-      fetchData();
-      fnExpand();
-    });
-
+  } else {
+    $q.dialog({
+      component: UpdaterCalcStock,
+      componentProps: {
+        mode: mode,
+        isChild: isChild,
+        parentName: parentName,
+        data: data,
+      },
+    })
+      .onOk((respData) => {
+        fetchData();
+        fnExpand();
+      });
+  }
 
 }
 

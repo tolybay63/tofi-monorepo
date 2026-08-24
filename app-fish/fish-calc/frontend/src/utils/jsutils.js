@@ -176,6 +176,29 @@ const collapsAll = (data) => {
 };
 
 /**
+ * Поиск записи по id в древовидной структуре...
+ * @param rows
+ * @param id
+ * @returns {*|null}
+ */
+const findRowForId = (rows, id) => {
+  for (let row of rows) {
+    // Если id совпал на текущем уровне — возвращаем строку
+    if (row.id === id) {
+      return row;
+    }
+    // Если есть дети, ищем у них
+    if (row.children && Array.isArray(row.children) && row.children.length > 0) {
+      const found = this.findRowForId(row.children, id);
+      if (found) {
+        return found; // Возвращаем именно то, что нашли в глубине
+      }
+    }
+  }
+  return null; // Элемент не найден
+};
+
+/**
  * Checks if user has target permission
  * @param {string} tg - Target to check
  * @returns {boolean} - Whether user has target permission
@@ -196,5 +219,6 @@ export {
   expandAll,
   collapsAll,
   cnvData,
-  hasTarget
+  hasTarget,
+  findRowForId
 };
