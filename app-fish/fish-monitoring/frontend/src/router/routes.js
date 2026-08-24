@@ -33,9 +33,14 @@ const routes = [
 
       {
         path: '/fishing',
-        name: 'FishingPage',
         component: () => import('@/pages/fishing/FishingPage.vue'),
       },
+
+      {
+        path: '/choosfishing',
+        component: () => import('@/pages/fishing/SelectFishingPage.vue'),
+      },
+
 
       { path: '/fill', name: 'TestPage', component: () => import('@/pages/test/TestPage.vue') },
 

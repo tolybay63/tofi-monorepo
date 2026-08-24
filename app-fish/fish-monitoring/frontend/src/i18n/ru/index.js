@@ -132,6 +132,9 @@ export default {
   fishingArea: 'Место (Рыбопромысловый район, участок)',
   fishArea: 'Место',
 
+  chooseReserVoirs: "Выбор водоемов",
+  dbeg: "Начало",
+  dend: "Конец",
   fishing: "Вылов рыбы",
   fishingType: "Тип ловли",
   StartDate: "Дата начала вылова",
