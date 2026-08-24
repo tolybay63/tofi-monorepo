@@ -61,9 +61,8 @@
 </template>
 
 <script setup>
-import {ref, reactive, getCurrentInstance, onMounted} from 'vue'
-import { notifySuccess } from '@/utils/jsutils'
-import { api } from '@/boot/axios.js'
+import {getCurrentInstance, onMounted, ref} from 'vue'
+import {api} from '@/boot/axios.js'
 import TreeSelect from "@/components/TreeSelect.vue";
 
 const props = defineProps({
@@ -83,8 +82,7 @@ const { proxy } = getCurrentInstance()
 const dialogRef = ref(null)
 
 const validSave = () => {
-  if (!dbeg.value || !dend.value || reservoirs.value.length === 0) return true
-  else return false
+  return !dbeg.value || !dend.value || reservoirs.value.length === 0;
 }
 
 const fmReqLabel = (label) => {
@@ -107,10 +105,6 @@ const onDialogHide = () => {
 const onOKClick = () => {
   hide()
   emit('ok', {reservoirs: reservoirs.value, dbeg: dbeg.value, dend: dend.value})
-}
-
-const onCancelClick = () => {
-  hide()
 }
 
 defineExpose({
