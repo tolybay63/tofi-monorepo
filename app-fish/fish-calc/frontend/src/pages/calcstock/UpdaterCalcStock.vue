@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import {getCurrentInstance, reactive, ref} from "vue";
+import {getCurrentInstance, onMounted, reactive, ref} from "vue";
 import {api} from "@/boot/axios";
 import {notifyError, notifySuccess} from "../../utils/jsutils";
 
@@ -119,4 +119,9 @@ defineExpose({
   show,
   hide
 });
+
+onMounted(() => {
+console.info(props.isChild, props.parentName)
+})
+
 </script>

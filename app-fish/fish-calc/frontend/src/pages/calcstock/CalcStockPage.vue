@@ -252,13 +252,15 @@ const showMenu = (item, mode) => {
   let parentName = ""
   if (!item["iscls"]) {
     if (mode === "ins") {
-      data.parentName = item.name
+      parentName = item.name
       data.parent = item.id
       isChild = true;
+      console.info("ins", item);
+      console.info("data", data);
     } else if (mode === "upd") {
 
     } else if (mode === "del") {
-
+      data.id = item.id
     } else {
       notifyError("Не известный режим")
     }
