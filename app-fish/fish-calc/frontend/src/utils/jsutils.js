@@ -177,25 +177,23 @@ const collapsAll = (data) => {
 
 /**
  * Поиск записи по id в древовидной структуре...
- * @param rows
+ * @param arr
  * @param id
  * @returns {*|null}
  */
-const findRowForId = (rows, id) => {
-  for (let row of rows) {
-    // Если id совпал на текущем уровне — возвращаем строку
-    if (row.id === id) {
-      return row;
-    }
-    // Если есть дети, ищем у них
-    if (row.children && Array.isArray(row.children) && row.children.length > 0) {
-      const found = this.findRowForId(row.children, id);
-      if (found) {
-        return found; // Возвращаем именно то, что нашли в глубине
-      }
+const findRowForId = (arr, id) => {
+  if (!arr || !Array.isArray(arr)) return null;
+  for (let item of arr) {
+    // Сравниваем ID с учетом возможных различий типов (число или строка)
+    if (item.id === id || String(item.id) === String(id)) return item;
+
+    // Рекурсивно ищем в детях, только если массив children существует и не пуст
+    if (item.children && Array.isArray(item.children) && item.children.length > 0) {
+      const found = findRowForId(item.children, id);
+      if (found) return found;
     }
   }
-  return null; // Элемент не найден
+  return null;
 };
 
 /**

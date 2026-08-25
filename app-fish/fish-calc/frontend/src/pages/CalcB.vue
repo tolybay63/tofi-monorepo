@@ -60,11 +60,11 @@ const fetchData = () => {
   //
   const apiPrefix = import.meta.env.PROD ? 'fast/' : 'http://127.0.0.1:8000/'
   api
-    .get(`${apiPrefix}load_obj/1008`)
+    .post(`${apiPrefix}load_obj/1008`)
     .then((res) => {
       rows.value = res.data
     })
-    .catch((err) => console.error('Ошибка при получении факторов:', err))
+    .catch((err) => console.error('Ошибка при получении объектов:', err))
 }
 
 onMounted(() => {

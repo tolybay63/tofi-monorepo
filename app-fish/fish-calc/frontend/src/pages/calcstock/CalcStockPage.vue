@@ -200,16 +200,15 @@
 import {computed, getCurrentInstance, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import {useQuasar} from "quasar";
-import {collapsAll, expandAll, findRowForId, hasTarget, notifyError, notifyInfo, pack} from "../../utils/jsutils";
+import {collapsAll, expandAll, findRowForId, hasTarget, notifyError, notifyInfo, pack} from '@/utils/jsutils'
 
 import {api} from "@/boot/axios";
-import {useI18n} from "vue-i18n";
 import UpdaterCalcStock from "./UpdaterCalcStock.vue";
 
-const {proxy} = getCurrentInstance();
-const $q = useQuasar();
+
+const $q = useQuasar()
+const { proxy } = getCurrentInstance()
 const router = useRouter();
-const {t} = useI18n()
 
 
 const splitterModel = ref(50)
@@ -258,13 +257,17 @@ const showMenu = (item, mode) => {
       console.info("ins", item);
       console.info("data", data);
     } else if (mode === "upd") {
+      data.id = item.id
+      data.name = item.name
+      data.parent = item.parent
       if (item.parent) {
         isChild = true;
-        const recPrt = findRowForId(table, parseInt(item.parent, 10))
+        const recPrt = findRowForId(table.value, parseInt(item.parent, 10))
         if (recPrt) {
           parentName = recPrt.name;
         }
       }
+      console.info("upd", item)
     } else if (mode === "del") {
       data.id = item.id
     } else {
@@ -272,7 +275,7 @@ const showMenu = (item, mode) => {
     }
   }
   if (mode === "del") {
-
+    fnDel(item)
   } else {
     $q.dialog({
       component: UpdaterCalcStock,
@@ -288,11 +291,10 @@ const showMenu = (item, mode) => {
         fnExpand();
       });
   }
-
 }
 
 const tr = (item) => {
-  return t(item)
+  return proxy?.$t(item)
 }
 
 const recursive = (obj, newObj, level, currentItemId, isExpend) => {
@@ -373,11 +375,11 @@ const fnCollapse = () => {
 
 const fnDel = (rec) => {
   $q["dialog"]({
-    title: proxy?.t("confirmation"),
+    title: proxy?.$t("confirmation"),
     message:
-      t("deleteRecord") +
+      proxy?.$n("deleteRecord") +
       '<div style="color: plum">(' +
-      rec.text +
+      rec.name +
       ")</div>",
     html: true,
     cancel: true,
@@ -386,12 +388,12 @@ const fnDel = (rec) => {
     .onOk(() => {
       api
         .post("", {
-          method: "permis/delete",
-          params: [rec],
+          method: "data/deleteCalc",
+          params: [rec.id],
         })
         .then(() => {
           fetchData();
-          currentNode.value = null;
+          fnExpand();
         });
     })
     .onCancel(() => {
@@ -429,7 +431,7 @@ const fetchData = () => {
 const getColumns = () => [
   {
     name: "name",
-    label: t("nameCalc"),
+    label: proxy?.$t("nameCalc"),
     field: "name",
     align: "left",
     classes: "text-bold text-white bg-blue-grey-13",
@@ -455,6 +457,7 @@ onMounted(() => {
   columns.value = getColumns();
   fetchData();
 });
+
 </script>
 
 <style scoped>

@@ -121,7 +121,7 @@ defineExpose({
 });
 
 onMounted(() => {
-console.info(props.isChild, props.parentName)
+console.info("onMounted upd", props.isChild, props.parentName)
 })
 
 </script>

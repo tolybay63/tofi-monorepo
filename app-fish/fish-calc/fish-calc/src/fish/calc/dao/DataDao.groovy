@@ -22,6 +22,9 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadCalc(String codTyp) {
         Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
+        if (setCls.size() == 0) {
+            throw new XError("Не найден код [Typ_Stock]")
+        }
         Store st = apiMeta().get(ApiMeta).loadSql("""
             select -c.id as id, null as parent, v.name, c.id as cls, true as iscls,
             case when c.id=${setCls[0]} then 1 else 2 end as ind
@@ -56,6 +59,42 @@ class DataDao extends BaseMdbUtils {
         eu.updateEntity(rec)
     }
 
+    @DaoMethod
+    void deleteCalc(long id) {
+        deleteOwnerWithProperties(id, 1)
+    }
+
+    private void deleteOwnerWithProperties(long id, int isObj) {
+        String tableName = isObj == 1 ? "Obj" : "RelObj"
+        //
+        //checkForExistData(id, isObj)
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, tableName)
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=${isObj} and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        if (tableName.equalsIgnoreCase("RelObj")) {
+            try {
+                mdb.execQueryNative("""
+                    delete from RelObjMember
+                    where relobj=${id};
+                """)
+            } finally {
+                eu.deleteEntity(id)
+            }
+        } else
+            eu.deleteEntity(id)
+    }
+
+
+
+/*
     private StoreRecord loadObjRec(long obj) {
         StoreRecord st = mdb.createStoreRecord("Obj.full")
         mdb.loadQueryRecord(st, """
@@ -64,8 +103,7 @@ class DataDao extends BaseMdbUtils {
         """, [o: obj])
         return st
     }
-
-
+*/
 
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
