@@ -144,7 +144,7 @@
                     <q-chip :color="fnColor(item)" class="cursor-pointer">
                       <q-menu auto-close context-menu>
                         <q-list>
-                          <div v-if="item.iscls">
+                          <div v-if="item['iscls']">
                             <q-item clickable>
                               <q-item-section @click="showMenu(item, 'ins')">
                                 Создать главный расчет
@@ -221,13 +221,13 @@ const table = ref([]);
 const loading = ref(false);
 
 const fnColor = (item) => {
-  if (item.iscls) {
-    if (item.ind === 1)
+  if (item["iscls"]) {
+    if (item["ind"] === 1)
       return "orange-3";
     else
       return "blue-3";
   } else {
-    if (item.ind === 1)
+    if (item["ind"] === 1)
       return "orange-3";
     else
       return "blue-3";
@@ -236,13 +236,12 @@ const fnColor = (item) => {
 
 const clsNodeInfo = () => {
   if (currentNode.value) {
-    if (currentNode.value.ind === 1)
+    if (currentNode.value["ind"] === 1)
       return "text-bold text-orange";
     else
       return "text-bold text-blue";
   }
 }
-
 
 const showMenu = (item, mode) => {
   console.log("item", item);
@@ -254,8 +253,7 @@ const showMenu = (item, mode) => {
       parentName = item.name
       data.parent = item.id
       isChild = true;
-      console.info("ins", item);
-      console.info("data", data);
+      //console.info("ins", item);
     } else if (mode === "upd") {
       data.id = item.id
       data.name = item.name
@@ -267,7 +265,7 @@ const showMenu = (item, mode) => {
           parentName = recPrt.name;
         }
       }
-      console.info("upd", item)
+      //console.info("upd", item)
     } else if (mode === "del") {
       data.id = item.id
     } else {
@@ -286,7 +284,7 @@ const showMenu = (item, mode) => {
         data: data,
       },
     })
-      .onOk((respData) => {
+      .onOk(() => {
         fetchData();
         fnExpand();
       });
@@ -397,7 +395,7 @@ const fnDel = (rec) => {
         });
     })
     .onCancel(() => {
-      notifyInfo(t("canceled"));
+      notifyInfo(proxy?.$t("canceled"));
     });
 };
 
@@ -418,7 +416,7 @@ const fetchData = () => {
         router["push"]("/");
         let msg = error.message;
         if (error.response)
-          msg = t(error.response.data?.error?.message);
+          msg = proxy?.$t(error.response.data?.error?.message);
         console.error(msg);
       }
     )
@@ -461,11 +459,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/*
 .img-vert {
   transform: scaleY(-1);
   filter: "FlipV";
   -ms-filter: "FlipV";
 }
+*/
 
 .sticky-header-table {
   max-height: 95%;
