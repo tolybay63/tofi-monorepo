@@ -1191,14 +1191,14 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadFilials() {
-        //Cls_Enterprise	1007
-        //Cls_Branch		1008
+        //Cls_Enterprise	1007 предпритие
+        //Cls_Branch		1008 филиал
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Enterprise", "")
         if (map.size()==0)
-            throw new XError("Не найден код свойств [Cls_Enterprise]")
+            throw new XError("Не найден код класса [Cls_Enterprise]")
         Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "Cls_Branch", "")
         if (map1.size()==0)
-            throw new XError("Не найден код свойств [Cls_Branch]")
+            throw new XError("Не найден код класса [Cls_Branch]")
         map.putAll(map1)
         map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_Branch", "")
         if (map1.size()==0)
