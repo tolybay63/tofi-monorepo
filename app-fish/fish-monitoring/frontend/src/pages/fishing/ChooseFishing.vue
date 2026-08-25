@@ -1,11 +1,11 @@
 <template>
   <q-dialog
     ref="dialogRef"
-    @hide="onDialogHide"
-    persistent
     autofocus
-    transition-show="slide-up"
+    persistent
     transition-hide="slide-down"
+    transition-show="slide-up"
+    @hide="onDialogHide"
   >
     <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar class="text-white bg-primary">
@@ -17,9 +17,9 @@
         <!-- Reservoir -->
         <TreeSelect
           v-model="reservoirs"
+          :label="fmReqLabel('reservoir')"
           :options="optReservoir"
           class="q-ma-md"
-          :label="fmReqLabel('reservoir')"
           multiple
           node-key="id"
         />
@@ -28,33 +28,38 @@
         <q-input
           v-model="dbeg"
           :label="fmReqLabel('dbeg')"
-          type="date"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
           class="q-ma-md"
           dense
+          type="date"
         />
 
         <!-- EndDate -->
         <q-input
           v-model="dend"
           :label="fmReqLabel('dend')"
-          type="date"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
           class="q-ma-md"
           dense
+          type="date"
         />
 
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
+          :disable="validSave()"
+          :label="$t('select')"
+          class="q-mt-xl"
           color="primary"
           icon="save"
-          :label="$t('select')"
           @click="onOKClick"
-          :disable="validSave()"
-          class="q-mt-xl"
         />
+        <q-btn
+          :label="$t('cancel')"
+          class="q-mt-xl"
+          color="primary" icon="cancel"
+          @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -64,6 +69,8 @@
 import {getCurrentInstance, onMounted, ref} from 'vue'
 import {api} from '@/boot/axios.js'
 import TreeSelect from "@/components/TreeSelect.vue";
+import {useRouter} from "vue-router";
+const router = useRouter()
 
 const props = defineProps({
   data: Object,
@@ -77,7 +84,7 @@ const loading = ref(false)
 const optReservoir = ref([])
 
 const emit = defineEmits(['ok', 'hide'])
-const { proxy } = getCurrentInstance()
+const {proxy} = getCurrentInstance()
 
 const dialogRef = ref(null)
 
@@ -102,6 +109,11 @@ const onDialogHide = () => {
   emit('hide')
 }
 
+const onCancelClick = () => {
+  hide()
+  router["push"]('/')
+}
+
 const onOKClick = () => {
   hide()
   emit('ok', {reservoirs: reservoirs.value, dbeg: dbeg.value, dend: dend.value})
@@ -112,11 +124,11 @@ defineExpose({
   hide,
 })
 
-onMounted(()=> {
+onMounted(() => {
 
   loading.value = true
   api
-    .post('', { method: 'data/loadReservoirAll', params: ['Typ_WaterBodies'] })
+    .post('', {method: 'data/loadReservoirAll', params: ['Typ_WaterBodies']})
     .then((res) => {
       optReservoir.value = res.data.result['records']
     })
