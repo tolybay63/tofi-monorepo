@@ -33,7 +33,7 @@
 
 <script>
 import {defineComponent} from "vue";
-import SetLocale from "../components/SetLocale.vue";
+import SetLocale from "@/components/SetLocale.vue";
 
 export default defineComponent({
   name: "MainLayout",
