@@ -70,15 +70,21 @@ import {getCurrentInstance, onMounted, ref} from 'vue'
 import {api} from '@/boot/axios.js'
 import TreeSelect from "@/components/TreeSelect.vue";
 import {useRouter} from "vue-router";
+import { date } from 'quasar'
+
 const router = useRouter()
 
 const props = defineProps({
   data: Object,
 })
 
+//Получаем первый и последний день текущего месяца в формате 'YYYY-MM-DD'
+const currentDate = new Date()
+
+const dbeg = ref(date.formatDate(date.startOfDate(currentDate, 'month'), 'YYYY-MM-DD'));
+const dend = ref(date.formatDate(date.endOfDate(currentDate, 'month'), 'YYYY-MM-DD'))
+
 const reservoirs = ref([])
-const dbeg = ref(null)
-const dend = ref(null)
 const loading = ref(false)
 
 const optReservoir = ref([])
