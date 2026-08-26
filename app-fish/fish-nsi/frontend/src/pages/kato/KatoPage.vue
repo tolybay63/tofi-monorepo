@@ -80,9 +80,9 @@
 <script setup>
 import { ref, onMounted, getCurrentInstance } from 'vue'
 import { useQuasar } from 'quasar'
-import { api } from '../../boot/axios'
-import { collapsAll, getParentNode, hasTarget, notifyError, pack } from '../../utils/jsutils'
-import QTreeTable from '../../components/QTreeTable.vue'
+import { api } from '@/boot/axios'
+import { collapsAll, getParentNode, hasTarget, notifyError, pack } from '@/utils/jsutils'
+import QTreeTable from '@/components/QTreeTable.vue'
 import UpdaterKATO from './UpdaterKATO.vue'
 
 const $q = useQuasar()

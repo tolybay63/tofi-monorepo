@@ -21,7 +21,7 @@
 </template>
 <script>
 import {ref} from 'vue'
-import {api} from 'boot/axios'
+import {api} from '@/boot/axios'
 import {notifyError} from '@/utils/jsutils'
 
 export default {

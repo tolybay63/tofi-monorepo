@@ -121,11 +121,11 @@ import { defineComponent, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import LoginUser from '../components/LoginUser.vue'
-import SetLocale from '../components/SetLocale.vue'
-import { api, authURL, urlMainApp } from '../boot/axios'
-import { useUserStore } from '../stores/user-store'
-import { hasTarget } from '../utils/jsutils.js'
+import LoginUser from '@/components/LoginUser.vue'
+import SetLocale from '@/components/SetLocale.vue'
+import { api, authURL, urlMainApp } from '@/boot/axios'
+import { useUserStore } from '@/stores/user-store'
+import { hasTarget } from '@/utils/jsutils.js'
 import axios from "axios";
 
 export default defineComponent({

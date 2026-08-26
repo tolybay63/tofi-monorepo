@@ -161,8 +161,8 @@
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
 import { useQuasar, extend } from 'quasar'
-import { api } from '../../boot/axios'
-import { hasTarget, notifyInfo, notifySuccess } from '../../utils/jsutils.js'
+import { api } from '@/boot/axios'
+import { hasTarget, notifyInfo, notifySuccess } from '@/utils/jsutils.js'
 import UpdaterPersonnel from './UpdaterPersonnel.vue'
 
 const $q = useQuasar()

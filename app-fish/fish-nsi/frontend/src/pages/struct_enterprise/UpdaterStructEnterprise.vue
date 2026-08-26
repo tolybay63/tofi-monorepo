@@ -61,8 +61,8 @@
 
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
-import { api } from '../../boot/axios'
-import { notifyError, notifySuccess } from '../../utils/jsutils'
+import { api } from '@/boot/axios'
+import { notifyError, notifySuccess } from '@/utils/jsutils'
 
 const props = defineProps({
   mode: String,

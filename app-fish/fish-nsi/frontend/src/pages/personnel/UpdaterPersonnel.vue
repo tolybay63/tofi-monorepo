@@ -128,9 +128,9 @@
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
 import { date } from 'quasar'
-import TreeSelect from '../../components/TreeSelect.vue'
-import { api } from '../../boot/axios'
-import { notifySuccess, pack } from '../../utils/jsutils'
+import TreeSelect from '@/components/TreeSelect.vue'
+import { api } from '@/boot/axios'
+import { notifySuccess, pack } from '@/utils/jsutils'
 
 const props = defineProps({
   data: Object,

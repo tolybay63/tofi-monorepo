@@ -144,11 +144,10 @@ import {useUserStore} from '@/stores/user-store'
 
 import LoginUser from '@/components/LoginUser.vue'
 import SetLocale from '@/components/SetLocale.vue'
-import {authURL, urlMainApp} from '@/boot/axios'
+import {api, authURL, urlMainApp} from '@/boot/axios'
 import {useQuasar} from 'quasar'
 import axios from 'axios'
 import {useI18n} from 'vue-i18n'
-import {api} from "../boot/axios.js";
 
 // Composables
 const router = useRouter()

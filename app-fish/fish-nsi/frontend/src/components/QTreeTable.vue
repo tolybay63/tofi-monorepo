@@ -122,7 +122,7 @@
 
 <script setup>
 import { ref, computed, getCurrentInstance } from "vue";
-import { collapsAll, expandAll } from "../utils/jsutils.js";
+import { collapsAll, expandAll } from "@/utils/jsutils.js";
 import { tofi_dbeg, tofi_dend } from "@/boot/axios.js";
 import { date } from "quasar";
 import allConsts from "@/pages/all-consts.js";

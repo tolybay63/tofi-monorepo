@@ -96,8 +96,8 @@
 <script setup>
 import { ref, onMounted, getCurrentInstance } from 'vue'
 import { useQuasar, extend } from 'quasar'
-import { api } from '../../boot/axios'
-import { hasTarget, notifyInfo } from '../../utils/jsutils'
+import { api } from '@/boot/axios'
+import { hasTarget, notifyInfo } from '@/utils/jsutils'
 import UpdaterFishGear from './UpdaterFishGear.vue'
 
 const $q = useQuasar()

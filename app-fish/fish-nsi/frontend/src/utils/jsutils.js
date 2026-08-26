@@ -1,6 +1,6 @@
 import {Notify} from 'quasar';
 import {ref} from 'vue';
-import {useUserStore} from '../stores/user-store';
+import {useUserStore} from '@/stores/user-store';
 import {storeToRefs} from 'pinia';
 
 // Константы для уведомлений
