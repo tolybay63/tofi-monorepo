@@ -1214,13 +1214,14 @@ class DataDao extends BaseMdbUtils {
                     where o.id=v.ownerver and v.lastver=1 and o.cls=:Cls_Enterprise
                 ) t on t.id=v.objparent
             where o.cls=:Cls_Branch
+            order by o.id
         """, map as Map<String, Object>, "")
         Set<Object> idsFilial = st.getUniqueValues("id")
 
         Store stCount = mdb.loadQuery("""
             select v.obj, count(*) as cnt
             from datapropval v
-                left join dataprop d on d.isObj=0 and d.id=v.dataprop and d.prop=${map.get("Prop_Branch")}
+                left join dataprop d on d.isObj=1 and d.id=v.dataprop and d.prop=${map.get("Prop_Branch")}
                 left join objver v1 on d.objorrelobj=v1.ownerver and v1.lastver=1
                 left join objver v2 on v.obj=v2.ownerver and v2.lastver=1
             where v.obj in (0${idsFilial.join(",")})
