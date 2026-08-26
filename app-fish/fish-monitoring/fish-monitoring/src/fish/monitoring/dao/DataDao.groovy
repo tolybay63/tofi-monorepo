@@ -1221,9 +1221,7 @@ class DataDao extends BaseMdbUtils {
         Store stCount = mdb.loadQuery("""
             select v.obj, count(*) as cnt
             from datapropval v
-                left join dataprop d on d.isObj=1 and d.id=v.dataprop and d.prop=${map.get("Prop_Branch")}
-                left join objver v1 on d.objorrelobj=v1.ownerver and v1.lastver=1
-                left join objver v2 on v.obj=v2.ownerver and v2.lastver=1
+                join dataprop d on d.isObj=1 and d.id=v.dataprop and d.prop=${map.get("Prop_Branch")}
             where v.obj in (0${idsFilial.join(",")})
             group by v.obj
         """)
