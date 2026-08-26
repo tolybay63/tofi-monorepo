@@ -10,7 +10,7 @@
       style="height: calc(100vh - 150px); width: 100%"
     >
       <template v-slot:before>
-        <q-banner class="bg-amber-1" dense inline-actions>
+        <q-banner class="bg-green-1" dense inline-actions>
           <div style="font-size: 1.2em; font-weight: bold">
             <q-avatar color="black" icon="code" text-color="white"></q-avatar>
             {{ $t("calcStock") }}
@@ -188,6 +188,8 @@
 
       <template v-slot:after>
 
+<props-main-page></props-main-page>
+
       </template>
 
     </q-splitter>
@@ -204,6 +206,7 @@ import {collapsAll, expandAll, findRowForId, hasTarget, notifyError, notifyInfo,
 
 import {api} from "@/boot/axios";
 import UpdaterCalcStock from "./UpdaterCalcStock.vue";
+import PropsMainPage from "@/pages/calcstock/PropsMainPage.vue";
 
 
 const $q = useQuasar()
