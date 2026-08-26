@@ -409,8 +409,6 @@ const fetchData = () => {
     .then(
       (response) => {
         table.value = pack(response.data.result["records"], "id");
-        console.log("response", response.data.result["records"]);
-        console.log("response 2", table.value);
       },
       (error) => {
         router["push"]("/");
