@@ -293,7 +293,7 @@ const fnCalc = (rec) => {
   console.log("rec", rec);
   if (props.codCls === "Cls_CalcDeterm") {
     router["push"]({
-      name: 'calculation_determ',
+      name: 'CalculationDeterm',
       params: {
         id: rec.id,
         title: rec.name,
@@ -301,7 +301,7 @@ const fnCalc = (rec) => {
     })
   } else if (props.codCls === "Cls_CalcBayes") {
     router["push"]({
-      name: 'calculation_bayes',
+      name: 'CalculationBayes',
       params: {
         id: rec.id,
         title: rec.name,
@@ -402,9 +402,9 @@ const fetchData = () => {
     .then(
       (response) => {
         rows.value = pack(response.data.result["records"], "id");
+        console.info("rows.value", rows.value);
       },
       (error) => {
-        router["push"]("/");
         let msg = error.message;
         if (error.response)
           msg = proxy?.$t(error.response.data?.error?.message);

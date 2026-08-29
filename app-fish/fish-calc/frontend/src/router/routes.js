@@ -5,20 +5,20 @@ const routes = [
     children: [
       {path: '', component: () => import('@/pages/IndexPage.vue') },
       {path: '/calc_determ',
-        name: 'calc_determ',
+        name: 'CalcStockDeterm',
         component: () => import('@/pages/calcstock/CalcStockDeterm.vue')
       },
       {path: '/calc_bayes',
-        name: 'calc_bayes',
+        name: 'CalcStockBayes',
         component: () => import('@/pages/calcstock/CalcStockBayes.vue')
       },
 
       {path: '/calculation_determ/:id/:title',
-        name: 'calculation_determ',
+        name: 'CalculationDeterm',
         component: () => import('@/pages/calcstock/CalculationDeterm.vue')
       },
       {path: '/calculation_bayes/:id/:title',
-        name: 'calculation_bayes',
+        name: 'CalculationBayes',
         component: () => import('@/pages/calcstock/CalculationBayes.vue')
       },
 

@@ -31,7 +31,7 @@ const id = ref(0)
 const title = ref("")
 
 const toBack = () => {
-  router["push"]({name: 'calc_bayes'})
+  router["push"]({name: 'CalcStackBayes'})
 }
 
 onMounted(() => {

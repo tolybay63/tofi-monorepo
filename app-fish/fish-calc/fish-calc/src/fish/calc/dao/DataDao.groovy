@@ -32,7 +32,7 @@ class DataDao extends BaseMdbUtils {
     Store loadCalc(long id) {
         return mdb.loadQuery("""
             select o.id, 
-                case when v.objParent is null then -o.cls else v.objParent end as parent,
+                v.objParent as parent,
                 v.name, o.cls as cls 
             from Obj o, ObjVer v
             where o.id=v.ownerVer and v.lastVer=1 and o.cls=${id}
