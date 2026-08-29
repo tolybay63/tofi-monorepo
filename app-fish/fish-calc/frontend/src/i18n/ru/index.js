@@ -41,6 +41,10 @@ export default {
   calc: 'Расчет',
   calcStock: 'Расчеты запаса',
   calcMPC: 'Расчеты предельно допустимого улова',
+  calcDeterm: 'Детерминированные расчеты',
+  calcBayes: 'Байесовские расчеты',
+  create1level: "Создать главный расчет",
+  back: "Назад",
 
   //Dialog
   confirmation: 'Подтверждение',

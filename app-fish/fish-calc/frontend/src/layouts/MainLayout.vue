@@ -170,12 +170,22 @@ const nameIcon = computed(() => (getUserName.value === '' ? 'login' : 'logout'))
 // Essential links
 const essentialLinks = computed(() => [
   {
-    label: t('calcStock'),
+    label: t('calcDeterm'),
     info: '',
     icon: 'calculate',
-    to: '/calc_stock',
+    to: '/calc_determ',
     target: '',
   },
+
+  {
+    label: t('calcBayes'),
+    info: '',
+    icon: 'calculate',
+    to: '/calc_bayes',
+    target: '',
+  },
+
+
   {
     label: t('calcMPC'),
     info: '',

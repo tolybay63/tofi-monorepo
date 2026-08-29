@@ -38,6 +38,10 @@ export default {
   calc: 'Calculation',
   calcStock: 'Stock calculations',
   calcMPC: 'Maximum permissible catch calculations',
+  calcDeterm: 'Deterministic calculations',
+  calcBayes: 'Bayesian calculations',
+  create1level: "Create a master calculation",
+  back: "Back",
 
   //Dialog
   confirmation: 'Confirmation',

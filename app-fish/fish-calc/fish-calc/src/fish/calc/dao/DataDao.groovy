@@ -18,29 +18,25 @@ class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
     //-----------------------------------------------------------------------------------------------//
+    @DaoMethod
+    long getCls(String codCls) {
+        Store st = apiMeta().get(ApiMeta).loadSql("""
+            select id from Cls where cod like '${codCls}'
+        """, "")
+        if (st.size() == 0)
+            throw new XError("Не найден код класса [Cls_CalcDeterm/Cls_CalcBayes]")
+        return st.get(0).getLong("id")
+    }
 
     @DaoMethod
-    Store loadCalc(String codTyp) {
-        Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
-        if (setCls.size() == 0) {
-            throw new XError("Не найден код [Typ_Stock]")
-        }
-        Store st = apiMeta().get(ApiMeta).loadSql("""
-            select -c.id as id, null as parent, v.name, c.id as cls, true as iscls,
-            case when c.id=${setCls[0]} then 1 else 2 end as ind
-            from Cls c, ClsVer v
-            where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${setCls.join(",")})
-        """, "")
-        Store stObj = mdb.loadQuery("""
+    Store loadCalc(long id) {
+        return mdb.loadQuery("""
             select o.id, 
                 case when v.objParent is null then -o.cls else v.objParent end as parent,
-                v.name, o.cls as cls, false as iscls, 
-                case when o.cls=${setCls[0]} then 1 else 2 end as ind
+                v.name, o.cls as cls 
             from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${setCls.join(",")})
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${id}
         """)
-        st.add(stObj)
-        return st
     }
 
     @DaoMethod

@@ -351,12 +351,6 @@ const infoSelected = (row) => {
 onMounted(() => {
   loading.value = true
 
-/*
-  reservoirs = route.params.reservoirs
-  dbeg = route["params"]["dbeg"]
-  dend = route["params"]["dend"]
-*/
-
   reservoirs.value = route.params.reservoirs || ''
   dbeg.value = route.params.dbeg || ''
   dend.value = route.params.dend || ''

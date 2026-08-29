@@ -39,6 +39,10 @@ export default {
   calc: 'Есептеу',
   calcStock: 'Қор есептеулері',
   calcMPC: 'Рұқсат етілген ең жоғары аулау есептеулері',
+  calcDeterm: 'Детерминистік есептеулер',
+  calcBayes: 'Байестік есептеулер',
+  create1level: "Негізгі есептеуді жасаңыз",
+  back: "Артқа",
 
   //Dialog
   confirmation: 'Растау',

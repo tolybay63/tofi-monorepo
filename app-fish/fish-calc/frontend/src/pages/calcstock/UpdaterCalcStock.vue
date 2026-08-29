@@ -3,7 +3,6 @@
     ref="dialog"
     @hide="onDialogHide"
     persistent
-    autofocus
     transition-show="slide-up"
     transition-hide="slide-down"
     style="width: 600px"
@@ -23,9 +22,8 @@
 
         <!-- name -->
         <q-input
-          :model-value="form.name"
-          v-model="form.name"
           autofocus
+          v-model="form['name']"
           :label="$t('nameCalc')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
