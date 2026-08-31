@@ -42,7 +42,7 @@
             </q-btn>
 
             <q-btn
-              v-if="hasTarget('adm:tml:ins')"
+              v-if="hasTarget('calc')"
               class="q-ml-sm"
               color="secondary"
               dense
@@ -86,7 +86,7 @@
                     ></q-icon>
 
                     <q-btn
-                      :disable="!hasTarget('adm:tml:upd')"
+                      :disable="!hasTarget('calc')"
                       :icon="
                         selected.length === 1 && item.id === selected[0].id
                           ? 'check_box'
