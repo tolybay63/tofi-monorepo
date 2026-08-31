@@ -103,25 +103,37 @@
                       <q-menu auto-close context-menu>
                         <q-list>
                           <div>
-                            <q-item clickable>
-                              <q-item-section @click="showMenu(item, 'ins')">
+                            <q-item clickable  @click="showMenu(item, 'ins')">
+                              <q-item-section avatar>
+                                <q-icon avator name="post_add"/>
+                              </q-item-section>
+                              <q-item-section>
                                 Создать дочерний расчет
                               </q-item-section>
-                             </q-item>
-                             <q-item clickable>
-                              <q-item-section @click="showMenu(item, 'upd')">
+                            </q-item>
+                            <q-item clickable @click="showMenu(item, 'upd')">
+                              <q-item-section avatar>
+                                <q-icon name="edit"/>
+                              </q-item-section>
+                              <q-item-section>
                                 Редактировать расчет
                               </q-item-section>
-                             </q-item>
-                             <q-item clickable>
-                              <q-item-section @click="showMenu(item, 'del')">
+                            </q-item>
+                            <q-item clickable @click="showMenu(item, 'del')">
+                              <q-item-section avatar>
+                                <q-icon color="red" name="delete"/>
+                              </q-item-section>
+                              <q-item-section>
                                 Удалить расчет
                               </q-item-section>
-                             </q-item>
+                            </q-item>
                             <q-separator/>
-                            <q-item clickable>
-                              <q-item-section @click="showMenu(item, 'calc')">
-                                Расчет
+                            <q-item clickable @click="showMenu(item, 'calc')">
+                              <q-item-section avatar>
+                                <q-icon color="green" name="pan_tool_alt"/>
+                              </q-item-section>
+                              <q-item-section>
+                                Выбор расчета
                               </q-item-section>
                             </q-item>
 
@@ -226,7 +238,7 @@ const showMenu = (item, mode) => {
     fnCalc(data)
   } else if (mode === "del") {
     fnDel(data)
-  } else if (["ins","upd"].includes(mode)) {
+  } else if (["ins", "upd"].includes(mode)) {
     fnEdit(data, false, isChild, mode);
   } else {
     notifyError("Не известный режим")

@@ -6,11 +6,21 @@
         {{ title }} <span class="text-caption text-orange">({{ proxy?.$t("calcDeterm") }})</span>
       </div>
       <q-space/>
-      <q-avatar color="secondary text-white cursor-pointer" dense glossy icon="arrow_back" round @click="toBack">
-        <q-tooltip transition-hide="rotate" transition-show="rotate">
-          {{ $t('back') }}
-        </q-tooltip>
-      </q-avatar>
+
+      <div class="q-gutter-lg">
+        <q-avatar color="secondary text-white cursor-pointer" dense glossy icon="arrow_back" round @click="toBack">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
+            {{ $t('back') }}
+          </q-tooltip>
+        </q-avatar>
+
+        <q-avatar color="red text-white cursor-pointer" dense glossy icon="start" @click="toCalc">
+          <q-tooltip transition-hide="rotate" transition-show="rotate">
+            Запустить расчет
+          </q-tooltip>
+        </q-avatar>
+      </div>
+
     </div>
   </q-banner>
 
@@ -21,6 +31,7 @@
 <script setup>
 import {getCurrentInstance, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
+import {Notify} from "quasar";
 
 const router = useRouter();
 const route = useRoute()
@@ -32,6 +43,15 @@ const title = ref("")
 
 const toBack = () => {
   router["push"]({name: 'CalcStockDeterm'})
+}
+
+const toCalc = () => {
+  Notify.create({
+    type: "info",
+    position: "top",
+    timeout: 5000,
+    message: "CalcStockDeterm...",
+  })
 }
 
 onMounted(() => {
