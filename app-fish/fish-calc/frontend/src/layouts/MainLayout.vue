@@ -82,13 +82,15 @@
     </q-footer>
 
     <q-drawer :width="260" v-model="leftDrawerOpen" show-if-above bordered elevated class="q-pa-sm bg-grey-3">
+
       <h6 class="q-pa-md text-red text-bold" v-if="reqAuth">
         {{ tr('notLoginned') }}
       </h6>
       <h6 class="q-pa-md text-red text-bold" v-else-if="notAccess">
         {{ tr('notAccessService') }}
       </h6>
-      <q-list v-else class="q-list--bordered bg-blue-1">
+
+      <q-list class="q-list--bordered bg-blue-1">
         <template v-for="item in essentialLinks" :key="item.label">
           <q-expansion-item v-if="item.children && hasTarget(item.target)"
                             :icon="item.icon" :label="item.label"
@@ -164,7 +166,7 @@ const site_url = import.meta.env.QCLI_SITE_URL || 'https://tofishstocks-model.kz
 const leftDrawerOpen = ref(true)
 // Computed properties
 const reqAuth = computed(() => getUserName.value === '')
-const notAccess = computed(() => !getTarget.value.includes('adm') && !isSysAdmin.value)
+const notAccess = computed(() => !getTarget.value.includes('calc') && !isSysAdmin.value)
 const nameIcon = computed(() => (getUserName.value === '' ? 'login' : 'logout'))
 
 // Essential links
@@ -174,7 +176,7 @@ const essentialLinks = computed(() => [
     info: '',
     icon: 'calculate',
     to: '/calc_determ',
-    target: '',
+    target: 'calc',
   },
 
   {
@@ -182,7 +184,7 @@ const essentialLinks = computed(() => [
     info: '',
     icon: 'calculate',
     to: '/calc_bayes',
-    target: '',
+    target: 'calc',
   },
 
 
@@ -191,27 +193,27 @@ const essentialLinks = computed(() => [
     info: '',
     icon: 'calculate',
     //to: '/calc_mpc',
-    target: '',
+    target: 'calc',
   },
   {
     label: 'Fast API EndPoints',
     info: '',
     icon: 'link',
-    target: '',
+    target: 'calc',
     children: [
       {
         label: "Test 1",
         info: 'Fast API from Meta',
         icon: 'link',
         to: '/calcA',
-        target: '',
+        target: 'calc',
       },
       {
         label: "Test 2",
         info: 'Fast API from NSI',
         icon: 'link',
         to: '/calcB',
-        target: '',
+        target: 'calc',
       }
     ]
   },
