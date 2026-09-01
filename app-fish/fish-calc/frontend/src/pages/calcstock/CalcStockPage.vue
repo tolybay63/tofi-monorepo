@@ -103,7 +103,7 @@
                       <q-menu auto-close context-menu>
                         <q-list>
                           <div>
-                            <q-item clickable  @click="showMenu(item, 'ins')">
+                            <q-item clickable @click="showMenu(item, 'ins')">
                               <q-item-section avatar>
                                 <q-icon avator name="post_add"/>
                               </q-item-section>
@@ -137,14 +137,13 @@
                               </q-item-section>
                             </q-item>
 
-
                           </div>
                         </q-list>
                       </q-menu>
                           {{ item.name }}
-                        <q-tooltip>
+                      <q-tooltip>
                           Используйте контекстное меню
-                        </q-tooltip>
+                      </q-tooltip>
                     </q-chip>
                   </span>
               </td>
