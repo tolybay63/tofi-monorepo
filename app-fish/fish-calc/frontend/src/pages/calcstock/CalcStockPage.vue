@@ -75,10 +75,56 @@
             <tbody>
             <tr v-for="(item, index) in arrayTreeObj" :key="index">
               <td :data-th="columns[0]?.name" @click="toggle(item, index)">
-                  <span
-                    :style="setPadding(item)"
-                    class="q-tree-link q-tree-label"
-                  >
+
+                <q-menu auto-close context-menu>
+                  <q-list>
+                    <div>
+                      <q-item clickable @click="showMenu(item, 'ins')">
+                        <q-item-section avatar>
+                          <q-icon avator name="post_add"/>
+                        </q-item-section>
+                        <q-item-section>
+                          Создать дочерний расчет
+                        </q-item-section>
+                      </q-item>
+                      <q-item clickable @click="showMenu(item, 'upd')">
+                        <q-item-section avatar>
+                          <q-icon name="edit"/>
+                        </q-item-section>
+                        <q-item-section>
+                          Редактировать расчет
+                        </q-item-section>
+                      </q-item>
+                      <q-item clickable @click="showMenu(item, 'del')">
+                        <q-item-section avatar>
+                          <q-icon color="red" name="delete"/>
+                        </q-item-section>
+                        <q-item-section>
+                          Удалить расчет
+                        </q-item-section>
+                      </q-item>
+                      <q-separator/>
+                      <q-item clickable @click="showMenu(item, 'calc')">
+                        <q-item-section avatar>
+                          <q-icon color="green" name="pan_tool_alt"/>
+                        </q-item-section>
+                        <q-item-section>
+                          Выбор расчета
+                        </q-item-section>
+                      </q-item>
+
+                    </div>
+                  </q-list>
+                </q-menu>
+
+                <q-tooltip>
+                  Используйте контекстное меню
+                </q-tooltip>
+
+                <span
+                  :style="setPadding(item)"
+                  class="q-tree-link q-tree-label"
+                >
                     <q-icon
                       :name="iconName(item)"
                       color="secondary"
@@ -100,50 +146,7 @@
                     </q-btn>
 
                     <q-chip :color="fnColor(item)" class="cursor-pointer">
-                      <q-menu auto-close context-menu>
-                        <q-list>
-                          <div>
-                            <q-item clickable @click="showMenu(item, 'ins')">
-                              <q-item-section avatar>
-                                <q-icon avator name="post_add"/>
-                              </q-item-section>
-                              <q-item-section>
-                                Создать дочерний расчет
-                              </q-item-section>
-                            </q-item>
-                            <q-item clickable @click="showMenu(item, 'upd')">
-                              <q-item-section avatar>
-                                <q-icon name="edit"/>
-                              </q-item-section>
-                              <q-item-section>
-                                Редактировать расчет
-                              </q-item-section>
-                            </q-item>
-                            <q-item clickable @click="showMenu(item, 'del')">
-                              <q-item-section avatar>
-                                <q-icon color="red" name="delete"/>
-                              </q-item-section>
-                              <q-item-section>
-                                Удалить расчет
-                              </q-item-section>
-                            </q-item>
-                            <q-separator/>
-                            <q-item clickable @click="showMenu(item, 'calc')">
-                              <q-item-section avatar>
-                                <q-icon color="green" name="pan_tool_alt"/>
-                              </q-item-section>
-                              <q-item-section>
-                                Выбор расчета
-                              </q-item-section>
-                            </q-item>
-
-                          </div>
-                        </q-list>
-                      </q-menu>
-                          {{ item.name }}
-                      <q-tooltip>
-                          Используйте контекстное меню
-                      </q-tooltip>
+                      {{ item.name }}
                     </q-chip>
                   </span>
               </td>
@@ -216,7 +219,9 @@ const clsNodeInfo = () => {
       return "text-bold text-orange";
     else
       return "text-bold text-blue";
-  }
+  } else
+    return "text-bold text-black";
+
 }
 
 const showMenu = (item, mode) => {
@@ -440,7 +445,7 @@ const getColumns = () => [
 ];
 
 const nodeInfo = () => {
-  let res = "";
+  let res = "Для просмотра свойства расчета выберите узел";
   if (currentNode.value) {
     res = currentNode.value.name;
   }
