@@ -5,54 +5,33 @@
 
       <q-tab name="desc" no-caps icon="task" label="Описание"/>
       <q-tab
-        name="prop1"
+        name="props"
         no-caps
         icon="task"
-        label="Group of Prop 1"
-        style="margin-right: 10px"
-      />
-
-      <q-tab
-        name="prop2"
-        no-caps
-        icon="task"
-        label="Group of Prop 2"
+        label="Основные свойства"
         style="margin-right: 10px"
       />
 
     </q-tabs>
 
-    <q-tab-panels v-model="tab" animated @transition="fnChange($event)">
+    <q-tab-panels v-model="tab" animated>
 
-      <q-tab-panel name="desc" style="height: calc(100vh - 190px); width: 100%">
+      <q-tab-panel name="desc" class="q-py-md q-px-none" style="height: calc(100vh - 190px); width: 100%">
         <h3 v-if="!props.data" >
           Расчет не выбран
         </h3>
         <div v-else>
-          <h3>Описание</h3>
-          {{props.data}}
+          <desc-page :own="props.data.id" :name="props.data.name"/>
         </div>
       </q-tab-panel>
 
-      <q-tab-panel name="prop1" style="height: calc(100vh - 190px); width: 100%">
+      <q-tab-panel name="props" class="q-py-md q-px-none" style="height: calc(100vh - 190px); width: 100%">
         <h3 v-if="!props.data" >
           Расчет не выбран
         </h3>
         <div v-else>
-          <h3>Prop 1</h3>
-          {{props.data}}
+          <props-page :own="props.data.id" :name="props.data.name"/>
         </div>
-      </q-tab-panel>
-
-      <q-tab-panel name="prop2" style="height: calc(100vh - 190px); width: 100%">
-        <h3 v-if="!props.data" >
-          Расчет не выбран
-        </h3>
-        <div v-else>
-          <h3>Prop 2</h3>
-          {{props.data}}
-        </div>
-
       </q-tab-panel>
 
 
@@ -65,21 +44,16 @@
 
 <script setup>
 import {ref} from "vue";
-import {data} from "autoprefixer";
+import DescPage from "@/pages/calcstock/props/main/DescPage.vue";
+import PropsPage from "@/pages/calcstock/props/main/PropsPage.vue";
 
 const props = defineProps({
-  data: ref(Object),
+  data: ref({}),
 })
 
 const tab = ref("desc")
 
-const fnChange = (e) => {
-  console.log("fnChange", e)
-  console.log("fnChange", props.data)
-}
 
-
-fnChange("desc")
 </script>
 
 <style scoped>

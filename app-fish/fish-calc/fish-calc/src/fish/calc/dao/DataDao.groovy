@@ -2,14 +2,27 @@ package fish.calc.dao
 
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
+import jandcode.commons.datetime.XDate
+import jandcode.commons.datetime.XDateTime
+import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
+import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
+import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiMonitoringData
+import tofi.api.dta.ApiNSIData
 import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.model.consts.FD_AttribValType_consts
+import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_PeriodType_consts
+import tofi.api.mdl.model.consts.FD_PropType_consts
+import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -17,7 +30,13 @@ import tofi.apinator.ApinatorService
 class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
+
+    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
+
+    ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
+
+
     @DaoMethod
     long getCls(String codCls) {
         Store st = apiMeta().get(ApiMeta).loadSql("""
@@ -88,18 +107,487 @@ class DataDao extends BaseMdbUtils {
             eu.deleteEntity(id)
     }
 
-
-
-/*
-    private StoreRecord loadObjRec(long obj) {
-        StoreRecord st = mdb.createStoreRecord("Obj.full")
-        mdb.loadQueryRecord(st, """
-            select o.*, v.name, v.fullName, v.objParent as parent from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id=:o
-        """, [o: obj])
+    //*************************** Props Main *****************************//
+    @DaoMethod
+    Store loadDesc(long obj) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcDescription", "")
+        Store st = mdb.createStore("Calc.desc")
+        mdb.loadQuery(st, """
+            select o.id as obj, v.objParent as parent, o.cls, 
+                v1.id as idCalcDescription, v1.multiStrVal as CalcDescription
+            from Obj o
+                join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=${map.get("Prop_CalcDescription")}
+                join DataPropVal v1 on v1.dataprop=d1.id
+            where o.id=${obj}
+        """)
         return st
     }
-*/
+
+    @DaoMethod
+    void saveDesc(Map<String, Object> rec) {
+        long idVal = UtCnv.toLong(rec.get("idCalcDescription"))
+        if (idVal == 0)
+            fillProperties(true, "Prop_CalcDescription", rec)
+        else
+            updateProperties("Prop_CalcDescription", rec)
+    }
+
+    @DaoMethod
+    Store loadMainProps(long obj) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Calc%")
+        mapProp.putAll(map)
+        Store st = mdb.createStore("Calc.main.props")
+        mdb.loadQuery("""
+            select o.id as obj, v.objParent as parent, o.cls,
+                v1.id as idCalcStartYear, v1.strVal as CalcStartYear,
+                v2.id as idCalcEndYear, v2.strVal as CalcCalcEndYear,    
+                v3.id as idCalcCreatDate, v3.dateTimeVal as CalcCreatDate,
+                v4.id as idCalcLastDate, v4.dateTimeVal as CalcLastDate,    
+                v5.id as idCalcFishSpec, v5.propVal as pvCalcFishSpec, null as fvCalcFishSpec,
+                v6.id as idCalcStatus, v6.propVal as pvCalcStatus, null as fvCalcStatus,
+                v7.id as idCalcUser, v7.propVal as pvCalcUser, v7.obj as objCalcUser,
+                v8.id as idReservoirShore, v8.propVal as pvReservoirShore, v8.obj as objReservoirShore
+            from Obj o
+                join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                left join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
+                left join DataPropVal v1 on v1.dataprop=d1.id
+                left join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
+                left join DataPropVal v2 on v2.dataprop=d2.id
+                left join DataProp d3 on d3.isObj=1 and d3.objOrRelObj=o.id and d3.prop=:Prop_CalcCreatDate
+                left join DataPropVal v3 on v3.dataprop=d3.id
+                left join DataProp d4 on d4.isObj=1 and d4.objOrRelObj=o.id and d4.prop=:Prop_CalcLastDate
+                left join DataPropVal v4 on v4.dataprop=d4.id
+                left join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
+                left join DataPropVal v5 on v5.dataprop=d5.id
+                left join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
+                left join DataPropVal v6 on v6.dataprop=d6.id
+                left join DataProp d7 on d7.isObj=1 and d7.objOrRelObj=o.id and d7.prop=:Prop_CalcUser
+                left join DataPropVal v7 on v7.dataprop=d7.id
+                left join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
+                left join DataPropVal v8 on v8.dataprop=d8.id    
+            where o.id=${obj}
+        """, mapProp)
+
+        if (st.size() == 0) {
+            StoreRecord r = mdb.createStoreRecord("Calc.main.props")
+            r.set("obj", obj)
+            st.add(r)
+        }
+
+
+        return st
+    }
+
+    @DaoMethod
+    StoreRecord newRecMainProps(long obj) {
+        StoreRecord rec = mdb.createStoreRecord("Calc.main.props")
+        rec.set("obj", obj)
+        AuthService authService = getModel().getApp().bean(AuthService.class);
+        AuthUser usr = authService.getCurrentUser();
+        rec.set("objCalcUser", usr.getAttrs().getLong("id"))
+        rec.set("pvCalcUser", 1102L) //todo
+        rec.set("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+        return rec
+    }
+
+    @DaoMethod
+    void saveMainProps(Map<String, Object> rec) {
+
+
+    }
+
+    @DaoMethod
+    Store loadFVasStore(String codProp) {
+        return apiMeta().get(ApiMeta).storePropValForSelectFV(codProp)
+    }
+
+    @DaoMethod
+    Store loadReservoirs(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp, "monitoringdata")
+    }
+
+    Store loadObjForSelect(String codTypOrProp, String model) {
+        if (codTypOrProp.startsWith("Typ_")) {
+            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
+            idsCls.add(0)
+            return loadSqlService("""
+                select o.id, o.cls, v.name
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            """, "", model)
+        } else if (codTypOrProp.startsWith("Prop_")) {
+            Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codTypOrProp, "")
+            Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select cls, id as propval
+                from PropVal
+                where prop=${mapProp.get(codTypOrProp)} and cls is not null
+            """, "")
+            StoreIndex indProp = stProp.getIndex("cls")
+
+            Set<Object> idsCls = stProp.getUniqueValues("cls")
+
+            Store stObj = loadSqlService("""
+                select o.id, o.cls, v.name, null as pv
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
+            """, "", model)
+            for (StoreRecord r in stObj) {
+                StoreRecord rec = indProp.get(r.getLong("cls"))
+                if (rec != null) {
+                    r.set("pv", rec.getLong("propval"))
+                }
+            }
+            return stObj
+        } else {
+            throw new XError("Неверный параметр")
+        }
+    }
+    //**************************************
+    void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("own"))
+        long au = getUser()
+        String keyValue = cod.split("_")[1]
+        long objRef = UtCnv.toLong(params.get("obj" + keyValue))
+        long propVal = UtCnv.toLong(params.get("pv" + keyValue))
+
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long prop = stProp.get(0).getLong("id")
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        long idDP
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        String whe = isObj ? "and isObj=1 " : "and isObj=0 "
+        if (stProp.get(0).getLong("statusFactor") > 0) {
+            long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+            whe += "and status = ${fv} "
+        } else {
+            whe += "and status is null "
+        }
+        //todo if (stProp.get(0).getLong("providerTyp") > 0)
+        whe += "and provider is null "
+        if (stProp.get(0).getBoolean("dependPeriod")) {
+            whe += "and periodType=${FD_PeriodType_consts.month} "
+        } else {
+            whe += "and periodType is null "
+        }
+        Store stDP = mdb.loadQuery("""
+            select * from DataProp
+            where objOrRelObj=${own} and prop=${prop} ${whe}
+        """)
+        if (stDP.size() > 0) {
+            idDP = stDP.get(0).getLong("id")
+            recDP.setValues(stDP.get(0))
+        } else {
+            recDP.set("isObj", isObj)
+            recDP.set("objOrRelObj", own)
+            recDP.set("prop", prop)
+            if (stProp.get(0).getLong("statusFactor") > 0) {
+                long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+                recDP.set("status", fv)
+            }
+            if (stProp.get(0).getLong("providerTyp") > 0) {
+                //todo
+                // provider
+                //
+            }
+            if (stProp.get(0).getBoolean("dependperiod")) {
+                recDP.set("periodType", FD_PeriodType_consts.month)
+            }
+            idDP = mdb.insertRec("DataProp", recDP, true)
+        }
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        recDPV.set("dataProp", idDP)
+        // For Attrib
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcStartYear") ||
+                    cod.equalsIgnoreCase("Prop_CalcEndYear")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcCreatDate") ||
+                    cod.equalsIgnoreCase("Prop_CalcLastDate")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcDescription")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ReservoirShore")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcFishSpec")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_AreaOfTon")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    double v = UtCnv.toDouble(params.get(keyValue))
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    recDPV.set("numberVal", v)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        //
+        if (recDP.getLong("periodType") > 0) {
+            if (!params.containsKey("dte"))
+                params.put("dte", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            recDPV.set("dbeg", d1.toString(XDateTimeFormatter.ISO_DATE))
+            recDPV.set("dend", d2.toString(XDateTimeFormatter.ISO_DATE))
+        } else {
+            recDPV.set("dbeg", "1800-01-01")
+            recDPV.set("dend", "3333-12-31")
+        }
+
+        recDPV.set("authUser", au)
+        recDPV.set("inputType", FD_InputType_consts.app)
+        long idDPV = mdb.getNextId("DataPropVal")
+        recDPV.set("id", idDPV)
+        recDPV.set("ord", idDPV)
+        recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+        mdb.insertRec("DataPropVal", recDPV, false)
+    }
+
+    void updateProperties(String cod, Map<String, Object> params) {
+        VariantMap mapProp = new VariantMap(params)
+        long au = getUser()
+        String keyValue = cod.split("_")[1]
+        long idVal = mapProp.getLong("id" + keyValue)
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        mdb.loadQueryRecord(recDPV, "select * from DataPropVal where id=${idVal}")
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        mdb.loadQueryRecord(recDP, """
+            select d.* from DataPropVal v, DataProp d where v.id=${idVal} and v.dataProp=d.id
+        """)
+        long idDP = recDP.getLong("id")
+        //
+        long objRef = mapProp.getLong("obj" + keyValue)
+        long propVal = mapProp.getLong("pv" + keyValue)
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        def tmst = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+        def strValue = mapProp.getString(keyValue)
+        recDPV.set("authUser", au)
+        recDPV.set("timeStamp", tmst)
+        // For Attrib (str)
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcStartYear") ||
+                    cod.equalsIgnoreCase("Prop_CalcEndYear")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                } else {
+                    recDPV.set("strVal", strValue)
+                    mdb.updateRec("DataPropVal", recDPV)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Attrib (multistr)
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcDescription")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                } else {
+                    recDPV.set("multiStrVal", strValue)
+                    mdb.updateRec("DataPropVal", recDPV)
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+        // For Attrib (dt)
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcCreatDate") ||
+                    cod.equalsIgnoreCase("Prop_CalcLastDate")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                } else {
+                    recDPV.set("dateTimeVal", strValue)
+                    mdb.updateRec("DataPropVal", recDPV)
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcFishSpec")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                    mdb.updateRec("DataPropVal", recDPV)
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Measure
+        if ([FD_PropType_consts.measure].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Measure")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                    mdb.updateRec("DataPropVal", recDPV)
+                    //
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_AreaOfTon")) {
+                if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != "") {
+                    def v = mapProp.getDouble(keyValue)
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    recDPV.set("numberVal", v)
+                    mdb.updateRec("DataPropVal", recDPV)
+                    //
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ReservoirShore")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                    mdb.updateRec("DataPropVal", recDPV)
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+    }
+
+    private Store loadSqlService(String sql, String domain, String model) {
+        if (model.equalsIgnoreCase("nsidata"))
+            return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("monitoringdata"))
+            return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
+        else
+            throw new XError("Unknown model [${model}]")
+    }
 
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)

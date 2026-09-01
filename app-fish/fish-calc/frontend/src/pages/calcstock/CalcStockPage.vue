@@ -4,8 +4,8 @@
     <q-splitter
       v-model="splitterModel"
       :limits="[30, 100]"
-      after-class="overflow-hidden q-pl-sm"
-      before-class="overflow-hidden q-pr-sm"
+      after-class="overflow-hidden q-pl-md"
+      before-class="overflow-hidden q-pr-md"
       separator-class="bg-red"
       style="height: calc(100vh - 150px); width: 100%"
     >
@@ -158,7 +158,7 @@
 
       <template v-slot:after>
 
-        <props-main-page :data="currentNode"></props-main-page>
+          <props-main-page ref="refMainProps" :data="currentNode"></props-main-page>
 
       </template>
 
@@ -253,7 +253,7 @@ const fnDel = (rec) => {
   $q["dialog"]({
     title: proxy?.$t("confirmation"),
     message:
-      proxy?.$n("deleteRecord") +
+      proxy?.$t("deleteRecord") +
       '<div style="color: plum">(' +
       rec.name +
       ")</div>",
@@ -306,7 +306,6 @@ const fnEdit = (rec, isMain, isChild, mode) => {
 }
 
 const fnCalc = (rec) => {
-  console.log("rec", rec);
   if (props.codCls === "Cls_CalcDeterm") {
     router["push"]({
       name: 'CalculationDeterm',
@@ -398,6 +397,8 @@ const selectedRow = (item) => {
   }
   currentNode.value = selected.value[0] !== null ? selected.value[0] : null;
 
+
+
 };
 
 const fnExpand = () => {
@@ -418,7 +419,6 @@ const fetchData = () => {
     .then(
       (response) => {
         rows.value = pack(response.data.result["records"], "id");
-        console.info("rows.value", rows.value);
       },
       (error) => {
         let msg = error.message;

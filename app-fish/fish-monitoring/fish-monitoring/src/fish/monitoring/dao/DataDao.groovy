@@ -2075,10 +2075,6 @@ class DataDao extends BaseMdbUtils {
         return idDP
     }
 
-    //Prop_AreaOfTon
-    //Prop_Coordinate
-    //Prop_ReservoirShore
-    //Prop_Description
     @DaoMethod
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
