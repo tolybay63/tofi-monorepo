@@ -140,10 +140,13 @@ const loadFvAsMap = async (objId, codProp) => {
     })
     .then(
       (response) => {
-        if (codProp==="Prop_CalcFishSpec")
+        if (codProp==="Prop_CalcFishSpec") {
           mapCalcFishSpec.value = response.data.result
-        else if (codProp==="Prop_CalcStatus")
+          console.info("mapCalcFishSpec", mapCalcFishSpec.value)
+        } else if (codProp==="Prop_CalcStatus") {
           mapCalcStatus.value = response.data.result
+          console.info("mapCalcStatus", mapCalcStatus.value)
+        }
       },
       (error) => {
         let msg = error.message;
@@ -166,8 +169,9 @@ const loadReservoirAsMap = async (objId, codProp) => {
       params: [codProp],
     })
     .then((response) => {
+      console.info("Reservoir Recs", response.data.result.records)
       response.data.result.records.forEach((it) => {
-        mapReservoir.value.set(it['id'], it['name'])
+        mapReservoir.value[it['id']] = it['name']
       })
 
       console.info("Reservoir", mapReservoir.value)
