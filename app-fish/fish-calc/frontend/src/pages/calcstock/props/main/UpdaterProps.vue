@@ -27,7 +27,10 @@
           v-model="form['CalcLastDate']"
           :label="fmReqLabel('CalcLastDate')"
           type="date"
-          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+          :rules="[
+            (val) => (!!val && !!val.trim()) || $t('req'),
+            () => checkDate() || 'D1 > D2'
+            ]"
           class="q-ma-md" dense
         />
         <!-- CalcStartYear -->
@@ -42,13 +45,16 @@
         <q-input
           v-model="form['CalcEndYear']"
           :label="fmReqLabel('CalcEndYear')"
-          :rules="[(val) => (!!val && val.trim().length===4) || $t('req')]"
+          :rules="[
+            (val) => (!!val && val.trim().length===4) || $t('req'),
+            () => checkYear() || 'Y1 > Y2'
+            ]"
           class="q-ma-md" dense mask="####"
         />
 
         <!-- Prop_CalcFishSpec -->
         <q-select
-          class="q-mt-md"
+          class="q-ma-md"
           v-model="form['fvCalcFishSpec']"
           dense
           options-dense
@@ -62,7 +68,7 @@
 
         <!-- Prop_CalcStatus -->
         <q-select
-          class="q-mt-md"
+          class="q-ma-md"
           v-model="form['fvCalcStatus']"
           dense
           options-dense
@@ -71,7 +77,7 @@
           option-value="id"
           option-label="name"
           map-options
-          @update:model-value="fnSelectCalcStatus()"
+          @update:model-value="fnSelectCalcStatus"
         />
 
         <!-- Prop_ReservoirShore -->
@@ -101,8 +107,6 @@
           option-value="id"
         />
 
-
-
       </q-card-section>
 
       <q-card-actions align="right">
@@ -124,6 +128,9 @@
 import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
 import { api } from '@/boot/axios'
 import { notifySuccess } from '@/utils/jsutils'
+import {useUserStore} from "@/stores/user-store.js";
+import {storeToRefs} from "pinia";
+import {date} from "quasar";
 
 const props = defineProps({
   mode: String,
@@ -134,7 +141,26 @@ const emit = defineEmits(['ok', 'hide'])
 const { proxy } = getCurrentInstance()
 
 const dialogRef = ref(null)
-const form = reactive({ ...props.data })
+
+// Функция конвертации из dd.MM.yyyy (или любого другого) в yyyy-MM-dd для q-input type="date"
+const toInputFormat = (val) => {
+  if (!val) return ''
+  // Пробуем распарсить как dd.MM.yyyy
+  let parsed = date.extractDate(val, 'DD.MM.YYYY')
+  if (!isNaN(parsed) && val.includes('.')) {
+    return date.formatDate(parsed, 'YYYY-MM-DD')
+  }
+  return val // если уже yyyy-MM-dd
+}
+
+// Конвертируем даты при инициализации формы
+const form = reactive({
+  ...props.data,
+  CalcCreatDate: toInputFormat(props.data?.CalcCreatDate),
+  CalcLastDate: toInputFormat(props.data?.CalcLastDate),
+})
+
+//const form = reactive({ ...props.data })
 
 const optCalcFishSpec = ref([])
 const optCalcStatus = ref([])
@@ -148,6 +174,16 @@ const loading = ref(false)
 
 const fmReqLabel = (label) => {
   return proxy?.$t(label) + '*'
+}
+
+const checkDate = () => {
+  if (!form['CalcCreatDate'] || !form['CalcLastDate']) return true
+  return form['CalcCreatDate'] <= form['CalcLastDate']
+}
+
+const checkYear = () => {
+  if (!form['CalcStartYear'] || !form['CalcEndYear']) return true
+  return form['CalcStartYear'] <= form['CalcEndYear']
 }
 
 const fnSelectCalcFishSpec = (v) => {
@@ -216,7 +252,7 @@ const onOKClick = () => {
   api
     .post('', {
       method: 'data/saveMainProps',
-      params: [form],
+      params: [props.mode, form],
     })
     .then(() => {
       err = false
@@ -238,6 +274,8 @@ const onCancelClick = () => {
 
 onMounted(async () => {
   loading.value = true
+  const store = useUserStore()
+  const { getUserName, getUserId } = storeToRefs(store)
 
   try {
     const resp1 = await api.post('', { method: 'data/loadFVasStore', params: ['Prop_CalcFishSpec'] })
@@ -250,6 +288,13 @@ onMounted(async () => {
     optReservoir.value = resp3.data.result['records']
     optReservoirOrg.value = resp3.data.result['records']
     //
+    //const resp4 = await api.post('', { method: 'data/loadCalcUser', params: ['Prop_CalcUser'] })
+    //optCalcUser.value = resp4.data.result['records']
+    let usr = {id: getUserId, name: getUserName, pv: 1102};
+    optCalcUser.value.push(usr)
+    //
+    console.info("optCalcUser", optCalcUser.value)
+
   } catch (error) {
     console.error(error)
   } finally {

@@ -46,7 +46,18 @@ export default {
   create1level: "Создать главный расчет",
   back: "Назад",
 
-  //Dialog
+  CalcCreatDate: "Дата создания расчета",
+  CalcLastDate: "Дата последнего проведения расчета",
+  ReservoirShore: "Водоем (ссылка на объект)",
+  CalcStartYear: "Начальный год",
+  CalcEndYear: "Конечный год",
+  CalcFishSpec: "Вид рыбы (ссылка на фактор)",
+  CalcUser: "Кто проводил расчет",
+  CalcStatus: "Статус расчета",
+
+
+
+//Dialog
   confirmation: 'Подтверждение',
   deletingRecord: 'Удаление записи',
   deleteRecord: 'Удалить запись?',

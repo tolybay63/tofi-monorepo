@@ -135,12 +135,12 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadMainProps(long obj) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
-        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Calc%")
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "") as Map<String, Object>
+        Map<String, Object> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Calc%") as Map<String, Object>
         mapProp.putAll(map)
         Store st = mdb.createStore("Calc.main.props")
-        mdb.loadQuery("""
-            select o.id as obj, v.objParent as parent, o.cls,
+        mdb.loadQuery(st, """
+            select o.id as own, v.objParent as parent, o.cls,
                 v1.id as idCalcStartYear, v1.strVal as CalcStartYear,
                 v2.id as idCalcEndYear, v2.strVal as CalcCalcEndYear,    
                 v3.id as idCalcCreatDate, v3.dateTimeVal as CalcCreatDate,
@@ -172,7 +172,7 @@ class DataDao extends BaseMdbUtils {
 
         if (st.size() == 0) {
             StoreRecord r = mdb.createStoreRecord("Calc.main.props")
-            r.set("obj", obj)
+            r.set("own", obj)
             st.add(r)
         }
 
@@ -181,21 +181,89 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    StoreRecord newRecMainProps(long obj) {
+    Store newRecMainProps(long obj) {
+        Store st = mdb.createStore("Calc.main.props")
         StoreRecord rec = mdb.createStoreRecord("Calc.main.props")
-        rec.set("obj", obj)
+        rec.set("own", obj)
         AuthService authService = getModel().getApp().bean(AuthService.class);
         AuthUser usr = authService.getCurrentUser();
         rec.set("objCalcUser", usr.getAttrs().getLong("id"))
-        rec.set("pvCalcUser", 1102L) //todo
+        //rec.set("pvCalcUser", 1102L) //todo
         rec.set("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
-        return rec
+        st.add(rec)
+        mdb.outTable(st)
+        return st
     }
 
     @DaoMethod
-    void saveMainProps(Map<String, Object> rec) {
+    void saveMainProps(String mode, Map<String, Object> rec) {
+        VariantMap params = new VariantMap(rec)
+            //Attr
+        //1
+        if (params.getLong("idCalcCreatDate") == 0) {
+            if (!params.getString("CalcCreatDate").isEmpty())
+                fillProperties(true, "Prop_CalcCreatDate", params)
+        } else {
+            if (!params.getString("CalcCreatDate").isEmpty())
+                updateProperties("Prop_CalcCreatDate", params)
+        }
+        //2
+        if (params.getLong("idCalcLastDate") == 0) {
+            if (!params.getString("CalcLastDate").isEmpty())
+                fillProperties(true, "Prop_CalcLastDate", params)
+        } else {
+            if (!params.getString("CalcLastDate").isEmpty())
+                updateProperties("Prop_CalcLastDate", params)
+        }
+        //3
+        if (params.getLong("idCalcStartYear") == 0) {
+            if (!params.getString("CalcStartYear").isEmpty())
+                fillProperties(true, "Prop_CalcStartYear", params)
+        } else {
+            if (!params.getString("CalcStartYear").isEmpty())
+                updateProperties("Prop_CalcStartYear", params)
+        }
+        //4
+        if (params.getLong("idCalcEndYear") == 0) {
+            if (!params.getString("CalcEndYear").isEmpty())
+                fillProperties(true, "Prop_CalcEndYear", params)
+        } else {
+            if (!params.getString("CalcEndYear").isEmpty())
+                updateProperties("Prop_CalcEndYear", params)
+        }
+        //5
+        if (params.getLong("idCalcFishSpec") == 0) {
+            if (params.getLong("fvCalcFishSpec") > 0)
+                fillProperties(true, "Prop_CalcFishSpec", params)
+        } else {
+            if (params.getLong("fvCalcFishSpec") > 0)
+                updateProperties("Prop_CalcFishSpec", params)
+        }
+        //6
+        if (params.getLong("idCalcStatus") == 0) {
+            if (params.getLong("fvCalcStatus") > 0)
+                fillProperties(true, "Prop_CalcStatus", params)
+        } else {
+            if (params.getLong("fvCalcStatus") > 0)
+                updateProperties("Prop_CalcStatus", params)
+        }
 
-
+        //7
+        if (params.getLong("idReservoirShore") == 0) {
+            if (params.getLong("objReservoirShore") > 0)
+                fillProperties(true, "Prop_ReservoirShore", params)
+        } else {
+            if (params.getLong("objReservoirShore") > 0)
+                updateProperties("Prop_ReservoirShore", params)
+        }
+        //8
+        if (params.getLong("idCalcUser") == 0) {
+            if (params.getLong("objCalcUser") > 0)
+                fillProperties(true, "Prop_CalcUser", params)
+        } else {
+            if (params.getLong("objCalcUser") > 0)
+                updateProperties("Prop_CalcUser", params)
+        }
     }
 
     @DaoMethod
@@ -339,7 +407,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ReservoirShore")) {
+            if (cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    cod.equalsIgnoreCase("Prop_CalcUser")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -350,7 +419,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_CalcFishSpec")) {
+            if (cod.equalsIgnoreCase("Prop_CalcFishSpec") ||
+                    cod.equalsIgnoreCase("Prop_CalcStatus")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -490,7 +560,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_CalcFishSpec")) {
+            if (cod.equalsIgnoreCase("Prop_CalcFishSpec") ||
+                    cod.equalsIgnoreCase("Prop_CalcStatus")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                     mdb.updateRec("DataPropVal", recDPV)
@@ -558,7 +629,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_ReservoirShore")) {
+            if (cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    cod.equalsIgnoreCase("Prop_CalcUser")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)

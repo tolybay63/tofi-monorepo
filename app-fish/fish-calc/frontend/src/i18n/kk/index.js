@@ -44,6 +44,16 @@ export default {
   create1level: "Негізгі есептеуді жасаңыз",
   back: "Артқа",
 
+  CalcCreatDate: "Дата создания расчета",
+  CalcLastDate: "Дата последнего проведения расчета",
+  ReservoirShore: "Водоем (ссылка на объект)",
+  CalcStartYear: "Начальный год",
+  CalcEndYear: "Конечный год",
+  CalcFishSpec: "Вид рыбы (ссылка на фактор)",
+  CalcUser: "Кто проводил расчет",
+  CalcStatus: "Статус расчета",
+
+
   //Dialog
   confirmation: 'Растау',
   deletingRecord: 'Жазбаны жою',

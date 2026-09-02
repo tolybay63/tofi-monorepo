@@ -9,7 +9,7 @@
     </domain>
 
     <domain name="Calc.main.props" parent="base">
-        <field name="obj" parent="long"/>
+        <field name="own" parent="long"/>
         <field name="parent" parent="long"/>
         <field name="cls" parent="long"/>
 

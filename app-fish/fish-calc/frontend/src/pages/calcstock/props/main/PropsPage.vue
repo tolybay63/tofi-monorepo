@@ -9,7 +9,7 @@
       color="primary"
       grid
       hide-header
-      row-key="obj"
+      row-key="own"
       :rows-per-page-options="[0]"
     >
 
@@ -88,7 +88,7 @@ const fnEdit = async () => {
   let data = rows.value[0]
   if (cntFld < 8) {
     let newRec = await api.post('', { method: 'data/newRecMainProps', params: [props.own] })
-    Object.assign(data, newRec);
+    Object.assign(data, newRec.data.result.records[0]);
     mode = "ins"
   }
 
@@ -101,8 +101,6 @@ const fnEdit = async () => {
   }).onOk(() => {
     loadData(props.own)
   })
-
-
 
 }
 
@@ -117,6 +115,7 @@ const loadData = async (objId) => {
     .then(
       (response) => {
         rows.value = response.data.result["records"];
+        console.info("SERVER ROWS:", rows.value);
       },
       (error) => {
         let msg = error.message;
