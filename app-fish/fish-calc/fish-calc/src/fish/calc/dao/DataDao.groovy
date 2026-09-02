@@ -186,9 +186,6 @@ class DataDao extends BaseMdbUtils {
                 r.set("fvCalcStatus", rec.getLong("factorval"))
 
         }
-
-
-
         return st
     }
 

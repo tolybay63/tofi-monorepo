@@ -33,7 +33,7 @@
 
     </q-card-actions>
 
-    <q-card-section>
+    <q-card-section class="q-px-none">
       <q-editor
         class="my-custom-editor"
         v-model="form['CalcDescription']"

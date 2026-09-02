@@ -58,7 +58,7 @@
 <script setup>
 import {api} from "@/boot/axios.js";
 import {getCurrentInstance, ref, watch} from "vue";
-import UpdaterProps from "@/pages/calcstock/props/main/UpdaterProps.vue";
+import UpdaterPropsBayes from "@/pages/calcstock/props/main/UpdaterPropsBayes.vue";
 import {useQuasar} from "quasar";
 const $q = useQuasar()
 
@@ -94,7 +94,7 @@ const fnEdit = async () => {
 
 
   $q.dialog({
-    component: UpdaterProps,
+    component: UpdaterPropsBayes,
     componentProps: {
       data: data,
     },

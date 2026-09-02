@@ -158,7 +158,7 @@
 
       <template v-slot:after>
 
-          <props-main-page ref="refMainProps" :data="currentNode"></props-main-page>
+          <props-main-page :codCalc="props.codCls" :data="currentNode"></props-main-page>
 
       </template>
 

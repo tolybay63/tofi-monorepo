@@ -132,7 +132,6 @@ import {useUserStore} from "@/stores/user-store.js";
 import {storeToRefs} from "pinia";
 import {date} from "quasar";
 import {useI18n} from "vue-i18n";
-const {t} = useI18n()
 
 const props = defineProps({
   data: Object,
