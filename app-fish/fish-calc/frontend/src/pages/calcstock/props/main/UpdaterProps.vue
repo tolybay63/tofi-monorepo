@@ -16,7 +16,7 @@
         <!-- CalcCreatDate -->
         <q-input
           v-model="form['CalcCreatDate']"
-          :label="fmReqLabel('CalcCreatDate')"
+          :label="fmReqLabel('CalcCreatDate', true)"
           type="date"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
           class="q-ma-md" dense
@@ -25,7 +25,7 @@
         <!-- CalcLastDate -->
         <q-input
           v-model="form['CalcLastDate']"
-          :label="fmReqLabel('CalcLastDate')"
+          :label="fmReqLabel('CalcLastDate', false)"
           type="date"
           :rules="[
             (val) => (!!val && !!val.trim()) || $t('req'),
@@ -36,7 +36,7 @@
         <!-- CalcStartYear -->
         <q-input
           v-model="form['CalcStartYear']"
-          :label="fmReqLabel('CalcStartYear')"
+          :label="fmReqLabel('CalcStartYear', true)"
           :rules="[(val) => (!!val && val.trim().length===4) || $t('req')]"
           class="q-ma-md" dense mask="####"
         />
@@ -44,7 +44,7 @@
         <!-- CalcEndYear -->
         <q-input
           v-model="form['CalcEndYear']"
-          :label="fmReqLabel('CalcEndYear')"
+          :label="fmReqLabel('CalcEndYear', true)"
           :rules="[
             (val) => (!!val && val.trim().length===4) || $t('req'),
             () => checkYear() || 'Y1 > Y2'
@@ -59,7 +59,7 @@
           dense
           options-dense
           :options="optCalcFishSpec"
-          :label="fmReqLabel('CalcFishSpec')"
+          :label="fmReqLabel('CalcFishSpec', true)"
           option-value="id"
           option-label="name"
           map-options
@@ -73,7 +73,7 @@
           dense
           options-dense
           :options="optCalcStatus"
-          :label="fmReqLabel('CalcStatus')"
+          :label="fmReqLabel('CalcStatus', true)"
           option-value="id"
           option-label="name"
           map-options
@@ -83,7 +83,7 @@
         <!-- Prop_ReservoirShore -->
         <q-select
           v-model="form.objReservoirShore"
-          :label="fmReqLabel('reservoir')"
+          :label="fmReqLabel('reservoir', true)"
           :options="optReservoir"
           class="q-ma-md"
           dense
@@ -98,7 +98,7 @@
         <!-- Prop_CalcUser -->
         <q-select
           v-model="form['objCalcUser']"
-          :label="fmReqLabel('CalcUser')"
+          :label="fmReqLabel('CalcUser', false)"
           :options="optCalcUser"
           class="q-ma-md"
           dense
@@ -131,9 +131,10 @@ import { notifySuccess } from '@/utils/jsutils'
 import {useUserStore} from "@/stores/user-store.js";
 import {storeToRefs} from "pinia";
 import {date} from "quasar";
+import {useI18n} from "vue-i18n";
+const {t} = useI18n()
 
 const props = defineProps({
-  mode: String,
   data: Object,
 })
 
@@ -172,8 +173,11 @@ const optCalcUser = ref([])
 
 const loading = ref(false)
 
-const fmReqLabel = (label) => {
-  return proxy?.$t(label) + '*'
+const fmReqLabel = (label, req) => {
+  if (req)
+    return proxy?.$t(label) + '*'
+  else
+    return proxy?.$t(label)
 }
 
 const checkDate = () => {
@@ -227,10 +231,8 @@ const validSave = () => {
   return !form["CalcCreatDate"] ||
     !form["CalcLastDate"] ||
     !form["CalcStartYear"] ||
-    !form["CalcEndYear"] ||
     !form["fvCalcFishSpec"] ||
     !form["fvCalcStatus"] ||
-    !form["objCalcUser"] ||
     !form["objReservoirShore"];
 }
 
@@ -252,7 +254,7 @@ const onOKClick = () => {
   api
     .post('', {
       method: 'data/saveMainProps',
-      params: [props.mode, form],
+      params: [form],
     })
     .then(() => {
       err = false

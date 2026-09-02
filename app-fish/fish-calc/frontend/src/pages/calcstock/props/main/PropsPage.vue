@@ -23,7 +23,7 @@
               <q-item-label>{{ col.label }}</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-item-label caption>{{ col.value }}</q-item-label>
+              <q-item-label >{{ col.value }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -78,24 +78,22 @@ const rows = ref([])
 const fnEdit = async () => {
   //console.log("rows: ", rows.value)
   //console.log("rows2: ", rows.value[0])
-  let cntFld=0
-  for (let fld in rows.value[0]) {
-      if (fld.includes("id"))
-        cntFld++
-  }
-  //console.log("cntFld", cntFld)
-  let mode = "upd"
-  let data = rows.value[0]
-  if (cntFld < 8) {
+
+  let data = {};
+
+  if (rows.value.length === 0) {
     let newRec = await api.post('', { method: 'data/newRecMainProps', params: [props.own] })
     Object.assign(data, newRec.data.result.records[0]);
-    mode = "ins"
+  } else {
+    Object.assign(data, rows.value[0]);
   }
+
+  console.info("DATA", data)
+
 
   $q.dialog({
     component: UpdaterProps,
     componentProps: {
-      mode: mode,
       data: data,
     },
   }).onOk(() => {

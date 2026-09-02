@@ -142,7 +142,7 @@ class DataDao extends BaseMdbUtils {
         mdb.loadQuery(st, """
             select o.id as own, v.objParent as parent, o.cls,
                 v1.id as idCalcStartYear, v1.strVal as CalcStartYear,
-                v2.id as idCalcEndYear, v2.strVal as CalcCalcEndYear,    
+                v2.id as idCalcEndYear, v2.strVal as CalcEndYear,    
                 v3.id as idCalcCreatDate, v3.dateTimeVal as CalcCreatDate,
                 v4.id as idCalcLastDate, v4.dateTimeVal as CalcLastDate,    
                 v5.id as idCalcFishSpec, v5.propVal as pvCalcFishSpec, null as fvCalcFishSpec,
@@ -151,30 +151,38 @@ class DataDao extends BaseMdbUtils {
                 v8.id as idReservoirShore, v8.propVal as pvReservoirShore, v8.obj as objReservoirShore
             from Obj o
                 join ObjVer v on o.id=v.ownerVer and v.lastVer=1
-                left join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
-                left join DataPropVal v1 on v1.dataprop=d1.id
-                left join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
-                left join DataPropVal v2 on v2.dataprop=d2.id
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
+                join DataPropVal v1 on v1.dataprop=d1.id
+                join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
+                join DataPropVal v2 on v2.dataprop=d2.id
                 left join DataProp d3 on d3.isObj=1 and d3.objOrRelObj=o.id and d3.prop=:Prop_CalcCreatDate
                 left join DataPropVal v3 on v3.dataprop=d3.id
-                left join DataProp d4 on d4.isObj=1 and d4.objOrRelObj=o.id and d4.prop=:Prop_CalcLastDate
-                left join DataPropVal v4 on v4.dataprop=d4.id
-                left join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
-                left join DataPropVal v5 on v5.dataprop=d5.id
-                left join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
+                join DataProp d4 on d4.isObj=1 and d4.objOrRelObj=o.id and d4.prop=:Prop_CalcLastDate
+                join DataPropVal v4 on v4.dataprop=d4.id
+                join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
+                join DataPropVal v5 on v5.dataprop=d5.id
+                join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
                 left join DataPropVal v6 on v6.dataprop=d6.id
                 left join DataProp d7 on d7.isObj=1 and d7.objOrRelObj=o.id and d7.prop=:Prop_CalcUser
-                left join DataPropVal v7 on v7.dataprop=d7.id
-                left join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
-                left join DataPropVal v8 on v8.dataprop=d8.id    
+                join DataPropVal v7 on v7.dataprop=d7.id
+                join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
+                join DataPropVal v8 on v8.dataprop=d8.id    
             where o.id=${obj}
         """, mapProp)
 
-        if (st.size() == 0) {
-            StoreRecord r = mdb.createStoreRecord("Calc.main.props")
-            r.set("own", obj)
-            st.add(r)
+        Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
+        StoreIndex indFV = stFV.getIndex("propval")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indFV.get(r.getLong("pvCalcFishSpec"))
+            if (rec != null)
+                r.set("fvCalcFishSpec", rec.getLong("factorval"))
+            //
+            rec = indFV.get(r.getLong("pvCalcStatus"))
+            if (rec != null)
+                r.set("fvCalcStatus", rec.getLong("factorval"))
+
         }
+
 
 
         return st
@@ -191,23 +199,27 @@ class DataDao extends BaseMdbUtils {
         //rec.set("pvCalcUser", 1102L) //todo
         rec.set("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
         st.add(rec)
-        mdb.outTable(st)
+        //mdb.outTable(st)
         return st
     }
 
     @DaoMethod
-    void saveMainProps(String mode, Map<String, Object> rec) {
+    void saveMainProps(Map<String, Object> rec) {
         VariantMap params = new VariantMap(rec)
             //Attr
         //1
         if (params.getLong("idCalcCreatDate") == 0) {
-            if (!params.getString("CalcCreatDate").isEmpty())
+            if (params.getString("CalcCreatDate").isEmpty())
+                throw new XError("CalcCreatDate is required")
+            else
                 fillProperties(true, "Prop_CalcCreatDate", params)
         } else {
-            if (!params.getString("CalcCreatDate").isEmpty())
+            if (params.getString("CalcCreatDate").isEmpty())
+                throw new XError("CalcCreatDate is required")
+            else
                 updateProperties("Prop_CalcCreatDate", params)
         }
-        //2
+        //2 !req
         if (params.getLong("idCalcLastDate") == 0) {
             if (!params.getString("CalcLastDate").isEmpty())
                 fillProperties(true, "Prop_CalcLastDate", params)
@@ -217,46 +229,67 @@ class DataDao extends BaseMdbUtils {
         }
         //3
         if (params.getLong("idCalcStartYear") == 0) {
-            if (!params.getString("CalcStartYear").isEmpty())
+            if (params.getString("CalcStartYear").isEmpty())
+                throw new XError("CalcStartYear is required")
+            else
                 fillProperties(true, "Prop_CalcStartYear", params)
         } else {
-            if (!params.getString("CalcStartYear").isEmpty())
+            if (params.getString("CalcStartYear").isEmpty())
+                throw new XError("CalcStartYear is required")
+            else
                 updateProperties("Prop_CalcStartYear", params)
         }
+
         //4
         if (params.getLong("idCalcEndYear") == 0) {
-            if (!params.getString("CalcEndYear").isEmpty())
+            if (params.getString("CalcEndYear").isEmpty())
+                throw new XError("CalcEndYear is required")
+            else
                 fillProperties(true, "Prop_CalcEndYear", params)
         } else {
-            if (!params.getString("CalcEndYear").isEmpty())
+            if (params.getString("CalcEndYear").isEmpty())
+                throw new XError("CalcEndYear is required")
+            else
                 updateProperties("Prop_CalcEndYear", params)
         }
         //5
         if (params.getLong("idCalcFishSpec") == 0) {
             if (params.getLong("fvCalcFishSpec") > 0)
                 fillProperties(true, "Prop_CalcFishSpec", params)
+            else
+                throw new XError("CalcFishSpec is required")
         } else {
             if (params.getLong("fvCalcFishSpec") > 0)
                 updateProperties("Prop_CalcFishSpec", params)
+            else
+                throw new XError("CalcFishSpec is required")
         }
         //6
         if (params.getLong("idCalcStatus") == 0) {
             if (params.getLong("fvCalcStatus") > 0)
                 fillProperties(true, "Prop_CalcStatus", params)
+            else
+                throw new XError("CalcStatus is required")
         } else {
             if (params.getLong("fvCalcStatus") > 0)
                 updateProperties("Prop_CalcStatus", params)
+            else
+                throw new XError("CalcStatus is required")
         }
-
         //7
+
         if (params.getLong("idReservoirShore") == 0) {
             if (params.getLong("objReservoirShore") > 0)
                 fillProperties(true, "Prop_ReservoirShore", params)
+            else
+                throw new XError("ReservoirShore is required")
         } else {
             if (params.getLong("objReservoirShore") > 0)
                 updateProperties("Prop_ReservoirShore", params)
+            else
+                throw new XError("ReservoirShore is required")
         }
-        //8
+        //8 !req
         if (params.getLong("idCalcUser") == 0) {
             if (params.getLong("objCalcUser") > 0)
                 fillProperties(true, "Prop_CalcUser", params)
