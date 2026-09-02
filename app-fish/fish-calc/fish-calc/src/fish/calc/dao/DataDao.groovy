@@ -307,6 +307,13 @@ class DataDao extends BaseMdbUtils {
 */
     }
 
+
+    @DaoMethod
+    Map<Long, String> loadFvAsMap(String codProp) {
+        return apiMeta().get(ApiMeta).loadFVasMap(codProp)
+    }
+
+
     @DaoMethod
     Store loadFVasStore(String codProp) {
         return apiMeta().get(ApiMeta).storePropValForSelectFV(codProp)

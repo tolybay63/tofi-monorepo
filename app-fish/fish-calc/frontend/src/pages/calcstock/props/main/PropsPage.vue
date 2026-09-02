@@ -74,6 +74,9 @@ const props = defineProps({
 
 const loading = ref(false);
 const rows = ref([])
+const mapCalcFishSpec = ref(new Map())
+const mapCalcStatus = ref(new Map())
+const mapReservoir = ref(new Map())
 
 const fnEdit = async () => {
   //console.log("rows: ", rows.value)
@@ -127,6 +130,55 @@ const loadData = async (objId) => {
     });
 }
 
+const loadFvAsMap = async (objId, codProp) => {
+  if (!objId) return;
+  loading.value = true;
+  api
+    .post("", {
+      method: "data/loadFvAsMap",
+      params: [codProp]
+    })
+    .then(
+      (response) => {
+        if (codProp==="Prop_CalcFishSpec")
+          mapCalcFishSpec.value = response.data.result
+        else if (codProp==="Prop_CalcStatus")
+          mapCalcStatus.value = response.data.result
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response)
+          msg = proxy?.$t(error.response.data?.error?.message);
+        console.error(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+    });
+}
+
+const loadReservoirAsMap = async (objId, codProp) => {
+  if (!objId) return;
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadReservoirs',
+      params: [codProp],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        mapReservoir.value.set(it['id'], it['name'])
+      })
+
+      console.info("Reservoir", mapReservoir.value)
+    })
+    .finally(() => {
+      loading.value = false
+    })
+
+
+}
+
 const cols = [
   {
     name: 'CalcCreatDate',
@@ -140,8 +192,9 @@ const cols = [
   },
   {
     name: 'objReservoirShore',
-    label: 'Ссылка на водоем',
+    label: 'Водоем',
     field: 'objReservoirShore',
+    format: (v) => (mapReservoir.value ? mapReservoir.value[v] : null),
   },
   {
     name: 'CalcStartYear',
@@ -157,6 +210,7 @@ const cols = [
     name: 'fvCalcFishSpec',
     label: 'Вид рыбы',
     field: 'fvCalcFishSpec',
+    format: (v) => (mapCalcFishSpec.value ? mapCalcFishSpec.value[v] : null),
   },
   {
     name: 'objCalcUser',
@@ -167,12 +221,16 @@ const cols = [
     name: 'fvCalcStatus',
     label: 'Статус расчета',
     field: 'fvCalcStatus',
+    format: (v) => (mapCalcStatus.value ? mapCalcStatus.value[v] : null),
   },
 ]
 
 watch(
   () => props.own,
   (newObj) => {
+    loadReservoirAsMap(newObj, "Prop_ReservoirShore")
+    loadFvAsMap(newObj, "Prop_CalcFishSpec")
+    loadFvAsMap(newObj, "Prop_CalcStatus")
     loadData(newObj);
   },
   {immediate: true}
