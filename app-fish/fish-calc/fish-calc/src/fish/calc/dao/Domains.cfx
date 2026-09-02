@@ -22,7 +22,7 @@
         <field name="idCalcCreatDate" parent="long"/>
         <field name="CalcCreatDate" parent="date"/>
 
-        <field name="idCalcLastDateDate" parent="long"/>
+        <field name="idCalcLastDate" parent="long"/>
         <field name="CalcLastDate" parent="date"/>
 
         <field name="idCalcFishSpec" parent="long"/>

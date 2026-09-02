@@ -17,7 +17,7 @@
         <q-input
           v-model="form['CalcCreatDate']"
           :label="fmReqLabel('CalcCreatDate', true)"
-          type="date"
+          type="date" :disable="true"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
           class="q-ma-md" dense
         />
@@ -27,15 +27,14 @@
           v-model="form['CalcLastDate']"
           :label="fmReqLabel('CalcLastDate', false)"
           type="date"
-          :rules="[
-            (val) => (!!val && !!val.trim()) || $t('req'),
-            () => checkDate() || 'D1 > D2'
-            ]"
+          :rules="[(val) => checkDate(val) || 'D1 > D2']"
+          clearable
           class="q-ma-md" dense
         />
         <!-- CalcStartYear -->
         <q-input
           v-model="form['CalcStartYear']"
+          :model-value="form['CalcStartYear']"
           :label="fmReqLabel('CalcStartYear', true)"
           :rules="[(val) => (!!val && val.trim().length===4) || $t('req')]"
           class="q-ma-md" dense mask="####"
@@ -101,10 +100,11 @@
           :label="fmReqLabel('CalcUser', false)"
           :options="optCalcUser"
           class="q-ma-md"
-          dense
-          map-options
+          dense map-options
           option-label="name"
           option-value="id"
+          clearable
+          :disable="true"
         />
 
       </q-card-section>
@@ -180,9 +180,11 @@ const fmReqLabel = (label, req) => {
     return proxy?.$t(label)
 }
 
-const checkDate = () => {
-  if (!form['CalcCreatDate'] || !form['CalcLastDate']) return true
-  return form['CalcCreatDate'] <= form['CalcLastDate']
+const checkDate = (val) => {
+  if (!val)
+    return true
+  else
+    return form['CalcCreatDate'] <= val
 }
 
 const checkYear = () => {
@@ -228,12 +230,10 @@ const filterReservoir = (val, update) => {
 }
 
 const validSave = () => {
-  return !form["CalcCreatDate"] ||
-    !form["CalcLastDate"] ||
-    !form["CalcStartYear"] ||
-    !form["fvCalcFishSpec"] ||
-    !form["fvCalcStatus"] ||
-    !form["objReservoirShore"];
+  let valid = !form["CalcCreatDate"] || !form["fvCalcFishSpec"] || !form["fvCalcStatus"] || !form["objReservoirShore"];
+  if (valid) return true
+  if (!form["CalcStartYear"] || (form["CalcStartYear"] && form["CalcStartYear"].length !== 4)) return true;
+  return !form["CalcEndYear"] || (form["CalcEndYear"] && form["CalcEndYear"].length !== 4);
 }
 
 const show = () => {

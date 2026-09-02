@@ -60,11 +60,15 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void insertCalc(Map<String, Object> rec) throws Exception {
-        //checkTarget("adm:tml:ins")
+        //checkTarget("calc")
         StoreRecord r = mdb.createStoreRecord("Obj.full", rec)
-
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        eu.insertEntity(rec)
+        long obj = eu.insertEntity(rec)
+        //
+        Map<String, Object> map = new HashMap<>()
+        map.put("own", obj)
+        map.put("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+        fillProperties(true, "Prop_CalcCreatDate", map)
     }
 
     @DaoMethod
@@ -155,16 +159,16 @@ class DataDao extends BaseMdbUtils {
                 join DataPropVal v1 on v1.dataprop=d1.id
                 join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
                 join DataPropVal v2 on v2.dataprop=d2.id
-                left join DataProp d3 on d3.isObj=1 and d3.objOrRelObj=o.id and d3.prop=:Prop_CalcCreatDate
-                left join DataPropVal v3 on v3.dataprop=d3.id
-                join DataProp d4 on d4.isObj=1 and d4.objOrRelObj=o.id and d4.prop=:Prop_CalcLastDate
-                join DataPropVal v4 on v4.dataprop=d4.id
+                join DataProp d3 on d3.isObj=1 and d3.objOrRelObj=o.id and d3.prop=:Prop_CalcCreatDate
+                join DataPropVal v3 on v3.dataprop=d3.id
+                left join DataProp d4 on d4.isObj=1 and d4.objOrRelObj=o.id and d4.prop=:Prop_CalcLastDate
+                left join DataPropVal v4 on v4.dataprop=d4.id
                 join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
                 join DataPropVal v5 on v5.dataprop=d5.id
                 join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
-                left join DataPropVal v6 on v6.dataprop=d6.id
+                join DataPropVal v6 on v6.dataprop=d6.id
                 left join DataProp d7 on d7.isObj=1 and d7.objOrRelObj=o.id and d7.prop=:Prop_CalcUser
-                join DataPropVal v7 on v7.dataprop=d7.id
+                left join DataPropVal v7 on v7.dataprop=d7.id
                 join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
                 join DataPropVal v8 on v8.dataprop=d8.id    
             where o.id=${obj}
@@ -206,8 +210,9 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     void saveMainProps(Map<String, Object> rec) {
         VariantMap params = new VariantMap(rec)
-            //Attr
+        //Attr
         //1
+/*
         if (params.getLong("idCalcCreatDate") == 0) {
             if (params.getString("CalcCreatDate").isEmpty())
                 throw new XError("CalcCreatDate is required")
@@ -219,12 +224,14 @@ class DataDao extends BaseMdbUtils {
             else
                 updateProperties("Prop_CalcCreatDate", params)
         }
+*/
+
         //2 !req
         if (params.getLong("idCalcLastDate") == 0) {
             if (!params.getString("CalcLastDate").isEmpty())
                 fillProperties(true, "Prop_CalcLastDate", params)
         } else {
-            if (!params.getString("CalcLastDate").isEmpty())
+            if (params.getString("CalcLastDate").isEmpty())
                 updateProperties("Prop_CalcLastDate", params)
         }
         //3
@@ -290,13 +297,14 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("ReservoirShore is required")
         }
         //8 !req
+/*
         if (params.getLong("idCalcUser") == 0) {
             if (params.getLong("objCalcUser") > 0)
                 fillProperties(true, "Prop_CalcUser", params)
         } else {
-            if (params.getLong("objCalcUser") > 0)
-                updateProperties("Prop_CalcUser", params)
+            updateProperties("Prop_CalcUser", params)
         }
+*/
     }
 
     @DaoMethod
