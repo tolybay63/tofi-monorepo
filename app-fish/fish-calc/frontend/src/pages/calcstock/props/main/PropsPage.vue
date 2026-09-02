@@ -12,7 +12,6 @@
       row-key="own"
       :rows-per-page-options="[0]"
     >
-
       <template v-slot:item="slotProps">
         <q-list class="full-width q-pa-sm bg-amber-1">
           <q-item
