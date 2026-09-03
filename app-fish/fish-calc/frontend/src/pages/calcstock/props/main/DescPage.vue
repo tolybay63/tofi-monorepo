@@ -217,9 +217,19 @@ watch(
 )
 </script>
 
+<!--
+страница DescPageб PropsPageBayes вызывается в двух местах
+1. из PropsMainPage
+height: calc(100vh - 325px); вроде было нормально
+2. из PropsBayesCalc
+там тоже надо показать DescPage, PropsPageBayes и таб внизу не видно, если менять на height: calc(100vh - 390px);
+то нормально
+
+
+-->
 <style scoped>
 .my-custom-editor {
-  height: calc(100vh - 325px);
+  height: calc(100vh - 390px);
   display: flex;
   flex-direction: column;
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="full-width">
+  <div class="full-width" style="height: calc(100vh - 410px);">
     <q-table
       class="full-width"
       :columns="cols"
