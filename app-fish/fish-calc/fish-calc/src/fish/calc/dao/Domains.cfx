@@ -43,5 +43,23 @@
 
     </domain>
 
+    <domain name="Calc.main.props.copy" parent="base">
+
+        <field name="CalcStartYear" parent="string"/>
+
+        <field name="CalcEndYear" parent="string"/>
+
+        <field name="pvCalcFishSpec" parent="long"/>
+
+        <field name="pvCalcStatus" parent="long"/>
+
+        <field name="pvReservoirShore" parent="long"/>
+        <field name="objReservoirShore" parent="long"/>
+
+        <field name="CalcDescription" parent="memo"/>
+
+    </domain>
+
+
 </root>
 

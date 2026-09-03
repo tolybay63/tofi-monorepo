@@ -465,13 +465,13 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
-    Map<String, Long> getIdsFromCodOfEntity(String Entity, String cods) {
+    Map<String, Object> getIdsFromCodsOfEntity(String Entity, String cods) {
         Store st = mdb.loadQuery("""
             select id, cod from ${Entity} where cod in (${cods})
         """)
         if (st.size()==0)
             throw new XError("NotFoundCod@${cods}")
-        Map<String, Long> map = new HashMap<>()
+        Map<String, Object> map = new HashMap<>()
         for(StoreRecord r in st) {
             map.put(r.getString("cod"), r.getLong("id"))
         }

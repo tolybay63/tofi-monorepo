@@ -172,7 +172,7 @@ public interface ApiMeta {
      * @param cods cods of Entity
      * @return ids of Entity
      */
-    Map<String, Long> getIdsFromCodOfEntity(String Entity, String cods);
+    Map<String, Object> getIdsFromCodsOfEntity(String Entity, String cods);
 
     /**
      *

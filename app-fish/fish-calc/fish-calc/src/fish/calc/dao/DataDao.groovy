@@ -26,6 +26,8 @@ import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
+import java.lang.reflect.Array
+
 @CompileStatic
 class DataDao extends BaseMdbUtils {
 
@@ -60,21 +62,101 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void insertCalc(Map<String, Object> rec) throws Exception {
+        // Права доступа
         //checkTarget("calc")
-        StoreRecord r = mdb.createStoreRecord("Obj.full", rec)
+        //
+        // Check Props if child
+        long objParent = UtCnv.toLong(rec.get("parent"))
+        if (objParent> 0) {
+            if (!hasProps(objParent)) {
+                throw new XError("Для данного расчета не указаны необходимые свойства")
+            }
+        }
+        //
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         long obj = eu.insertEntity(rec)
-        //
+        // Create prop CalcCreatDate
         Map<String, Object> map = new HashMap<>()
         map.put("own", obj)
         map.put("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
         fillProperties(true, "Prop_CalcCreatDate", map)
+        // Наследуем свойства if child objParent => obj
+        if (objParent > 0) {
+            parent2childProps(objParent, obj)
+        }
+    }
+
+    private boolean hasProps(long obj) {
+        String props = "'Prop_ReservoirShore','Prop_CalcStartYear','Prop_CalcEndYear','Prop_CalcFishSpec','Prop_CalcStatus','Prop_CalcDescription'"
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        map.put("obj", obj)
+
+        Store st = mdb.loadQuery("""
+            select o.id 
+            from Obj o
+                join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
+                join DataPropVal v1 on v1.dataprop=d1.id
+                join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
+                join DataPropVal v2 on v2.dataprop=d2.id
+                join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
+                join DataPropVal v5 on v5.dataprop=d5.id
+                join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
+                join DataPropVal v6 on v6.dataprop=d6.id
+                join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
+                join DataPropVal v8 on v8.dataprop=d8.id
+                join DataProp d9 on d9.isObj=1 and d9.objOrRelObj=o.id and d9.prop=:Prop_CalcDescription
+                join DataPropVal v9 on v9.dataprop=d9.id                
+            where o.id=:obj
+        """, map)
+        return st.size() > 0
+    }
+
+    private void parent2childProps(long parent, long id) {
+        String props = "'Prop_ReservoirShore','Prop_CalcStartYear','Prop_CalcEndYear','Prop_CalcFishSpec','Prop_CalcStatus','Prop_CalcDescription'"
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        map.put("obj", parent)
+        Store stPrt = mdb.createStore("Calc.main.props.copy")
+        mdb.loadQuery(stPrt, """
+            select
+                v1.strVal as CalcStartYear,
+                v2.strVal as CalcEndYear,
+                v5.propVal as pvCalcFishSpec,
+                v6.propVal as pvCalcStatus,
+                v8.propVal as pvReservoirShore, v8.obj as objReservoirShore,
+                v9.multiStrVal as CalcDescription
+            from Obj o
+                join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
+                join DataPropVal v1 on v1.dataprop=d1.id
+                join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
+                join DataPropVal v2 on v2.dataprop=d2.id
+                join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
+                join DataPropVal v5 on v5.dataprop=d5.id
+                join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
+                join DataPropVal v6 on v6.dataprop=d6.id
+                join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
+                join DataPropVal v8 on v8.dataprop=d8.id
+                join DataProp d9 on d9.isObj=1 and d9.objOrRelObj=o.id and d9.prop=:Prop_CalcDescription
+                join DataPropVal v9 on v9.dataprop=d9.id
+            where o.id=:obj
+        """, map)
+
+        //mdb.outTable(stPrt)
+        if (stPrt.size()==1) {
+            Map<String, Object> mapProp = stPrt.get(0).getValues()
+            mapProp.put("own", id)
+            String props_ = props.replaceAll("'", "")
+            for (final def prop in props_.split(",")) {
+                fillProperties(true, prop, mapProp)
+            }
+        }
     }
 
     @DaoMethod
     void updateCalc(Map<String, Object> rec) {
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
-        long id = UtCnv.toLong(rec.get("id"))
+        UtCnv.toLong(rec.get("id"))
         eu.updateEntity(rec)
     }
 
