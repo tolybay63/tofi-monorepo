@@ -3,14 +3,8 @@
   <q-page class="q-pa-sm-sm bg-green-1">
     <q-tabs v-model="tab" class="text-teal">
 
-      <q-tab icon="task" label="Описание" name="desc" no-caps/>
-      <q-tab
-        icon="task"
-        label="Основные свойства"
-        name="props"
-        no-caps
-        style="margin-right: 10px"
-      />
+      <q-tab name="desc" label="Описание" no-caps/>
+      <q-tab name="props" label="Основные свойства" no-caps/>
 
     </q-tabs>
 
