@@ -4,10 +4,12 @@ const routes = [
     component: () => import('@/layouts/MainLayout.vue'),
     children: [
       {path: '', component: () => import('@/pages/IndexPage.vue') },
+
       {path: '/calc_determ',
         name: 'CalcStockDeterm',
         component: () => import('@/pages/calcstock/CalcStockDeterm.vue')
       },
+
       {path: '/calc_bayes',
         name: 'CalcStockBayes',
         component: () => import('@/pages/calcstock/CalcStockBayes.vue')

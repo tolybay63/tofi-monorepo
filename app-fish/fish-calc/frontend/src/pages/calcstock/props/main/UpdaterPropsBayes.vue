@@ -26,7 +26,7 @@
         <q-input
           v-model="form['CalcLastDate']"
           :label="fmReqLabel('CalcLastDate', false)"
-          type="date"
+          type="date" :disable="true"
           :rules="[(val) => checkDate(val) || 'D1 > D2']"
           clearable
           class="q-ma-md" dense

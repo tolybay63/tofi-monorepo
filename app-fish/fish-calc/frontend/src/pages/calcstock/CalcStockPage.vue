@@ -396,9 +396,6 @@ const selectedRow = (item) => {
     selected.value.push(item);
   }
   currentNode.value = selected.value[0] !== null ? selected.value[0] : null;
-
-
-
 };
 
 const fnExpand = () => {
