@@ -1,24 +1,23 @@
 <template>
-  <!-- Корневой контейнер на всю высоту с flex-колонкой -->
-  <div class="column no-wrap fit bg-indigo-1">
+  <div class="relative-position fit bg-indigo-1">
+    <!-- Панели сверху -->
+    <div class="relative-position" style="height: calc(100% - 48px);">
+      <q-tab-panels v-model="tab" animated class="absolute-full bg-transparent q-pa-none">
+        <q-tab-panel name="desc" class="q-pa-none relative-position fit">
+          <desc-page class="absolute-full" :name="props.name" :own="props.own"/>
+        </q-tab-panel>
 
-    <!-- Панели занимают всё гибкое пространство сверху (class="col") -->
-    <q-tab-panels v-model="tab" animated class="col bg-transparent q-pa-none">
-      <q-tab-panel class="q-py-none q-px-none column no-wrap fit" name="desc">
-        <desc-page :name="props.name" :own="props.own"/>
-      </q-tab-panel>
+        <q-tab-panel name="props" class="q-pa-none relative-position fit">
+          <props-page-bayes class="absolute-full" :name="props.name" :own="props.own"/>
+        </q-tab-panel>
+      </q-tab-panels>
+    </div>
 
-      <q-tab-panel class="q-py-none q-px-none column no-wrap fit" name="props">
-        <props-page-bayes :name="props.name" :own="props.own"/>
-      </q-tab-panel>
-    </q-tab-panels>
-
-    <!-- Табы располагаются в самом низу и фиксируют свой размер (class="col-auto") -->
-    <q-tabs v-model="tab" class="text-teal col-auto bg-white shadow-1" dense align="left" no-caps>
+    <!-- Табы строго внизу -->
+    <q-tabs v-model="tab" class="text-teal bg-white shadow-1 absolute-bottom" style="height: 48px; z-index: 2;" dense align="left" no-caps>
       <q-tab name="desc" label="Описание"/>
       <q-tab name="props" label="Основные свойства"/>
     </q-tabs>
-
   </div>
 </template>
 
@@ -34,6 +33,3 @@ const props = defineProps({
 
 const tab = ref("desc")
 </script>
-
-<style scoped>
-</style>

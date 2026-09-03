@@ -1,45 +1,40 @@
 <template>
-
-  <q-page class="q-pa-sm-sm bg-green-1">
-    <q-tabs v-model="tab" class="text-teal">
-
+  <q-page class="column no-wrap fit bg-green-1 q-pa-sm">
+    <!-- Табы фиксированной высоты сверху -->
+    <q-tabs v-model="tab" class="text-teal col-auto bg-white shadow-1" dense align="left">
       <q-tab name="desc" label="Описание" no-caps/>
       <q-tab name="props" label="Основные свойства" no-caps/>
-
     </q-tabs>
 
-    <q-tab-panels v-model="tab" animated>
+    <!-- Панели занимают всё оставшееся пространство (col) -->
+    <q-tab-panels v-model="tab" animated class="col bg-transparent q-mt-sm column no-wrap">
 
-      <q-tab-panel class="q-py-md q-px-none" name="desc" style="height: calc(100vh - 190px); width: 100%">
+      <q-tab-panel name="desc" class="q-pa-none column no-wrap fit">
         <h3 v-if="!props.data">
           Расчет не выбран
         </h3>
-        <div v-else>
+        <div v-else class="column no-wrap fit">
           <desc-page :name="props.data.name" :own="props.data.id"/>
         </div>
       </q-tab-panel>
 
-      <q-tab-panel class="q-py-md q-px-none" name="props" style="height: calc(100vh - 190px); width: 100%">
+      <q-tab-panel name="props" class="q-pa-none column no-wrap fit">
         <h3 v-if="!props.data">
           Расчет не выбран
         </h3>
-        <div v-else>
-          <div v-if="codCalc==='Cls_CalcBayes'">
+        <div v-else class="column no-wrap fit">
+          <div v-if="codCalc==='Cls_CalcBayes'" class="column no-wrap fit">
             <props-page-bayes :name="props.data.name" :own="props.data.id"/>
           </div>
-          <div v-else-if="codCalc==='Cls_CalcDeterm'">
+          <div v-else-if="codCalc==='Cls_CalcDeterm'" class="column no-wrap fit">
             <props-page-determ :name="props.data.name" :own="props.data.id"/>
           </div>
         </div>
       </q-tab-panel>
 
-
     </q-tab-panels>
   </q-page>
-
-
 </template>
-
 
 <script setup>
 import {ref} from "vue";
@@ -48,15 +43,12 @@ import PropsPageBayes from "@/pages/calcstock/props/main/PropsPageBayes.vue";
 import PropsPageDeterm from "@/pages/calcstock/props/main/PropsPageDeterm.vue";
 
 const props = defineProps({
-  data: ref({}),
+  data: Object,
   codCalc: String
 })
 
 const tab = ref("desc")
-
-
 </script>
 
 <style scoped>
-
 </style>

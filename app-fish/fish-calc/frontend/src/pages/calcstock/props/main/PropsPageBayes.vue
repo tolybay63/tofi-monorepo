@@ -230,21 +230,20 @@ watch(
 .custom-table {
   display: flex;
   flex-direction: column;
+  height: 100% !important;
 }
 
-:deep(.q-table__middle) {
-  flex: 1;
-  overflow-y: auto;
-}
-
+/* Шапка таблицы фиксируется */
 :deep(.q-table__top) {
   padding-left: 0;
   padding-right: 0;
+  flex-shrink: 0;
 }
 
+/* Контейнер сетки растягивается на всю оставшуюся высоту и получает скролл */
 :deep(.q-table__grid-content) {
   padding: 0;
-  overflow-y: auto;
-  flex: 1;
+  flex: 1 1 auto;
+  overflow-y: auto !important;
 }
 </style>

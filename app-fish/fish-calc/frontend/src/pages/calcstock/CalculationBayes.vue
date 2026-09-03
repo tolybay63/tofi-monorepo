@@ -1,7 +1,7 @@
 <template>
-  <div class="q-pa-none" style="height: 100%; width: 100%">
-    <q-banner class="bg-green-1" dense inline-actions>
-      <div class="row">
+  <q-page class="column no-wrap fit">
+    <q-banner class="bg-green-1 col-auto" dense inline-actions>
+      <div class="row items-center">
         <div style="font-size: 1.2em; font-weight: bold">
           <q-avatar dense color="black" icon="code" text-color="white"></q-avatar>
           {{ title }} <span class="text-caption text-orange">({{ proxy?.$t("calcBayes") }})</span>
@@ -20,14 +20,13 @@
             </q-tooltip>
           </q-avatar>
         </div>
-
       </div>
     </q-banner>
 
-
-      <props-bayes-page :name="title" :own="id"/>
-
-  </div>
+    <div class="col relative-position">
+      <props-bayes-page class="absolute-full" :name="title" :own="id"/>
+    </div>
+  </q-page>
 </template>
 
 <script setup>
@@ -39,7 +38,6 @@ import PropsBayesPage from "@/pages/calcstock/props/bayes/PropsBayesPage.vue";
 const router = useRouter();
 const route = useRoute()
 const {proxy} = getCurrentInstance()
-
 
 const id = ref(0)
 const title = ref("")
@@ -55,19 +53,13 @@ const toCalc = () => {
     timeout: 5000,
     message: "CalcStockBayes...",
   });
-
 }
-
 
 onMounted(() => {
   id.value = parseInt(route.params["id"], 10)
   title.value = route.params["title"]
-  console.log("id", id);
-  console.log("title", title);
 })
-
 </script>
 
 <style scoped>
-
 </style>
