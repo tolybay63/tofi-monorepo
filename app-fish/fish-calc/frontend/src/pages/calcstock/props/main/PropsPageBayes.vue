@@ -1,7 +1,7 @@
 <template>
-  <div class="full-width" style="height: calc(100vh - 410px);">
+  <div class="column no-wrap fit">
     <q-table
-      class="full-width"
+      class="col custom-table"
       :columns="cols"
       :rows="rows"
       :loading="loading"
@@ -14,15 +14,12 @@
     >
       <template v-slot:item="slotProps">
         <q-list class="full-width q-pa-sm bg-amber-1">
-          <q-item
-            v-for="col in slotProps.cols"
-            :key="col.name"
-          >
+          <q-item v-for="col in slotProps.cols" :key="col.name">
             <q-item-section>
               <q-item-label>{{ col.label }}</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-item-label >{{ col.value }}</q-item-label>
+              <q-item-label>{{ col.value }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -34,23 +31,12 @@
             Наименование расчета:
             <span class="q-pa-sm text-white text-bold">{{ name }}</span>
           </div>
-
           <q-space />
-
-          <q-btn
-            class="q-mx-sm"
-            color="secondary"
-            dense
-            icon="edit"
-            @click="fnEdit()"
-          >
-            <q-tooltip>
-              {{ $t('editRecord') }}
-            </q-tooltip>
+          <q-btn class="q-mx-sm" color="secondary" dense icon="edit" @click="fnEdit()">
+            <q-tooltip>{{ $t('editRecord') }}</q-tooltip>
           </q-btn>
         </q-card-actions>
       </template>
-
     </q-table>
   </div>
 </template>
@@ -241,6 +227,16 @@ watch(
 </script>
 
 <style scoped>
+.custom-table {
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.q-table__middle) {
+  flex: 1;
+  overflow-y: auto;
+}
+
 :deep(.q-table__top) {
   padding-left: 0;
   padding-right: 0;
@@ -248,5 +244,7 @@ watch(
 
 :deep(.q-table__grid-content) {
   padding: 0;
+  overflow-y: auto;
+  flex: 1;
 }
 </style>

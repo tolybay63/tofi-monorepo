@@ -1,126 +1,30 @@
 <template>
-  <q-card>
-
-    <q-card-actions class="bg-blue-grey-12">
+  <q-card class="column no-wrap fit">
+    <q-card-actions class="bg-blue-grey-12 col-auto">
       <div>
         Наименование расчета:
         <span class="q-pa-sm text-white text-bold"> {{ props.name }}</span>
       </div>
       <q-space/>
-      <q-btn
-        :disable="isEdit" class="q-mx-sm"
-        color="secondary"
-        dense
-        icon="edit"
-        @click="fnEdit()"
-      >
-        <q-tooltip>
-          {{ $t('editRecord') }}
-        </q-tooltip>
+      <q-btn :disable="isEdit" class="q-mx-sm" color="secondary" dense icon="edit" @click="fnEdit()">
+        <q-tooltip>{{ $t('editRecord') }}</q-tooltip>
       </q-btn>
-
-      <q-btn
-        :disable="!isEdit" class="q-mx-sm"
-        color="secondary"
-        dense
-        icon="save"
-        @click="fnSave()"
-      >
-        <q-tooltip>
-          {{ $t('save') }}
-        </q-tooltip>
+      <q-btn :disable="!isEdit" class="q-mx-sm" color="secondary" dense icon="save" @click="fnSave()">
+        <q-tooltip>{{ $t('save') }}</q-tooltip>
       </q-btn>
-
     </q-card-actions>
 
-    <q-card-section class="q-px-none">
+    <q-card-section class="col q-pa-none column no-wrap">
       <q-editor
-        class="my-custom-editor"
+        class="my-custom-editor col"
         v-model="form['CalcDescription']"
         @update:model-value="fnUpd()"
-        :fonts="{
-          arial: 'Arial',
-          arial_black: 'Arial Black',
-          comic_sans: 'Comic Sans MS',
-          courier_new: 'Courier New',
-          impact: 'Impact',
-          lucida_grande: 'Lucida Grande',
-          times_new_roman: 'Times New Roman',
-          verdana: 'Verdana'
-        }"
         :readonly="!isEdit"
-        :toolbar="[
-          [
-            {
-              label: $q.lang.editor.align,
-              icon: $q.iconSet.editor.align,
-              fixedLabel: true,
-              list: 'only-icons',
-              options: ['left', 'center', 'right', 'justify']
-            },
-            {
-              label: $q.lang.editor.align,
-              icon: $q.iconSet.editor.align,
-              fixedLabel: true,
-              options: ['left', 'center', 'right', 'justify']
-            }
-          ],
-          ['bold', 'italic', 'strike', 'underline', 'subscript', 'superscript'],
-          ['token', 'hr', 'link', 'custom_btn'],
-          ['print', 'fullscreen'],
-          [
-            {
-              label: $q.lang.editor.formatting,
-              icon: $q.iconSet.editor.formatting,
-              list: 'no-icons',
-              options: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'code']
-            },
-            {
-              label: $q.lang.editor.fontSize,
-              icon: $q.iconSet.editor.fontSize,
-              fixedLabel: true,
-              fixedIcon: true,
-              list: 'no-icons',
-              options: [
-                'size-1',
-                'size-2',
-                'size-3',
-                'size-4',
-                'size-5',
-                'size-6',
-                'size-7'
-              ]
-            },
-            {
-              label: $q.lang.editor.defaultFont,
-              icon: $q.iconSet.editor.font,
-              fixedIcon: true,
-              list: 'no-icons',
-              options: [
-                'default_font',
-                'arial',
-                'arial_black',
-                'comic_sans',
-                'courier_new',
-                'impact',
-                'lucida_grande',
-                'times_new_roman',
-                'verdana'
-              ]
-            },
-            'removeFormat'
-          ],
-          ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
-          ['undo', 'redo'],
-          ['viewsource']
-        ]"
         autofocus
       />
     </q-card-section>
-
   </q-card>
 </template>
-
 <script setup>
 import {getCurrentInstance, reactive, ref, watch} from "vue";
 import {api} from "@/boot/axios.js";
@@ -217,19 +121,9 @@ watch(
 )
 </script>
 
-<!--
-страница DescPageб PropsPageBayes вызывается в двух местах
-1. из PropsMainPage
-height: calc(100vh - 325px); вроде было нормально
-2. из PropsBayesCalc
-там тоже надо показать DescPage, PropsPageBayes и таб внизу не видно, если менять на height: calc(100vh - 390px);
-то нормально
-
-
--->
 <style scoped>
 .my-custom-editor {
-  height: calc(100vh - 390px);
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
