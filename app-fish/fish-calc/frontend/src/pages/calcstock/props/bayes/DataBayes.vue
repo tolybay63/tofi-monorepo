@@ -3,19 +3,22 @@
     <div class="relative-position" style="height: calc(100% - 48px);">
       <q-tab-panels v-model="tab" animated class="absolute-full bg-transparent q-pa-none">
 
-        <q-tab-panel name="desc" class="q-pa-none relative-position fit">
+        <q-tab-panel name="reservoir" class="q-pa-none relative-position fit">
           <ReservoirPage class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
-        <q-tab-panel name="desc" class="q-pa-none relative-position fit">
+        <q-tab-panel name="fish" class="q-pa-none relative-position fit">
           <FishPage class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
-        <q-tab-panel name="desc" class="q-pa-none relative-position fit">
+        <q-tab-panel name="rand" class="q-pa-none relative-position fit">
           <RandPage class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
-        <q-tab-panel name="desc" class="q-pa-none relative-position fit">
+        <q-tab-panel name="numbers" class="q-pa-none relative-position fit">
           <NumbersPage class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
-        <q-tab-panel name="desc" class="q-pa-none relative-position fit">
+        <q-tab-panel name="pdu" class="q-pa-none relative-position fit">
+          <PduPage class="absolute-full" :name="props.name" :own="props.own"/>
+        </q-tab-panel>
+        <q-tab-panel name="weight" class="q-pa-none relative-position fit">
           <WeigthFishPage class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
       </q-tab-panels>
@@ -36,7 +39,6 @@
 <script setup>
 
 import {ref} from "vue";
-import DescPage from "../main/DescPage.vue";
 import ReservoirPage from "./data-bayes/ReservoirPage.vue";
 import FishPage from "./data-bayes/FishPage.vue";
 import RandPage from "./data-bayes/RandPage.vue";

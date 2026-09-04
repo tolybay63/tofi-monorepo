@@ -90,6 +90,14 @@ const fnEdit = async () => {
 
 }
 
+const getYear1 = () => {
+  return rows.value[0]["CalcStartYear"]
+}
+
+const getYear2 = () => {
+  return rows.value[0]["CalcEndYear"]
+}
+
 const loadData = async (objId) => {
   if (!objId) return;
   loading.value = true;
@@ -224,6 +232,12 @@ watch(
   },
   {immediate: true}
 )
+
+defineExpose({
+  getYear1,
+  getYear2,
+})
+
 </script>
 
 <style scoped>

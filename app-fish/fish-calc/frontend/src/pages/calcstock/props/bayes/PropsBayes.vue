@@ -8,7 +8,7 @@
         </q-tab-panel>
 
         <q-tab-panel name="props" class="q-pa-none relative-position fit">
-          <props-page-bayes class="absolute-full" :name="props.name" :own="props.own"/>
+          <props-page-bayes ref="PropsPageBayesRef" class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
       </q-tab-panels>
     </div>
@@ -25,11 +25,14 @@
 import DescPage from "@/pages/calcstock/props/main/DescPage.vue";
 import PropsPageBayes from "@/pages/calcstock/props/main/PropsPageBayes.vue";
 import {ref} from "vue";
+const PropsPageBayesRef = ref(null)
 
 const props = defineProps({
   own: Number,
   name: String
 })
+
+const year1 = () => PropsPageBayesRef?.value.getYear1()
 
 const tab = ref("desc")
 </script>

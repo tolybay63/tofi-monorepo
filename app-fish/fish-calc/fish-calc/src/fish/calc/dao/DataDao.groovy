@@ -439,7 +439,34 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Неверный параметр")
         }
     }
-    //**************************************
+    //**************************************  Bayes Calc **************************************//
+    @DaoMethod
+    Store loadReservoirsMeter(long own/*, String y1, y2*/) {
+        /*
+--Prop_WaterArea		1008
+--Prop_CalcWaterFluct	7224
+        * */
+
+        Store st = loadSqlMeta("""
+            select p.id, p.parent, p.name, null as v_2020, null as v_2021
+            from prop p
+            where p.id=1008
+            union all
+            select p.id, p.parent, p.name, null as v_2020, null as v_2021
+            from prop p
+            where p.id=7224
+            union all 
+            select p.id, p.parent, p.name, null as v_2020, null as v_2021
+            from prop p
+            where p.parent=7224
+        """, "")
+
+        return st
+    }
+
+
+
+    //*****************************************************************************************//
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         long au = getUser()
