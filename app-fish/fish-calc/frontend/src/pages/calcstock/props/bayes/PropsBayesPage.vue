@@ -1,6 +1,7 @@
 <template>
   <div class="relative-position fit bg-indigo-1">
-    <q-tabs v-model="tab" class="text-teal bg-white shadow-1" style="height: 48px;" dense align="left">
+    <q-tabs v-model="tab" class="text-teal bg-white shadow-1"
+            style="height: 48px;" dense align="left" indicator-color="red">
       <q-tab name="props" label="Свойства" no-caps/>
       <q-tab name="data" label="Исходные данные" no-caps/>
       <q-tab name="res" label="Результат расчета" no-caps/>

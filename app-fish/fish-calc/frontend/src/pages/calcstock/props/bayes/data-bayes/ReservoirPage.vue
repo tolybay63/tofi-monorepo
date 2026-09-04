@@ -1,43 +1,33 @@
 <template>
   <div class="column no-wrap fit">
 
-    <div class="q-table-container q-table--dense wrap bg-orange-1" style="height: 100%">
-      <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
-        <table class="q-table q-table--cell-separator q-table--bordered wrap">
-          <thead class="text-bold text-white bg-blue-grey-13">
-          <tr>
-            <th style="font-size: 1.2em; width: 50%">
-              {{ cols[0]?.label }}
-            </th>
-            <th style="font-size: 1.2em; width: 14%">
-              {{ cols[1]?.label }}
-            </th>
-            <th style="font-size: 1.2em; width: 14%">
-              {{ cols[2]?.label }}
-            </th>
+    <div class="bg-orange-1" style="height: 100%">
 
-          </tr>
-          </thead>
+      <table class="q-table q-table--cell-separator q-table--bordered wrap">
+        <thead class="text-bold text-white bg-blue-grey-13">
+        <tr>
+          <th v-for="col in cols" :style="col.style">
+            {{ col?.label }}
+          </th>
+        </tr>
+        </thead>
 
-          <tbody style="background: aliceblue">
-          <tr v-for="(item, index) in arrayTreeObj" :key="index">
-            <td :data-th="cols[0]?.name" @click="toggle(item)">
-              <span class="q-tree-link q-tree-label" :style="setPadding(item)">
-                <q-icon :name="iconName(item)" color="secondary" style="cursor: pointer" />
+        <tbody style="background: aliceblue" >
+        <tr v-for="(item, index) in arrayTreeObj" :key="index">
+          <td :data-th="cols[0]?.name" @click="toggle(item)">
+              <span :style="setPadding(item)" class="q-tree-link q-tree-label">
+                <q-icon :name="iconName(item)" color="secondary" style="cursor: pointer"/>
                 {{ item.name }}
               </span>
-            </td>
-            <td :data-th="cols[1]?.name">
-              {{ item.v_2020 }}
-            </td>
-            <td :data-th="cols[2]?.name">
-              {{ item.v_2021 }}
-            </td>
+          </td>
+          <td v-for="(col, i) in cols_" :key="i" :data-th="col.name" class="q-table--bordered">
+            {{ item[col.field] }}
+          </td>
 
-          </tr>
-          </tbody>
-        </table>
-      </div>
+        </tr>
+        </tbody>
+      </table>
+
     </div>
 
   </div>
@@ -50,10 +40,9 @@ import {useQuasar} from "quasar";
 import {computed, getCurrentInstance, onMounted, ref, watch} from "vue";
 import {pack} from "@/utils/jsutils.js";
 import {api} from "@/boot/axios.js";
-//import {__esModule as PropsPageBayesRef} from "vue-router/unplugin/vite.cjs";
 
 const $q = useQuasar()
-const { proxy } = getCurrentInstance()
+const {proxy} = getCurrentInstance()
 
 const rows = ref([])
 const cols = ref([])
@@ -73,26 +62,24 @@ const getColumns = () => [
     label: proxy?.$t('fldName'),
     field: 'name',
     align: 'left',
-    style: 'font-size: 1.2em; width: 54%',
+    style: 'font-size: 1.2em; width: 74%',
   },
   {
     name: 'v_2020',
     label: 'v_2020',
     field: 'v_2020',
     align: 'left',
-    style: 'font-size: 1.2em; width: 8%',
+    style: 'font-size: 1.2em; width: 10.3%',
   },
   {
     name: 'v_2021',
     label: 'v_2021',
     field: 'v_2021',
     align: 'left',
-    style: 'font-size: 1.2em; width: 8%',
+    style: 'font-size: 1.2em; width: 15.7%',
   },
 ]
 
-//const year1 = () => PropsPageBayesRef?.value.getYear1()
-//const year2 = () => PropsPageBayesRef?.value.getYear2()
 
 const loadReservoirsMeter = (objId) => {
   if (!objId) return;
@@ -159,6 +146,11 @@ const setPadding = (item) => {
   return `padding-left: ${item.level * 30}px;`
 }
 
+
+const cols_ = computed(() => {
+  return cols.value.slice(1);
+})
+
 const arrayTreeObj = computed(() => {
   let newObj = []
   recursive(rows.value, newObj, 0, itemId.value, isExpanded.value)
@@ -166,7 +158,19 @@ const arrayTreeObj = computed(() => {
 })
 
 onMounted(() => {
-  cols.value = getColumns()
+  if (!props.own) return
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/getCols',
+      params: [props.own],
+    })
+    .then((response) => {
+      cols.value = response.data.result
+    })
+    .finally(() => {
+      loading.value = false
+    })
 })
 
 watch(
@@ -174,7 +178,7 @@ watch(
   (newObj) => {
     loadReservoirsMeter(newObj);
   },
-  { immediate: true }
+  {immediate: true}
 )
 
 </script>

@@ -10,8 +10,10 @@ import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
 import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
+import jandcode.core.dbm.domain.Domain
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreField
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import tofi.api.dta.ApiMonitoringData
@@ -386,12 +388,10 @@ class DataDao extends BaseMdbUtils {
 */
     }
 
-
     @DaoMethod
     Map<Long, String> loadFvAsMap(String codProp) {
         return apiMeta().get(ApiMeta).loadFVasMap(codProp)
     }
-
 
     @DaoMethod
     Store loadFVasStore(String codProp) {
@@ -440,23 +440,107 @@ class DataDao extends BaseMdbUtils {
         }
     }
     //**************************************  Bayes Calc **************************************//
+    private Map<String, Long> getYears(long own) {
+        Map<String, Long> res = new HashMap<>()
+        String props = "'Prop_CalcStartYear','Prop_CalcEndYear'"
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        map.put("own", own)
+        Store stYear = mdb.loadQuery("""
+            select 
+                v1.strVal as year1, v2.strVal as year2    
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
+                join DataPropVal v1 on v1.dataprop=d1.id
+                join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
+                join DataPropVal v2 on v2.dataprop=d2.id
+            where o.id=${own}
+        """, map)
+        res.put("year1", stYear.get(0).getLong("year1"))
+        res.put("year2", stYear.get(0).getLong("year2"))
+        return res
+    }
+
     @DaoMethod
-    Store loadReservoirsMeter(long own/*, String y1, y2*/) {
-        /*
---Prop_WaterArea		1008
---Prop_CalcWaterFluct	7224
-        * */
+    List<Map<String, Object>> getCols(long own) throws Exception {
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
+        long w1 = 50
+        double w = 50 / count
+        if (count > 8) {
+            w1 = 30
+            w = 70 / count
+        }
+        String w1Str = UtCnv.toString(w1)
+        String wStr = UtCnv.toString(w)
+        List<Map<String, Object>> cols = new ArrayList<>()
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "name")
+        map.put("label", "Наименование")
+        map.put("field", "name")
+        map.put("align", "left")
+        map.put("style", "font-size: 1.2em; width: " + w1Str + "%")
+        cols.add(map)
+
+        for (long i in 0..count) {
+            long y = year1 + i
+            String yStr = UtCnv.toString(y)
+            map = new HashMap<>()
+            map.put("name", "v" + yStr)
+            map.put("label", yStr)
+            map.put("field", "v" + yStr)
+            map.put("align", "left")
+            map.put("style", "font-size: 1.2em; width: "+ wStr + "%")
+            cols.add(map)
+        }
+        return cols
+    }
+
+
+    @DaoMethod
+    Store loadReservoirsMeter(long own) {
+        /* Prop_WaterArea		1008    Prop_CalcWaterFluct	7224 */
+        //year1 & year2
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        //
+        String d1 = "${year1}-01-01"
+        String d2 = "${year2}-01-01"
+
+        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
+
+
+
+/*
+        Store st = getMdb().createStore()
+        st.addField("id", "long")
+        st.addField("parent", "long")
+        st.addField("name", "string", 200)
+*/
+        List<String> sel = new ArrayList<>();
+
+
+
+        for (long i in 0..count) {
+            //st.addField("v" + year1 + i, "string", 20);
+            String year = UtCnv.toString(year1 + i)
+            sel.add("null  as v" + year);
+        }
+
+
 
         Store st = loadSqlMeta("""
-            select p.id, p.parent, p.name, null as v_2020, null as v_2021
+            select p.id, p.parent, p.name, ${sel.join(",")}
             from prop p
             where p.id=1008
             union all
-            select p.id, p.parent, p.name, null as v_2020, null as v_2021
+            select p.id, p.parent, p.name, ${sel.join(",")}
             from prop p
             where p.id=7224
             union all 
-            select p.id, p.parent, p.name, null as v_2020, null as v_2021
+            select p.id, p.parent, p.name, ${sel.join(",")}
             from prop p
             where p.parent=7224
         """, "")
