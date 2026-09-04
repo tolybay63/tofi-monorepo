@@ -9,15 +9,15 @@
     <div class="relative-position" style="height: calc(100% - 48px);">
       <q-tab-panels v-model="tab" animated class="absolute-full bg-transparent q-pa-none">
         <q-tab-panel name="props" class="q-pa-none relative-position fit">
-          <props-calc-bayes class="absolute-full" :name="props.name" :own="props.own"/>
+          <props-bayes class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
 
         <q-tab-panel name="data" class="q-pa-none relative-position fit">
-          <props-data-bayes class="absolute-full" :name="props.name" :own="props.own"/>
+          <data-bayes class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
 
         <q-tab-panel name="res" class="q-pa-none relative-position fit">
-          <props-res-bayes class="absolute-full" :name="props.name" :own="props.own"/>
+          <res-bayes class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
       </q-tab-panels>
     </div>
@@ -26,9 +26,9 @@
 
 <script setup>
 import {ref} from "vue";
-import PropsCalcBayes from "@/pages/calcstock/props/bayes/PropsCalcBayes.vue";
-import PropsResBayes from "@/pages/calcstock/props/bayes/PropsResBayes.vue";
-import PropsDataBayes from "@/pages/calcstock/props/bayes/PropsDataBayes.vue";
+import PropsBayes from "./PropsBayes.vue";
+import ResBayes from "./ResBayes.vue";
+import DataBayes from "./DataBayes.vue";
 
 const props = defineProps({
   name: String,
