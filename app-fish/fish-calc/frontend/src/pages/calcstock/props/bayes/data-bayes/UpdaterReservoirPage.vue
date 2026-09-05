@@ -2,6 +2,7 @@
   <q-dialog
     ref="dialogRef"
     @hide="onDialogHide"
+    @show="onDialogShow"
     persistent
     transition-show="slide-up"
     transition-hide="slide-down"
@@ -17,6 +18,7 @@
 
       <q-card-section>
         <q-input
+          ref="inputNameRef"
           autofocus
           class="q-my-lg"
           dense
@@ -59,6 +61,7 @@ const emit = defineEmits(['ok', 'hide'])
 const { proxy } = getCurrentInstance()
 
 const dialogRef = ref(null)
+const inputNameRef = ref(null);
 const form = reactive({ ...props.data })
 
 const validSave = () => {
@@ -76,6 +79,11 @@ const hide = () => {
 const onDialogHide = () => {
   emit('hide')
 }
+
+const onDialogShow = () => {
+  // Принудительно ставим фокус после полного открытия окна и закрытия q-menu
+  inputNameRef.value?.focus();
+};
 
 const onOKClick = () => {
   let err = false

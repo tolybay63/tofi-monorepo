@@ -2,6 +2,7 @@
   <q-dialog
     ref="dialog"
     @hide="onDialogHide"
+    @show="onDialogShow"
     persistent
     transition-show="slide-up"
     transition-hide="slide-down"
@@ -20,8 +21,9 @@
           {{ $t("parent") }}: {{ parentName }}
         </q-item-section>
 
-        <!-- name -->
+        <!-- Добавлен ref="inputNameRef" -->
         <q-input
+          ref="inputNameRef"
           autofocus
           v-model="form['name']"
           :label="$t('nameCalc')"
@@ -53,7 +55,7 @@
 <script setup>
 import {getCurrentInstance, onMounted, reactive, ref} from "vue";
 import {api} from "@/boot/axios";
-import { notifySuccess} from "@/utils/jsutils";
+import {notifySuccess} from "@/utils/jsutils";
 
 const props = defineProps({
   mode: String,
@@ -66,7 +68,13 @@ const emit = defineEmits(["ok", "hide"]);
 const { proxy } = getCurrentInstance();
 
 const dialog = ref(null);
+const inputNameRef = ref(null);
 const form = reactive({ ...props.data });
+
+const onDialogShow = () => {
+  // Принудительно ставим фокус после полного открытия окна и закрытия q-menu
+  inputNameRef.value?.focus();
+};
 
 const validName = () => {
   return (form.name === "");
@@ -119,7 +127,6 @@ defineExpose({
 });
 
 onMounted(() => {
-console.info("onMounted upd", props.isChild, props.parentName)
-})
-
+  console.info("onMounted upd", props.isChild, props.parentName);
+});
 </script>
