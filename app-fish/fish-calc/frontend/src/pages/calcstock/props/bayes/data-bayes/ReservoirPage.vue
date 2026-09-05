@@ -3,7 +3,7 @@
 
     <div class="bg-orange-1" style="height: 100%">
 
-      <table class="q-table q-table--cell-separator q-table--bordered wrap sticky-header-table">
+      <q-markup-table separator="cell" bordered wrap-cells class="fit">
         <thead class="text-bold text-white bg-blue-grey-13">
         <tr>
           <th v-for="col in cols" :style="col.style">
@@ -20,7 +20,7 @@
                 {{ item.name }}
               </span>
           </td>
-          <td v-for="(col, i) in cols_" :key="i" :data-th="col.name" class="q-table--bordered">
+          <td v-for="(col, i) in cols_" :key="i" :data-th="col.name">
             <q-btn
               color="primary" round size="sm" flat dense icon="more_vert" class="absolute-right"
             >
@@ -37,7 +37,7 @@
                 <q-btn
                   round size="sm" icon="delete" color="red" flat dense class="no-padding no-margin"
                   @click="fnDeleteCell(item, col.field)"
-
+                  :disable="!item['id'+col.field.substring(1)]"
                 >
                   <q-tooltip>
                     {{ $t("deletingRecord") }}
@@ -51,7 +51,7 @@
 
         </tr>
         </tbody>
-      </table>
+      </q-markup-table>
 
     </div>
 
@@ -63,11 +63,17 @@
 
 import {useQuasar} from "quasar";
 import {computed, getCurrentInstance, onMounted, ref, watch} from "vue";
-import {pack} from "@/utils/jsutils.js";
+import {expandAll, findRowForId, notifyError, notifyInfo, pack} from "@/utils/jsutils.js";
 import {api} from "@/boot/axios.js";
+import UpdaterReservoirPage from "./UpdaterReservoirPage.vue";
 
 const $q = useQuasar()
 const {proxy} = getCurrentInstance()
+
+const props = defineProps({
+  own: Number,
+  name: String
+})
 
 const rows = ref([])
 const cols = ref([])
@@ -75,49 +81,85 @@ const loading = ref(false)
 const isExpanded = ref(true)
 const itemId = ref(null)
 
+const updateRowValue = (item, field, newrec) => {
+  let row = findRowForId(rows.value, item.id)
+  if (row) {
+    row[field] = newrec.value
+    let idVal = "id"+field.substring(1)
+    row[idVal] = newrec.id
+  }
+}
+
 const fnEditCell = (item, field) => {
   console.log("item", item)
   console.log("field", field)
-  let id = "id"+field.substring(1)
-  console.log("v", item[id])
+  let idVal = "id"+field.substring(1)
+  console.log("v", item[idVal])
+  //
+  const mode = item[idVal] ? "upd" : "ins"
+  console.log("mode", mode)
+  let rec = {
+    obj: props.own,
+    prop: item.id,
+    name: item.name,
+    idval: item[idVal] || 0,
+    numberval: item[field] || '',
+    year: field.substring(1),
+  }
 
-
+  $q.dialog({
+    component: UpdaterReservoirPage,
+    componentProps: {
+      data: rec,
+      mode: mode
+    },
+  })
+    .onOk((r) => {
+      updateRowValue(item, field, r)
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t('canceled'))
+    })
 }
 
 const fnDeleteCell = (item, field) => {
   console.log("item", item)
   console.log("field", field)
+  console.log("id", item["id"+field.substring(1)])
+
+  let nm = item.name
+  $q.dialog({
+    title: proxy?.$t('confirmation'),
+    message: proxy?.$t('deleteRecord') + '</br>(' + nm + ', за ' + field.substring(1) +'г.)',
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: 'cancel',
+  })
+    .onOk(() => {
+      api
+        .post('', {
+          method: 'data/deleteReservoirsMeter',
+          params: [item["id"+field.substring(1)]],
+        })
+        .then(() => {
+          let row = findRowForId(rows.value, item.id)
+          if (row) {
+            row[field] = null
+            let idVal = "id"+field.substring(1)
+            row[idVal] = null
+          }
+        })
+        .catch((error) => {
+          notifyError(error.message)
+        })
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t('canceled'))
+    })
+
+
 }
-
-const props = defineProps({
-  own: Number,
-  name: String
-})
-
-const getColumns = () => [
-  {
-    name: 'name',
-    label: proxy?.$t('fldName'),
-    field: 'name',
-    align: 'left',
-    style: 'font-size: 1.2em; width: 74%',
-  },
-  {
-    name: 'v_2020',
-    label: 'v_2020',
-    field: 'v_2020',
-    align: 'left',
-    style: 'font-size: 1.2em; width: 10.3%',
-  },
-  {
-    name: 'v_2021',
-    label: 'v_2021',
-    field: 'v_2021',
-    align: 'left',
-    style: 'font-size: 1.2em; width: 15.7%',
-  },
-]
-
 
 const loadReservoirsMeter = (objId) => {
   if (!objId) return;
@@ -126,13 +168,15 @@ const loadReservoirsMeter = (objId) => {
   api
     .post('', {
       method: 'data/loadReservoirsMeter',
-      params: [objId/*, year1, year2*/],
+      params: [objId],
     })
     .then((response) => {
+      //console.info("rows", response.data.result['records'])
       rows.value = pack(response.data.result['records'], 'id')
     })
     .finally(() => {
       loading.value = false
+      expandAll(rows.value)
     })
 }
 
@@ -222,31 +266,6 @@ watch(
 </script>
 
 <style scoped>
-.sticky-header-table {
-  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
-  max-height: 95%;
-  overflow: auto;
-}
 
-.sticky-header-table table {
-  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.sticky-header-table thead th {
-  /* Делаем заголовок липким */
-  position: sticky;
-  top: 0;
-  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
-  z-index: 1;
-  /* Фон обязателен, иначе заголовок будет прозрачным */
-  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
-}
-
-/* Опционально: если у таблицы есть границы, фиксируем их отображение */
-.sticky-header-table .q-table--bordered {
-  border-top: 3px;
-}
 </style>
 

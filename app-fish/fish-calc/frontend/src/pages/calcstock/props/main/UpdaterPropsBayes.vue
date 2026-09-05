@@ -1,7 +1,6 @@
 <template>
   <q-dialog
     ref="dialogRef"
-    autofocus
     persistent
     transition-hide="slide-down"
     transition-show="slide-up"
@@ -15,6 +14,7 @@
       <q-card-section>
         <!-- CalcCreatDate -->
         <q-input
+          autofocus
           v-model="form['CalcCreatDate']"
           :label="fmReqLabel('CalcCreatDate', true)"
           type="date" :disable="true"

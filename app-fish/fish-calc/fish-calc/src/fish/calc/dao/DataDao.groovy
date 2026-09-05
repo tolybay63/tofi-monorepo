@@ -10,8 +10,6 @@ import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
 import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
-import jandcode.core.dbm.domain.Domain
-import jandcode.core.dbm.domain.Field
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreField
@@ -28,8 +26,6 @@ import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-
-import java.lang.reflect.Array
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
@@ -70,7 +66,7 @@ class DataDao extends BaseMdbUtils {
         //
         // Check Props if child
         long objParent = UtCnv.toLong(rec.get("parent"))
-        if (objParent> 0) {
+        if (objParent > 0) {
             if (!hasProps(objParent)) {
                 throw new XError("Для данного расчета не указаны необходимые свойства")
             }
@@ -146,7 +142,7 @@ class DataDao extends BaseMdbUtils {
         """, map)
 
         //mdb.outTable(stPrt)
-        if (stPrt.size()==1) {
+        if (stPrt.size() == 1) {
             Map<String, Object> mapProp = stPrt.get(0).getValues()
             mapProp.put("own", id)
             String props_ = props.replaceAll("'", "")
@@ -492,7 +488,7 @@ class DataDao extends BaseMdbUtils {
             map.put("label", yStr)
             map.put("field", "v" + yStr)
             map.put("align", "left")
-            map.put("style", "font-size: 1.2em; width: "+ wStr + "%")
+            map.put("style", "font-size: 1.2em; width: " + wStr + "%")
             cols.add(map)
         }
         return cols
@@ -520,6 +516,7 @@ class DataDao extends BaseMdbUtils {
             sel.add("null as id" + year + ",  null  as v" + year)
         }
         // sql for value
+/*
         List<String> selVal = new ArrayList<>();
         List<String> fromVal = new ArrayList<>();
         for (long i in 0..count) {
@@ -531,20 +528,22 @@ class DataDao extends BaseMdbUtils {
             UtPeriod utPeriod = new UtPeriod()
             XDate d1 = utPeriod.calcDbeg(dte, 11L, (int) i)
             XDate d2 = utPeriod.calcDend(dte, 11L, (int) i)
-            String d = "left join DataProp d${i+1} on d${i+1}.isObj=1 and d${i+1}.objorrelobj=o.id and d${i+1}.prop=${map.get("Prop_WaterArea")} and d${i+1}.periodType=11"
+            String d = "left join DataProp d${i+1} on d${i+1}.isObj=1 and d${i+1}.objorrelobj=o.id and d${i+1}.periodType=11"
             String v = "left join DataPropVal v${i+1} on d${i+1}.id=v${i+1}.dataProp and v${i+1}.dbeg='${d1.toString(XDateTimeFormatter.ISO_DATE)}' and v${i+1}.dend='${d2.toString(XDateTimeFormatter.ISO_DATE)}'"
             fromVal.add(d)
             fromVal.add(v)
         }
+*/
 
         String sqlVal = """
-            select d1.prop, ${selVal.join(",")}
+            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
             from Obj o
-                ${fromVal.join("\n")}
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id-- and d1.prop=1008
+                join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
             where o.id=${own}
         """
         Store stVal = mdb.loadQuery(sqlVal)
-        StoreIndex indVal = stVal.getIndex("prop")
+        StoreIndex indVal = stVal.getIndex("key")
 
         mdb.outTable(stVal)
         //
@@ -562,26 +561,91 @@ class DataDao extends BaseMdbUtils {
             where p.parent=:Prop_CalcWaterFluct
         """, "", map)
 
-        mdb.outTable(st)
-
         for (StoreRecord r in st) {
-            StoreRecord  rec = indVal.get(r.getLong("id"))
-            if (rec != null) {
-                for (StoreField fld in rec.fields) {
-                    if (fld.name.startsWith("id") || fld.name.startsWith("v")) {
-                        if (rec.get(fld.name)) {
-                            r.set(fld.name, rec.get(fld.name))
-                        }
+            for (StoreField fld in r.fields) {
+                if (fld.name.startsWith("v")) {
+                    StoreRecord rec = indVal.get(r.getString("id")+"_"+fld.name)
+                    if (rec != null) {
+                        r.set("id"+fld.name.substring(1), rec.get("id"))
+                        r.set(fld.name, rec.get("numberval"))
                     }
                 }
             }
+
         }
-
-
+        mdb.outTable(st)
         return st
     }
 
+    @DaoMethod
+    long saveReservoirMeter(Map<String, Object> rec) {
+        long obj = UtCnv.toLong(rec.get("obj"))
+        long prop = UtCnv.toLong(rec.get("prop"))
+        long idVal = UtCnv.toLong(rec.get("idval"))
+        boolean hasValue = rec.containsKey("numberval")
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        boolean dependperiod = 1
+        long pt = 11L
+        String dt = UtCnv.toString(rec.get("year")) + "-01-01"
+        UtPeriod up = new UtPeriod()
+        String dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+        String dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
 
+        if (idVal > 0) {
+            if (hasValue) {
+                String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+                mdb.execQueryNative("""
+                    update DataPropVal set numberval=${value}, dbeg='${dbeg}', dend='${dend}', timestamp='${tm}'
+                    where id=${idVal}
+                """)
+            } else {
+                mdb.execQueryNative("""
+                    delete from DataPropVal
+                    where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${obj});
+                    delete from DataProp where id in (
+                            select id from dataprop
+                            except
+                            select dataProp as id from DataPropVal
+                    );
+                """)
+            }
+        } else if (hasValue) {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", 1)
+            recDP.set("objorrelobj", obj)
+            recDP.set("prop", prop)
+            if (dependperiod)
+                recDP.set("periodType", pt)
+            long idDP = mdb.insertRec("DataProp", recDP)
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", value)
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            recDPV.set("dbeg", dbeg)
+            recDPV.set("dend", dend)
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            idVal = mdb.insertRec("DataPropVal", recDPV, false)
+        }
+        return idVal
+    }
+
+    @DaoMethod
+    void deleteReservoirsMeter(long idDPV) {
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where id=${idDPV};
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+    }
 
     //*****************************************************************************************//
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
@@ -595,6 +659,14 @@ class DataDao extends BaseMdbUtils {
         //
         long prop = stProp.get(0).getLong("id")
         long propType = stProp.get(0).getLong("propType")
+        Long periodType = null
+        if (stProp.get(0).getBoolean("dependPeriod")) {
+            if (params.containsKey("periodType"))
+                periodType = UtCnv.toLong("periodType")
+            else
+                periodType = FD_PeriodType_consts.year
+        }
+
         long attribValType = stProp.get(0).getLong("attribValType")
         Integer digit = null
         double koef = stProp.get(0).getDouble("koef")
@@ -613,8 +685,9 @@ class DataDao extends BaseMdbUtils {
         }
         //todo if (stProp.get(0).getLong("providerTyp") > 0)
         whe += "and provider is null "
+        //
         if (stProp.get(0).getBoolean("dependPeriod")) {
-            whe += "and periodType=${FD_PeriodType_consts.month} "
+            whe += "and periodType=${periodType}"
         } else {
             whe += "and periodType is null "
         }
@@ -639,7 +712,7 @@ class DataDao extends BaseMdbUtils {
                 //
             }
             if (stProp.get(0).getBoolean("dependperiod")) {
-                recDP.set("periodType", FD_PeriodType_consts.month)
+                recDP.set("periodType", periodType)
             }
             idDP = mdb.insertRec("DataProp", recDP, true)
         }
@@ -702,7 +775,8 @@ class DataDao extends BaseMdbUtils {
 
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_AreaOfTon")) {
+            if (cod.equalsIgnoreCase("Prop_CalcWaterFluct") ||
+                    cod.equalsIgnoreCase("Prop_WaterArea")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     double v = UtCnv.toDouble(params.get(keyValue))
                     v = v / koef
@@ -875,7 +949,8 @@ class DataDao extends BaseMdbUtils {
         }
         // For Meter
         if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_AreaOfTon")) {
+            if (cod.equalsIgnoreCase("Prop_CalcWaterFluct") ||
+                    cod.equalsIgnoreCase("Prop_WaterArea")) {
                 if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != "") {
                     def v = mapProp.getDouble(keyValue)
                     v = v / koef
