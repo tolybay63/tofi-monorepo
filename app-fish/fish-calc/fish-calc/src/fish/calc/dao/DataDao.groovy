@@ -559,37 +559,86 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     long saveReservoirPage(Map<String, Object> rec) {
+        rec.put("dependperiod", 1)
+        return saveMeter(rec)
+    }
+
+    @DaoMethod
+    void deleteReservoirPage(long idDPV) {
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where id=${idDPV};
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+    }
+    //**************************************  Tab Fish **************************************//
+    @DaoMethod
+    Store loadFishPage(long own) {
+        String props = "'Prop_CalcAgeSex','Prop_CalcAgePrey','Prop_FishFecundity','Prop_FishFecundityMin','Prop_FishFecundityMax','Prop_CalcMaxNumberFry'"
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        map.put("own", own)
+
+        Store st = loadSqlMeta("""
+            select id, parent, name, null as idvalue, null as numberval
+            from Prop 
+            where cod in (${props})
+        """, "")
+        //
+        Store stVal = mdb.loadQuery("""
+            select d1.prop, v1.id as idvalue, v1.numberval 
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${map.get("Prop_CalcAgeSex")},${map.get("Prop_CalcAgePrey")},${map.get("Prop_FishFecundity")},
+                        ${map.get("Prop_FishFecundityMin")},${map.get("Prop_FishFecundityMax")},${map.get("Prop_CalcMaxNumberFry")})
+                join DataPropVal v1 on v1.dataprop=d1.id 
+            where o.id=${own}
+        """)
+
+        StoreIndex indStVal = stVal.getIndex("prop")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indStVal.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("idvalue", rec.getLong("idvalue"))
+                r.set("numberval", rec.getDouble("numberval"))
+            }
+        }
+        return st
+    }
+
+    @DaoMethod
+    long saveFishPage(Map<String, Object> rec) {
+        return saveMeter(rec)
+    }
+    ////
+
+    private long saveMeter(Map<String, Object> rec) {
         long obj = UtCnv.toLong(rec.get("obj"))
         long prop = UtCnv.toLong(rec.get("prop"))
         long idVal = UtCnv.toLong(rec.get("idval"))
-        boolean hasValue = rec.containsKey("numberval")
         double value = UtCnv.toDouble(rec.get("numberval"))
-        boolean dependperiod = 1
-        long pt = 11L
-        String dt = UtCnv.toString(rec.get("year")) + "-01-01"
-        UtPeriod up = new UtPeriod()
-        String dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
-        String dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
-
+        boolean dependperiod = UtCnv.toBoolean(rec.get("dependperiod"))
+        Long pt = null
+        String dbeg = "1800-01-01"
+        String dend = "3333-12-31"
+        if (dependperiod) {
+            pt = 11L
+            String dt = UtCnv.toString(rec.get("year")) + "-01-01"
+            UtPeriod up = new UtPeriod()
+            dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+            dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+        }
         if (idVal > 0) {
-            if (hasValue) {
-                String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
-                mdb.execQueryNative("""
-                    update DataPropVal set numberval=${value}, dbeg='${dbeg}', dend='${dend}', timestamp='${tm}'
-                    where id=${idVal}
-                """)
-            } else {
-                mdb.execQueryNative("""
-                    delete from DataPropVal
-                    where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${obj});
-                    delete from DataProp where id in (
-                            select id from dataprop
-                            except
-                            select dataProp as id from DataPropVal
-                    );
-                """)
-            }
-        } else if (hasValue) {
+            String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+            mdb.execQueryNative("""
+                update DataPropVal set numberval=${value}, dbeg='${dbeg}', dend='${dend}', timestamp='${tm}'
+                where id=${idVal}
+            """)
+
+        } else {
             StoreRecord recDP = mdb.createStoreRecord("DataProp")
             recDP.set("isObj", 1)
             recDP.set("objorrelobj", obj)
@@ -613,54 +662,6 @@ class DataDao extends BaseMdbUtils {
         }
         return idVal
     }
-
-    @DaoMethod
-    void deleteReservoirPage(long idDPV) {
-        mdb.execQueryNative("""
-            delete from DataPropVal
-            where id=${idDPV};
-            delete from DataProp where id in (
-                select id from dataprop
-                except
-                select dataProp as id from DataPropVal
-            );
-        """)
-    }
-    //**************************************  Tab Fish **************************************//
-    @DaoMethod
-    Store loadFishPage(long own) {
-        String props = "'Prop_CalcAgeSex','Prop_CalcAgePrey','Prop_FishFecundity','Prop_FishFecundityMin','Prop_FishFecundityMax','Prop_CalcMaxNumberFry'"
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
-        map.put("own", own)
-
-        Store st = loadSqlMeta("""
-            select id, parent, name, null as idvalue, null as value
-            from Prop 
-            where cod in (${props})
-        """, "")
-        //
-        Store stVal = mdb.loadQuery("""
-            select d1.prop, v1.id as idvalue, v1.numberval as value 
-            from Obj o
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
-                    and d1.prop in (${map.get("Prop_CalcAgeSex")},${map.get("Prop_CalcAgePrey")},${map.get("Prop_FishFecundity")},
-                        ${map.get("Prop_FishFecundityMin")},${map.get("Prop_FishFecundityMax")},${map.get("Prop_CalcMaxNumberFry")})
-                join DataPropVal v1 on v1.dataprop=d1.id 
-            where o.id=${own}
-        """)
-
-        StoreIndex indStVal = stVal.getIndex("prop")
-        for (StoreRecord r in st) {
-            StoreRecord rec = indStVal.get(r.getLong("prop"))
-            if (rec != null) {
-                r.set("idvalue", rec.getLong("idvalue"))
-                r.set("value", rec.getDouble("value"))
-            }
-        }
-        return st
-    }
-
-
 
     //*****************************************************************************************//
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {

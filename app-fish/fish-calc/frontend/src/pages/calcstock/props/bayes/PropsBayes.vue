@@ -15,7 +15,7 @@
 
     <!-- Табы строго внизу -->
     <q-tabs v-model="tab" class="text-teal bg-white shadow-1 absolute-bottom" indicator-color="red"
-            style="height: 48px; z-index: 2;" dense align="left" no-caps>
+            active-bg-color="red-1" style="height: 48px; z-index: 2;" dense align="left" no-caps>
       <q-tab name="desc" label="Описание"/>
       <q-tab name="props" label="Основные свойства"/>
     </q-tabs>

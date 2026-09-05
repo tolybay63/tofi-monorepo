@@ -1,7 +1,8 @@
 <template>
   <q-page class="column no-wrap fit bg-green-1 q-pa-sm">
     <!-- Табы фиксированной высоты сверху -->
-    <q-tabs v-model="tab" class="text-teal col-auto bg-white shadow-1" dense align="left">
+    <q-tabs v-model="tab" class="text-teal col-auto bg-white shadow-1" dense align="left"
+            active-bg-color="red-1" indicator-color="red">
       <q-tab name="desc" label="Описание" no-caps/>
       <q-tab name="props" label="Основные свойства" no-caps/>
     </q-tabs>

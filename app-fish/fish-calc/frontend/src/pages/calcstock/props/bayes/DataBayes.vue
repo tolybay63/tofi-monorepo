@@ -25,7 +25,7 @@
     </div>
 
     <q-tabs v-model="tab" class="text-teal bg-white shadow-1 absolute-bottom" indicator-color="red"
-            style="height: 48px; z-index: 2;" dense align="left" no-caps>
+            active-bg-color="red-1" style="height: 48px; z-index: 2;" dense align="left" no-caps>
       <q-tab name="reservoir" label="Свойства водоема"/>
       <q-tab name="fish" label="Свойства рыбы"/>
       <q-tab name="rand" label="Случайные величины"/>
