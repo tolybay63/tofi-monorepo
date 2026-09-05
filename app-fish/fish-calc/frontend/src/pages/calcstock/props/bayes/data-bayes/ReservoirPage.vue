@@ -161,7 +161,7 @@ const fnDeleteCell = (item, field) => {
 
 }
 
-const loadReservoirsMeter = (objId) => {
+const loadReservoirPage = (objId) => {
   if (!objId) return;
   loading.value = true
 
@@ -258,7 +258,7 @@ onMounted(() => {
 watch(
   () => props.own,
   (newObj) => {
-    loadReservoirsMeter(newObj);
+    loadReservoirPage(newObj);
   },
   {immediate: true}
 )

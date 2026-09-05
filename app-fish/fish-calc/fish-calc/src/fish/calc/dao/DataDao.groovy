@@ -497,7 +497,6 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadReservoirPage(long own) {
-        /* Prop_WaterArea		1008    Prop_CalcWaterFluct	7224 */
         String props = "'Prop_WaterArea','Prop_CalcWaterFluct'"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
         map.put("own", own)
@@ -526,7 +525,7 @@ class DataDao extends BaseMdbUtils {
         Store stVal = mdb.loadQuery(sqlVal)
         StoreIndex indVal = stVal.getIndex("key")
 
-        mdb.outTable(stVal)
+        //mdb.outTable(stVal)
         //
         Store st = loadSqlMetaWithParams("""
             select p.id, p.parent, p.name, ${sel.join(",")}
@@ -628,6 +627,38 @@ class DataDao extends BaseMdbUtils {
         """)
     }
     //**************************************  Tab Fish **************************************//
+    @DaoMethod
+    Store loadFishPage(long own) {
+        String props = "'Prop_CalcAgeSex','Prop_CalcAgePrey','Prop_FishFecundity','Prop_FishFecundityMin','Prop_FishFecundityMax','Prop_CalcMaxNumberFry'"
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        map.put("own", own)
+
+        Store st = loadSqlMeta("""
+            select id, parent, name, null as idvalue, null as value
+            from Prop 
+            where cod in (${props})
+        """, "")
+        //
+        Store stVal = mdb.loadQuery("""
+            select d1.prop, v1.id as idvalue, v1.numberval as value 
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${map.get("Prop_CalcAgeSex")},${map.get("Prop_CalcAgePrey")},${map.get("Prop_FishFecundity")},
+                        ${map.get("Prop_FishFecundityMin")},${map.get("Prop_FishFecundityMax")},${map.get("Prop_CalcMaxNumberFry")})
+                join DataPropVal v1 on v1.dataprop=d1.id 
+            where o.id=${own}
+        """)
+
+        StoreIndex indStVal = stVal.getIndex("prop")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indStVal.get(r.getLong("prop"))
+            if (rec != null) {
+                r.set("idvalue", rec.getLong("idvalue"))
+                r.set("value", rec.getDouble("value"))
+            }
+        }
+        return st
+    }
 
 
 
