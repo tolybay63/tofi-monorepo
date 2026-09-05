@@ -54,7 +54,7 @@
                     style="cursor: pointer"
                     :name="iconName(item)"
                     color="secondary"
-                ></q-icon>
+                />
 
                 <span v-if="checked_visible">
                   <q-btn
@@ -107,8 +107,6 @@
                       :name="getIconET(item[col.field])"
                     ></q-icon>
                   </span>
-
-
                   {{
                   col.field === "accessLevel"
                       ? fnAL(item[col.field])

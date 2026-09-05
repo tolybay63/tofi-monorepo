@@ -3,7 +3,7 @@
 
     <div class="bg-orange-1" style="height: 100%">
 
-      <table class="q-table q-table--cell-separator q-table--bordered wrap">
+      <table class="q-table q-table--cell-separator q-table--bordered wrap sticky-header-table">
         <thead class="text-bold text-white bg-blue-grey-13">
         <tr>
           <th v-for="col in cols" :style="col.style">
@@ -21,6 +21,31 @@
               </span>
           </td>
           <td v-for="(col, i) in cols_" :key="i" :data-th="col.name" class="q-table--bordered">
+            <q-btn
+              color="primary" round size="sm" flat dense icon="more_vert" class="absolute-right"
+            >
+              <q-menu auto-close>
+                <q-btn
+                  round size="sm" icon="edit" color="blue" flat dense
+                  @click="fnEditCell(item, col.field)" class="no-padding no-margin"
+                >
+                  <q-tooltip>
+                    {{ $t("update") }}
+                  </q-tooltip>
+                </q-btn>
+
+                <q-btn
+                  round size="sm" icon="delete" color="red" flat dense class="no-padding no-margin"
+                  @click="fnDeleteCell(item, col.field)"
+
+                >
+                  <q-tooltip>
+                    {{ $t("deletingRecord") }}
+                  </q-tooltip>
+                </q-btn>
+              </q-menu>
+            </q-btn>
+
             {{ item[col.field] }}
           </td>
 
@@ -50,6 +75,19 @@ const loading = ref(false)
 const isExpanded = ref(true)
 const itemId = ref(null)
 
+const fnEditCell = (item, field) => {
+  console.log("item", item)
+  console.log("field", field)
+  let id = "id"+field.substring(1)
+  console.log("v", item[id])
+
+
+}
+
+const fnDeleteCell = (item, field) => {
+  console.log("item", item)
+  console.log("field", field)
+}
 
 const props = defineProps({
   own: Number,
@@ -184,24 +222,31 @@ watch(
 </script>
 
 <style scoped>
-.custom-table {
-  display: flex;
-  flex-direction: column;
-  height: 100% !important;
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 95%;
+  overflow: auto;
 }
 
-/* Шапка таблицы фиксируется */
-:deep(.q-table__top) {
-  padding-left: 0;
-  padding-right: 0;
-  flex-shrink: 0;
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-/* Контейнер сетки растягивается на всю оставшуюся высоту и получает скролл */
-:deep(.q-table__grid-content) {
-  padding: 0;
-  flex: 1 1 auto;
-  overflow-y: auto !important;
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: 3px;
 }
 </style>
 

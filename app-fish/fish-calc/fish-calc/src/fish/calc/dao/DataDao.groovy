@@ -11,6 +11,7 @@ import jandcode.core.auth.AuthService
 import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.domain.Domain
+import jandcode.core.dbm.domain.Field
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreField
@@ -501,49 +502,81 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadReservoirsMeter(long own) {
         /* Prop_WaterArea		1008    Prop_CalcWaterFluct	7224 */
+        String props = "'Prop_WaterArea','Prop_CalcWaterFluct'"
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        map.put("own", own)
         //year1 & year2
         Map<String, Long> mapY = getYears(own)
         long year1 = mapY.get("year1")
         long year2 = mapY.get("year2")
         //
-        String d1 = "${year1}-01-01"
-        String d2 = "${year2}-01-01"
+        //String d1 = "${year1}-01-01"
+        //String d2 = "${year2}-01-01"
 
         long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
-
-
-
-/*
-        Store st = getMdb().createStore()
-        st.addField("id", "long")
-        st.addField("parent", "long")
-        st.addField("name", "string", 200)
-*/
         List<String> sel = new ArrayList<>();
-
-
-
         for (long i in 0..count) {
-            //st.addField("v" + year1 + i, "string", 20);
             String year = UtCnv.toString(year1 + i)
-            sel.add("null  as v" + year);
+            sel.add("null as id" + year + ",  null  as v" + year)
+        }
+        // sql for value
+        List<String> selVal = new ArrayList<>();
+        List<String> fromVal = new ArrayList<>();
+        for (long i in 0..count) {
+            String year = UtCnv.toString(year1 + i)
+            long k = i+1
+            selVal.add("v"+k+".id as id"+year+", v"+k+".numberVal  as v" + year)
+            //
+            XDate dte = XDate.create("${year1}-01-01")
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(dte, 11L, (int) i)
+            XDate d2 = utPeriod.calcDend(dte, 11L, (int) i)
+            String d = "left join DataProp d${i+1} on d${i+1}.isObj=1 and d${i+1}.objorrelobj=o.id and d${i+1}.prop=${map.get("Prop_WaterArea")} and d${i+1}.periodType=11"
+            String v = "left join DataPropVal v${i+1} on d${i+1}.id=v${i+1}.dataProp and v${i+1}.dbeg='${d1.toString(XDateTimeFormatter.ISO_DATE)}' and v${i+1}.dend='${d2.toString(XDateTimeFormatter.ISO_DATE)}'"
+            fromVal.add(d)
+            fromVal.add(v)
         }
 
+        String sqlVal = """
+            select d1.prop, ${selVal.join(",")}
+            from Obj o
+                ${fromVal.join("\n")}
+            where o.id=${own}
+        """
+        Store stVal = mdb.loadQuery(sqlVal)
+        StoreIndex indVal = stVal.getIndex("prop")
 
-
-        Store st = loadSqlMeta("""
+        mdb.outTable(stVal)
+        //
+        Store st = loadSqlMetaWithParams("""
             select p.id, p.parent, p.name, ${sel.join(",")}
             from prop p
-            where p.id=1008
+            where p.id=:Prop_WaterArea
             union all
             select p.id, p.parent, p.name, ${sel.join(",")}
             from prop p
-            where p.id=7224
+            where p.id=:Prop_CalcWaterFluct
             union all 
             select p.id, p.parent, p.name, ${sel.join(",")}
             from prop p
-            where p.parent=7224
-        """, "")
+            where p.parent=:Prop_CalcWaterFluct
+        """, "", map)
+
+        mdb.outTable(st)
+
+        for (StoreRecord r in st) {
+            StoreRecord  rec = indVal.get(r.getLong("id"))
+            if (rec != null) {
+                for (StoreField fld in rec.fields) {
+                    if (fld.name.startsWith("id") || fld.name.startsWith("v")) {
+                        if (rec.get(fld.name)) {
+                            r.set(fld.name, rec.get(fld.name))
+                        }
+                    }
+                }
+            }
+        }
+
 
         return st
     }
@@ -901,6 +934,10 @@ class DataDao extends BaseMdbUtils {
 
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
+    }
+
+    private Store loadSqlMetaWithParams(String sql, String domain, Map<String, Object> params) {
+        return apiMeta().get(ApiMeta).loadSqlWithParams(sql, domain, params)
     }
 
     private long getUser() throws Exception {
