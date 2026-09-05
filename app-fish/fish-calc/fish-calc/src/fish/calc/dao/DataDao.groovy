@@ -437,6 +437,7 @@ class DataDao extends BaseMdbUtils {
         }
     }
     //**************************************  Bayes Calc **************************************//
+    //**************************************  Tab Reservoir **************************************//
     private Map<String, Long> getYears(long own) {
         Map<String, Long> res = new HashMap<>()
         String props = "'Prop_CalcStartYear','Prop_CalcEndYear'"
@@ -494,9 +495,8 @@ class DataDao extends BaseMdbUtils {
         return cols
     }
 
-
     @DaoMethod
-    Store loadReservoirsMeter(long own) {
+    Store loadReservoirPage(long own) {
         /* Prop_WaterArea		1008    Prop_CalcWaterFluct	7224 */
         String props = "'Prop_WaterArea','Prop_CalcWaterFluct'"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
@@ -516,25 +516,6 @@ class DataDao extends BaseMdbUtils {
             sel.add("null as id" + year + ",  null  as v" + year)
         }
         // sql for value
-/*
-        List<String> selVal = new ArrayList<>();
-        List<String> fromVal = new ArrayList<>();
-        for (long i in 0..count) {
-            String year = UtCnv.toString(year1 + i)
-            long k = i+1
-            selVal.add("v"+k+".id as id"+year+", v"+k+".numberVal  as v" + year)
-            //
-            XDate dte = XDate.create("${year1}-01-01")
-            UtPeriod utPeriod = new UtPeriod()
-            XDate d1 = utPeriod.calcDbeg(dte, 11L, (int) i)
-            XDate d2 = utPeriod.calcDend(dte, 11L, (int) i)
-            String d = "left join DataProp d${i+1} on d${i+1}.isObj=1 and d${i+1}.objorrelobj=o.id and d${i+1}.periodType=11"
-            String v = "left join DataPropVal v${i+1} on d${i+1}.id=v${i+1}.dataProp and v${i+1}.dbeg='${d1.toString(XDateTimeFormatter.ISO_DATE)}' and v${i+1}.dend='${d2.toString(XDateTimeFormatter.ISO_DATE)}'"
-            fromVal.add(d)
-            fromVal.add(v)
-        }
-*/
-
         String sqlVal = """
             select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
             from Obj o
@@ -578,7 +559,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    long saveReservoirMeter(Map<String, Object> rec) {
+    long saveReservoirPage(Map<String, Object> rec) {
         long obj = UtCnv.toLong(rec.get("obj"))
         long prop = UtCnv.toLong(rec.get("prop"))
         long idVal = UtCnv.toLong(rec.get("idval"))
@@ -635,7 +616,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    void deleteReservoirsMeter(long idDPV) {
+    void deleteReservoirPage(long idDPV) {
         mdb.execQueryNative("""
             delete from DataPropVal
             where id=${idDPV};
@@ -646,6 +627,9 @@ class DataDao extends BaseMdbUtils {
             );
         """)
     }
+    //**************************************  Tab Fish **************************************//
+
+
 
     //*****************************************************************************************//
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {

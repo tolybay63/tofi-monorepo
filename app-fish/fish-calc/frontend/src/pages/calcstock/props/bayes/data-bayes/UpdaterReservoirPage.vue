@@ -89,7 +89,7 @@ const onOKClick = () => {
   let err = false
   api
     .post('', {
-      method: 'data/saveReservoirMeter',
+      method: 'data/saveReservoirPage',
       params: [form],
     })
     .then((response) => {

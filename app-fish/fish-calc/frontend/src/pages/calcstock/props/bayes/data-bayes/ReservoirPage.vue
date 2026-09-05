@@ -139,7 +139,7 @@ const fnDeleteCell = (item, field) => {
     .onOk(() => {
       api
         .post('', {
-          method: 'data/deleteReservoirsMeter',
+          method: 'data/deleteReservoirPage',
           params: [item["id"+field.substring(1)]],
         })
         .then(() => {
@@ -167,7 +167,7 @@ const loadReservoirsMeter = (objId) => {
 
   api
     .post('', {
-      method: 'data/loadReservoirsMeter',
+      method: 'data/loadReservoirPage',
       params: [objId],
     })
     .then((response) => {
