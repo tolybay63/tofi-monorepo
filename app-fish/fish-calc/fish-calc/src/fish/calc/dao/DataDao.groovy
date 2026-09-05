@@ -613,8 +613,27 @@ class DataDao extends BaseMdbUtils {
     long saveFishPage(Map<String, Object> rec) {
         return saveMeter(rec)
     }
-    ////
+    //**************************************  Tab Rand **************************************//
+    @DaoMethod
+    Store loadRandPage(long own) {
+        String props = "'Prop_CalcBaseMortality','Prop_CalcParabolaLeft','Prop_CalcParabolaRight','Prop_CalcBaseEating','Prop_CalcPdyDevCoef','Prop_CalcEggSurvivalRate'"
+        Store stProp = loadSqlMeta("""
+            select id from Prop 
+            where cod in (${props})
+        """, "")
+        Set<Object> idsProp = stProp.getUniqueValues("id")
 
+        Store st = loadSqlMeta("""
+            select id from Prop 
+            where cod in (${props})
+        """, "")
+
+
+
+        return null
+    }
+
+    ////
     private long saveMeter(Map<String, Object> rec) {
         long obj = UtCnv.toLong(rec.get("obj"))
         long prop = UtCnv.toLong(rec.get("prop"))
@@ -682,7 +701,6 @@ class DataDao extends BaseMdbUtils {
             else
                 periodType = FD_PeriodType_consts.year
         }
-
         long attribValType = stProp.get(0).getLong("attribValType")
         Integer digit = null
         double koef = stProp.get(0).getDouble("koef")
