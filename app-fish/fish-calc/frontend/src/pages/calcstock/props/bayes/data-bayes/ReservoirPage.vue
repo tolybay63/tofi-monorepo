@@ -91,13 +91,13 @@ const updateRowValue = (item, field, newrec) => {
 }
 
 const fnEditCell = (item, field) => {
-  console.log("item", item)
-  console.log("field", field)
+  //console.log("item", item)
+  //console.log("field", field)
   let idVal = "id"+field.substring(1)
-  console.log("v", item[idVal])
+  //console.log("v", item[idVal])
   //
   const mode = item[idVal] ? "upd" : "ins"
-  console.log("mode", mode)
+  //console.log("mode", mode)
   let rec = {
     obj: props.own,
     prop: item.id,

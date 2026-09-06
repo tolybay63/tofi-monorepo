@@ -437,7 +437,6 @@ class DataDao extends BaseMdbUtils {
         }
     }
     //**************************************  Bayes Calc **************************************//
-    //**************************************  Tab Reservoir **************************************//
     private Map<String, Long> getYears(long own) {
         Map<String, Long> res = new HashMap<>()
         String props = "'Prop_CalcStartYear','Prop_CalcEndYear'"
@@ -457,6 +456,63 @@ class DataDao extends BaseMdbUtils {
         res.put("year2", stYear.get(0).getLong("year2"))
         return res
     }
+    private Store loadMetersWithPeriod(long own, String props) {
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        map.put("own", own)
+        //year1 & year2
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        //
+        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
+        List<String> sel = new ArrayList<>();
+        for (long i in 0..count) {
+            String year = UtCnv.toString(year1 + i)
+            sel.add("null as id" + year + ",  null  as v" + year)
+        }
+        //
+        String [] propsA = props.replaceAll("'", "").split(",")
+        List<Object> sqlA = new ArrayList<>()
+        for (int i=0; i < propsA.length; i++) {
+            sqlA.add("""
+                select p.id, p.parent, p.name, ${sel.join(",")}
+                from prop p
+                where p.id=:${propsA[i]}
+                union all 
+                select p.id, p.parent, p.name, ${sel.join(",")}
+                from prop p
+                where p.parent=:${propsA[i]}
+            """)
+        }
+        Store st = loadSqlMetaWithParams(sqlA.join(" union all "), "", map)
+        // sql for value
+        String sqlVal = """
+            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id-- and d1.prop=1008
+                join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
+            where o.id=${own}
+        """
+        Store stVal = mdb.loadQuery(sqlVal)
+        StoreIndex indVal = stVal.getIndex("key")
+        //mdb.outTable(stVal)
+        for (StoreRecord r in st) {
+            for (StoreField fld in r.fields) {
+                if (fld.name.startsWith("v")) {
+                    StoreRecord rec = indVal.get(r.getString("id")+"_"+fld.name)
+                    if (rec != null) {
+                        r.set("id"+fld.name.substring(1), rec.get("id"))
+                        r.set(fld.name, rec.get("numberval"))
+                    }
+                }
+            }
+
+        }
+        //mdb.outTable(st)
+        return st
+    }
+    //**************************************  Tab Reservoir **************************************//
+
 
     @DaoMethod
     List<Map<String, Object>> getCols(long own) throws Exception {
@@ -498,63 +554,7 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadReservoirPage(long own) {
         String props = "'Prop_WaterArea','Prop_CalcWaterFluct'"
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
-        map.put("own", own)
-        //year1 & year2
-        Map<String, Long> mapY = getYears(own)
-        long year1 = mapY.get("year1")
-        long year2 = mapY.get("year2")
-        //
-        //String d1 = "${year1}-01-01"
-        //String d2 = "${year2}-01-01"
-
-        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
-        List<String> sel = new ArrayList<>();
-        for (long i in 0..count) {
-            String year = UtCnv.toString(year1 + i)
-            sel.add("null as id" + year + ",  null  as v" + year)
-        }
-        // sql for value
-        String sqlVal = """
-            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
-            from Obj o
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id-- and d1.prop=1008
-                join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
-            where o.id=${own}
-        """
-        Store stVal = mdb.loadQuery(sqlVal)
-        StoreIndex indVal = stVal.getIndex("key")
-
-        //mdb.outTable(stVal)
-        //
-        Store st = loadSqlMetaWithParams("""
-            select p.id, p.parent, p.name, ${sel.join(",")}
-            from prop p
-            where p.id=:Prop_WaterArea
-            union all
-            select p.id, p.parent, p.name, ${sel.join(",")}
-            from prop p
-            where p.id=:Prop_CalcWaterFluct
-            union all 
-            select p.id, p.parent, p.name, ${sel.join(",")}
-            from prop p
-            where p.parent=:Prop_CalcWaterFluct
-        """, "", map)
-
-        for (StoreRecord r in st) {
-            for (StoreField fld in r.fields) {
-                if (fld.name.startsWith("v")) {
-                    StoreRecord rec = indVal.get(r.getString("id")+"_"+fld.name)
-                    if (rec != null) {
-                        r.set("id"+fld.name.substring(1), rec.get("id"))
-                        r.set(fld.name, rec.get("numberval"))
-                    }
-                }
-            }
-
-        }
-        mdb.outTable(st)
-        return st
+        return loadMetersWithPeriod(own, props)
     }
 
     @DaoMethod
@@ -628,9 +628,28 @@ class DataDao extends BaseMdbUtils {
             where cod in (${props})
         """, "")
 
+        return st
+    }
 
+    //**************************************  Tab Numbers **************************************//
+    @DaoMethod
+    Store loadNumbersPage(long own) {
+        String props = "'Prop_CalcStartPopulation'"
+        return loadMetersWithPeriod(own, props)
+    }
 
-        return null
+    //**************************************  Tab Weight **************************************//
+    @DaoMethod
+    Store loadWeightPage(long own) {
+        String props = "'Prop_WaterFishAverageWeight'"
+        return loadMetersWithPeriod(own, props)
+    }
+
+    //**************************************  Tab Weight **************************************//
+    @DaoMethod
+    Store loadPduPage(long own) {
+        String props = "'Prop_CalcPdy'"
+        return loadMetersWithPeriod(own, props)
     }
 
     ////

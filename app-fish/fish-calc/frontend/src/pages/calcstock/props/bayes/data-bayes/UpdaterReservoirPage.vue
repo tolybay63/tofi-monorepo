@@ -49,7 +49,7 @@
 
 <script setup>
 import { ref, reactive, getCurrentInstance } from 'vue'
-import { notifySuccess } from '@/utils/jsutils'
+import {notifyError, notifySuccess} from '@/utils/jsutils'
 import { api } from '@/boot/axios'
 
 const props = defineProps({
@@ -100,6 +100,7 @@ const onOKClick = () => {
     .catch((error) => {
       err = true
       console.error(error.message)
+      notifyError(proxy?.$t(error?.response?.data?.error.message))
     })
     .finally(() => {
       if (!err) hide()
