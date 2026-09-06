@@ -613,20 +613,40 @@ class DataDao extends BaseMdbUtils {
     //**************************************  Tab Rand **************************************//
     @DaoMethod
     Store loadRandPage(long own) {
-        String props = "'Prop_CalcBaseMortality','Prop_CalcParabolaLeft','Prop_CalcParabolaRight','Prop_CalcBaseEating','Prop_CalcPdyDevCoef','Prop_CalcEggSurvivalRate'"
-        Store stProp = loadSqlMeta("""
-            select id from Prop 
-            where cod in (${props})
-        """, "")
-        Set<Object> idsProp = stProp.getUniqueValues("id")
+        //  Prop_CalcEggSurvivalRate dependPeriod=0
+        String props = "'Prop_CalcBaseMortality','Prop_CalcParabolaLeft','Prop_CalcParabolaRight','Prop_CalcBaseEating','Prop_CalcPdyDevCoef'"
+        return loadMetersWithPeriod(own, props)
+    }
 
+    @DaoMethod
+    Store loadRandEggSurvivalRate(long own) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcEggSurvivalRate", "")
         Store st = loadSqlMeta("""
-            select id from Prop 
-            where cod in (${props})
+            select id, parent, name, null as idvalue, null as numberval
+            from Prop 
+            where cod='Prop_CalcEggSurvivalRate'
         """, "")
+        //
+        Store stVal = mdb.loadQuery("""
+            select d1.prop, v1.id as idvalue, v1.numberval 
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop=${map.get("Prop_CalcEggSurvivalRate")}
+                join DataPropVal v1 on v1.dataprop=d1.id 
+            where o.id=${own}
+        """)
 
+        StoreIndex indStVal = stVal.getIndex("prop")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indStVal.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("idvalue", rec.getLong("idvalue"))
+                r.set("numberval", rec.getDouble("numberval"))
+            }
+        }
         return st
     }
+
 
     //**************************************  Tab Numbers **************************************//
     @DaoMethod
@@ -642,7 +662,7 @@ class DataDao extends BaseMdbUtils {
         return loadMetersWithPeriod(own, props)
     }
 
-    //**************************************  Tab Weight **************************************//
+    //**************************************  Tab Pdu **************************************//
     @DaoMethod
     Store loadPduPage(long own) {
         String props = "'Prop_CalcPdy'"
