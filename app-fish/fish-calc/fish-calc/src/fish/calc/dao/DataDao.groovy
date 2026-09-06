@@ -112,6 +112,12 @@ class DataDao extends BaseMdbUtils {
     }
 
     private void parent2childProps(long parent, long id) {
+        /*
+            Основные свойства расчета:
+            атрибут-строка, атрибут-дата, атрибут-многосточный текст,
+            фактор, объект, измерител
+        * */
+        //1.
         String props = "'Prop_ReservoirShore','Prop_CalcStartYear','Prop_CalcEndYear','Prop_CalcFishSpec','Prop_CalcStatus','Prop_CalcDescription'"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
         map.put("obj", parent)
@@ -140,8 +146,6 @@ class DataDao extends BaseMdbUtils {
                 join DataPropVal v9 on v9.dataprop=d9.id
             where o.id=:obj
         """, map)
-
-        //mdb.outTable(stPrt)
         if (stPrt.size() == 1) {
             Map<String, Object> mapProp = stPrt.get(0).getValues()
             mapProp.put("own", id)
@@ -149,6 +153,111 @@ class DataDao extends BaseMdbUtils {
             for (final def prop in props_.split(",")) {
                 fillProperties(true, prop, mapProp)
             }
+        }
+        // Остальные только измерители и показатели
+        //2. свойства водоема: Prop_WaterArea, Prop_CalcWaterFluct
+        parent2childPropsOfMeter(parent, id, "'Prop_WaterArea', 'Prop_CalcWaterFluct'", true)
+
+        //3. свойства рыбы: 'Prop_CalcAgeSex','Prop_CalcAgePrey','Prop_FishFecundity','Prop_FishFecundityMin','Prop_FishFecundityMax','Prop_CalcMaxNumberFry'
+        parent2childPropsOfMeter(parent, id, "'Prop_CalcAgeSex','Prop_CalcAgePrey','Prop_FishFecundity','Prop_FishFecundityMin','Prop_FishFecundityMax','Prop_CalcMaxNumberFry'",false)
+
+        //4. Случайные величины): Prop_CalcBaseMortality, Prop_CalcParabolaLeft, Prop_CalcParabolaRight, Prop_CalcBaseEating, Prop_CalcPdyDevCoef, Prop_CalcEggSurvivalRate
+        parent2childPropsOfMeter(parent, id, "'Prop_CalcBaseMortality','Prop_CalcParabolaLeft','Prop_CalcParabolaRight','Prop_CalcBaseEating','Prop_CalcPdyDevCoef'", true)
+        parent2childPropsOfMeter(parent, id, "'Prop_CalcEggSurvivalRate'", false)
+
+        //5. Начальная численность: Prop_CalcStartPopulation
+        parent2childPropsOfMeter(parent, id, "'Prop_CalcStartPopulation'", true)
+
+        //6. ПДУ: Prop_CalcPdy
+        parent2childPropsOfMeter(parent, id, "'Prop_CalcPdy'", true)
+
+        //7. средний вес рыбы: Prop_WaterFishAverageWeight
+        parent2childPropsOfMeter(parent, id, "'Prop_WaterFishAverageWeight'", true)
+    }
+
+    private void parent2childPropsOfMeter(long parent, long id, String props, boolean dependperiod) {
+
+        Store stProp = loadSqlMeta("""
+            select id from Prop 
+            where cod in (${props})
+        """, "")
+        Set<Object> idsProp = stProp.getUniqueValues("id")
+        stProp = loadSqlMeta("""
+            select id from Prop 
+            where id in (${idsProp.join(",")})
+            union all
+            select id from Prop 
+            where parent in (${idsProp.join(",")})
+        """, "")
+        idsProp = stProp.getUniqueValues("id")
+
+        String sql = """
+            select d1.prop, v1.numberval  
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${idsProp.join(",")})
+                join DataPropVal v1 on v1.dataprop=d1.id 
+            where o.id=${parent}
+        """
+        if (dependperiod)
+            sql = """
+                select d1.prop, v1.numberval, date_part('year', v1.dbeg) as year  
+                from Obj o
+                    join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype=11
+                        and d1.prop in (${idsProp.join(",")})
+                    join DataPropVal v1 on v1.dataprop=d1.id 
+                where o.id=${parent}
+            """
+
+        Store st = mdb.loadQuery(sql)
+        //
+        Set<Long> setProp = new HashSet<>()
+        for (StoreRecord r in st) {
+            long idDP = 0L
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            if (!setProp.contains(r.getLong("prop"))) {
+                setProp.add(r.getLong("prop"))
+
+                recDP.set("isObj", 1)
+                recDP.set("objorrelobj", id)
+                recDP.set("prop", r.getLong("prop"))
+                if (dependperiod)
+                    recDP.set("periodType", 11L)
+                idDP = mdb.insertRec("DataProp", recDP)
+            } else {
+                String whePeriod = dependperiod ? "d.periodType is not null" : "d.periodType is null"
+                idDP = mdb.loadQuery("""
+                    select d.id
+                    from DataProp d, DataPropVal v
+                    where d.id=v.dataProp and d.isObj=1 and d.objOrRelObj=${id} and d.prop=${r.getLong("prop")} 
+                        and ${whePeriod}
+                """).get(0).getLong("id")
+            }
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", r.getDouble("numberval"))
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            //
+            Long pt = null
+            String dbeg = "1800-01-01"
+            String dend = "3333-12-31"
+            if (dependperiod) {
+                pt = 11L
+                String dt = UtCnv.toString(r.getLong("year")) + "-01-01"
+                UtPeriod up = new UtPeriod()
+                dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+                dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+            }
+            recDPV.set("dbeg", dbeg)
+            recDPV.set("dend", dend)
+            //
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            mdb.insertRec("DataPropVal", recDPV, false)
         }
     }
 

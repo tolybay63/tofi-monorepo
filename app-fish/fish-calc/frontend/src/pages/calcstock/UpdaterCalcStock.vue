@@ -38,9 +38,14 @@
           color="primary"
           icon="save"
           :label="$t('save')"
+          :loading="loading"
           @click="onOKClick"
           :disable="validName()"
-        />
+        >
+          <template #loading>
+            <q-spinner-hourglass color="white"/>
+          </template>
+        </q-btn>
         <q-btn
           color="primary"
           icon="cancel"
@@ -48,6 +53,7 @@
           @click="onCancelClick"
         />
       </q-card-actions>
+
     </q-card>
   </q-dialog>
 </template>
@@ -67,6 +73,7 @@ const props = defineProps({
 const emit = defineEmits(["ok", "hide"]);
 const { proxy } = getCurrentInstance();
 
+const loading = ref(false);
 const dialog = ref(null);
 const inputNameRef = ref(null);
 const form = reactive({ ...props.data });
@@ -94,7 +101,6 @@ const onDialogHide = () => {
 
 const onOKClick = () => {
   const method = props.mode === "ins" ? "insertCalc" : "updateCalc";
-
   api
     .post("", {
       method: "data/" + method,

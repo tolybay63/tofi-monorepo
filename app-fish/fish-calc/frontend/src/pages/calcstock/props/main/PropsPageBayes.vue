@@ -182,7 +182,7 @@ const cols = [
     name: 'objReservoirShore',
     label: 'Водоем',
     field: 'objReservoirShore',
-    format: (v) => (mapReservoir.value ? mapReservoir.value[v] : null),
+    format: (v) => mapReservoir.value ? mapReservoir.value[v] : null
   },
   {
     name: 'CalcStartYear',
@@ -198,7 +198,7 @@ const cols = [
     name: 'fvCalcFishSpec',
     label: 'Вид рыбы',
     field: 'fvCalcFishSpec',
-    format: (v) => (mapCalcFishSpec.value ? mapCalcFishSpec.value[v] : null),
+    format: (v) => mapCalcFishSpec.value ? mapCalcFishSpec.value[v] : null
   },
   {
     name: 'objCalcUser',
@@ -209,7 +209,7 @@ const cols = [
     name: 'fvCalcStatus',
     label: 'Статус расчета',
     field: 'fvCalcStatus',
-    format: (v) => (mapCalcStatus.value ? mapCalcStatus.value[v] : null),
+    format: (v) => mapCalcStatus.value ? mapCalcStatus.value[v] : null
   },
 ]
 
