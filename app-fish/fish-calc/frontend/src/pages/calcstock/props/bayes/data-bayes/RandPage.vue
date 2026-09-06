@@ -19,16 +19,12 @@
       >
 
         <template #body-cell="props">
-          <q-td :props="props">
-            <div v-if="props.col.field === 'cm'">
-              rrrrr
-            </div>
-            <div v-else>
-              {{props.value}}
-            </div>
-
+          <q-td v-if="props.col.field === 'cmd'">
+            rrr
           </q-td>
-
+          <q-td v-else>
+            {{props.value}}
+          </q-td>
         </template>
       </q-table>
 
