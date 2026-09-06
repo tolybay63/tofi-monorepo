@@ -46,6 +46,7 @@ import {api} from "@/boot/axios.js";
 import {getCurrentInstance, ref, watch} from "vue";
 import UpdaterPropsBayes from "@/pages/calcstock/props/main/UpdaterPropsBayes.vue";
 import {useQuasar} from "quasar";
+
 const $q = useQuasar()
 
 const {proxy} = getCurrentInstance()

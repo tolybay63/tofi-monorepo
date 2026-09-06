@@ -48,9 +48,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance } from 'vue'
-import { notifySuccess } from '@/utils/jsutils'
-import { api } from '@/boot/axios'
+import {getCurrentInstance, reactive, ref} from 'vue'
+import {notifySuccess} from '@/utils/jsutils'
+import {api} from '@/boot/axios'
 
 const props = defineProps({
   data: Object,

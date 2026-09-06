@@ -265,7 +265,6 @@ class DataDao extends BaseMdbUtils {
             rec = indFV.get(r.getLong("pvCalcStatus"))
             if (rec != null)
                 r.set("fvCalcStatus", rec.getLong("factorval"))
-
         }
         return st
     }
@@ -278,10 +277,8 @@ class DataDao extends BaseMdbUtils {
         AuthService authService = getModel().getApp().bean(AuthService.class);
         AuthUser usr = authService.getCurrentUser();
         rec.set("objCalcUser", usr.getAttrs().getLong("id"))
-        //rec.set("pvCalcUser", 1102L) //todo
         rec.set("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
         st.add(rec)
-        //mdb.outTable(st)
         return st
     }
 
@@ -289,7 +286,7 @@ class DataDao extends BaseMdbUtils {
     void saveMainProps(Map<String, Object> rec) {
         VariantMap params = new VariantMap(rec)
         //Attr
-        //1
+        //1 !req
 /*
         if (params.getLong("idCalcCreatDate") == 0) {
             if (params.getString("CalcCreatDate").isEmpty())
@@ -456,6 +453,7 @@ class DataDao extends BaseMdbUtils {
         res.put("year2", stYear.get(0).getLong("year2"))
         return res
     }
+
     private Store loadMetersWithPeriod(long own, String props) {
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
         map.put("own", own)
@@ -471,9 +469,9 @@ class DataDao extends BaseMdbUtils {
             sel.add("null as id" + year + ",  null  as v" + year)
         }
         //
-        String [] propsA = props.replaceAll("'", "").split(",")
+        String[] propsA = props.replaceAll("'", "").split(",")
         List<Object> sqlA = new ArrayList<>()
-        for (int i=0; i < propsA.length; i++) {
+        for (int i = 0; i < propsA.length; i++) {
             sqlA.add("""
                 select p.id, p.parent, p.name, ${sel.join(",")}
                 from prop p
@@ -499,9 +497,9 @@ class DataDao extends BaseMdbUtils {
         for (StoreRecord r in st) {
             for (StoreField fld in r.fields) {
                 if (fld.name.startsWith("v")) {
-                    StoreRecord rec = indVal.get(r.getString("id")+"_"+fld.name)
+                    StoreRecord rec = indVal.get(r.getString("id") + "_" + fld.name)
                     if (rec != null) {
-                        r.set("id"+fld.name.substring(1), rec.get("id"))
+                        r.set("id" + fld.name.substring(1), rec.get("id"))
                         r.set(fld.name, rec.get("numberval"))
                     }
                 }
@@ -513,7 +511,6 @@ class DataDao extends BaseMdbUtils {
     }
     //**************************************  Tab Reservoir **************************************//
 
-
     @DaoMethod
     List<Map<String, Object>> getCols(long own) throws Exception {
         Map<String, Long> mapY = getYears(own)
@@ -521,10 +518,10 @@ class DataDao extends BaseMdbUtils {
         long year2 = mapY.get("year2")
         long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
         long w1 = 50
-        double w = 50 / count
+        double w = 50 / (count + 1)
         if (count > 8) {
             w1 = 30
-            w = 70 / count
+            w = 70 / (count + 1)
         }
         String w1Str = UtCnv.toString(w1)
         String wStr = UtCnv.toString(w)

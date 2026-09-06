@@ -125,13 +125,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
-import { api } from '@/boot/axios'
-import { notifySuccess } from '@/utils/jsutils'
+import {getCurrentInstance, onMounted, reactive, ref} from 'vue'
+import {api} from '@/boot/axios'
+import {notifySuccess} from '@/utils/jsutils'
 import {useUserStore} from "@/stores/user-store.js";
 import {storeToRefs} from "pinia";
 import {date} from "quasar";
-import {useI18n} from "vue-i18n";
 
 const props = defineProps({
   data: Object,

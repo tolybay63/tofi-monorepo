@@ -22,7 +22,7 @@
           </td>
           <td v-for="(col, i) in cols_" :key="i" :data-th="col.name">
             <q-btn
-              color="primary" round size="sm" flat dense icon="more_vert" class="absolute-right"
+              color="blue" round size="sm" flat dense icon="more_vert" class="absolute-right"
             >
               <q-menu auto-close>
                 <q-btn

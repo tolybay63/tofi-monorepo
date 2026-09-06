@@ -37,9 +37,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { api, urlMainApp } from '@/boot/axios'
+import {onMounted, ref} from 'vue'
+import {useRoute} from 'vue-router'
+import {api, urlMainApp} from '@/boot/axios'
 
 const route = useRoute()
 
