@@ -561,7 +561,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    void deleteReservoirPage(long idDPV) {
+    void deleteValueOfProp(long idDPV) {
         mdb.execQueryNative("""
             delete from DataPropVal
             where id=${idDPV};

@@ -139,7 +139,7 @@ const fnDeleteCell = (item, field) => {
     .onOk(() => {
       api
         .post('', {
-          method: 'data/deleteReservoirPage',
+          method: 'data/deleteValueOfProp',
           params: [item["id"+field.substring(1)]],
         })
         .then(() => {

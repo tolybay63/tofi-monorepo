@@ -135,13 +135,13 @@ const fnDeleteCell = (item) => {
       api
         .post('', {
           method: 'data/deleteFishPage',
-          params: [item["idval"]],
+          params: [item["idvalue"]],
         })
         .then(() => {
           let row = findRowForId(rows.value, item.id)
           if (row) {
             row["numberval"] = null
-            row["idval"] = null
+            row["idvalue"] = null
           }
         })
         .catch((error) => {

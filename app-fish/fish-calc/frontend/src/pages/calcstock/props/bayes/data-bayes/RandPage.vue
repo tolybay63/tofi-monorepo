@@ -3,7 +3,7 @@
 
   <div class="column no-wrap fit">
 
-    <div style="height: 60px">
+    <div style="height: 64px">
 
       <q-table
         color="primary"
@@ -20,7 +20,27 @@
 
         <template #body-cell="props">
           <q-td v-if="props.col.field === 'cmd'">
-            rrr
+            <q-btn
+              align="center"
+              class="no-padding no-margin"
+              color="blue" dense flat icon="edit" round size="sm"
+              @click="fnEdit(props.row)"
+            >
+              <q-tooltip>
+                {{ $t('update') }}
+              </q-tooltip>
+            </q-btn>
+            <q-btn
+              :disable="!props.row.idvalue"
+              align="center"
+              class="no-padding no-margin"
+              color="red" dense flat icon="delete" round size="sm"
+              @click="fnDelete(props.row)"
+            >
+              <q-tooltip>
+                {{ $t('deletingRecord') }}
+              </q-tooltip>
+            </q-btn>
           </q-td>
           <q-td v-else>
             {{props.value}}
@@ -81,16 +101,6 @@
 
         </tr>
         </tbody>
-
-
-        <template v-slot:top>
-          <q-card class="bg-blue-grey-12 full-width row">
-            <div>
-              Наименование расчета:
-              <span class="q-pa-sm text-white text-bold">{{ name }}</span>
-            </div>
-          </q-card>
-        </template>
       </q-markup-table>
 
   </div>
@@ -105,6 +115,7 @@ import {computed, getCurrentInstance, onMounted, reactive, ref, watch} from "vue
 import {expandAll, findRowForId, notifyError, notifyInfo, pack} from "@/utils/jsutils.js";
 import {api} from "@/boot/axios.js";
 import UpdaterReservoirPage from "./UpdaterReservoirPage.vue";
+import UpdaterFishPage from "@/pages/calcstock/props/bayes/data-bayes/UpdaterFishPage.vue";
 
 const $q = useQuasar()
 const {proxy} = getCurrentInstance()
@@ -123,6 +134,73 @@ const itemId = ref(null)
 const loading2 = ref(false)
 const cols2 = ref([])
 const rows2 = ref([])
+
+const fnEdit = (item) => {
+  console.log("item", item)
+  //
+  const mode = item["idvalue"] ? "upd" : "ins"
+  console.log("mode", mode)
+  let rec = {
+    obj: props.own,
+    prop: item.id,
+    name: item.name,
+    idval: item["idvalue"] || 0,
+    numberval: item["numberval"] || '',
+  }
+
+  $q.dialog({
+    component: UpdaterFishPage,
+    componentProps: {
+      data: rec,
+      mode: mode
+    },
+  })
+    .onOk((r) => {
+      let row = findRowForId(rows2.value, item.id)
+      if (row) {
+        row["numberval"] = r.value
+        row["idvalue"] = r.id
+      }
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t('canceled'))
+    })
+}
+
+const fnDelete = (item) => {
+  console.log("item", item)
+
+  let nm = item.name
+  $q.dialog({
+    title: proxy?.$t('confirmation'),
+    message: proxy?.$t('deleteRecord') + '</br>(' + nm + ')',
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: 'cancel',
+  })
+    .onOk(() => {
+      api
+        .post('', {
+          method: 'data/deleteValueOfProp',
+          params: [item["idvalue"]],
+        })
+        .then(() => {
+          let row = findRowForId(rows2.value, item.id)
+          if (row) {
+            row["numberval"] = null
+            row["idvalue"] = null
+          }
+        })
+        .catch((error) => {
+          notifyError(error.message)
+        })
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t('canceled'))
+    })
+}
+
 
 
 const updateRowValue = (item, field, newrec) => {
@@ -183,7 +261,7 @@ const fnDeleteCell = (item, field) => {
     .onOk(() => {
       api
         .post('', {
-          method: 'data/deleteReservoirPage',
+          method: 'data/deleteValueOfProp',
           params: [item["id"+field.substring(1)]],
         })
         .then(() => {
