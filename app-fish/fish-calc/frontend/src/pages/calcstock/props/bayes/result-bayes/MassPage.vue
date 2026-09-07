@@ -3,7 +3,6 @@
 </script>
 
 <template>
-  <h3> Результат расчета</h3>
 
 </template>
 

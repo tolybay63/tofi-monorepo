@@ -181,6 +181,29 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
+    Set<Object> getIdsFromCodOfEntity(String entity, String cods) {
+        String frm_cods = "('" + cods.split(",").join("','") + "')"
+        Store stEnt = mdb.loadQuery("""
+            select id from ${entity} where cod in ${frm_cods}
+        """)
+        Set<Object> idsEnt = stEnt.getUniqueValues("id")
+        String st = """
+            select id from ${entity} where id in (${idsEnt.join(",")})
+            union all
+            select id from ${entity} where parent in (${idsEnt.join(",")})
+        """
+        if (entity.equalsIgnoreCase("prop")) {
+            stEnt = mdb.loadQuery("""
+                select id from ${entity} where id in (${idsEnt.join(",")})
+                union all
+                select id from ${entity} where parent in (${idsEnt.join(",")})
+            """)
+            idsEnt = stEnt.getUniqueValues("id")
+        }
+        return idsEnt
+    }
+
+    @Override
     Map<String, Long> getIdFromCodOfProp(long cls) {
         Store st = mdb.loadQuery("""
             select p.id, p.cod
@@ -465,7 +488,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
-    Map<String, Object> getIdsFromCodsOfEntity(String Entity, String cods) {
+    Map<String, Object> getIdsFromCodsOfEntityAsMap(String Entity, String cods) {
         if (cods.isEmpty())
             throw new XError("Cods Is Empty of ${Entity}")
         String frm_cods = "('"+ cods.split(",").join("','") + "')"

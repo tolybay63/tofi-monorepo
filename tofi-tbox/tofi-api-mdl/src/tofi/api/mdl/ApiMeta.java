@@ -46,6 +46,8 @@ public interface ApiMeta {
      */
     Map<String, Long> getIdFromCodOfEntity(String entity, String cod, String prefixcod);
 
+    Set<Object> getIdsFromCodOfEntity(String entity, String cods);
+
     /**
      *
      * @param cls id Cls
@@ -172,7 +174,7 @@ public interface ApiMeta {
      * @param cods cods of Entity
      * @return ids of Entity
      */
-    Map<String, Object> getIdsFromCodsOfEntity(String Entity, String cods);
+    Map<String, Object> getIdsFromCodsOfEntityAsMap(String Entity, String cods);
 
     /**
      *

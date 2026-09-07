@@ -18,7 +18,7 @@
         </q-tab-panel>
 
         <q-tab-panel name="res" class="q-pa-none relative-position fit">
-          <res-bayes class="absolute-full" :name="props.name" :own="props.own"/>
+          <result-bayes class="absolute-full" :name="props.name" :own="props.own"/>
         </q-tab-panel>
       </q-tab-panels>
     </div>
@@ -28,7 +28,7 @@
 <script setup>
 import {ref} from "vue";
 import PropsBayes from "./PropsBayes.vue";
-import ResBayes from "./ResBayes.vue";
+import ResultBayes from "./ResultBayes.vue";
 import DataBayes from "./DataBayes.vue";
 
 const props = defineProps({

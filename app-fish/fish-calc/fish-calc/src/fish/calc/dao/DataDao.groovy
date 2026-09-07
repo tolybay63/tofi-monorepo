@@ -87,7 +87,7 @@ class DataDao extends BaseMdbUtils {
 
     private boolean hasProps(long obj) {
         String props = "Prop_ReservoirShore,Prop_CalcStartYear,Prop_CalcEndYear,Prop_CalcFishSpec,Prop_CalcStatus,Prop_CalcDescription"
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
         map.put("obj", obj)
 
         Store st = mdb.loadQuery("""
@@ -119,7 +119,7 @@ class DataDao extends BaseMdbUtils {
         * */
         //1.
         String props = "Prop_ReservoirShore,Prop_CalcStartYear,Prop_CalcEndYear,Prop_CalcFishSpec,Prop_CalcStatus,Prop_CalcDescription"
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
         map.put("obj", parent)
         Store stPrt = mdb.createStore("Calc.main.props.copy")
         mdb.loadQuery(stPrt, """
@@ -545,7 +545,7 @@ class DataDao extends BaseMdbUtils {
     private Map<String, Long> getYears(long own) {
         Map<String, Long> res = new HashMap<>()
         String props = "Prop_CalcStartYear,Prop_CalcEndYear"
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
         map.put("own", own)
         Store stYear = mdb.loadQuery("""
             select 
@@ -563,7 +563,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     private Store loadMetersWithPeriod(long own, String props) {
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
         map.put("own", own)
         //year1 & year2
         Map<String, Long> mapY = getYears(own)
@@ -683,7 +683,7 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadFishPage(long own) {
         String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry"
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
         map.put("own", own)
         String props_frm = "'"+props.split(",").join("','")+"'"
         Store st = loadSqlMeta("""
@@ -730,16 +730,16 @@ class DataDao extends BaseMdbUtils {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcEggSurvivalRate", "")
         Store st = loadSqlMeta("""
             select id, parent, name, null as idvalue, null as numberval
-            from Prop 
+            from Prop
             where cod='Prop_CalcEggSurvivalRate'
         """, "")
         //
         Store stVal = mdb.loadQuery("""
-            select d1.prop, v1.id as idvalue, v1.numberval 
+            select d1.prop, v1.id as idvalue, v1.numberval
             from Obj o
                 join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
                     and d1.prop=${map.get("Prop_CalcEggSurvivalRate")}
-                join DataPropVal v1 on v1.dataprop=d1.id 
+                join DataPropVal v1 on v1.dataprop=d1.id
             where o.id=${own}
         """)
 
@@ -763,6 +763,36 @@ class DataDao extends BaseMdbUtils {
         return loadMetersWithPeriod(own, props)
     }
 
+    @DaoMethod
+    Store loadResultNumbersNotPeriod(long own) {
+        String props = "Prop_ResultDiv,Prop_ResultGRCoef"
+        Set<Object> idsProp = apiMeta().get(ApiMeta).getIdsFromCodOfEntity("Prop", props)
+        Store st = loadSqlMeta("""
+            select id, parent, name, null as idvalue, null as numberval
+            from Prop 
+            where id in (${idsProp.join(",")})
+        """, "")
+        //
+        Store stVal = mdb.loadQuery("""
+            select d1.prop, v1.id as idvalue, v1.numberval
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${idsProp.join(",")})
+                join DataPropVal v1 on v1.dataprop=d1.id
+            where o.id=${own}
+        """)
+
+        StoreIndex indStVal = stVal.getIndex("prop")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indStVal.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("idvalue", rec.getLong("idvalue"))
+                r.set("numberval", rec.getDouble("numberval"))
+            }
+        }
+        return st
+    }
+
     //**************************************  Tab Weight **************************************//
     @DaoMethod
     Store loadWeightPage(long own) {
@@ -776,6 +806,18 @@ class DataDao extends BaseMdbUtils {
         String props = "Prop_CalcPdy"
         return loadMetersWithPeriod(own, props)
     }
+    //**************************************  Tab Result **************************************//
+    //**************************************  Tab numbers **************************************//
+    @DaoMethod
+    Store loadResultNumbers(long own) {
+        String props = "Prop_ResultPopulation,Prop_ResultPopulationExc,Prop_ResultSpawning,Prop_ResultCommercial,Prop_Result25Population,Prop_Result75Population"
+        return loadMetersWithPeriod(own, props)
+    }
+
+
+
+    //**************************************  Tab mass **************************************//
+
 
     ////
     private long saveMeter(Map<String, Object> rec) {
