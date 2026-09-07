@@ -720,11 +720,11 @@ class DataDao extends BaseMdbUtils {
     //**************************************  Tab Rand **************************************//
     @DaoMethod
     Store loadRandPage(long own) {
-        //  Prop_CalcEggSurvivalRate dependPeriod=0
-        String props = "Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef"
+        String props = "Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef"
         return loadMetersWithPeriod(own, props)
     }
 
+/*
     @DaoMethod
     Store loadRandEggSurvivalRate(long own) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcEggSurvivalRate", "")
@@ -754,6 +754,7 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
+*/
 
     //**************************************  Tab Numbers **************************************//
     @DaoMethod

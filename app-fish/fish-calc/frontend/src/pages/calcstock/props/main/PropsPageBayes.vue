@@ -88,13 +88,12 @@ const fnEdit = async () => {
   }).onOk(() => {
     loadData(props.own)
   })
-
 }
 
 const loadData = async (objId) => {
   if (!objId) return;
   loading.value = true;
-  api
+  await api
     .post("", {
       method: "data/loadMainProps",
       params: [objId]
@@ -119,7 +118,7 @@ const loadData = async (objId) => {
 const loadFvAsMap = async (objId, codProp) => {
   if (!objId) return;
   loading.value = true;
-  api
+  await api
     .post("", {
       method: "data/loadFvAsMap",
       params: [codProp]
@@ -149,7 +148,7 @@ const loadFvAsMap = async (objId, codProp) => {
 const loadReservoirAsMap = async (objId, codProp) => {
   if (!objId) return;
   loading.value = true
-  api
+  await api
     .post('', {
       method: 'data/loadReservoirs',
       params: [codProp],

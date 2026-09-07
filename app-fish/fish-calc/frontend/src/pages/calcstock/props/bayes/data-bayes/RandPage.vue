@@ -1,57 +1,5 @@
 <template>
-
-
   <div class="column no-wrap fit">
-
-    <div style="height: 64px">
-
-      <q-table
-        color="primary"
-        card-class="bg-blue-1 text-brown"
-        row-key="cod"
-        dense separator="cell"
-        :columns="cols2"
-        :rows="rows2"
-        :wrap-cells="true"
-        table-header-class="text-bold text-white bg-blue-grey-13"
-        :loading="loading2"
-        :rows-per-page-options="[0]"
-      >
-
-        <template #body-cell="props">
-          <q-td v-if="props.col.field === 'cmd'">
-            <q-btn
-              align="center"
-              class="no-padding no-margin"
-              color="blue" dense flat icon="edit" round size="sm"
-              @click="fnEdit(props.row)"
-            >
-              <q-tooltip>
-                {{ $t('update') }}
-              </q-tooltip>
-            </q-btn>
-            <q-btn
-              :disable="!props.row.idvalue"
-              align="center"
-              class="no-padding no-margin"
-              color="red" dense flat icon="delete" round size="sm"
-              @click="fnDelete(props.row)"
-            >
-              <q-tooltip>
-                {{ $t('deletingRecord') }}
-              </q-tooltip>
-            </q-btn>
-          </q-td>
-          <q-td v-else>
-            {{props.value}}
-          </q-td>
-        </template>
-      </q-table>
-
-
-
-    </div>
-
     <div class="column no-wrap fit bg-orange-1 sticky-header-table">
       <q-markup-table separator="cell" bordered wrap-cells>
         <thead class="text-bold text-white bg-blue-grey-13">
@@ -107,9 +55,7 @@
   </div>
 </template>
 
-
 <script setup>
-
 import {useQuasar} from "quasar";
 import {computed, getCurrentInstance, onMounted, ref, watch} from "vue";
 import {expandAll, findRowForId, notifyError, notifyInfo, pack} from "@/utils/jsutils.js";
@@ -130,78 +76,6 @@ const cols = ref([])
 const loading = ref(false)
 const isExpanded = ref(true)
 const itemId = ref(null)
-//
-const loading2 = ref(false)
-const cols2 = ref([])
-const rows2 = ref([])
-
-const fnEdit = (item) => {
-  console.log("item", item)
-  //
-  const mode = item["idvalue"] ? "upd" : "ins"
-  console.log("mode", mode)
-  let rec = {
-    obj: props.own,
-    prop: item.id,
-    name: item.name,
-    idval: item["idvalue"] || 0,
-    numberval: item["numberval"] || '',
-  }
-
-  $q.dialog({
-    component: UpdaterFishPage,
-    componentProps: {
-      data: rec,
-      mode: mode
-    },
-  })
-    .onOk((r) => {
-      let row = findRowForId(rows2.value, item.id)
-      if (row) {
-        row["numberval"] = r.value
-        row["idvalue"] = r.id
-      }
-    })
-    .onCancel(() => {
-      notifyInfo(proxy?.$t('canceled'))
-    })
-}
-
-const fnDelete = (item) => {
-  console.log("item", item)
-
-  let nm = item.name
-  $q.dialog({
-    title: proxy?.$t('confirmation'),
-    message: proxy?.$t('deleteRecord') + '</br>(' + nm + ')',
-    html: true,
-    cancel: true,
-    persistent: true,
-    focus: 'cancel',
-  })
-    .onOk(() => {
-      api
-        .post('', {
-          method: 'data/deleteValueOfProp',
-          params: [item["idvalue"]],
-        })
-        .then(() => {
-          let row = findRowForId(rows2.value, item.id)
-          if (row) {
-            row["numberval"] = null
-            row["idvalue"] = null
-          }
-        })
-        .catch((error) => {
-          notifyError(error.message)
-        })
-    })
-    .onCancel(() => {
-      notifyInfo(proxy?.$t('canceled'))
-    })
-}
-
-
 
 const updateRowValue = (item, field, newrec) => {
   let row = findRowForId(rows.value, item.id)
@@ -282,43 +156,6 @@ const fnDeleteCell = (item, field) => {
 
 
 }
-
-const loadRandEggSurvivalRate = (objId) => {
-  if (!objId) return;
-  loading2.value = true
-  api
-    .post('', {
-      method: 'data/loadRandEggSurvivalRate',
-      params: [objId],
-    })
-    .then((response) => {
-      rows2.value = response.data.result['records']
-      console.info("rows2", rows2.value)
-    })
-    .finally(() => {
-      loading2.value = false
-    })
-}
-
-const getColumns = () => [
-  {
-    name: 'name',
-    label: proxy?.$t('fldName'),
-    field: 'name',
-    align: 'left',
-    headerStyle: "font-size: 1.2em; width: 70%",
-
-  },
-  {
-    name: 'numberval',
-    label: proxy?.$t('val'),
-    field: 'numberval',
-    align: 'center',
-    headerStyle: "font-size: 1.2em; width: 20%",
-
-  },
-  {name: 'cmd', field: 'cmd', align: 'center', style: 'font-size: 1.2em; width: 10%'},
-]
 
 const loadRandPage = (objId) => {
   if (!objId) return;
@@ -411,15 +248,12 @@ onMounted(() => {
     .finally(() => {
       loading.value = false
     })
-
-  cols2.value = getColumns()
 })
 
 watch(
   () => props.own,
   (newObj) => {
     loadRandPage(newObj)
-    loadRandEggSurvivalRate(newObj)
   },
   {immediate: true}
 )
