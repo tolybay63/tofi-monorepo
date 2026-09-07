@@ -724,42 +724,31 @@ class DataDao extends BaseMdbUtils {
         return loadMetersWithPeriod(own, props)
     }
 
-/*
-    @DaoMethod
-    Store loadRandEggSurvivalRate(long own) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcEggSurvivalRate", "")
-        Store st = loadSqlMeta("""
-            select id, parent, name, null as idvalue, null as numberval
-            from Prop
-            where cod='Prop_CalcEggSurvivalRate'
-        """, "")
-        //
-        Store stVal = mdb.loadQuery("""
-            select d1.prop, v1.id as idvalue, v1.numberval
-            from Obj o
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
-                    and d1.prop=${map.get("Prop_CalcEggSurvivalRate")}
-                join DataPropVal v1 on v1.dataprop=d1.id
-            where o.id=${own}
-        """)
-
-        StoreIndex indStVal = stVal.getIndex("prop")
-        for (StoreRecord r in st) {
-            StoreRecord rec = indStVal.get(r.getLong("id"))
-            if (rec != null) {
-                r.set("idvalue", rec.getLong("idvalue"))
-                r.set("numberval", rec.getDouble("numberval"))
-            }
-        }
-        return st
-    }
-
-*/
-
     //**************************************  Tab Numbers **************************************//
     @DaoMethod
     Store loadNumbersPage(long own) {
         String props = "Prop_CalcStartPopulation"
+        return loadMetersWithPeriod(own, props)
+    }
+
+    //**************************************  Tab Weight **************************************//
+    @DaoMethod
+    Store loadWeightPage(long own) {
+        String props = "Prop_WaterFishAverageWeight"
+        return loadMetersWithPeriod(own, props)
+    }
+
+    //**************************************  Tab Pdu **************************************//
+    @DaoMethod
+    Store loadPduPage(long own) {
+        String props = "Prop_CalcPdy"
+        return loadMetersWithPeriod(own, props)
+    }
+    //**************************************  Tab Result **************************************//
+    //**************************************  Tab numbers **************************************//
+    @DaoMethod
+    Store loadResultNumbers(long own) {
+        String props = "Prop_ResultPopulation,Prop_ResultPopulationExc,Prop_ResultSpawning,Prop_ResultCommercial,Prop_Result25Population,Prop_Result75Population"
         return loadMetersWithPeriod(own, props)
     }
 
@@ -793,30 +782,52 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-    //**************************************  Tab Weight **************************************//
-    @DaoMethod
-    Store loadWeightPage(long own) {
-        String props = "Prop_WaterFishAverageWeight"
-        return loadMetersWithPeriod(own, props)
-    }
-
-    //**************************************  Tab Pdu **************************************//
-    @DaoMethod
-    Store loadPduPage(long own) {
-        String props = "Prop_CalcPdy"
-        return loadMetersWithPeriod(own, props)
-    }
-    //**************************************  Tab Result **************************************//
-    //**************************************  Tab numbers **************************************//
-    @DaoMethod
-    Store loadResultNumbers(long own) {
-        String props = "Prop_ResultPopulation,Prop_ResultPopulationExc,Prop_ResultSpawning,Prop_ResultCommercial,Prop_Result25Population,Prop_Result75Population"
-        return loadMetersWithPeriod(own, props)
-    }
-
-
-
     //**************************************  Tab mass **************************************//
+    @DaoMethod
+    Store loadResultMass(long own) {
+        String props = "Prop_ResultTotalIchthyomass,Prop_ResultSpawningBiomass,Prop_ResultCommercialBiomass,Prop_Result25Ichthyomass,Prop_Result75Ichthyomass"
+        return loadMetersWithPeriod(own, props)
+    }
+    //**************************************  Tab mortality **************************************//
+    @DaoMethod
+    Store loadResultMortality(long own) {
+        String props = "Prop_ResultMortalityCoef,Prop_Result25Mortality,Prop_Result75Mortality"
+        return loadMetersWithPeriod(own, props)
+    }
+
+    @DaoMethod
+    Store loadResultMortalityNotPeriod(long own) {
+        String props = "Prop_ResultGRCoefMortality"
+        Set<Object> idsProp = apiMeta().get(ApiMeta).getIdsFromCodOfEntity("Prop", props)
+        Store st = loadSqlMeta("""
+            select id, parent, name, null as idvalue, null as numberval
+            from Prop 
+            where id in (${idsProp.join(",")})
+        """, "")
+        //
+        Store stVal = mdb.loadQuery("""
+            select d1.prop, v1.id as idvalue, v1.numberval
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${idsProp.join(",")})
+                join DataPropVal v1 on v1.dataprop=d1.id
+            where o.id=${own}
+        """)
+
+        StoreIndex indStVal = stVal.getIndex("prop")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indStVal.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("idvalue", rec.getLong("idvalue"))
+                r.set("numberval", rec.getDouble("numberval"))
+            }
+        }
+        return st
+    }
+
+
+
+
 
 
     ////
