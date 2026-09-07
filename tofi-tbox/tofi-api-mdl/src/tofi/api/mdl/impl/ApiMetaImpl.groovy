@@ -466,11 +466,24 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 
     @Override
     Map<String, Object> getIdsFromCodsOfEntity(String Entity, String cods) {
+        if (cods.isEmpty())
+            throw new XError("Cods Is Empty of ${Entity}")
+        String frm_cods = "('"+ cods.split(",").join("','") + "')"
         Store st = mdb.loadQuery("""
-            select id, cod from ${Entity} where cod in (${cods})
+            select id, cod from ${Entity} where cod in ${frm_cods}
         """)
         if (st.size()==0)
-            throw new XError("NotFoundCod@${cods}")
+            throw new XError("Not Found Cods ${cods}")
+
+        Set<String> emtyCods = new HashSet<>()
+        for(StoreRecord r in st) {
+            if (!cods.contains(r.getString("cod"))) {
+                emtyCods.add(r.getString("cod"))
+            }
+        }
+        if (emtyCods.size() > 0) {
+            throw new XError("Not Found cods ${emtyCods.join(",")} of ${Entity}")
+        }
         Map<String, Object> map = new HashMap<>()
         for(StoreRecord r in st) {
             map.put(r.getString("cod"), r.getLong("id"))

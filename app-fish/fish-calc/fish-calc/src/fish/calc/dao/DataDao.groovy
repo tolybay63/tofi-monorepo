@@ -86,7 +86,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     private boolean hasProps(long obj) {
-        String props = "'Prop_ReservoirShore','Prop_CalcStartYear','Prop_CalcEndYear','Prop_CalcFishSpec','Prop_CalcStatus','Prop_CalcDescription'"
+        String props = "Prop_ReservoirShore,Prop_CalcStartYear,Prop_CalcEndYear,Prop_CalcFishSpec,Prop_CalcStatus,Prop_CalcDescription"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
         map.put("obj", obj)
 
@@ -118,7 +118,7 @@ class DataDao extends BaseMdbUtils {
             фактор, объект, измерител
         * */
         //1.
-        String props = "'Prop_ReservoirShore','Prop_CalcStartYear','Prop_CalcEndYear','Prop_CalcFishSpec','Prop_CalcStatus','Prop_CalcDescription'"
+        String props = "Prop_ReservoirShore,Prop_CalcStartYear,Prop_CalcEndYear,Prop_CalcFishSpec,Prop_CalcStatus,Prop_CalcDescription"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
         map.put("obj", parent)
         Store stPrt = mdb.createStore("Calc.main.props.copy")
@@ -149,30 +149,29 @@ class DataDao extends BaseMdbUtils {
         if (stPrt.size() == 1) {
             Map<String, Object> mapProp = stPrt.get(0).getValues()
             mapProp.put("own", id)
-            String props_ = props.replaceAll("'", "")
-            for (final def prop in props_.split(",")) {
+            for (final def prop in props.split(",")) {
                 fillProperties(true, prop, mapProp)
             }
         }
         // Остальные только измерители и показатели
         //2. свойства водоема: Prop_WaterArea, Prop_CalcWaterFluct
-        parent2childPropsOfMeter(parent, id, "'Prop_WaterArea', 'Prop_CalcWaterFluct'", true)
+        parent2childPropsOfMeter(parent, id, "Prop_WaterArea, Prop_CalcWaterFluct", true)
 
-        //3. свойства рыбы: 'Prop_CalcAgeSex','Prop_CalcAgePrey','Prop_FishFecundity','Prop_FishFecundityMin','Prop_FishFecundityMax','Prop_CalcMaxNumberFry'
-        parent2childPropsOfMeter(parent, id, "'Prop_CalcAgeSex','Prop_CalcAgePrey','Prop_FishFecundity','Prop_FishFecundityMin','Prop_FishFecundityMax','Prop_CalcMaxNumberFry'",false)
+        //3. свойства рыбы: Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry
+        parent2childPropsOfMeter(parent, id, "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry",false)
 
         //4. Случайные величины): Prop_CalcBaseMortality, Prop_CalcParabolaLeft, Prop_CalcParabolaRight, Prop_CalcBaseEating, Prop_CalcPdyDevCoef, Prop_CalcEggSurvivalRate
-        parent2childPropsOfMeter(parent, id, "'Prop_CalcBaseMortality','Prop_CalcParabolaLeft','Prop_CalcParabolaRight','Prop_CalcBaseEating','Prop_CalcPdyDevCoef'", true)
-        parent2childPropsOfMeter(parent, id, "'Prop_CalcEggSurvivalRate'", false)
+        parent2childPropsOfMeter(parent, id, "Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef", true)
+        parent2childPropsOfMeter(parent, id, "Prop_CalcEggSurvivalRate", false)
 
         //5. Начальная численность: Prop_CalcStartPopulation
-        parent2childPropsOfMeter(parent, id, "'Prop_CalcStartPopulation'", true)
+        parent2childPropsOfMeter(parent, id, "Prop_CalcStartPopulation", true)
 
         //6. ПДУ: Prop_CalcPdy
-        parent2childPropsOfMeter(parent, id, "'Prop_CalcPdy'", true)
+        parent2childPropsOfMeter(parent, id, "Prop_CalcPdy", true)
 
         //7. средний вес рыбы: Prop_WaterFishAverageWeight
-        parent2childPropsOfMeter(parent, id, "'Prop_WaterFishAverageWeight'", true)
+        parent2childPropsOfMeter(parent, id, "Prop_WaterFishAverageWeight", true)
     }
 
     private void parent2childPropsOfMeter(long parent, long id, String props, boolean dependperiod) {
@@ -545,7 +544,7 @@ class DataDao extends BaseMdbUtils {
     //**************************************  Bayes Calc **************************************//
     private Map<String, Long> getYears(long own) {
         Map<String, Long> res = new HashMap<>()
-        String props = "'Prop_CalcStartYear','Prop_CalcEndYear'"
+        String props = "Prop_CalcStartYear,Prop_CalcEndYear"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
         map.put("own", own)
         Store stYear = mdb.loadQuery("""
@@ -578,7 +577,7 @@ class DataDao extends BaseMdbUtils {
             sel.add("null as id" + year + ",  null  as v" + year)
         }
         //
-        String[] propsA = props.replaceAll("'", "").split(",")
+        String[] propsA = props.replaceAll(" ", "").split(",")
         List<Object> sqlA = new ArrayList<>()
         for (int i = 0; i < propsA.length; i++) {
             sqlA.add("""
@@ -613,7 +612,6 @@ class DataDao extends BaseMdbUtils {
                     }
                 }
             }
-
         }
         //mdb.outTable(st)
         return st
@@ -659,7 +657,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadReservoirPage(long own) {
-        String props = "'Prop_WaterArea','Prop_CalcWaterFluct'"
+        String props = "Prop_WaterArea,Prop_CalcWaterFluct"
         return loadMetersWithPeriod(own, props)
     }
 
@@ -684,14 +682,14 @@ class DataDao extends BaseMdbUtils {
     //**************************************  Tab Fish **************************************//
     @DaoMethod
     Store loadFishPage(long own) {
-        String props = "'Prop_CalcAgeSex','Prop_CalcAgePrey','Prop_FishFecundity','Prop_FishFecundityMin','Prop_FishFecundityMax','Prop_CalcMaxNumberFry'"
+        String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntity("Prop", props)
         map.put("own", own)
-
+        String props_frm = "'"+props.split(",").join("','")+"'"
         Store st = loadSqlMeta("""
             select id, parent, name, null as idvalue, null as numberval
             from Prop 
-            where cod in (${props})
+            where cod in (${props_frm})
         """, "")
         //
         Store stVal = mdb.loadQuery("""
@@ -723,7 +721,7 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadRandPage(long own) {
         //  Prop_CalcEggSurvivalRate dependPeriod=0
-        String props = "'Prop_CalcBaseMortality','Prop_CalcParabolaLeft','Prop_CalcParabolaRight','Prop_CalcBaseEating','Prop_CalcPdyDevCoef'"
+        String props = "Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef"
         return loadMetersWithPeriod(own, props)
     }
 
@@ -760,21 +758,21 @@ class DataDao extends BaseMdbUtils {
     //**************************************  Tab Numbers **************************************//
     @DaoMethod
     Store loadNumbersPage(long own) {
-        String props = "'Prop_CalcStartPopulation'"
+        String props = "Prop_CalcStartPopulation"
         return loadMetersWithPeriod(own, props)
     }
 
     //**************************************  Tab Weight **************************************//
     @DaoMethod
     Store loadWeightPage(long own) {
-        String props = "'Prop_WaterFishAverageWeight'"
+        String props = "Prop_WaterFishAverageWeight"
         return loadMetersWithPeriod(own, props)
     }
 
     //**************************************  Tab Pdu **************************************//
     @DaoMethod
     Store loadPduPage(long own) {
-        String props = "'Prop_CalcPdy'"
+        String props = "Prop_CalcPdy"
         return loadMetersWithPeriod(own, props)
     }
 
@@ -1201,6 +1199,4 @@ class DataDao extends BaseMdbUtils {
             throw new XError("notLoginned")
         return au
     }
-
-
 }
