@@ -1,5 +1,6 @@
 <template>
-  <q-dialog v-model="isOpen" persistent>
+  <!-- Возвращаем q-dialog наверх, чтобы Quasar мог управлять его методами show/hide -->
+  <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="bg-grey-10 text-white q-pa-none" style="width: 750px; max-width: 90vw;">
       <q-card-section class="row items-center bg-grey-9 q-py-sm">
         <div class="text-subtitle2 text-white font-mono flex items-center q-gutter-x-sm">
@@ -8,7 +9,7 @@
           <span>{{ isLoading ? `Выполнение расчета (ID: ${calculationId})...` : 'Расчет завершен!' }}</span>
         </div>
         <q-space />
-        <q-btn icon="close" flat round dense v-close-popup :disable="isLoading" color="white" />
+        <q-btn icon="close" flat round dense :disable="isLoading" color="white" @click="onDialogCancel" />
       </q-card-section>
 
       <q-card-section class="q-pa-md">
@@ -30,7 +31,6 @@
           label="Закрыть и загрузить результаты"
           color="primary"
           :disable="isLoading"
-          v-close-popup
           @click="onFinishModal"
         />
       </q-card-actions>
@@ -40,16 +40,15 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import {api} from "@/boot/axios.js";
+import { useDialogPluginComponent } from 'quasar'
 
 const props = defineProps({
-  modelValue: { type: Boolean, required: true },
   calculationId: { type: [Number, String], required: true }
 })
 
-const emit = defineEmits(['update:modelValue', 'completed'])
+// Подключаем плагин диалога Quasar
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
-const isOpen = ref(true)
 const isLoading = ref(true)
 const logs = ref([])
 const terminalContainer = ref(null)
@@ -66,19 +65,11 @@ const addLog = (text, isError = false, isSuccess = false) => {
   scrollToBottom()
 }
 
-const checkTarget = async () => {
-  await api.post('', {
-    method: 'auth/checkTarget',
-    params: ['calc'],
-  })
-}
-
 const startStreamExecution = async () => {
   try {
-    await checkTarget()
     logs.value = []
     isLoading.value = true
-    const apiPrefix = import.meta.env.PROD ? 'fast/' : 'http://127.0.0.1:8000/'
+    const apiPrefix = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8000/'
     const url = `${apiPrefix}calc_bayes/${props.calculationId}/run`
     const response = await fetch(url)
 
@@ -94,7 +85,6 @@ const startStreamExecution = async () => {
       if (done) break
 
       const chunk = decoder.decode(value, { stream: true })
-      // Разделяем чанк по строкам, если пришло сразу несколько
       chunk.split('\n').forEach(line => {
         if (line.trim()) {
           const isErr = line.includes('ОШИБКА')
@@ -116,8 +106,9 @@ onMounted(() => {
   startStreamExecution()
 })
 
+// При нажатии кнопки вызываем onDialogOK(), что триггерит .onOk() у родителя и закрывает диалог
 const onFinishModal = () => {
-  emit('completed', props.calculationId)
+  onDialogOK()
 }
 </script>
 

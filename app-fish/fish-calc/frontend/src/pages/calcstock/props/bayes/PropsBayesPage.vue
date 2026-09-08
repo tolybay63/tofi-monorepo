@@ -36,5 +36,16 @@ const props = defineProps({
   own: Number
 })
 
-const tab = ref("props")
+let tab = ref("props")
+
+// Метод для внешнего переключения таба
+const setTab = (tabName) => {
+  tab.value = tabName
+}
+
+defineExpose({
+  setTab
+})
+
+
 </script>

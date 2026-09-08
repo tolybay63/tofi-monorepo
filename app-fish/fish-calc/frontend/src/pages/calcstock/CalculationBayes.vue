@@ -24,7 +24,7 @@
     </q-banner>
 
     <div class="col relative-position">
-      <props-bayes-page :name="title" :own="id" class="absolute-full"/>
+      <props-bayes-page ref="propsPageRef" :name="title" :own="id" class="absolute-full"/>
     </div>
   </q-page>
 </template>
@@ -34,9 +34,9 @@ import {getCurrentInstance, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {useQuasar} from "quasar";
 import PropsBayesPage from "@/pages/calcstock/props/bayes/PropsBayesPage.vue";
-
 import TerminalPage from "@/pages/calcstock/TerminalPage.vue";
 
+const propsPageRef = ref(null)
 const router = useRouter();
 const route = useRoute()
 const {proxy} = getCurrentInstance()
@@ -59,7 +59,9 @@ const toCalc = () => {
     },
   })
     .onOk(() => {
-
+      if (propsPageRef.value) {
+        propsPageRef.value.setTab('res')
+      }
     });
 }
 
