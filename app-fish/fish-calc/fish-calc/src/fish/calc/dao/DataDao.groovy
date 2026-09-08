@@ -683,21 +683,35 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadFishPage(long own) {
         String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry"
+        return loadDataWithOutPeriod(own, props)
+    }
+
+    private Store loadDataWithOutPeriod(long own, String props) {
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
         map.put("own", own)
         String props_frm = "'"+props.split(",").join("','")+"'"
-        Store st = loadSqlMeta("""
-            select id, parent, name, null as idvalue, null as numberval
+        Store stProp = loadSqlMeta("""
+            select id
             from Prop 
             where cod in (${props_frm})
         """, "")
+        Set<Object> idsProp = stProp.getUniqueValues("id")
+        Store st = loadSqlMeta("""
+            select id, cod, name, null as idvalue, null as numberval
+            from Prop 
+            where id in (${idsProp.join(",")})
+            union all
+            select id, cod, name, null as idvalue, null as numberval
+            from Prop 
+            where parent in (${idsProp.join(",")})            
+        """, "")
+        idsProp = st.getUniqueValues("id")
         //
         Store stVal = mdb.loadQuery("""
-            select d1.prop, v1.id as idvalue, v1.numberval 
+            select  d1.prop, v1.id as idvalue, v1.numberval
             from Obj o
                 join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
-                    and d1.prop in (${map.get("Prop_CalcAgeSex")},${map.get("Prop_CalcAgePrey")},${map.get("Prop_FishFecundity")},
-                        ${map.get("Prop_FishFecundityMin")},${map.get("Prop_FishFecundityMax")},${map.get("Prop_CalcMaxNumberFry")})
+                    and d1.prop in (${idsProp.join(",")})
                 join DataPropVal v1 on v1.dataprop=d1.id 
             where o.id=${own}
         """)

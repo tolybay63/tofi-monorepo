@@ -183,7 +183,7 @@ const loadFishPage = (objId) => {
       params: [objId],
     })
     .then((response) => {
-      //console.info("rows", response.data.result['records'])
+      console.info("rows Fish", response.data.result['records'])
       rows.value = pack(response.data.result['records'], 'id')
     })
     .finally(() => {
