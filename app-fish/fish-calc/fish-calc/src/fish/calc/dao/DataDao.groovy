@@ -175,10 +175,11 @@ class DataDao extends BaseMdbUtils {
     }
 
     private void parent2childPropsOfMeter(long parent, long id, String props, boolean dependperiod) {
+        String frm_props = "'" + props.split(",").join("','") + "'"
 
         Store stProp = loadSqlMeta("""
             select id from Prop 
-            where cod in (${props})
+            where cod in (${frm_props})
         """, "")
         Set<Object> idsProp = stProp.getUniqueValues("id")
         stProp = loadSqlMeta("""
