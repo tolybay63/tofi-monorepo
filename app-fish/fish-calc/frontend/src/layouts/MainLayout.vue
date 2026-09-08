@@ -195,6 +195,8 @@ const essentialLinks = computed(() => [
     //to: '/calc_mpc',
     target: 'calc',
   },
+/*
+
   {
     label: 'Fast API EndPoints',
     info: '',
@@ -218,6 +220,7 @@ const essentialLinks = computed(() => [
     ]
   },
 
+*/
 ])
 
 // Methods

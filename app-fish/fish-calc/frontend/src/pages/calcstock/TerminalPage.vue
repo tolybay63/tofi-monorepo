@@ -40,6 +40,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
+import {api} from "@/boot/axios.js";
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
@@ -65,12 +66,20 @@ const addLog = (text, isError = false, isSuccess = false) => {
   scrollToBottom()
 }
 
+const checkTarget = async () => {
+  await api.post('', {
+    method: 'auth/checkTarget',
+    params: ['calc'],
+  })
+}
+
 const startStreamExecution = async () => {
   try {
+    await checkTarget()
     logs.value = []
     isLoading.value = true
-
-    const url = `http://127.0.0.1:8000/calc_bayes/${props.calculationId}/run`
+    const apiPrefix = import.meta.env.PROD ? 'fast/' : 'http://127.0.0.1:8000/'
+    const url = `${apiPrefix}calc_bayes/${props.calculationId}/run`
     const response = await fetch(url)
 
     if (!response.ok) {
