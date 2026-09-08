@@ -595,7 +595,7 @@ class DataDao extends BaseMdbUtils {
         String sqlVal = """
             select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
             from Obj o
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id-- and d1.prop=1008
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodType is not null
                 join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
             where o.id=${own}
         """

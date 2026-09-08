@@ -171,7 +171,7 @@ const loadReservoirPage = (objId) => {
       params: [objId],
     })
     .then((response) => {
-      //console.info("rows", response.data.result['records'])
+      console.info("rows Resoirvor", response.data.result['records'])
       rows.value = pack(response.data.result['records'], 'id')
     })
     .finally(() => {
