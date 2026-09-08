@@ -123,9 +123,9 @@ const fnEditCell = (item, field) => {
 }
 
 const fnDeleteCell = (item, field) => {
-  console.log("item", item)
-  console.log("field", field)
-  console.log("id", item["id"+field.substring(1)])
+  //console.log("item", item)
+  //console.log("field", field)
+  //console.log("id", item["id"+field.substring(1)])
 
   let nm = item.name
   $q.dialog({
@@ -171,7 +171,7 @@ const loadReservoirPage = (objId) => {
       params: [objId],
     })
     .then((response) => {
-      console.info("rows Resoirvor", response.data.result['records'])
+      //console.info("rows Resoirvor", response.data.result['records'])
       rows.value = pack(response.data.result['records'], 'id')
     })
     .finally(() => {

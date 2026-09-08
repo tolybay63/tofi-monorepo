@@ -119,9 +119,9 @@ const fnEditCell = (item, field) => {
 }
 
 const fnDeleteCell = (item, field) => {
-  console.log("item", item)
-  console.log("field", field)
-  console.log("id", item["id"+field.substring(1)])
+  //console.log("item", item)
+  //console.log("field", field)
+  //console.log("id", item["id"+field.substring(1)])
 
   let nm = item.name
   $q.dialog({

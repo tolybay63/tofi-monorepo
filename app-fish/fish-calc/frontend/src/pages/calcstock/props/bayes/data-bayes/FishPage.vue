@@ -92,10 +92,9 @@ const updateRowValue = (item, newrec) => {
 }
 
 const fnEditCell = (item) => {
-  console.log("item", item)
+  //console.log("item", item)
   //
   const mode = item["idval"] ? "upd" : "ins"
-  console.log("mode", mode)
   let rec = {
     obj: props.own,
     prop: item.id,
@@ -120,8 +119,6 @@ const fnEditCell = (item) => {
 }
 
 const fnDeleteCell = (item) => {
-  console.log("item", item)
-
   let nm = item.name
   $q.dialog({
     title: proxy?.$t('confirmation'),
@@ -183,7 +180,7 @@ const loadFishPage = (objId) => {
       params: [objId],
     })
     .then((response) => {
-      console.info("rows Fish", response.data.result['records'])
+      //console.info("rows Fish", response.data.result['records'])
       rows.value = pack(response.data.result['records'], 'id')
     })
     .finally(() => {

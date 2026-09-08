@@ -87,7 +87,7 @@ const loadResultNumbersNotPeriod = (objId) => {
     })
     .then((response) => {
       rows2.value = response.data.result['records']
-      console.info("rows2", rows2.value)
+      //console.info("rows2", rows2.value)
     })
     .finally(() => {
       loading2.value = false

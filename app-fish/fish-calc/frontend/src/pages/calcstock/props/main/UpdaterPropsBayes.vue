@@ -293,15 +293,10 @@ onMounted(async () => {
     let usr = {id: getUserId, name: getUserName, pv: 1102};
     optCalcUser.value.push(usr)
     //
-    console.info("optCalcUser", optCalcUser.value)
-
   } catch (error) {
     console.error(error)
   } finally {
     loading.value = false
-
-    console.info("data", props.data)
-    console.info("form", form)
   }
 })
 

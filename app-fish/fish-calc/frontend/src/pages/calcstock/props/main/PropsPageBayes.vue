@@ -77,9 +77,6 @@ const fnEdit = async () => {
     Object.assign(data, rows.value[0]);
   }
 
-  console.info("DATA", data)
-
-
   $q.dialog({
     component: UpdaterPropsBayes,
     componentProps: {
@@ -101,7 +98,7 @@ const loadData = async (objId) => {
     .then(
       (response) => {
         rows.value = response.data.result["records"];
-        console.info("SERVER ROWS:", rows.value);
+        //console.info("SERVER ROWS:", rows.value);
       },
       (error) => {
         let msg = error.message;
@@ -127,10 +124,8 @@ const loadFvAsMap = async (objId, codProp) => {
       (response) => {
         if (codProp==="Prop_CalcFishSpec") {
           mapCalcFishSpec.value = response.data.result
-          console.info("mapCalcFishSpec", mapCalcFishSpec.value)
         } else if (codProp==="Prop_CalcStatus") {
           mapCalcStatus.value = response.data.result
-          console.info("mapCalcStatus", mapCalcStatus.value)
         }
       },
       (error) => {
@@ -154,12 +149,9 @@ const loadReservoirAsMap = async (objId, codProp) => {
       params: [codProp],
     })
     .then((response) => {
-      console.info("Reservoir Recs", response.data.result.records)
       response.data.result.records.forEach((it) => {
         mapReservoir.value[it['id']] = it['name']
       })
-
-      console.info("Reservoir", mapReservoir.value)
     })
     .finally(() => {
       loading.value = false
