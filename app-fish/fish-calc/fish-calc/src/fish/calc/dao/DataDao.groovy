@@ -683,7 +683,8 @@ class DataDao extends BaseMdbUtils {
     //**************************************  Tab Fish **************************************//
     @DaoMethod
     Store loadFishPage(long own) {
-        String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry"
+        //String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry"
+        String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_CalcMaxNumberFry"
         return loadDataWithOutPeriod(own, props)
     }
 
@@ -698,11 +699,11 @@ class DataDao extends BaseMdbUtils {
         """, "")
         Set<Object> idsProp = stProp.getUniqueValues("id")
         Store st = loadSqlMeta("""
-            select id, cod, name, null as idvalue, null as numberval
+            select id, parent, cod, name, null as idvalue, null as numberval
             from Prop 
             where id in (${idsProp.join(",")})
             union all
-            select id, cod, name, null as idvalue, null as numberval
+            select id, parent, cod, name, null as idvalue, null as numberval
             from Prop 
             where parent in (${idsProp.join(",")})            
         """, "")

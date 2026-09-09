@@ -1,8 +1,35 @@
 <template>
-  <div class="column no-wrap fit">
+  <div class="column no-wrap fit sticky-header-table">
 
-    <div class="bg-orange-1" style="height: 100%">
+    <div class="q-px-sm  bg-indigo-1" style="height: 42px">
+      <q-btn
+        dense round
+        icon="expand_more"
+        color="secondary"
+        @click="fnExpand()"
+        class="q-px-sm"
+        style="margin-top: 2px; margin-right: 5px;"
+      >
+        <q-tooltip>
+          {{ $t("expandAll") }}
+        </q-tooltip>
+      </q-btn>
 
+      <q-btn
+        dense round
+        icon="expand_less"
+        color="secondary"
+        @click="fnCollapse()"
+        class="q-px-sm"
+        style="margin-top: 2px; margin-left: 5px;"
+      >
+        <q-tooltip>
+          {{ $t("collapseAll") }}
+        </q-tooltip>
+      </q-btn>
+    </div>
+
+    <div class="bg-orange-1" style="height: 93%">
       <q-markup-table separator="cell" bordered wrap-cells class="fit">
         <thead class="text-bold text-white bg-blue-grey-13">
         <tr>
@@ -63,7 +90,7 @@
 
 import {useQuasar} from "quasar";
 import {computed, getCurrentInstance, onMounted, ref, watch} from "vue";
-import {expandAll, findRowForId, notifyError, notifyInfo, pack} from "@/utils/jsutils.js";
+import {collapsAll, expandAll, findRowForId, notifyError, notifyInfo, pack} from "@/utils/jsutils.js";
 import {api} from "@/boot/axios.js";
 import UpdaterReservoirPage from "./UpdaterReservoirPage.vue";
 
@@ -80,6 +107,14 @@ const cols = ref([])
 const loading = ref(false)
 const isExpanded = ref(true)
 const itemId = ref(null)
+
+const fnExpand = () => {
+  expandAll(rows.value)
+}
+
+const fnCollapse = () => {
+  collapsAll(rows.value)
+}
 
 const updateRowValue = (item, field, newrec) => {
   let row = findRowForId(rows.value, item.id)
@@ -262,6 +297,32 @@ watch(
 </script>
 
 <style scoped>
+.sticky-header-table {
+  /* Ограничиваем высоту контейнера, чтобы появилась прокрутка */
+  max-height: 100%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  /* Убираем схлопывание границ, чтобы sticky работал корректно в некоторых браузерах */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sticky-header-table thead th {
+  /* Делаем заголовок липким */
+  position: sticky;
+  top: 0;
+  /* Z-index нужен, чтобы содержимое body не перекрывало заголовок */
+  z-index: 1;
+  /* Фон обязателен, иначе заголовок будет прозрачным */
+  background-color: #607d8b; /* Аналог bg-blue-grey-13 */
+}
+
+/* Опционально: если у таблицы есть границы, фиксируем их отображение */
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
 
 </style>
 
