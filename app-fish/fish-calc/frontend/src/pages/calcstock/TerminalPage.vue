@@ -1,6 +1,6 @@
 <template>
   <!-- Возвращаем q-dialog наверх, чтобы Quasar мог управлять его методами show/hide -->
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
+  <q-dialog ref="dialogRef" @hide="onDialogHide" persistent>
     <q-card class="bg-grey-10 text-white q-pa-none" style="width: 750px; max-width: 90vw;">
       <q-card-section class="row items-center bg-grey-9 q-py-sm">
         <div class="text-subtitle2 text-white font-mono flex items-center q-gutter-x-sm">
