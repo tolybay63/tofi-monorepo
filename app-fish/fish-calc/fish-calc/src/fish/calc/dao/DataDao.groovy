@@ -74,14 +74,17 @@ class DataDao extends BaseMdbUtils {
         //
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
         long obj = eu.insertEntity(rec)
-        // Create prop CalcCreatDate
+        // Fill prop CalcCreatDate for any calc
         Map<String, Object> map = new HashMap<>()
         map.put("own", obj)
         map.put("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
         fillProperties(true, "Prop_CalcCreatDate", map)
-        // Наследуем свойства if child objParent => obj
-        if (objParent > 0) {
+
+        if (objParent > 0) {    // Наследуем свойства if child objParent => obj
             parent2childProps(objParent, obj)
+        } else {    //
+            // Fill props: Prop_CalcStartYear, Prop_CalcEndYear, Prop_ReservoirShore, Prop_CalcFishSpec
+
         }
     }
 

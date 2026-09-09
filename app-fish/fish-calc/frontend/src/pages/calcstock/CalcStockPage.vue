@@ -47,7 +47,7 @@
               color="secondary"
               dense
               icon="post_add"
-              @click="fnEdit(null, true, false, 'ins')"
+              @click="fnCreateMain()"
             >
               <q-tooltip transition-hide="rotate" transition-show="rotate">
                 {{ tr("create1level") }}
@@ -276,6 +276,23 @@ const fnDel = (rec) => {
       notifyInfo(proxy?.$t("canceled"));
     });
 };
+
+const fnCreateMain = () => {
+  let data = {cls: cls.value};
+  $q.dialog({
+    component: UpdaterCalcStock,
+    componentProps: {
+      mode: "ins",
+      isChild: false,
+      parentName: "",
+      data: data,
+    },
+  })
+    .onOk(() => {
+
+    });
+
+}
 
 const fnEdit = (rec, isMain, isChild, mode) => {
   if (isMain) {
