@@ -111,11 +111,22 @@ const isExpanded = ref(true)
 const itemId = ref(null)
 
 const fnExpand = () => {
-  expandAll(rows.value)
+  try {
+    loading.value = true;
+    expandAll(rows.value)
+  } finally {
+    loading.value = false;
+  }
+
 }
 
 const fnCollapse = () => {
-  collapsAll(rows.value)
+  try {
+    loading.value = true;
+    collapsAll(rows.value)
+  } finally {
+    loading.value = false;
+  }
 }
 
 const updateRowValue = (item, field, newrec) => {

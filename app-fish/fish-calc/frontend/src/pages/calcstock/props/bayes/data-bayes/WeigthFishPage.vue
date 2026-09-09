@@ -1,6 +1,10 @@
 <template>
   <div class="column no-wrap fit">
 
+
+    <q-inner-loading :showing="loading" color="secondary"></q-inner-loading>
+
+
     <div class="q-px-sm  bg-indigo-1" style="height: 42px">
       <q-btn
         dense round
