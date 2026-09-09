@@ -1,10 +1,6 @@
 <template>
   <div class="column no-wrap fit">
 
-
-    <q-inner-loading :showing="loading" color="secondary"></q-inner-loading>
-
-
     <div class="q-px-sm  bg-indigo-1" style="height: 42px">
       <q-btn
         dense round
@@ -35,6 +31,9 @@
 
     <div class="bg-orange-1 sticky-header-table" style="height: 100%">
       <q-markup-table separator="cell" bordered wrap-cells class="fit">
+
+        <q-inner-loading :showing="loading" color="secondary"></q-inner-loading>
+
         <thead class="text-bold text-white bg-blue-grey-13">
         <tr>
           <th v-for="col in cols" :style="col.style">
