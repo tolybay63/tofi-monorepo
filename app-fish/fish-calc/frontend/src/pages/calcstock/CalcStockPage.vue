@@ -289,12 +289,13 @@ const fnCreateMain = () => {
     },
   })
     .onOk(() => {
-
+      fetchData();
+      fnExpand();
     });
 
 }
 
-const fnEdit = (rec, isMain, isChild, mode) => {
+const fnEdit = async (rec, isMain, isChild, mode) => {
   if (isMain) {
     rec = {cls: cls.value};
     isChild = false;
@@ -307,6 +308,18 @@ const fnEdit = (rec, isMain, isChild, mode) => {
     }
   }
   //
+  if (mode==="ins") {
+    await api.post('', { method: 'data/hasProps', params: [rec.parent] })
+    const resp = await api.post('', {method: 'data/getYears', params: [rec.parent]})
+    let y1 = resp.data.result['year1'].toString()
+    let y2 = resp.data.result['year2'].toString()
+    //rec.CalcStartYear = y1
+    //rec.CalcEndYear = y2
+    //extend(true, rec, {CalcStartYear: y1, CalcEndYear: y2})
+    console.info("rest", resp.data.result)
+    console.info("rec", rec)
+    rec = {cls: cls.value, parent: rec.parent, CalcStartYear: y1, CalcEndYear: y2};
+  }
   $q.dialog({
     component: UpdaterCalcStock,
     componentProps: {

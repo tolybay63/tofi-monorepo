@@ -1,11 +1,11 @@
 <template>
   <q-dialog
     ref="dialog"
+    persistent
+    transition-hide="slide-down"
+    transition-show="slide-up"
     @hide="onDialogHide"
     @show="onDialogShow"
-    persistent
-    transition-show="slide-up"
-    transition-hide="slide-down"
 
   >
     <q-card class="q-dialog-plugin" style="width: 460px">
@@ -24,85 +24,90 @@
         <!-- Добавлен ref="inputNameRef" -->
         <q-input
           ref="inputNameRef"
-          dense
-          autofocus
           v-model="form['name']"
           :label="$t('nameCalc')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+          autofocus
           class="q-mx-sm"
+          dense
         />
 
-        <div class="row">
-          <!-- CalcStartYear -->
-          <q-input
-            v-model="form['CalcStartYear']"
-            :model-value="form['CalcStartYear']"
-            :label="fmReqLabel('CalcStartYear', true)"
-            :rules="[(val) => (!!val && val.trim().length===4) || $t('req')]"
-            class="q-ml-sm q-mr-lg" dense mask="####"
-          />
+        <div v-if="mode==='ins'">
 
-          <q-space></q-space>
+          <div class="row">
+            <!-- CalcStartYear -->
+            <q-input
+              v-model="form['CalcStartYear']"
+              :label="fmReqLabel('CalcStartYear', true)"
+              :model-value="form['CalcStartYear']"
+              :rules="[
+                () => isChild ? checkYear1() || 'Y1 > Y2 || Y1 < YP1' : checkYear1P() || 'Y1 > Y2'
+               ]"
+              class="q-ml-sm q-mr-lg" dense mask="####"
+            />
 
-          <!-- CalcEndYear -->
-          <q-input
-            v-model="form['CalcEndYear']"
-            :label="fmReqLabel('CalcEndYear', true)"
-            :rules="[
-            (val) => (!!val && val.trim().length===4) || $t('req'),
-            () => checkYear() || 'Y1 > Y2'
-            ]"
-            class="q-ml-lg"  dense mask="####"
-          />
+            <q-space></q-space>
+
+            <!-- CalcEndYear -->
+            <q-input
+              v-model="form['CalcEndYear']"
+              :label="fmReqLabel('CalcEndYear', true)"
+              :rules="[
+                () => isChild ? checkYear2() || 'Y1 > Y2 || Y2 > YP2' : checkYear2P() || 'Y1 > Y2'
+              ]"
+              class="q-ml-lg" dense mask="####"
+            />
+          </div>
+
+          <div v-if="!isChild">
+            <!-- Prop_ReservoirShore -->
+            <q-select
+              v-model="form.objReservoirShore"
+              :label="fmReqLabel('reservoir', true)"
+              :options="optReservoir"
+              class="q-mx-sm"
+              dense
+              map-options
+              option-label="name"
+              option-value="id"
+              use-input
+              @filter="filterReservoir"
+              @update:model-value="fnSelectReservoir"
+            />
+            <!-- Prop_CalcFishSpec -->
+            <q-select
+              v-model="form['fvCalcFishSpec']"
+              :label="fmReqLabel('CalcFishSpec', true)"
+              :options="optCalcFishSpec"
+              class="q-ma-sm"
+              dense
+              map-options
+              option-label="name"
+              option-value="id"
+              options-dense
+              @update:model-value="fnSelectCalcFishSpec"
+            />
+          </div>
         </div>
-
-        <!-- Prop_ReservoirShore -->
-        <q-select
-          v-model="form.objReservoirShore"
-          :label="fmReqLabel('reservoir', true)"
-          :options="optReservoir"
-          class="q-mx-sm"
-          dense
-          map-options
-          option-label="name"
-          option-value="id"
-          use-input
-          @filter="filterReservoir"
-          @update:model-value="fnSelectReservoir"
-        />
-        <!-- Prop_CalcFishSpec -->
-        <q-select
-          class="q-ma-sm"
-          v-model="form['fvCalcFishSpec']"
-          dense
-          options-dense
-          :options="optCalcFishSpec"
-          :label="fmReqLabel('CalcFishSpec', true)"
-          option-value="id"
-          option-label="name"
-          map-options
-          @update:model-value="fnSelectCalcFishSpec"
-        />
-
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-          color="primary"
-          icon="save"
+          :disable="validName()"
           :label="$t('save')"
           :loading="loading"
+          color="primary"
+          icon="save"
           @click="onOKClick"
-          :disable="validName()"
         >
           <template #loading>
             <q-spinner-hourglass color="white"/>
           </template>
         </q-btn>
         <q-btn
+          :label="$t('cancel')"
           color="primary"
           icon="cancel"
-          :label="$t('cancel')"
           @click="onCancelClick"
         />
       </q-card-actions>
@@ -129,7 +134,10 @@ const {proxy} = getCurrentInstance();
 const loading = ref(false);
 const dialog = ref(null);
 const inputNameRef = ref(null);
+const y1P = props.data["CalcStartYear"];
+const y2P = props.data["CalcEndYear"];
 const form = reactive({...props.data});
+
 const optReservoir = ref([])
 const optReservoirOrg = ref([])
 const optCalcFishSpec = ref([])
@@ -141,9 +149,49 @@ const fmReqLabel = (label, req) => {
     return proxy?.$t(label)
 }
 
-const checkYear = () => {
+/*
+const checkYear1 = () => {
   if (!form['CalcStartYear'] || !form['CalcEndYear']) return true
-  return form['CalcStartYear'] <= form['CalcEndYear']
+  return form['CalcStartYear'] <= form['CalcEndYear'] && form['CalcStartYear'] >= y1P
+}
+*/
+
+const checkYear1 = () => {
+  return (form["CalcStartYear"] && form["CalcStartYear"].length === 4 && form['CalcStartYear'] <= form['CalcEndYear'] && form['CalcStartYear'] >= y1P )
+}
+
+const checkYear2 = () => {
+  return (form["CalcEndYear"] && form["CalcEndYear"].length === 4 && form['CalcStartYear'] <= form['CalcEndYear'] && form['CalcEndYear'] <= y2P )
+}
+
+const checkYear1P = () => {
+  return (form["CalcStartYear"] && form["CalcStartYear"].length === 4 && form['CalcStartYear'] <= form['CalcEndYear'])
+}
+
+const checkYear2P = () => {
+  return (form["CalcEndYear"] && form["CalcEndYear"].length === 4 && form['CalcStartYear'] <= form['CalcEndYear'])
+}
+
+/*const checkYear2 = () => {
+  if (!form['CalcStartYear'] || !form['CalcEndYear']) return true
+  return form['CalcStartYear'] <= form['CalcEndYear'] && form['CalcEndYear'] <= y2P
+}*/
+
+const validName = () => {
+  console.info(form)
+
+  if ( !form["name"])
+    return true
+
+  if (props.mode==="ins") {
+    if (props.isChild) {
+      return !checkYear1() || !checkYear2();
+    } else {
+      return !form["fvCalcFishSpec"] || !form["objReservoirShore"] || !checkYear1P() || !checkYear2P();
+    }
+  } else {
+    return form["name"] === "";
+  }
 }
 
 const fnSelectCalcFishSpec = (v) => {
@@ -174,15 +222,6 @@ const filterReservoir = (val, update) => {
     })
   })
 }
-
-const validName = () => {
-  let valid = !form["name"] || !form["fvCalcFishSpec"] || !form["objReservoirShore"];
-  if (valid) return true
-  if (!form["CalcStartYear"] || (form["CalcStartYear"] && form["CalcStartYear"].length !== 4)) return true;
-  return !form["CalcEndYear"] || (form["CalcEndYear"] && form["CalcEndYear"].length !== 4);
-
-
-};
 
 const show = () => {
   dialog.value?.show();
@@ -236,15 +275,17 @@ defineExpose({
 
 onMounted(async () => {
   console.info("onMounted upd", props.isChild, props.parentName);
-
-  const resp1 = await api.post('', { method: 'data/loadReservoirs', params: ['Prop_ReservoirShore'] })
-  optReservoir.value = resp1.data.result['records']
-  optReservoirOrg.value = resp1.data.result['records']
-  //
-  const resp2 = await api.post('', { method: 'data/loadFVasStore', params: ['Prop_CalcFishSpec'] })
-  optCalcFishSpec.value = resp2.data.result['records']
-
-
-
+  if (!props.isChild) {
+    if (props.mode === "ins") {
+      const resp1 = await api.post('', {method: 'data/loadReservoirs', params: ['Prop_ReservoirShore']})
+      optReservoir.value = resp1.data.result['records']
+      optReservoirOrg.value = resp1.data.result['records']
+      //
+      const resp2 = await api.post('', {method: 'data/loadFVasStore', params: ['Prop_CalcFishSpec']})
+      optCalcFishSpec.value = resp2.data.result['records']
+    }
+  } else {
+    console.info("is Child", props.data);
+  }
 });
 </script>

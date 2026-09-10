@@ -67,9 +67,7 @@ class DataDao extends BaseMdbUtils {
         // Check Props if child
         long objParent = UtCnv.toLong(rec.get("parent"))
         if (objParent > 0) {
-            if (!hasProps(objParent)) {
-                throw new XError("Для данного расчета не указаны необходимые свойства")
-            }
+            hasProps(objParent)
         }
         //
         EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
@@ -79,6 +77,10 @@ class DataDao extends BaseMdbUtils {
         map.put("own", obj)
         map.put("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
         fillProperties(true, "Prop_CalcCreatDate", map)
+        map.put("CalcStartYear", rec.get("CalcStartYear"))
+        map.put("CalcEndYear", rec.get("CalcEndYear"))
+        fillProperties(true, "Prop_CalcStartYear", map)
+        fillProperties(true, "Prop_CalcEndYear", map)
 
         if (objParent > 0) {    // Наследуем свойства if child objParent => obj
             parent2childProps(objParent, obj)
@@ -88,7 +90,8 @@ class DataDao extends BaseMdbUtils {
         }
     }
 
-    private boolean hasProps(long obj) {
+    @DaoMethod
+    void hasProps(long obj) {
         String props = "Prop_ReservoirShore,Prop_CalcStartYear,Prop_CalcEndYear,Prop_CalcFishSpec,Prop_CalcStatus,Prop_CalcDescription"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
         map.put("obj", obj)
@@ -108,10 +111,11 @@ class DataDao extends BaseMdbUtils {
                 join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
                 join DataPropVal v8 on v8.dataprop=d8.id
                 join DataProp d9 on d9.isObj=1 and d9.objOrRelObj=o.id and d9.prop=:Prop_CalcDescription
-                join DataPropVal v9 on v9.dataprop=d9.id                
+                join DataPropVal v9 on v9.dataprop=d9.id 
             where o.id=:obj
         """, map)
-        return st.size() > 0
+        if (st.size() == 0)
+            throw new XError("Для данного расчета не указаны необходимые свойства")
     }
 
     private void parent2childProps(long parent, long id) {
@@ -121,30 +125,18 @@ class DataDao extends BaseMdbUtils {
             фактор, объект, измерител
         * */
         //1.
-        String props = "Prop_ReservoirShore,Prop_CalcStartYear,Prop_CalcEndYear,Prop_CalcFishSpec,Prop_CalcStatus,Prop_CalcDescription"
+        String props = "Prop_CalcStatus,Prop_CalcDescription"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
         map.put("obj", parent)
         Store stPrt = mdb.createStore("Calc.main.props.copy")
         mdb.loadQuery(stPrt, """
             select
-                v1.strVal as CalcStartYear,
-                v2.strVal as CalcEndYear,
-                v5.propVal as pvCalcFishSpec,
                 v6.propVal as pvCalcStatus,
-                v8.propVal as pvReservoirShore, v8.obj as objReservoirShore,
                 v9.multiStrVal as CalcDescription
             from Obj o
                 join ObjVer v on o.id=v.ownerVer and v.lastVer=1
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
-                join DataPropVal v1 on v1.dataprop=d1.id
-                join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
-                join DataPropVal v2 on v2.dataprop=d2.id
-                join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
-                join DataPropVal v5 on v5.dataprop=d5.id
                 join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
                 join DataPropVal v6 on v6.dataprop=d6.id
-                join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
-                join DataPropVal v8 on v8.dataprop=d8.id
                 join DataProp d9 on d9.isObj=1 and d9.objOrRelObj=o.id and d9.prop=:Prop_CalcDescription
                 join DataPropVal v9 on v9.dataprop=d9.id
             where o.id=:obj
@@ -178,27 +170,29 @@ class DataDao extends BaseMdbUtils {
     }
 
     private void parent2childPropsOfMeter(long parent, long id, String props, boolean dependperiod) {
-        String frm_props = "'" + props.split(",").join("','") + "'"
-
-        Store stProp = loadSqlMeta("""
-            select id from Prop 
-            where cod in (${frm_props})
-        """, "")
-        Set<Object> idsProp = stProp.getUniqueValues("id")
-        stProp = loadSqlMeta("""
-            select id from Prop 
-            where id in (${idsProp.join(",")})
-            union all
-            select id from Prop 
-            where parent in (${idsProp.join(",")})
-        """, "")
-        idsProp = stProp.getUniqueValues("id")
+        Set<Object> idsPropAll = new HashSet<>()
+        for (String cod in props.split(",")) {
+            Store stTmp = loadSqlMeta("""
+                WITH RECURSIVE r AS (
+                    SELECT id
+                    FROM prop
+                    WHERE cod='${cod}'    
+                    UNION ALL    
+                    SELECT c.id
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r;
+            """, "")
+            Set<Object> setIds = stTmp.getUniqueValues("id")
+            idsPropAll.addAll(setIds)
+        }
 
         String sql = """
             select d1.prop, v1.numberval  
             from Obj o
                 join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
-                    and d1.prop in (${idsProp.join(",")})
+                    and d1.prop in (${idsPropAll.join(",")})
                 join DataPropVal v1 on v1.dataprop=d1.id 
             where o.id=${parent}
         """
@@ -207,7 +201,7 @@ class DataDao extends BaseMdbUtils {
                 select d1.prop, v1.numberval, date_part('year', v1.dbeg) as year  
                 from Obj o
                     join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype=11
-                        and d1.prop in (${idsProp.join(",")})
+                        and d1.prop in (${idsPropAll.join(",")})
                     join DataPropVal v1 on v1.dataprop=d1.id 
                 where o.id=${parent}
             """
@@ -358,8 +352,8 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v4 on v4.dataprop=d4.id
                 join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
                 join DataPropVal v5 on v5.dataprop=d5.id
-                join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
-                join DataPropVal v6 on v6.dataprop=d6.id
+                left join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
+                left join DataPropVal v6 on v6.dataprop=d6.id
                 left join DataProp d7 on d7.isObj=1 and d7.objOrRelObj=o.id and d7.prop=:Prop_CalcUser
                 left join DataPropVal v7 on v7.dataprop=d7.id
                 join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
@@ -546,7 +540,8 @@ class DataDao extends BaseMdbUtils {
         }
     }
     //**************************************  Bayes Calc **************************************//
-    private Map<String, Long> getYears(long own) {
+    @DaoMethod
+    Map<String, Long> getYears(long own) {
         Map<String, Long> res = new HashMap<>()
         String props = "Prop_CalcStartYear,Prop_CalcEndYear"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
