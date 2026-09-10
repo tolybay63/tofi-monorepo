@@ -146,7 +146,8 @@ class FillDao extends BaseMdbUtils {
             "Prop_FishLocation"    : 1045,
             "Prop_FishGear"        : 1046,
             "Prop_FishManager"     : 1047L,
-            "Prop_FishParticipants": 1048L
+            "Prop_FishParticipants": 1048L,
+            "Prop_ReservoirShore"  : 3359L
     ]
 
     @DaoMethod
@@ -173,7 +174,11 @@ class FillDao extends BaseMdbUtils {
         boolean errTest = false
 
 
-        StoreIndex indexLocationAndGear, indexManagerAndParticipants
+        StoreIndex indexLocationAndGear,
+                indexManagerAndParticipants,
+                indexLocationAndReservoir,
+                indexManagerAndParticipantsAndGear
+
         //*******************************************************
         // Анализ свойств
         //******************************************************
@@ -186,16 +191,16 @@ class FillDao extends BaseMdbUtils {
                 pms.put("own", own)
                 pms.put(k, props_obj.get(k))
                 pms.put("obj" + k.split("_")[1], m.get(k))
-                if (k == "Prop_FishLocation" || k == "Prop_FishGear") {
-                    StoreRecord rec = indexLocationAndGear.get(UtCnv.toLong(m.get(k)))
+                if (k == "Prop_FishLocation" || k == "Prop_ReservoirShore") {
+                    StoreRecord rec = indexLocationAndReservoir.get(UtCnv.toLong(m.get(k)))
                     if (rec != null) {
                         pms.put("pv" + k.split("_")[1], rec.getLong("pv"))
                         DataDao dao = mdb.createDao(DataDao.class)
                         dao.fillProperties(true, k, pms)
                     }
                 }
-                if (k == "Prop_FishManager") {
-                    StoreRecord rec = indexManagerAndParticipants.get(UtCnv.toLong(m.get(k)))
+                if (k == "Prop_FishManager" || k == "Prop_FishGear") {
+                    StoreRecord rec = indexManagerAndParticipantsAndGear.get(UtCnv.toLong(m.get(k)))
                     if (rec != null) {
                         pms.put("pv" + k.split("_")[1], rec.getLong("pv"))
                         DataDao dao = mdb.createDao(DataDao.class)
@@ -204,7 +209,7 @@ class FillDao extends BaseMdbUtils {
                 }
                 if (k == "Prop_FishParticipants") {
                     for (def it in m.get("Prop_FishParticipants").toString().split(";")) {
-                        StoreRecord rec = indexManagerAndParticipants.get(UtCnv.toLong(it))
+                        StoreRecord rec = indexManagerAndParticipantsAndGear.get(UtCnv.toLong(it))
                         if (rec != null) {
                             pms.put("pv" + k.split("_")[1], rec.getLong("pv"))
                             DataDao dao = mdb.createDao(DataDao.class)
@@ -212,7 +217,6 @@ class FillDao extends BaseMdbUtils {
                         }
                     }
                 }
-
             }
 
             /* Attrib */
@@ -282,12 +286,16 @@ class FillDao extends BaseMdbUtils {
         //******************************************************
 
         Set<Long> idsFishLocation = new HashSet<>()
+        Set<Long> idsReservoirShore = new HashSet<>()
+        //
         Set<Long> idsFishGear = new HashSet<>()
         Set<Long> idsFishManager = new HashSet<>()
         Set<Long> idsFishParticipants = new HashSet<>()
 
         def eachLineCalc = { Map m ->
             idsFishLocation.add(UtCnv.toLong(m.get("Prop_FishLocation")))
+            idsReservoirShore.add(UtCnv.toLong(m.get("Prop_ReservoirShore")))
+            //
             idsFishGear.add(UtCnv.toLong(m.get("Prop_FishGear")))
             idsFishManager.add(UtCnv.toLong(m.get("Prop_FishManager")))
             for (def it in m.get("Prop_FishParticipants").toString().split(";")) {
@@ -303,6 +311,7 @@ class FillDao extends BaseMdbUtils {
         if (!fields.contains("Prop_StartDate")) reqFields.add("Prop_StartDate")
         if (!fields.contains("Prop_AreaOfTon")) reqFields.add("Prop_AreaOfTon")
         if (!fields.contains("Prop_FishLocation")) reqFields.add("Prop_FishLocation")
+        if (!fields.contains("Prop_ReservoirShore")) reqFields.add("Prop_ReservoirShore")
         if (!fields.contains("Prop_FishGear")) reqFields.add("Prop_FishGear")
         if (!fields.contains("Prop_FishManager")) reqFields.add("Prop_FishManager")
         if (!fields.contains("Prop_FishParticipants")) reqFields.add("Prop_FishParticipants")
@@ -317,8 +326,8 @@ class FillDao extends BaseMdbUtils {
                                  "Prop_1577", "Prop_1617", "Prop_1657", "Prop_1697", "Prop_1737"])) {
 */
 
-            if (!fields.containsAll(["cls", "Prop_StartDate", "Prop_FishLocation", "Prop_FishGear", "Prop_FishManager",
-                                 "Prop_FishParticipants", "Prop_AreaOfTon"])) {
+            if (!fields.containsAll(["cls", "Prop_StartDate", "Prop_FishLocation", "Prop_ReservoirShore",
+                                 "Prop_FishGear", "Prop_FishManager", "Prop_FishParticipants", "Prop_AreaOfTon"])) {
             errTest = true
         }
 
@@ -339,6 +348,8 @@ class FillDao extends BaseMdbUtils {
                 emptyFields.add("Prop_FishGear: Строка-${count + 1}")
             if (!isInteger(UtCnv.toString(m.get("Prop_FishManager"))))
                 emptyFields.add("Prop_FishManager: Строка-${count + 1}")
+            if (!isInteger(UtCnv.toString(m.get("Prop_ReservoirShore"))))
+                emptyFields.add("Prop_ReservoirShore: Строка-${count + 1}")
 
             countVal += m.size()
         }
@@ -350,7 +361,8 @@ class FillDao extends BaseMdbUtils {
         if (fill) {
             reader.eachRow(eachLineCalc)
             //
-            idsFishLocation.addAll(idsFishGear)
+            //idsFishLocation.addAll(idsFishGear)
+            idsFishLocation.addAll(idsReservoirShore)
             Store stReg = mdb.loadQuery("""
                 select id, cls, 0 as pv from Obj where id in (${idsFishLocation.join(",")})
             """, "")
@@ -371,9 +383,11 @@ class FillDao extends BaseMdbUtils {
                     throw new XError(msg)
                 }
             }
-            indexLocationAndGear = stReg.getIndex("id")
+            //indexLocationAndGear = stReg.getIndex("id")
+            indexLocationAndReservoir = stReg.getIndex("id")
             //
             idsFishManager.addAll(idsFishParticipants)
+            idsFishManager.addAll(idsFishGear)
             stReg = apiNSIData().get(ApiNSIData).loadSql("""
                 select id, cls, 0 as pv from Obj where id in (${idsFishManager.join(",")})
             """, "")
@@ -390,7 +404,8 @@ class FillDao extends BaseMdbUtils {
                     throw new XError(msg)
                 }
             }
-            indexManagerAndParticipants = stReg.getIndex("id")
+            //indexManagerAndParticipants = stReg.getIndex("id")
+            indexManagerAndParticipantsAndGear = stReg.getIndex("id")
             //
             reader.eachRow(eachLine)
         } else {
