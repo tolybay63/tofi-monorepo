@@ -220,7 +220,7 @@ const loadNumbersPage = (objId) => {
     })
     .finally(() => {
       loading.value = false
-      expandAll(rows.value)
+      //expandAll(rows.value)
     })
 }
 

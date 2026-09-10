@@ -1,5 +1,5 @@
 <template>
-  <div class="column no-wrap fit">
+  <div class="column no-wrap ">
     <q-table
       class="col custom-table"
       :columns="cols"

@@ -90,7 +90,6 @@ import {computed, getCurrentInstance, onMounted, ref, watch} from "vue";
 import {collapsAll, expandAll, findRowForId, notifyError, notifyInfo, pack} from "@/utils/jsutils.js";
 import {api} from "@/boot/axios.js";
 import UpdaterReservoirPage from "./UpdaterReservoirPage.vue";
-import UpdaterFishPage from "@/pages/calcstock/props/bayes/data-bayes/UpdaterFishPage.vue";
 
 const $q = useQuasar()
 const {proxy} = getCurrentInstance()
@@ -208,7 +207,7 @@ const loadRandPage = (objId) => {
     })
     .finally(() => {
       loading.value = false
-      expandAll(rows.value)
+      //expandAll(rows.value)
     })
 }
 

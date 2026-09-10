@@ -182,8 +182,6 @@ const fnDeleteCell = (item) => {
     .onCancel(() => {
       notifyInfo(proxy?.$t('canceled'))
     })
-
-
 }
 
 const getColumns = () => [
@@ -219,7 +217,7 @@ const loadFishPage = (objId) => {
     })
     .finally(() => {
       loading.value = false
-      expandAll(rows.value)
+      //expandAll(rows.value)
     })
 }
 
