@@ -307,13 +307,18 @@ class FillDao extends BaseMdbUtils {
         if (!fields.contains("Prop_FishManager")) reqFields.add("Prop_FishManager")
         if (!fields.contains("Prop_FishParticipants")) reqFields.add("Prop_FishParticipants")
 
-        if (fields.size() != 25) {
-            errTest = true
-        }
+//        if (fields.size() != 25) {
+//            errTest = true
+//        }
+/*
         if (!fields.containsAll(["cls", "Prop_StartDate", "Prop_FishLocation", "Prop_FishGear", "Prop_FishManager",
                                  "Prop_FishParticipants", "Prop_AreaOfTon", "Prop_1057", "Prop_1097", "Prop_1137", "Prop_1177", "Prop_1257",
                                  "Prop_1217", "Prop_1297", "Prop_1337", "Prop_1377", "Prop_1417", "Prop_1457", "Prop_1497", "Prop_1537",
                                  "Prop_1577", "Prop_1617", "Prop_1657", "Prop_1697", "Prop_1737"])) {
+*/
+
+            if (!fields.containsAll(["cls", "Prop_StartDate", "Prop_FishLocation", "Prop_FishGear", "Prop_FishManager",
+                                 "Prop_FishParticipants", "Prop_AreaOfTon"])) {
             errTest = true
         }
 
@@ -419,7 +424,7 @@ class FillDao extends BaseMdbUtils {
             reader.eachRow(eachLineTest)
             countVal = countVal - count
             //
-            String msg
+            String msg = ""
             def err = 0
             if (!reqFields.isEmpty()) {
                 err = 1
@@ -445,6 +450,7 @@ class FillDao extends BaseMdbUtils {
             LocalDate.parse(dateStr, DateTimeFormatter.ofPattern('yyyy-MM-dd'))
             return true
         } catch (Exception e) {
+            e.printStackTrace()
             return false
         }
     }

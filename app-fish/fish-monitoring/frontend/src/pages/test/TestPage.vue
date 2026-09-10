@@ -157,165 +157,154 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import {ref} from 'vue'
 import {api, filldataURL} from "@/boot/axios.js";
 import axios from "axios";
 
-export default {
-  name: 'TestPage',
+const file =  ref(null)
+const logs = ref([])
+const loading = ref(false)
+const errTest = ref(false)
+const errFill = ref(false)
+const isFill = ref(false)
+  //
+const file2 =  ref(null)
+const logs2 = ref([])
+const loading2 = ref(false)
+const errTest2 = ref(false)
+const errFill2 = ref(false)
+const isFill2 = ref(false)
 
-  data() {
-    return {
-      file: ref(null),
-      logs: [],
-      loading: false,
-      errTest: false,
-      errFill: false,
-      isFill: false,
-      //
-      file2: ref(null),
-      logs2: [],
-      loading2: false,
-      errTest2: false,
-      errFill2: false,
-      isFill2: false,
-    }
-  },
+const fnGo = () => {
+  toSrv(true)
+}
 
-  methods: {
-    fnGo() {
-      this.toSrv(true)
-    },
+const fnGo2 = () => {
+  toSrv2(true)
+}
 
+const toSrv = (fill) => {
+  loading.value = true
+  isFill.value = fill
 
-    fnGo2() {
-      this.toSrv2(true)
-    },
+  let fd = new FormData()
+  fd.append('file', file.value)
+  fd.append('filename', file.value.name)
+  fd.append('fill', fill)
+  fd.append('num', 1)
 
-    clrFile() {
-      this.file = ref(null)
-      this.errTest = false
-      this.errFill = false
-      this.logs = []
-    },
-
-    clrFile2() {
-      this.file2 = ref(null)
-      this.errTest2 = false
-      this.errFill2 = false
-      this.logs2 = []
-    },
-
-    updFile(val) {
-      if (val !== null) {
-        this.file = val[0]
-        this.toSrv(false)
+  axios
+    .post(filldataURL, fd, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
       }
-    },
-
-    updFile2(val) {
-      if (val !== null) {
-        this.file2 = val[0]
-        this.toSrv2(false)
+    })
+    .then(() => {
+      if (fill) {
+        errFill.value = false
       }
-    },
-
-    toSrv(fill) {
-      this.loading = true
-      this.isFill = fill
-
-      let fd = new FormData()
-      fd.append('file', this.file)
-      fd.append('filename', this.file.name)
-      fd.append('fill', fill)
-      fd.append('num', 1)
-
-      axios
-        .post(filldataURL, fd, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+    })
+    .then(() => {
+      loading.value = true
+      api
+        .post('', {
+          method: 'fill/loadLog',
+          params: []
         })
-        .then(() => {
-          if (fill) {
-            this.errFill = false
-          }
-        })
-        .then(() => {
-          this.loading = true
-          api
-            .post('', {
-              method: 'fill/loadLog',
-              params: []
-            })
-            .then((response) => {
-              this.logs = response.data.result.records
-              this.errTest = this.logs[0].err === 1
-              console.log("logs", this.logs)
-            })
-            .finally(() => {
-              this.loading = false
-            })
-        })
-        .catch(() => {
-          if (fill) {
-            this.errFill = true
-          }
+        .then((response) => {
+          logs.value = response.data.result.records
+          errTest.value = logs.value[0].err === 1
+          console.log("logs", logs.value)
         })
         .finally(() => {
-          this.loading = false
+          loading.value = false
         })
-    },
+    })
+    .catch(() => {
+      if (fill) {
+        errFill.value = true
+      }
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
 
-    toSrv2(fill) {
-      this.loading2 = true
-      this.isFill2 = fill
+const toSrv2 = (fill) => {
+  loading2.value = true
+  isFill2.value = fill
 
-      let fd = new FormData()
-      fd.append('file', this.file2)
-      fd.append('filename', this.file2.name)
-      fd.append('fill', fill)
-      fd.append('num', 2)
-      axios
-        .post(filldataURL, fd, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+  let fd = new FormData()
+  fd.append('file', file2.value)
+  fd.append('filename', file2.value.name)
+  fd.append('fill', fill)
+  fd.append('num', 2)
+  axios
+    .post(filldataURL, fd, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    .then(() => {
+      if (fill) {
+        errFill2.value = false
+      }
+    })
+    .then(() => {
+      loading2.value = true
+      api
+        .post('', {
+          method: 'fill/loadLog',
+          params: []
         })
-        .then(() => {
-          if (fill) {
-            this.errFill2 = false
-          }
-        })
-        .then(() => {
-          this.loading2 = true
-          api
-            .post('', {
-              method: 'fill/loadLog',
-              params: []
-            })
-            .then((response) => {
-              this.logs2 = response.data.result.records
-              this.errTest2 = this.logs2[0].err === 1
-              console.log("logs2", this.logs2)
-            })
-            .finally(() => {
-              this.loading2 = false
-            })
-        })
-        .catch(() => {
-          if (fill) {
-            this.errFill2 = true
-          }
+        .then((response) => {
+          logs2.value = response.data.result.records
+          errTest2.value = logs2.value[0].err === 1
+          console.log("logs2", logs2.value)
         })
         .finally(() => {
-          this.loading2 = false
+          loading2.value = false
         })
-    },
+    })
+    .catch(() => {
+      if (fill) {
+        errFill2.value = true
+      }
+    })
+    .finally(() => {
+      loading2.value = false
+    })
+}
 
+const clrFile = () => {
+  file.value = ref(null)
+  errTest.value = false
+  errFill.value = false
+  logs.value = []
+}
+
+const clrFile2= () => {
+  file2.value = ref(null)
+  errTest2.value = false
+  errFill2.value = false
+  logs2.value = []
+}
+
+const updFile = (val) => {
+  if (val !== null) {
+    file.value = val[0]
+    toSrv(false)
   }
 }
+
+const updFile2 = (val) => {
+  if (val !== null) {
+    file2.value = val[0]
+    toSrv2(false)
+  }
+}
+
 </script>
 
 <style scoped></style>
