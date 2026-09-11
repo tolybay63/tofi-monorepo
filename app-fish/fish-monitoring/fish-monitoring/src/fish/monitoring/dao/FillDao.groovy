@@ -143,8 +143,8 @@ class FillDao extends BaseMdbUtils {
     ]
 
     def props_obj = [
-            "Prop_FishLocation"    : 1045,
-            "Prop_FishGear"        : 1046,
+            "Prop_FishLocation"    : 3353L,
+            "Prop_FishGear"        : 1046L,
             "Prop_FishManager"     : 1047L,
             "Prop_FishParticipants": 1048L,
             "Prop_ReservoirShore"  : 3359L
