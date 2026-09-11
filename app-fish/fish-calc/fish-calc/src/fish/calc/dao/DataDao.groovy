@@ -74,19 +74,25 @@ class DataDao extends BaseMdbUtils {
         long obj = eu.insertEntity(rec)
         // Fill prop CalcCreatDate for any calc
         Map<String, Object> map = new HashMap<>()
-        map.put("own", obj)
-        map.put("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
-        fillProperties(true, "Prop_CalcCreatDate", map)
-        map.put("CalcStartYear", rec.get("CalcStartYear"))
-        map.put("CalcEndYear", rec.get("CalcEndYear"))
-        fillProperties(true, "Prop_CalcStartYear", map)
-        fillProperties(true, "Prop_CalcEndYear", map)
+        rec.put("own", obj)
+        rec.put("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+        fillProperties(true, "Prop_CalcCreatDate", rec)
+        fillProperties(true, "Prop_CalcStartYear", rec)
+        fillProperties(true, "Prop_CalcEndYear", rec)
+        // Prop_CalcStatus
+        Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Preliminary", "")
+        long pv = apiMeta().get(ApiMeta).idPV("FactorVal", mapFV.get("FV_Preliminary"), "Prop_CalcStatus")
+        rec.put("fvCalcStatus", mapFV.get("FV_Preliminary"))
+        rec.put("pvCalcStatus", pv)
+        fillProperties(true, "Prop_CalcStatus", rec)
+        //
 
         if (objParent > 0) {    // Наследуем свойства if child objParent => obj
             parent2childProps(objParent, obj)
         } else {    //
-            // Fill props: Prop_CalcStartYear, Prop_CalcEndYear, Prop_ReservoirShore, Prop_CalcFishSpec
-
+            // Fill props: Prop_ReservoirShore, Prop_CalcFishSpec
+            fillProperties(true, "Prop_ReservoirShore", rec)
+            fillProperties(true, "Prop_CalcFishSpec", rec)
         }
     }
 

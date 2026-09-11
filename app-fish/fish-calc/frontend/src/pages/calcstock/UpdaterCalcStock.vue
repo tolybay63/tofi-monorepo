@@ -46,7 +46,7 @@
               class="q-ml-sm q-mr-lg" dense mask="####"
             />
 
-            <q-space></q-space>
+            <q-space/>
 
             <!-- CalcEndYear -->
             <q-input
@@ -165,7 +165,7 @@ const checkYear2 = () => {
 }
 
 const checkYear1P = () => {
-  return (form["CalcStartYear"] && form["CalcStartYear"].length === 4 && form['CalcStartYear'] <= form['CalcEndYear'])
+  return (form["CalcStartYear"] && form["CalcStartYear"].length === 4 && (!form['CalcEndYear'] || (form['CalcEndYear'] && form['CalcStartYear'] <= form['CalcEndYear'])))
 }
 
 const checkYear2P = () => {
