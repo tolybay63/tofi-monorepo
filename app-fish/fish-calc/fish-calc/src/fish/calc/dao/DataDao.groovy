@@ -550,64 +550,7 @@ class DataDao extends BaseMdbUtils {
         return res
     }
 
-    /*private Store loadMetersWithPeriod(long own, String props) {
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
-        map.put("own", own)
-        //year1 & year2
-        Map<String, Long> mapY = getYears(own)
-        long year1 = mapY.get("year1")
-        long year2 = mapY.get("year2")
-        //
-        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
-        List<String> sel = new ArrayList<>();
-        for (long i in 0..count) {
-            String year = UtCnv.toString(year1 + i)
-            sel.add("null as id" + year + ",  null  as v" + year)
-        }
-        //
-        String[] propsA = props.replaceAll(" ", "").split(",")
-        List<Object> sqlA = new ArrayList<>()
-        for (int i = 0; i < propsA.length; i++) {
-            sqlA.add("""
-                select p.id, p.parent, p.name, ${sel.join(",")}
-                from prop p
-                where p.id=:${propsA[i]}
-                union all 
-                select p.id, p.parent, p.name, ${sel.join(",")}
-                from prop p
-                where p.parent=:${propsA[i]}
-            """)
-        }
-        Store st = loadSqlMetaWithParams(sqlA.join(" union all "), "", map)
-        // sql for value
-        String sqlVal = """
-            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
-            from Obj o
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodType is not null
-                join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
-            where o.id=${own}
-        """
-        Store stVal = mdb.loadQuery(sqlVal)
-        StoreIndex indVal = stVal.getIndex("key")
-        //mdb.outTable(stVal)
-        for (StoreRecord r in st) {
-            for (StoreField fld in r.fields) {
-                if (fld.name.startsWith("v")) {
-                    StoreRecord rec = indVal.get(r.getString("id") + "_" + fld.name)
-                    if (rec != null) {
-                        r.set("id" + fld.name.substring(1), rec.get("id"))
-                        r.set(fld.name, rec.get("numberval"))
-                    }
-                }
-            }
-        }
-        //mdb.outTable(st)
-        return st
-    }*/
-
     private Store loadMetersWithPeriod(long own, String props) {
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
-        map.put("own", own)
         //year1 & year2
         Map<String, Long> mapY = getYears(own)
         long year1 = mapY.get("year1")
