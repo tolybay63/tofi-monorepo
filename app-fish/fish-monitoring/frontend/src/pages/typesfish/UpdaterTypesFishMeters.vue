@@ -79,7 +79,7 @@ const onOKClick = () => {
   let err = false
   api
     .post('', {
-      method: 'data/saveFishingMeters',
+      method: 'data/saveTypesFishMeters',
       params: [form],
     })
     .then((response) => {

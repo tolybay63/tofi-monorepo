@@ -56,7 +56,7 @@ import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/axios'
 import {findRowForId, notifyError, notifyInfo, pack} from '@/utils/jsutils'
-import UpdaterFishingMeters from "@/pages/fishing/UpdaterFishingMeters.vue"
+import UpdaterTypesFishMeters from "@/pages/typesfish/UpdaterTypesFishMeters.vue";
 
 const props = defineProps({
   name: String
@@ -124,7 +124,7 @@ const fnEdit = (row) => {
     idval: row.idval
   }
   $q.dialog({
-    component: UpdaterFishingMeters,
+    component: UpdaterTypesFishMeters,
     componentProps: {
       data: rec,
     },
@@ -208,15 +208,15 @@ const getColumns = () => [
   }
 ]
 
-const clearFishingData = () => {
+const clearTypesFishData = () => {
   rows.value = []
 }
 
-const loadFishingMeters = (targetObj) => {
+const loadTypesFishMeters = (targetObj) => {
   loading.value = true
   obj.value = targetObj
   api.post('', {
-    method: 'data/loadFishingMeters',
+    method: 'data/loadTypesFishMeters',
     params: [targetObj],
   })
     .then((response) => {
@@ -238,8 +238,8 @@ onMounted(() => {
 })
 
 defineExpose({
-  clearFishingData,
-  loadFishingMeters
+  clearTypesFishData,
+  loadTypesFishMeters
 })
 </script>
 

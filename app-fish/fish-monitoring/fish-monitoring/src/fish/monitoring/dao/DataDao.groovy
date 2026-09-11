@@ -875,6 +875,12 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
+    Store loadTypesFishMeters(long own) {
+        String props = "Prop_CalcAgeSex,Prop_FishMaxAge,Prop_CalcAgePrey,Prop_FishSpeed,Prop_CalcMaxNumberFry"
+        return loadMetersWithOutPeriod(own, props)
+    }
+
+    @DaoMethod
     Store saveTypesFish(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own
@@ -917,6 +923,12 @@ class DataDao extends BaseMdbUtils {
     void deleteTypesFish(long id) {
         checkForExistData(id, 1)
         deleteOwnerWithProperties(id, 1)
+    }
+
+    @DaoMethod
+    long saveTypesFishMeters(Map<String, Object> rec) {
+        rec.put("dependperiod", 0)
+        return saveMeter(rec)
     }
 
     //---------------- 5 PiscesReservoir ----------------//
@@ -1242,13 +1254,11 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
-
     @DaoMethod
     Store loadReservoir(String codTypOrProp) {
         Store st = loadObjForSelect(codTypOrProp, "monitoringdata")
         return st
     }
-
 
     @DaoMethod
     Store loadReservoirs(String reservoirs) {
@@ -1408,7 +1418,6 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Неверный параметр")
         }
     }
-
 
     @DaoMethod
     Store loadPeriodType() {
@@ -1960,36 +1969,8 @@ class DataDao extends BaseMdbUtils {
     Store loadFishingMeters(long obj) {
         if (obj == 0)
             return mdb.createStore()
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-        String whe = """
-            ${map.get("Prop_NumberFishCaught")},${map.get("Prop_NumberEggs")},
-            ${map.get("Prop_FishArea")},${map.get("Prop_WorkDuration")},${map.get("Prop_NumberNet")}
-        """
-
-        Store st = loadSqlMeta("""
-                select id, parent, name, null as numberval, null as idval 
-                from Prop where id in (${whe}) or parent in (${whe})
-                order by id
-            """, "")
-        Set<Object> idsProp = st.getUniqueValues("id")
-
-        Store stData = mdb.loadQuery("""
-                select d.prop as id, v.numberval, v.id as idval
-                from DataProp d
-                    left join DataPropVal v on d.id=v.dataProp
-                where d.isObj=1 and d.objorrelobj=${obj} and d.prop in (0${idsProp.join(",")})
-            """)
-        StoreIndex indData = stData.getIndex("id")
-        for (StoreRecord r in st) {
-            StoreRecord rec = indData.get(r.getLong("id"))
-            if (rec != null) {
-                r.set("numberval", rec.getDouble("numberval"))
-                r.set("idval", rec.getLong("idval"))
-            }
-        }
-        //mdb.outTable(st)
-        return st
-
+        String props = "Prop_NumberFishCaught,Prop_NumberEggs,Prop_FishArea,Prop_WorkDuration,Prop_NumberNet"
+        return loadMetersWithOutPeriod(obj, props)
     }
 
     @DaoMethod
@@ -2005,7 +1986,7 @@ class DataDao extends BaseMdbUtils {
         """)
     }
 
-    @DaoMethod
+/*    @DaoMethod
     Store saveFishingMeters(Map<String, Object> rec) {
         long obj = UtCnv.toLong(rec.get("obj"))
         long prop = UtCnv.toLong(rec.get("prop"))
@@ -2050,10 +2031,63 @@ class DataDao extends BaseMdbUtils {
             mdb.insertRec("DataPropVal", recDPV, false)
         }
         return loadFishingMeters(obj)
+    }*/
+
+    @DaoMethod
+    long saveFishingMeters(Map<String, Object> rec) {
+        rec.put("dependperiod", 0)
+        return saveMeter(rec)
+    }
+
+    private long saveMeter(Map<String, Object> rec) {
+        long obj = UtCnv.toLong(rec.get("obj"))
+        long prop = UtCnv.toLong(rec.get("prop"))
+        long idVal = UtCnv.toLong(rec.get("idval"))
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        boolean dependperiod = UtCnv.toBoolean(rec.get("dependperiod"))
+        Long pt = null
+        String dbeg = "1800-01-01"
+        String dend = "3333-12-31"
+        if (dependperiod) {
+            pt = 11L
+            String dt = UtCnv.toString(rec.get("year")) + "-01-01"
+            tofi.api.mdl.utils.UtPeriod up = new tofi.api.mdl.utils.UtPeriod()
+            dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+            dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+        }
+        if (idVal > 0) {
+            String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+            mdb.execQueryNative("""
+                update DataPropVal set numberval=${value}, dbeg='${dbeg}', dend='${dend}', timestamp='${tm}'
+                where id=${idVal}
+            """)
+
+        } else {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", 1)
+            recDP.set("objorrelobj", obj)
+            recDP.set("prop", prop)
+            if (dependperiod)
+                recDP.set("periodType", pt)
+            long idDP = mdb.insertRec("DataProp", recDP)
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", value)
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            recDPV.set("dbeg", dbeg)
+            recDPV.set("dend", dend)
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            idVal = mdb.insertRec("DataPropVal", recDPV, false)
+        }
+        return idVal
     }
 
     private Store loadMetersWithOutPeriod(long own, String props) {
-
         Set<Object> idsPropAll = new HashSet<>()
         for (String cod in props.split(",")) {
             Store stTmp = loadSqlMeta("""
@@ -2073,13 +2107,13 @@ class DataDao extends BaseMdbUtils {
         }
         //
         Store st = loadSqlMeta("""
-            select id, parent, cod, name, null as idvalue, null as numberval
+            select id, parent, cod, name, null as idval, null as numberval
             from Prop 
             where id in (${idsPropAll.join(",")})
         """, "")
         // Value
         Store stVal = mdb.loadQuery("""
-            select  d1.prop, v1.id as idvalue, v1.numberval
+            select  d1.prop, v1.id as idval, v1.numberval
             from Obj o
                 join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
                     and d1.prop in (${idsPropAll.join(",")})
@@ -2091,7 +2125,7 @@ class DataDao extends BaseMdbUtils {
         for (StoreRecord r in st) {
             StoreRecord rec = indStVal.get(r.getLong("id"))
             if (rec != null) {
-                r.set("idvalue", rec.getLong("idvalue"))
+                r.set("idval", rec.getLong("idval"))
                 r.set("numberval", rec.getDouble("numberval"))
             }
         }

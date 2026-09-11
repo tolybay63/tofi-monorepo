@@ -3,7 +3,7 @@
 
     <q-splitter
       v-model="splitterModel"
-      :limits="[60, 100]"
+      :limits="[40, 100]"
       after-class="overflow-hidden q-ml-sm"
       before-class="overflow-hidden q-mr-sm"
       separator-class="bg-red"
@@ -104,7 +104,7 @@
       </template>
 
       <template v-slot:after>
-        <FishingMeters ref="typesFishMetersRef" :name="name"></FishingMeters>
+        <TypesFishMeters ref="typesFishMetersRef" :name="name"/>
       </template>
 
     </q-splitter>
@@ -117,7 +117,7 @@ import {date, extend, useQuasar} from 'quasar'
 import {api} from '@/boot/axios'
 import {hasTarget, notifyInfo} from '@/utils/jsutils'
 import UpdaterTypesFish from '@/pages/typesfish/UpdaterTypesFish.vue'
-import FishingMeters from "@/pages/fishing/FishingMeters.vue";
+import TypesFishMeters from "@/pages/typesfish/TypesFishMeters.vue";
 
 const $q = useQuasar()
 const {proxy} = getCurrentInstance()
@@ -180,20 +180,21 @@ const infoSelected = (row) => {
 const updateSelected = () => {
   let obj = 0
   if (selected.value.length > 0) {
-    splitterModel.value = 70
+    splitterModel.value = 50
     obj = selected.value[0].obj
     name.value =
       selected.value[0].name +
       ' (' +
-      selected.value[0].fvFishFamily +
+      FishFamily.value[selected.value[0].fvFishFamily] + ", "+
+      FishTyp.value[selected.value[0].fvFishTyp] +
       ')'
   } else {
     splitterModel.value = 100
     obj = 0
     name.value = ''
-    typesFishMetersRef.value?.clearFishingData()
+    typesFishMetersRef.value?.clearTypesFishData()
   }
-  typesFishMetersRef.value?.loadFishingMeters(obj)
+  typesFishMetersRef.value?.loadTypesFishMeters(obj)
 }
 
 const loadTypesFish = () => {

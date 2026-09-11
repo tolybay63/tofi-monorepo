@@ -257,5 +257,6 @@ export {
   expandAll,
   collapsAll,
   convertNodeIds,
-  hasTarget
+  hasTarget,
+  findRowForId
 };
