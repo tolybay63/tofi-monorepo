@@ -1,112 +1,135 @@
 <template>
   <div class="q-pa-sm">
-    <q-table
-      style="height: calc(100vh - 140px); width: 100%"
-      class="sticky-header-table"
-      color="primary"
-      dense
-      card-class="bg-amber-1 text-brown"
-      row-key="obj"
-      :columns="cols"
-      :rows="rows"
-      :wrap-cells="true"
-      :table-colspan="4"
-      table-header-class="text-bold text-white bg-blue-grey-13"
-      separator="horizontal"
-      :filter="filter"
-      :loading="loading"
-      selection="single"
-      v-model:selected="selected"
-      :rows-per-page-options="[25, 0]"
+
+    <q-splitter
+      v-model="splitterModel"
+      :limits="[60, 100]"
+      after-class="overflow-hidden q-ml-sm"
+      before-class="overflow-hidden q-mr-sm"
+      separator-class="bg-red"
+      style="height: calc(100vh - 135px); width: 100%"
     >
-      <template #bottom-row>
-        <q-td colspan="100%" v-if="selected.length > 0">
-          <span class="text-blue"> {{ $t('selectedRow') }}: </span>
-          <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
-        </q-td>
-        <q-td colspan="100%" v-else-if="rows.length > 0" class="text-bold">
-          {{ $t('infoRow') }}
-        </q-td>
-      </template>
-
-      <template v-slot:top>
-        <div style="font-size: 1.2em; font-weight: bold">
-          <q-avatar color="black" text-color="white" icon="set_meal"> </q-avatar>
-          {{ $t('typesOfFish') }}
-        </div>
-
-        <q-space />
-        <q-btn
-          v-if="hasTarget('mon:vr:ins')"
-          icon="post_add"
+      <template v-slot:before>
+        <q-table
+          style="height: calc(100vh - 140px); width: 100%"
+          v-model:selected="selected"
+          :columns="cols"
+          :filter="filter"
+          :loading="loading"
+          :rows="rows"
+          :table-colspan="4"
+          :wrap-cells="true"
+          card-class="bg-amber-1 text-brown"
+          class="sticky-header-table"
+          table-header-class="text-bold text-white bg-blue-grey-13"
+          color="primary"
           dense
-          color="secondary"
-          :disable="loading"
-          @click="editRow(null, 'ins')"
+          row-key="obj"
+          selection="single"
+          separator="horizontal"
+          @update:selected="updateSelected"
+          :rows-per-page-options="[25, 0]"
         >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('newRecord') }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('mon:vr:upd')"
-          icon="edit"
-          dense
-          color="secondary"
-          class="q-ml-sm"
-          :disable="loading || selected.length === 0"
-          @click="editRow(selected[0], 'upd')"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('editRecord') }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-btn
-          v-if="hasTarget('mon:vr:del')"
-          icon="delete"
-          dense
-          color="red"
-          class="q-ml-lg"
-          :disable="loading || selected.length === 0"
-          @click="removeRow(selected[0])"
-        >
-          <q-tooltip transition-show="rotate" transition-hide="rotate">
-            {{ $t('deletingRecord') }}
-          </q-tooltip>
-        </q-btn>
-
-        <q-space />
-
-        <q-input dense debounce="300" color="primary" v-model="filter" :label="$t('txt_filter')">
-          <template v-slot:append>
-            <q-icon name="search" />
+          <template #bottom-row>
+            <q-td v-if="selected.length > 0" colspan="100%">
+              <span class="text-blue"> {{ $t('selectedRow') }}: </span>
+              <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
+            </q-td>
+            <q-td v-else-if="rows.length > 0" class="text-bold" colspan="100%">
+              {{ $t('infoRow') }}
+            </q-td>
           </template>
-        </q-input>
+
+          <template v-slot:top>
+            <div style="font-size: 1.2em; font-weight: bold">
+              <q-avatar color="black" icon="set_meal" text-color="white"></q-avatar>
+              {{ $t('typesOfFish') }}
+            </div>
+
+            <q-space/>
+            <q-btn
+              v-if="hasTarget('mon:vr:ins')"
+              :disable="loading"
+              color="secondary"
+              dense
+              icon="post_add"
+              @click="editRow(null, 'ins')"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ $t('newRecord') }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('mon:vr:upd')"
+              :disable="loading || selected.length === 0"
+              class="q-ml-sm"
+              color="secondary"
+              dense
+              icon="edit"
+              @click="editRow(selected[0], 'upd')"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ $t('editRecord') }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('mon:vr:del')"
+              :disable="loading || selected.length === 0"
+              class="q-ml-lg"
+              color="red"
+              dense
+              icon="delete"
+              @click="removeRow(selected[0])"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ $t('deletingRecord') }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-space/>
+
+            <q-input v-model="filter" :label="$t('txt_filter')" color="primary" debounce="300" dense>
+              <template v-slot:append>
+                <q-icon name="search"/>
+              </template>
+            </q-input>
+          </template>
+
+          <template #loading>
+            <q-inner-loading color="secondary" showing></q-inner-loading>
+          </template>
+        </q-table>
       </template>
 
-      <template #loading>
-        <q-inner-loading showing color="secondary"></q-inner-loading>
+      <template v-slot:after>
+        <FishingMeters ref="typesFishMetersRef" :name="name"></FishingMeters>
       </template>
-    </q-table>
+
+    </q-splitter>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, getCurrentInstance } from 'vue'
-import { useQuasar, extend } from 'quasar'
-import { api } from '@/boot/axios'
-import { hasTarget, notifyInfo } from '@/utils/jsutils'
+import {getCurrentInstance, onMounted, ref} from 'vue'
+import {date, extend, useQuasar} from 'quasar'
+import {api} from '@/boot/axios'
+import {hasTarget, notifyInfo} from '@/utils/jsutils'
 import UpdaterTypesFish from '@/pages/typesfish/UpdaterTypesFish.vue'
+import FishingMeters from "@/pages/fishing/FishingMeters.vue";
 
 const $q = useQuasar()
-const { proxy } = getCurrentInstance()
+const {proxy} = getCurrentInstance()
 
+const splitterModel = ref(100)
 const rows = ref([])
 const filter = ref('')
 const selected = ref([])
 const loading = ref(false)
+const name = ref('')
+const typesFishMetersRef = ref(null)
+
 const FishFamily = ref({})
 const FishTyp = ref({})
 
@@ -154,12 +177,31 @@ const infoSelected = (row) => {
   return ' ' + row.name
 }
 
+const updateSelected = () => {
+  let obj = 0
+  if (selected.value.length > 0) {
+    splitterModel.value = 70
+    obj = selected.value[0].obj
+    name.value =
+      selected.value[0].name +
+      ' (' +
+      selected.value[0].fvFishFamily +
+      ')'
+  } else {
+    splitterModel.value = 100
+    obj = 0
+    name.value = ''
+    typesFishMetersRef.value?.clearFishingData()
+  }
+  typesFishMetersRef.value?.loadFishingMeters(obj)
+}
+
 const loadTypesFish = () => {
   loading.value = true
   api
     .post('', {
       method: 'data/loadTypesFish',
-      params: [{ codTyp: 'Typ_Fish', idObj: 0 }],
+      params: [{codTyp: 'Typ_Fish', idObj: 0}],
     })
     .then((response) => {
       rows.value = response.data.result['records']
@@ -170,7 +212,7 @@ const loadTypesFish = () => {
 }
 
 const editRow = (row, mode) => {
-  let data = { accessLevel: 1 }
+  let data = {accessLevel: 1}
   if (mode === 'upd') {
     data = extend(true, {}, row)
   }
@@ -254,16 +296,19 @@ onMounted(() => {
   max-height: 100%;
   overflow: auto;
 }
+
 .sticky-header-table table {
   border-collapse: separate;
   border-spacing: 0;
 }
+
 .sticky-header-table thead th {
   position: sticky;
   top: 0;
   z-index: 1;
   background-color: #607d8b;
 }
+
 .sticky-header-table .q-table--bordered {
   border-top: none;
 }
