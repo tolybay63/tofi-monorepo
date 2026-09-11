@@ -174,9 +174,7 @@ class FillDao extends BaseMdbUtils {
         boolean errTest = false
 
 
-        StoreIndex indexLocationAndGear,
-                indexManagerAndParticipants,
-                indexLocationAndReservoir,
+        StoreIndex indexLocationAndReservoir,
                 indexManagerAndParticipantsAndGear
 
         //*******************************************************
@@ -361,7 +359,6 @@ class FillDao extends BaseMdbUtils {
         if (fill) {
             reader.eachRow(eachLineCalc)
             //
-            //idsFishLocation.addAll(idsFishGear)
             idsFishLocation.addAll(idsReservoirShore)
             Store stReg = mdb.loadQuery("""
                 select id, cls, 0 as pv from Obj where id in (${idsFishLocation.join(",")})
@@ -383,7 +380,6 @@ class FillDao extends BaseMdbUtils {
                     throw new XError(msg)
                 }
             }
-            //indexLocationAndGear = stReg.getIndex("id")
             indexLocationAndReservoir = stReg.getIndex("id")
             //
             idsFishManager.addAll(idsFishParticipants)
@@ -404,7 +400,6 @@ class FillDao extends BaseMdbUtils {
                     throw new XError(msg)
                 }
             }
-            //indexManagerAndParticipants = stReg.getIndex("id")
             indexManagerAndParticipantsAndGear = stReg.getIndex("id")
             //
             reader.eachRow(eachLine)
