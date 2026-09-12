@@ -47,7 +47,7 @@
                 {{ item.name }}
               </span>
           </td>
-          <td v-for="(col, i) in cols_" :key="i" :data-th="col.name">
+          <td v-for="(col, i) in cols_" :key="i" :data-th="col.name"">
             <q-btn
               color="blue" round size="sm" flat dense icon="more_vert" class="absolute-right"
             >
