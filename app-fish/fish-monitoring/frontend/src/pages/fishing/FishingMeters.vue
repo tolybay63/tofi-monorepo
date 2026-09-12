@@ -23,10 +23,10 @@
             {{ item.name }}
           </span>
         </td>
-        <td :data-th="cols[1]?.name">
+        <td :data-th="cols[1]?.name" style="text-align: center">
           {{ item.numberval }}
         </td>
-        <td :data-th="cols[2]?.name">
+        <td :data-th="cols[2]?.name" style="text-align: right">
           <q-btn
             class="no-padding no-margin" color="blue" dense flat icon="edit" round
             size="sm" @click="fnEdit(item)"

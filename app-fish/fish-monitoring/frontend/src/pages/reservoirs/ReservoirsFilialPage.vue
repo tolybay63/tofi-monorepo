@@ -2,7 +2,7 @@
   <div class="q-pa-sm">
     <q-splitter
       v-model="splitterModel"
-      :limits="[40, 100]"
+      :limits="[30, 100]"
       before-class="overflow-hidden"
       after-class="overflow-hidden q-pl-sm"
       separator-class="bg-red"
@@ -219,7 +219,7 @@ const toBack = () => {
 const updateSelected = () => {
   let obj = 0
   if (selected.value.length > 0) {
-    splitterModel.value = 60
+    splitterModel.value = 50
     obj = selected.value[0].obj
   } else {
     splitterModel.value = 100

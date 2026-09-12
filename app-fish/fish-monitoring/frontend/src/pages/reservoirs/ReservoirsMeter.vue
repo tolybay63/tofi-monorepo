@@ -57,25 +57,20 @@
                 {{ item.name }}
               </span>
             </td>
-            <td :data-th="cols[2]?.name">
+            <td :data-th="cols[2]?.name" style="text-align: center">
               {{ dtFormat(item.dbeg) }}
             </td>
-            <td :data-th="cols[3]?.name">
+            <td :data-th="cols[3]?.name" style="text-align: center">
               {{ dtFormat(item.dend) }}
             </td>
-            <td :data-th="cols[1]?.name">
+            <td :data-th="cols[1]?.name" style="text-align-last: right">
               {{ item.numberval }}
             </td>
-            <td :data-th="cols[4]?.name">
+            <td :data-th="cols[4]?.name" style="text-align-last: right">
               <q-btn
                 class="no-padding no-margin"
-                color="blue"
-                dense
-                flat
-                icon="edit"
-                round
-                size="sm"
-                @click="fnEdit(item)"
+                color="blue" dense flat icon="edit"
+                round size="sm" @click="fnEdit(item)"
               >
                 <q-tooltip transition-hide="rotate" transition-show="rotate">
                   {{ $t('update') }}
@@ -293,30 +288,30 @@ const getColumns = () => [
     label: proxy?.$t('fldName'),
     field: 'name',
     align: 'left',
-    style: 'font-size: 1.2em; width: 54%',
+    style: 'font-size: 1.2em; width: 70%',
   },
   {
     name: 'dbeg',
     label: proxy?.$t('fldDbegShort'),
     field: 'dbeg',
     align: 'left',
-    style: 'font-size: 1.2em; width: 8%',
+    style: 'font-size: 1.2em; width: 3%',
   },
   {
     name: 'dend',
     label: proxy?.$t('fldDendShort'),
     field: 'dend',
     align: 'left',
-    style: 'font-size: 1.2em; width: 8%',
+    style: 'font-size: 1.2em; width: 3%',
   },
   {
     name: 'numberval',
     label: proxy?.$t('val'),
     field: 'numberval',
-    align: 'center',
-    style: 'font-size: 1.2em; width: 16%',
+    align: 'left',
+    style: 'font-size: 1.2em; width: 10%',
   },
-  { name: 'cmd', field: 'cmd', align: 'center', style: 'font-size: 1.2em; width: 14%' },
+  { name: 'cmd', field: 'cmd', align: 'right', style: 'font-size: 1.2em; width: 4%' },
 ]
 
 const clearData = () => {

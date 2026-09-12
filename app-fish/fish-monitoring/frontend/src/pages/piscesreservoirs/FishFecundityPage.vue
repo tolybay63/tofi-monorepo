@@ -27,20 +27,15 @@
                 </span>
               </td>
               <!--value-->
-              <td :data-th="cols[1]?.name">
+              <td :data-th="cols[1]?.name" style="text-align-last: right">
                 {{ item.numberval }}
               </td>
               <!-- cmd -->
-              <td :data-th="cols[2]?.name">
+              <td :data-th="cols[2]?.name" style="text-align-last: right">
                 <q-btn
                   class="no-padding no-margin"
-                  color="blue"
-                  dense
-                  flat
-                  icon="edit"
-                  round
-                  size="sm"
-                  @click="fnEdit(item)"
+                  color="blue" dense flat icon="edit"
+                  round size="sm" @click="fnEdit(item)"
                 >
                   <q-tooltip transition-hide="rotate" transition-show="rotate">
                     {{ $t('update') }}
@@ -49,14 +44,8 @@
 
                 <q-btn
                   class="no-padding no-margin"
-                  color="red"
-                  dense
-                  flat
-                  icon="delete"
-                  round
-                  size="sm"
-                  @click="fnDelete(item)"
-                  :disable="!(item.idval > 0)"
+                  color="red" dense flat icon="delete" round
+                  size="sm" @click="fnDelete(item)" :disable="!(item.idval > 0)"
                 >
                   <q-tooltip transition-hide="rotate" transition-show="rotate">
                     {{ $t('deletingRecord') }}
@@ -229,20 +218,20 @@ const getColumns = () => [
     label: proxy?.$t('fldName'),
     field: 'name',
     align: 'left',
-    style: 'font-size: 1.2em; width: 60%',
+    style: 'font-size: 1.2em; width: 75%',
   },
   {
     name: 'numberval',
     label: proxy?.$t('val'),
     field: 'numberval',
     align: 'center',
-    style: 'font-size: 1.2em; width: 25%',
+    style: 'font-size: 1.2em; width: 15%',
   },
   {
     name: 'cmd',
     field: 'cmd',
     align: 'center',
-    style: 'font-size: 1.2em; width: 15%',
+    style: 'font-size: 1.2em; width: 10%',
   },
 ]
 
