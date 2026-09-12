@@ -98,19 +98,30 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void hasProps(long obj) {
-        String props = "Prop_CalcLastDate"
+        String props = "Prop_CalcLastDate,Prop_CalcStatus"
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
         map.put("obj", obj)
 
         Store st = mdb.loadQuery("""
-            select o.id 
+            select o.id, v2.propval 
             from Obj o
                 join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcLastDate
                 join DataPropVal v1 on v1.dataprop=d1.id
+                join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcStatus
+                join DataPropVal v2 on v2.dataprop=d2.id                
             where o.id=:obj
         """, map)
         if (st.size() == 0)
             throw new XError("Расчет еще не проводился")
+        else {
+            long pv = st.get(0).getLong("propval")
+            Store stFV = loadSqlMeta("""
+                select factorval from PropVal where id=${pv}
+            """, "")
+            map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Factor", "FV_Approved")
+            if (UtCnv.toLong(map.get("FV_Approved")) == stFV.get(0).getLong("factorval"))
+                throw new XError("Расчет утвержден!")
+        }
     }
 
     private void parent2childProps(long parent, long id) {
