@@ -343,6 +343,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadReservoirsMeter(long obj, long prop, String dte, long periodType) {
+        String props = "'Prop_WaterArea','Prop_WaterLevel','Prop_WaterLength','Prop_ReservoirWidth','Prop_ReservoirDepth','Prop_WaterFishAverageWeight','Prop_WaterNumberFishBio','Prop_CalcPdy','Prop_ReservoirPdy'"
         if (prop > 0) {
             return mdb.loadQuery("""
                 select d.prop as id, v.numberval, v.dbeg, v.dend, v.id as idval
@@ -353,89 +354,23 @@ class DataDao extends BaseMdbUtils {
         } else {
             if (obj == 0)
                 return mdb.createStore()
-            Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Water%")
-            Map<String, Long> map1 = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Reservoir%")
-            map.putAll(map1)
-            Store st = apiMeta().get(ApiMeta).loadSqlWithParams("""
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                from Prop p, Measure m
-                where p.id=:Prop_WaterArea and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                from Prop p, Measure m
-                where p.id=:Prop_WaterLevel and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                from Prop p, Measure m
-                where p.id=:Prop_WaterLength and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                from Prop p, Measure m
-                where (p.id=:Prop_ReservoirWidth or p.parent=:Prop_ReservoirWidth) and p.measure=m.id
-                union all
-                select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                from Prop p, Measure m
-                where (p.id=:Prop_ReservoirDepth or p.parent=:Prop_ReservoirDepth) and p.measure=m.id
-            """, "", map as Map<String, Object>)
-
-            Store st1 = apiMeta().get(ApiMeta).loadSqlWithParams("""
+            Store st = apiMeta().get(ApiMeta).loadSql("""
                 WITH RECURSIVE r AS (
-                   SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                   FROM Prop p, Measure m
-                   WHERE p.parent=:Prop_WaterFishAverageWeight and p.measure=m.id
-                   union ALL
-                   SELECT t.*
-                   FROM (
-                        select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                        FROM Prop p, Measure m
-                        WHERE p.measure=m.id
-                    ) t
-                      JOIN r
-                        ON t.parent = r.id
-                ),
-                o as (
-                SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                FROM Prop p, Measure m
-                WHERE p.id=:Prop_WaterFishAverageWeight and p.measure=m.id
+                    SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                    FROM prop p, Measure m
+                    WHERE p.measure=m.id and p.cod in (${props})    
+                    UNION ALL    
+                    SELECT p1.id, p1.parent, p1.name || ' ('||m1.name||')' as name, p1.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                    FROM  prop p1
+                    JOIN Measure m1 ON p1.measure=m1.id
+                    JOIN r ON p1.parent = r.id
                 )
-                SELECT * FROM o
-                union ALL
-                SELECT * FROM r
-                where 0=0
-            """, "", map as Map<String, Object>)
-
-            Store st2 = apiMeta().get(ApiMeta).loadSqlWithParams("""
-                WITH RECURSIVE r AS (
-                   SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                   FROM Prop p, Measure m
-                   WHERE p.parent=:Prop_WaterNumberFishBio and p.measure=m.id
-                   union ALL
-                   SELECT t.*
-                   FROM (
-                        select p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                        FROM Prop p, Measure m
-                        WHERE p.measure=m.id
-                    ) t
-                      JOIN r
-                        ON t.parent = r.id
-                ),
-                o as (
-                SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
-                FROM Prop p, Measure m
-                WHERE p.id=:Prop_WaterNumberFishBio and p.measure=m.id
-                )
-                SELECT * FROM o
-                union ALL
-                SELECT * FROM r
-                where 0=0
-            """, "", map as Map<String, Object>)
-
-            st.add(st1)
-            st.add(st2)
+                SELECT id, parent, name, dependperiod, dbeg, dend, numberval, idval
+                FROM r;
+            """, "")
 
             Set<Object> idsProp = st.getUniqueValues("id")
             //
-
             Store stData = mdb.loadQuery("""
                 select d.prop as prop, v.numberval, v.dbeg, v.dend, v.id
                 from DataProp d
