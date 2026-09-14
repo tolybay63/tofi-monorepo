@@ -44,14 +44,14 @@ export default {
   create1level: "Негізгі есептеуді жасаңыз",
   back: "Артқа",
 
-  CalcCreatDate: "Дата создания расчета",
-  CalcLastDate: "Дата последнего проведения расчета",
-  ReservoirShore: "Водоем (ссылка на объект)",
-  CalcStartYear: "Начальный год",
-  CalcEndYear: "Конечный год",
-  CalcFishSpec: "Вид рыбы (ссылка на фактор)",
-  CalcUser: "Кто проводил расчет",
-  CalcStatus: "Статус расчета",
+  CalcCreatDate: "Есептеуді жасау күні",
+  CalcLastDate: "Соңғы есептеу күні",
+  ReservoirShore: "Су айдыны",
+  CalcStartYear: "Басталу жылы",
+  CalcEndYear: "Аяқталу жылы",
+  CalcFishSpec: "Балық түрі",
+  CalcUser: "Есептеуді кім жүргізді",
+  CalcStatus: "Есептеу мәртебесі",
 
 
   //Dialog

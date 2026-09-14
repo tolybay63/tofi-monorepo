@@ -43,14 +43,14 @@ export default {
   create1level: "Create a master calculation",
   back: "Back",
 
-  CalcCreatDate: "Дата создания расчета",
-  CalcLastDate: "Дата последнего проведения расчета",
-  ReservoirShore: "Водоем (ссылка на объект)",
-  CalcStartYear: "Начальный год",
-  CalcEndYear: "Конечный год",
-  CalcFishSpec: "Вид рыбы (ссылка на фактор)",
-  CalcUser: "Кто проводил расчет",
-  CalcStatus: "Статус расчета",
+  CalcCreatDate: "Calculation creation date",
+  CalcLastDate: "Date of last calculation run",
+  ReservoirShore: "Water body",
+  CalcStartYear: "Start year",
+  CalcEndYear: "End year",
+  CalcFishSpec: "Fish species",
+  CalcUser: "Person who performed the calculation",
+  CalcStatus: "Calculation status",
 
 
   //Dialog
