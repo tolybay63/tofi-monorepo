@@ -59,9 +59,8 @@
           options-dense
           :options="optCalcFishSpec"
           :label="fmReqLabel('CalcFishSpec', true)"
-          option-value="id"
-          option-label="name"
-          map-options
+          option-value="id" option-label="name" map-options
+          :disable="true"
           @update:model-value="fnSelectCalcFishSpec"
         />
 
@@ -85,11 +84,8 @@
           :label="fmReqLabel('reservoir', true)"
           :options="optReservoir"
           class="q-ma-md"
-          dense
-          map-options
-          option-label="name"
-          option-value="id"
-          use-input
+          dense map-options option-label="name" option-value="id" use-input
+          :disable="true"
           @filter="filterReservoir"
           @update:model-value="fnSelectReservoir"
         />
