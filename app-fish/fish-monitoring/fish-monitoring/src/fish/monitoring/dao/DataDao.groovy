@@ -1921,53 +1921,6 @@ class DataDao extends BaseMdbUtils {
         """)
     }
 
-/*    @DaoMethod
-    Store saveFishingMeters(Map<String, Object> rec) {
-        long obj = UtCnv.toLong(rec.get("obj"))
-        long prop = UtCnv.toLong(rec.get("prop"))
-        long idVal = UtCnv.toLong(rec.get("idval"))
-        boolean hasValue = rec.containsKey("numberval")
-        double value = UtCnv.toDouble(rec.get("numberval"))
-        if (idVal > 0) {
-            if (hasValue) {
-                String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
-                mdb.execQueryNative("""
-                    update DataPropVal set numberval=${value}, timestamp='${tm}' where id=${idVal}
-                """)
-            } else {
-                mdb.execQueryNative("""
-                    delete from DataPropVal
-                    where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${obj});
-                    delete from DataProp where id in (
-                            select id from dataprop
-                            except
-                            select dataProp as id from DataPropVal
-                    );
-                """)
-            }
-        } else if (hasValue) {
-            StoreRecord recDP = mdb.createStoreRecord("DataProp")
-            recDP.set("isObj", 1)
-            recDP.set("objorrelobj", obj)
-            recDP.set("prop", prop)
-            long idDP = mdb.insertRec("DataProp", recDP)
-            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
-            recDPV.set("dataProp", idDP)
-            recDPV.set("numberVal", value)
-            long au = getUser()
-            recDPV.set("authUser", au)
-            recDPV.set("inputType", FD_InputType_consts.app)
-            long idDPV = mdb.getNextId("DataPropVal")
-            recDPV.set("id", idDPV)
-            recDPV.set("ord", idDPV)
-            recDPV.set("dbeg", "1800-01-01")
-            recDPV.set("dend", "3333-12-31")
-            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
-            mdb.insertRec("DataPropVal", recDPV, false)
-        }
-        return loadFishingMeters(obj)
-    }*/
-
     @DaoMethod
     long saveFishingMeters(Map<String, Object> rec) {
         rec.put("dependperiod", 0)

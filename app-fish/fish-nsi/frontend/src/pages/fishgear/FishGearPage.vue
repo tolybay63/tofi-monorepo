@@ -1,5 +1,15 @@
 <template>
   <div class="q-pa-sm">
+    <q-splitter
+      v-model="splitterModel"
+      :limits="[40, 100]"
+      after-class="overflow-hidden q-ml-sm"
+      before-class="overflow-hidden q-mr-sm"
+      separator-class="bg-red"
+      style="height: calc(100vh - 135px); width: 100%"
+    >
+
+      <template v-slot:before>
     <q-table
       style="height: calc(100vh - 140px); width: 100%"
       class="sticky-header-table"
@@ -17,6 +27,7 @@
       :loading="loading"
       selection="single"
       v-model:selected="selected"
+      @update:selected="updateSelected"
       :rows-per-page-options="[25, 0]"
     >
       <template #bottom-row>
@@ -90,7 +101,17 @@
         <q-inner-loading showing color="secondary"></q-inner-loading>
       </template>
     </q-table>
+      </template>
+
+
+      <template v-slot:after>
+        <FishGearMeters ref="FishGearMetersRef" :name="name"/>
+      </template>
+
+    </q-splitter>
+
   </div>
+
 </template>
 
 <script setup>
@@ -99,10 +120,15 @@ import { useQuasar, extend } from 'quasar'
 import { api } from '@/boot/axios'
 import { hasTarget, notifyInfo } from '@/utils/jsutils'
 import UpdaterFishGear from './UpdaterFishGear.vue'
+import FishGearMeters from "@/pages/fishgear/FishGearMeters.vue";
 
 const $q = useQuasar()
 const { proxy } = getCurrentInstance()
 
+const name = ref('')
+const FishGearMetersRef = ref(null)
+
+const splitterModel = ref(100)
 const rows = ref([])
 const filter = ref('')
 const selected = ref([])
@@ -140,6 +166,25 @@ const cols = ref(getColumns())
 
 const infoSelected = (row) => {
   return ' ' + row.name
+}
+
+const updateSelected = () => {
+  let obj = 0
+  if (selected.value.length > 0) {
+    splitterModel.value = 50
+    obj = selected.value[0].obj
+    name.value =
+      selected.value[0].name +
+      ' (' +
+      selected.value[0].nameCls +
+      ')'
+  } else {
+    splitterModel.value = 100
+    obj = 0
+    name.value = ''
+    FishGearMetersRef.value?.clearFishGearData()
+  }
+  FishGearMetersRef.value?.loadFishGearMeters(obj)
 }
 
 const loadFishGear = () => {

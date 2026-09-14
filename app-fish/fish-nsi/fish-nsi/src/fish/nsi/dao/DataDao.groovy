@@ -181,7 +181,123 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
+    @DaoMethod
+    Store loadFishGearMeters(long own) {
+        String props = "Prop_GearCatchability"
+        return loadMetersWithOutPeriod(own, props)
+    }
 
+    @DaoMethod
+    long saveFishGearMeters(Map<String, Object> rec) {
+        rec.put("dependperiod", 0)
+        return saveMeter(rec)
+    }
+
+    private Store loadMetersWithOutPeriod(long own, String props) {
+        Set<Object> idsPropAll = new HashSet<>()
+        for (String cod in props.split(",")) {
+            Store stTmp = loadSqlMeta("""
+                WITH RECURSIVE r AS (
+                    SELECT id
+                    FROM prop
+                    WHERE cod='${cod}'    
+                    UNION ALL    
+                    SELECT c.id
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r;
+            """, "")
+            Set<Object> setIds = stTmp.getUniqueValues("id")
+            idsPropAll.addAll(setIds)
+        }
+        //
+        Store st = loadSqlMeta("""
+            select id, parent, cod, name, null as idval, null as numberval
+            from Prop 
+            where id in (${idsPropAll.join(",")})
+        """, "")
+        // Value
+        Store stVal = mdb.loadQuery("""
+            select  d1.prop, v1.id as idval, v1.numberval
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${idsPropAll.join(",")})
+                join DataPropVal v1 on v1.dataprop=d1.id 
+            where o.id=${own}
+        """)
+
+        StoreIndex indStVal = stVal.getIndex("prop")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indStVal.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("idval", rec.getLong("idval"))
+                r.set("numberval", rec.getDouble("numberval"))
+            }
+        }
+        return st
+    }
+
+    private long saveMeter(Map<String, Object> rec) {
+        long obj = UtCnv.toLong(rec.get("obj"))
+        long prop = UtCnv.toLong(rec.get("prop"))
+        long idVal = UtCnv.toLong(rec.get("idval"))
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        boolean dependperiod = UtCnv.toBoolean(rec.get("dependperiod"))
+        Long pt = null
+        String dbeg = "1800-01-01"
+        String dend = "3333-12-31"
+        if (dependperiod) {
+            pt = 11L
+            String dt = UtCnv.toString(rec.get("year")) + "-01-01"
+            tofi.api.mdl.utils.UtPeriod up = new tofi.api.mdl.utils.UtPeriod()
+            dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+            dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+        }
+        if (idVal > 0) {
+            String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+            mdb.execQueryNative("""
+                update DataPropVal set numberval=${value}, dbeg='${dbeg}', dend='${dend}', timestamp='${tm}'
+                where id=${idVal}
+            """)
+
+        } else {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", 1)
+            recDP.set("objorrelobj", obj)
+            recDP.set("prop", prop)
+            if (dependperiod)
+                recDP.set("periodType", pt)
+            long idDP = mdb.insertRec("DataProp", recDP)
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", value)
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            recDPV.set("dbeg", dbeg)
+            recDPV.set("dend", dend)
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            idVal = mdb.insertRec("DataPropVal", recDPV, false)
+        }
+        return idVal
+    }
+
+    @DaoMethod
+    void deleteFishGearMeters(long idDPV) {
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where id=${idDPV};
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+    }
     //---------------------------------- StructureEnterprise --------------------------------- //
     @DaoMethod
     Store loadEnterprise(String codTyp) {
