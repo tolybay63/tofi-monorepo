@@ -209,6 +209,7 @@ class DataDao extends BaseMdbUtils {
                 SELECT * FROM r;
             """, "")
             Set<Object> setIds = stTmp.getUniqueValues("id")
+            if (setIds.isEmpty()) setIds.add(0L)
             idsPropAll.addAll(setIds)
         }
         //
