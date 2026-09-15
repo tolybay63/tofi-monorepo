@@ -343,7 +343,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadReservoirsMeter(long obj, long prop, String dte, long periodType) {
-        String props = "'Prop_WaterArea','Prop_WaterLevel','Prop_WaterLength','Prop_ReservoirWidth','Prop_ReservoirDepth','Prop_WaterFishAverageWeight','Prop_WaterNumberFishBio','Prop_CalcPdy','Prop_ReservoirPdy'"
+        String props = "'Prop_WaterArea','Prop_WaterLevel','Prop_WaterLength','Prop_ReservoirWidth','Prop_ReservoirDepth','Prop_WaterFishAverageWeight','Prop_WaterNumberFishBio','Prop_CalcPdy','Prop_ReservoirPdy','Prop_CalcWaterFluct','Prop_NumberFishCaught','Prop_GearCatchabilityNet','Prop_GearCatchabilitySeine'"
         if (prop > 0) {
             return mdb.loadQuery("""
                 select d.prop as id, v.numberval, v.dbeg, v.dend, v.id as idval

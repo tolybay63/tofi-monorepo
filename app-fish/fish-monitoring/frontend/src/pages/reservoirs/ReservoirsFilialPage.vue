@@ -295,7 +295,7 @@ const removeRow = (row) => {
 }
 
 const infoSelected = (row) => {
-  return row ? ' ' + row.name + ' (' + row.nameBranch + ')' : ''
+  return row ? ' ' + row.name + ' (' + row.nameKATO + ')' : ''
 }
 
 const loadReservoirs = (filial) => {
