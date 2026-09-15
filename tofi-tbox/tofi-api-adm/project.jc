@@ -17,9 +17,15 @@ class P extends ProjectScript {
                         "jakarta.mail",
                         "argon2-jvm",
                         "tofi-apinator",
+                        "tofi-api-adm",
+                        /*"tofi-api-dta",*/
+                        "tofi-api-mdl",
                 )
                 depends.dev(
+/*
                         "tofi-api-mdl",
+                        "tofi-api-data",
+*/
                 )
             }
         }
