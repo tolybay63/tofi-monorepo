@@ -116,7 +116,7 @@ class DataDao extends BaseMdbUtils {
                 for (StoreField fld in r.getFields()) {
                     if (fld.name.startsWith("v")) {
                         String year = fld.name.substring(1)
-                        if (r.getLong("id"+year) == 0)
+                        if (r.getLong("id" + year) == 0)
                             continue
                         params.put("prop", prop)
                         params.put("numberval", r.getDouble(fld.name))
@@ -147,8 +147,8 @@ class DataDao extends BaseMdbUtils {
             }
             //*********************************
             //3. Prop_FishFecundity
-            long uch1 =  UtCnv.toLong(rec.get("objReservoirShore"))
-            long uch2 =  UtCnv.toLong(rec.get("objCalcFishSpec"))
+            long uch1 = UtCnv.toLong(rec.get("objReservoirShore"))
+            long uch2 = UtCnv.toLong(rec.get("objCalcFishSpec"))
             ownMon = getRelObj(uch1, uch2)
             stMonReservoir = loadMetersWithOutPeriod(
                     ownMon, 0, "Prop_FishFecundity", "monitoringdata")
@@ -175,22 +175,17 @@ class DataDao extends BaseMdbUtils {
             params.put("obj", obj)
 
             for (StoreRecord r in stMonReservoir) {
+                if (r.getLong("idvalue") == 0)
+                    continue
                 long prop = r.getLong("id")
-                for (StoreField fld in r.getFields()) {
-                    if (fld.name.startsWith("v")) {
-                        String year = fld.name.substring(1)
-                        if (r.getLong("id"+year) == 0)
-                            continue
-                        params.put("prop", prop)
-                        params.put("numberval", r.getDouble(fld.name))
-                        params.put("dependperiod", true)
-                        params.put("year", year)
-                        saveMeter(params)
-                    }
-                }
-            }
-            //
+                params.put("prop", prop)
+                params.put("numberval", r.getDouble("numberval"))
+                params.put("dependperiod", false)
+                saveMeter(params)
 
+            }
+
+            //
 
 
         }
@@ -930,10 +925,13 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadRandPage(long own) {
         String props = "Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef"
+        return loadMetersWithOutPeriod(own, 1, props, "calcdata")
+/*
         Map<String, Long> mapY = getYears(own)
         long year1 = mapY.get("year1")
         long year2 = mapY.get("year2")
         return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
+*/
     }
 
     //**************************************  Tab Numbers **************************************//

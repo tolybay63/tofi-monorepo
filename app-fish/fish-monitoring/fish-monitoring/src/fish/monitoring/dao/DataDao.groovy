@@ -811,7 +811,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadTypesFishMeters(long own) {
-        String props = "Prop_CalcAgeSex,Prop_FishMaxAge,Prop_CalcAgePrey,Prop_FishSpeed,Prop_CalcMaxNumberFry"
+        String props = "Prop_CalcAgeSex,Prop_FishMaxAge,Prop_CalcAgePrey,Prop_FishSpeed,Prop_CalcMaxNumberFry,Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef"
         return loadMetersWithOutPeriod(own, props)
     }
 
