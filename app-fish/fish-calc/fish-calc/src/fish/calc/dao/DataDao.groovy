@@ -15,6 +15,7 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreField
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiCalcData
 import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.model.utils.EntityMdbUtils
@@ -35,6 +36,8 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
 
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
+
+    ApinatorApi apiCalcData() { return app.bean(ApinatorService).getApi("calcdata") }
     //-----------------------------------------------------------------------------------------------//
 
 
@@ -93,8 +96,106 @@ class DataDao extends BaseMdbUtils {
             // Fill props: Prop_ReservoirShore, Prop_CalcFishSpec
             fillProperties(true, "Prop_ReservoirShore", rec)
             fillProperties(true, "Prop_CalcFishSpec", rec)
+            //
+            //*********************************
+            //1. Prop_WaterArea, Prop_CalcWaterFluct
+            // CalcStartYear    CalcEndYear
+            // owner:   objReservoirShore
+            // Fish:    fvCalcFishSpec
+            Store stMonReservoir = loadMetersWithPeriod(
+                    UtCnv.toLong(rec.get("objReservoirShore")), "Prop_WaterArea,Prop_CalcWaterFluct",
+                    UtCnv.toLong(rec.get("CalcStartYear")), UtCnv.toLong(rec.get("CalcEndYear")), "monitoringdata")
+
+            // Save to Calc
+            Map<String, Object> params = new HashMap<>()
+            params.put("obj", obj)
+            //mdb.outTable(stMonReservoir)
+
+            for (StoreRecord r in stMonReservoir) {
+                long prop = r.getLong("id")
+                for (StoreField fld in r.getFields()) {
+                    if (fld.name.startsWith("v")) {
+                        String year = fld.name.substring(1)
+                        if (r.getLong("id"+year) == 0)
+                            continue
+                        params.put("prop", prop)
+                        params.put("numberval", r.getDouble(fld.name))
+                        params.put("dependperiod", true)
+                        params.put("year", year)
+                        saveMeter(params)
+                    }
+                }
+            }
+            //*********************************
+            //2. Prop_CalcAgeSex, Prop_CalcAgePrey, Prop_CalcMaxNumberFry
+            long ownMon = UtCnv.toLong(rec.get("objCalcFishSpec"))
+            stMonReservoir = loadMetersWithOutPeriod(
+                    ownMon, 1, "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_CalcMaxNumberFry", "monitoringdata")
+
+            //mdb.outTable(stMonReservoir)
+
+            // Save to Calc
+            params.put("obj", obj)
+            for (StoreRecord r in stMonReservoir) {
+                if (r.getLong("idvalue") == 0)
+                    continue
+                long prop = r.getLong("id")
+                params.put("prop", prop)
+                params.put("numberval", r.getDouble("numberval"))
+                params.put("dependperiod", false)
+                saveMeter(params)
+            }
+            //*********************************
+            //3. Prop_FishFecundity
+            long uch1 =  UtCnv.toLong(rec.get("objReservoirShore"))
+            long uch2 =  UtCnv.toLong(rec.get("objCalcFishSpec"))
+            ownMon = getRelObj(uch1, uch2)
+            stMonReservoir = loadMetersWithOutPeriod(
+                    ownMon, 0, "Prop_FishFecundity", "monitoringdata")
+            // Save to Calc
+            params.put("obj", obj)
+            for (StoreRecord r in stMonReservoir) {
+                if (r.getLong("idvalue") == 0)
+                    continue
+                long prop = r.getLong("id")
+                params.put("prop", prop)
+                params.put("numberval", r.getDouble("numberval"))
+                params.put("dependperiod", false)
+                saveMeter(params)
+            }
+            //
+            //*********************************
+            //4. Rand
+            //Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef
+            ownMon = UtCnv.toLong(rec.get("objCalcFishSpec"))
+            stMonReservoir = loadMetersWithOutPeriod(
+                    ownMon, 1, "Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef", "monitoringdata")
+            // Save to Calc
+            params = new HashMap<>()
+            params.put("obj", obj)
+
+            for (StoreRecord r in stMonReservoir) {
+                long prop = r.getLong("id")
+                for (StoreField fld in r.getFields()) {
+                    if (fld.name.startsWith("v")) {
+                        String year = fld.name.substring(1)
+                        if (r.getLong("id"+year) == 0)
+                            continue
+                        params.put("prop", prop)
+                        params.put("numberval", r.getDouble(fld.name))
+                        params.put("dependperiod", true)
+                        params.put("year", year)
+                        saveMeter(params)
+                    }
+                }
+            }
+
+
+
         }
     }
+
+    //----------------
 
     @DaoMethod
     void hasProps(long obj) {
@@ -159,7 +260,7 @@ class DataDao extends BaseMdbUtils {
         parent2childPropsOfMeter(parent, id, "Prop_WaterArea, Prop_CalcWaterFluct", true)
 
         //3. свойства рыбы: Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry
-        parent2childPropsOfMeter(parent, id, "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry",false)
+        parent2childPropsOfMeter(parent, id, "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry", false)
 
         //4. Случайные величины): Prop_CalcBaseMortality, Prop_CalcParabolaLeft, Prop_CalcParabolaRight, Prop_CalcBaseEating, Prop_CalcPdyDevCoef, Prop_CalcEggSurvivalRate
         parent2childPropsOfMeter(parent, id, "Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef", true)
@@ -509,6 +610,74 @@ class DataDao extends BaseMdbUtils {
         return loadObjForSelect(codTypOrProp, "monitoringdata")
     }
 
+    long getRelObj(long uch1, long uch2) {
+        Map<String, Long> mapTyp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WaterBodies", "")
+        Store stTyp = loadSqlMeta("""
+            select id from cls where typ=${mapTyp.get("Typ_WaterBodies")}
+        """, "")
+        Set<Object> idsUch1 = stTyp.getUniqueValues("id")
+        //
+        mapTyp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Fish", "")
+        stTyp = loadSqlMeta("""
+            select id from cls where typ=${mapTyp.get("Typ_Fish")}
+        """, "")
+        Set<Object> idsUch2 = stTyp.getUniqueValues("id")
+        //
+        Store st = loadSqlService("""
+            select u1.relobj  
+            from relobjmember u1
+            join relobjmember u2 on u1.relobj=u2.relobj and u2.cls in (0${idsUch2.join(",")}) and u2.obj=${uch2}
+            join ObjVer v on u2.obj=v.ownerver and v.lastver=1
+            where u1.cls in (0${idsUch1.join(",")}) and u1.obj=${uch1} 
+        """, "", "monitoringdata")
+        //
+        return st.get(0).getLong("relobj")
+    }
+
+    @DaoMethod
+    Store loadObjCalcFishSpec(long uch1) {
+        //Typ_WaterBodies	1000
+        //Typ_Fish	1002
+        Map<String, Long> mapTyp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WaterBodies", "")
+        Store stTyp = loadSqlMeta("""
+            select id from cls where typ=${mapTyp.get("Typ_WaterBodies")}
+        """, "")
+        Set<Object> idsUch1 = stTyp.getUniqueValues("id")
+        //
+        mapTyp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Fish", "")
+        stTyp = loadSqlMeta("""
+            select id from cls where typ=${mapTyp.get("Typ_Fish")}
+        """, "")
+        Set<Object> idsUch2 = stTyp.getUniqueValues("id")
+        //
+
+        Store st = loadSqlService("""
+            select u2.obj as id, v.name, u2.cls, null as pv 
+            from relobjmember u1
+            join relobjmember u2 on u1.relobj=u2.relobj and u2.cls in (0${idsUch2.join(",")})
+            join ObjVer v on u2.obj=v.ownerver and v.lastver=1
+            where u1.cls in (0${idsUch1.join(",")}) and u1.obj=${uch1}
+        """, "", "monitoringdata")
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcFishSpec", "")
+        Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select cls, id as propval
+                from PropVal
+                where prop=${mapProp.get("Prop_CalcFishSpec")} and cls is not null
+            """, "")
+        StoreIndex indCls = stProp.getIndex("cls")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("pv", rec.getLong("propval"))
+            }
+        }
+
+
+        return st
+    }
+
+
     Store loadObjForSelect(String codTypOrProp, String model) {
         if (codTypOrProp.startsWith("Typ_")) {
             Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
@@ -567,11 +736,11 @@ class DataDao extends BaseMdbUtils {
         return res
     }
 
-    private Store loadMetersWithPeriod(long own, String props) {
+    private Store loadMetersWithPeriod(long own, String props, long year1, long year2, String model) {
         //year1 & year2
-        Map<String, Long> mapY = getYears(own)
-        long year1 = mapY.get("year1")
-        long year2 = mapY.get("year2")
+        //Map<String, Long> mapY = getYears(own)
+        //long year1 = mapY.get("year1")
+        //long year2 = mapY.get("year2")
         //
         long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
         List<String> sel = new ArrayList<>();
@@ -612,7 +781,7 @@ class DataDao extends BaseMdbUtils {
                 join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
             where o.id=${own}
         """
-        Store stVal = mdb.loadQuery(sqlVal)
+        Store stVal = loadSqlService(sqlVal, "", model)
         StoreIndex indVal = stVal.getIndex("key")
         //mdb.outTable(stVal)
         for (StoreRecord r in st) {
@@ -629,7 +798,8 @@ class DataDao extends BaseMdbUtils {
         //mdb.outTable(st)
         return st
     }
-    private Store loadMetersWithOutPeriod(long own, String props) {
+
+    private Store loadMetersWithOutPeriod(long own, int isObj, String props, String model) {
 
         Set<Object> idsPropAll = new HashSet<>()
         for (String cod in props.split(",")) {
@@ -655,14 +825,14 @@ class DataDao extends BaseMdbUtils {
             where id in (${idsPropAll.join(",")})
         """, "")
         // Value
-        Store stVal = mdb.loadQuery("""
+        Store stVal = loadSqlService("""
             select  d1.prop, v1.id as idvalue, v1.numberval
             from Obj o
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                join DataProp d1 on d1.isObj=${isObj} and d1.objOrRelObj=o.id and d1.periodtype is null
                     and d1.prop in (${idsPropAll.join(",")})
                 join DataPropVal v1 on v1.dataprop=d1.id 
             where o.id=${own}
-        """)
+        """, "", model)
 
         StoreIndex indStVal = stVal.getIndex("prop")
         for (StoreRecord r in st) {
@@ -675,7 +845,10 @@ class DataDao extends BaseMdbUtils {
         return st
     }
     //**************************************  Tab Reservoir **************************************//
+    // load from Monitoring for Calc
 
+
+    //***************************
     @DaoMethod
     List<Map<String, Object>> getCols(long own) throws Exception {
         Map<String, Long> mapY = getYears(own)
@@ -716,7 +889,10 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadReservoirPage(long own) {
         String props = "Prop_WaterArea,Prop_CalcWaterFluct"
-        return loadMetersWithPeriod(own, props)
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
     }
 
     @DaoMethod
@@ -742,7 +918,7 @@ class DataDao extends BaseMdbUtils {
     Store loadFishPage(long own) {
         //String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry"
         String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_CalcMaxNumberFry"
-        return loadMetersWithOutPeriod(own, props)
+        return loadMetersWithOutPeriod(own, 1, props, "calcdata")
     }
 
     @DaoMethod
@@ -753,35 +929,50 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadRandPage(long own) {
         String props = "Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef"
-        return loadMetersWithPeriod(own, props)
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
     }
 
     //**************************************  Tab Numbers **************************************//
     @DaoMethod
     Store loadNumbersPage(long own) {
         String props = "Prop_CalcStartPopulation"
-        return loadMetersWithPeriod(own, props)
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
     }
 
     //**************************************  Tab Weight **************************************//
     @DaoMethod
     Store loadWeightPage(long own) {
         String props = "Prop_WaterFishAverageWeight"
-        return loadMetersWithPeriod(own, props)
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
     }
 
     //**************************************  Tab Pdu **************************************//
     @DaoMethod
     Store loadPduPage(long own) {
         String props = "Prop_CalcPdy"
-        return loadMetersWithPeriod(own, props)
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
     }
     //**************************************  Tab Result **************************************//
     //**************************************  Tab numbers **************************************//
     @DaoMethod
     Store loadResultNumbers(long own) {
         String props = "Prop_ResultPopulation,Prop_ResultPopulationExc,Prop_ResultSpawning,Prop_ResultCommercial,Prop_Result25Population,Prop_Result75Population"
-        return loadMetersWithPeriod(own, props)
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
     }
 
     @DaoMethod
@@ -818,13 +1009,19 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadResultMass(long own) {
         String props = "Prop_ResultTotalIchthyomass,Prop_ResultSpawningBiomass,Prop_ResultCommercialBiomass,Prop_Result25Ichthyomass,Prop_Result75Ichthyomass"
-        return loadMetersWithPeriod(own, props)
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
     }
     //**************************************  Tab mortality **************************************//
     @DaoMethod
     Store loadResultMortality(long own) {
         String props = "Prop_ResultMortalityCoef,Prop_Result25Mortality,Prop_Result75Mortality"
-        return loadMetersWithPeriod(own, props)
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
     }
 
     @DaoMethod
@@ -1010,7 +1207,8 @@ class DataDao extends BaseMdbUtils {
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_ReservoirShore") ||
-                    cod.equalsIgnoreCase("Prop_CalcUser")) {
+                    cod.equalsIgnoreCase("Prop_CalcUser") ||
+                    cod.equalsIgnoreCase("Prop_CalcFishSpec")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -1021,8 +1219,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_CalcFishSpec") ||
-                    cod.equalsIgnoreCase("Prop_CalcStatus")) {
+            if (cod.equalsIgnoreCase("Prop_CalcStatus")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                 }
@@ -1163,8 +1360,7 @@ class DataDao extends BaseMdbUtils {
         }
         // For FV
         if ([FD_PropType_consts.factor].contains(propType)) {
-            if (cod.equalsIgnoreCase("Prop_CalcFishSpec") ||
-                    cod.equalsIgnoreCase("Prop_CalcStatus")) {
+            if (cod.equalsIgnoreCase("Prop_CalcStatus")) {
                 if (propVal > 0) {
                     recDPV.set("propVal", propVal)
                     mdb.updateRec("DataPropVal", recDPV)
@@ -1234,7 +1430,8 @@ class DataDao extends BaseMdbUtils {
         // For Typ
         if ([FD_PropType_consts.typ].contains(propType)) {
             if (cod.equalsIgnoreCase("Prop_ReservoirShore") ||
-                    cod.equalsIgnoreCase("Prop_CalcUser")) {
+                    cod.equalsIgnoreCase("Prop_CalcUser") ||
+                    cod.equalsIgnoreCase("Prop_CalcFishSpec")) {
                 if (objRef > 0) {
                     recDPV.set("propVal", propVal)
                     recDPV.set("obj", objRef)
@@ -1261,6 +1458,8 @@ class DataDao extends BaseMdbUtils {
             return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
         else if (model.equalsIgnoreCase("monitoringdata"))
             return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("calcdata"))
+            return apiCalcData().get(ApiCalcData).loadSql(sql, domain)
         else
             throw new XError("Unknown model [${model}]")
     }

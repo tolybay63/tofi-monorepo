@@ -76,7 +76,7 @@
             />
             <!-- Prop_CalcFishSpec -->
             <q-select
-              v-model="form['fvCalcFishSpec']"
+              v-model="form['objCalcFishSpec']"
               :label="fmReqLabel('CalcFishSpec', true)"
               :options="optCalcFishSpec"
               class="q-ma-sm"
@@ -85,6 +85,7 @@
               option-label="name"
               option-value="id"
               options-dense
+              @filter="filterCalcFishSpec"
               @update:model-value="fnSelectCalcFishSpec"
             />
           </div>
@@ -140,7 +141,9 @@ const form = reactive({...props.data});
 
 const optReservoir = ref([])
 const optReservoirOrg = ref([])
+//
 const optCalcFishSpec = ref([])
+const optCalcFishSpecOrg = ref([])
 
 const fmReqLabel = (label, req) => {
   if (req)
@@ -149,12 +152,7 @@ const fmReqLabel = (label, req) => {
     return proxy?.$t(label)
 }
 
-/*
-const checkYear1 = () => {
-  if (!form['CalcStartYear'] || !form['CalcEndYear']) return true
-  return form['CalcStartYear'] <= form['CalcEndYear'] && form['CalcStartYear'] >= y1P
-}
-*/
+
 
 const checkYear1 = () => {
   return (form["CalcStartYear"] && form["CalcStartYear"].length === 4 && form['CalcStartYear'] <= form['CalcEndYear'] && form['CalcStartYear'] >= y1P )
@@ -187,7 +185,7 @@ const validName = () => {
     if (props.isChild) {
       return !checkYear1() || !checkYear2();
     } else {
-      return !form["fvCalcFishSpec"] || !form["objReservoirShore"] || !checkYear1P() || !checkYear2P();
+      return !form["objCalcFishSpec"] || !form["objReservoirShore"] || !checkYear1P() || !checkYear2P();
     }
   } else {
     return form["name"] === "";
@@ -196,7 +194,7 @@ const validName = () => {
 
 const fnSelectCalcFishSpec = (v) => {
   if (v) {
-    form.fvCalcFishSpec = v.id
+    form.objCalcFishSpec = v.id
     form.pvCalcFishSpec = v["pv"]
   }
 }
@@ -204,6 +202,10 @@ const fnSelectReservoir = (v) => {
   if (v) {
     form.objReservoirShore = v.id
     form.pvReservoirShore = v["pv"]
+    //
+    form.objCalcFishSpec = null
+    form.pvCalcFishSpec = null
+    loadObjCalcFishSpec(v.id)
   }
 }
 
@@ -218,6 +220,22 @@ const filterReservoir = (val, update) => {
     if (optReservoirOrg.value.length < 2) return
     const needle = val.toLowerCase()
     optReservoir.value = optReservoirOrg.value.filter((v) => {
+      return v.name?.toLowerCase().indexOf(needle) > -1
+    })
+  })
+}
+
+const filterCalcFishSpec = (val, update) => {
+  if (val === null || val === '') {
+    update(() => {
+      optCalcFishSpec.value = optCalcFishSpecOrg.value
+    })
+    return
+  }
+  update(() => {
+    if (optCalcFishSpecOrg.value.length < 2) return
+    const needle = val.toLowerCase()
+    optCalcFishSpec.value = optCalcFishSpecOrg.value.filter((v) => {
       return v.name?.toLowerCase().indexOf(needle) > -1
     })
   })
@@ -268,10 +286,12 @@ const onCancelClick = () => {
   hide();
 };
 
-defineExpose({
-  show,
-  hide
-});
+const loadObjCalcFishSpec = async (reservoir) => {
+  const resp2 = await api.post('', {method: 'data/loadObjCalcFishSpec', params: [reservoir]})
+  optCalcFishSpec.value = resp2.data.result['records']
+  optCalcFishSpecOrg.value = resp2.data.result['records']
+}
+
 
 onMounted(async () => {
   console.info("onMounted upd", props.isChild, props.parentName);
@@ -281,11 +301,16 @@ onMounted(async () => {
       optReservoir.value = resp1.data.result['records']
       optReservoirOrg.value = resp1.data.result['records']
       //
-      const resp2 = await api.post('', {method: 'data/loadFVasStore', params: ['Prop_CalcFishSpec']})
-      optCalcFishSpec.value = resp2.data.result['records']
     }
   } else {
     console.info("is Child", props.data);
   }
 });
+
+defineExpose({
+  show,
+  hide
+});
+
+
 </script>

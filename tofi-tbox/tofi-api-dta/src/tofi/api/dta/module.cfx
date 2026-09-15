@@ -23,6 +23,11 @@
                   class="tofi.api.dta.impl.ApiNSIDataImpl"/>
         </api>
 
+        <api name="calcdata" invoker="model" model="calcdata">
+            <item name="tofi.api.dta.ApiCalcData"
+                  class="tofi.api.dta.impl.ApiCalcDataImpl"/>
+        </api>
+
     </apinator>
 
 
