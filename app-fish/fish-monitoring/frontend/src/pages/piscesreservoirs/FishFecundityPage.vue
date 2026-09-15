@@ -1,75 +1,112 @@
 <template>
-  <div class="q-pa-md bg-amber-1" style="font-size: 18px">{{ name }}</div>
+  <div class="q-pa-sm row bg-amber-1">
+    <!-- Date -->
+    <q-input
+      v-model="dte"
+      :label="$t('date')"
+      class="q-mr-lg"
+      dense
+      stack-label
+      style="width: 100px"
+      type="date"
+      @update:model-value="fnDt"
+    />
 
-  <div class="q-pt-sm">
-    <div class="q-table-container q-table--dense wrap bg-orange-1" style="height: 100%">
-      <div class="q-table-middle scroll">
-        <table class="q-table q-table--cell-separator q-table--bordered wrap">
-          <thead class="text-bold text-white bg-blue-grey-13">
-            <tr>
-              <th style="font-size: 1.2em; width: 60%">
-                {{ cols[0]?.label }}
-              </th>
-              <th style="font-size: 1.2em; width: 25%">
-                {{ cols[1]?.label }}
-              </th>
-              <th></th>
-            </tr>
-          </thead>
+    <!-- PeriodType -->
+    <q-select
+      v-model="periodType"
+      :label="fnReqLabel('periodType')"
+      :options="optPeriod"
+      class="q-ml-lg"
+      dense
+      map-options
+      option-label="text"
+      option-value="id"
+      options-dense
+      style="width: 100px"
+      @update:model-value="fnSelectPeriodType"
+    />
+  </div>
 
-          <tbody style="background: aliceblue">
-            <tr v-for="(item, index) in arrayTreeObj" :key="index">
-              <td :data-th="cols[0]?.name" @click="toggle(item)">
-                <span class="q-tree-link q-tree-label" :style="setPadding(item)">
-                  <q-icon :name="iconName(item)" color="secondary" style="cursor: pointer" />
+  <div class="q-table-container q-table--dense wrap bg-orange-1" style="height: 100%">
+    <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
+      <table class="q-table q-table--cell-separator q-table--bordered wrap">
+        <thead class="text-bold text-white bg-blue-grey-13">
+        <tr>
+          <th style="font-size: 1.2em; width: 50%">
+            {{ cols[0]?.label }}
+          </th>
+          <th style="font-size: 1.2em; width: 14%">
+            {{ cols[1]?.label }}
+          </th>
+          <th style="font-size: 1.2em; width: 14%">
+            {{ cols[2]?.label }}
+          </th>
+          <th style="font-size: 1.2em; width: 12%">
+            {{ cols[3]?.label }}
+          </th>
+          <th></th>
+        </tr>
+        </thead>
 
-                  {{ item.name }}
-                </span>
-              </td>
-              <!--value-->
-              <td :data-th="cols[1]?.name" style="text-align-last: right">
-                {{ item.numberval }}
-              </td>
-              <!-- cmd -->
-              <td :data-th="cols[2]?.name" style="text-align-last: right">
-                <q-btn
-                  class="no-padding no-margin"
-                  color="blue" dense flat icon="edit"
-                  round size="sm" @click="fnEdit(item)"
-                >
-                  <q-tooltip transition-hide="rotate" transition-show="rotate">
-                    {{ $t('update') }}
-                  </q-tooltip>
-                </q-btn>
+        <tbody style="background: aliceblue">
+        <tr v-for="(item, index) in arrayTreeObj" :key="index">
+          <td :data-th="cols[0]?.name" @click="toggle(item)">
+              <span class="q-tree-link q-tree-label" :style="setPadding(item)">
+                <q-icon :name="iconName(item)" color="secondary" style="cursor: pointer" />
+                {{ item.name }}
+              </span>
+          </td>
+          <td :data-th="cols[2]?.name" style="text-align: center">
+            {{ dtFormat(item.dbeg) }}
+          </td>
+          <td :data-th="cols[3]?.name" style="text-align: center">
+            {{ dtFormat(item.dend) }}
+          </td>
+          <td :data-th="cols[1]?.name" style="text-align-last: right">
+            {{ item.numberval }}
+          </td>
+          <td :data-th="cols[4]?.name" style="text-align-last: right">
+            <q-btn
+              class="no-padding no-margin"
+              color="blue" dense flat icon="edit"
+              round size="sm" @click="fnEdit(item)"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ $t('update') }}
+              </q-tooltip>
+            </q-btn>
 
-                <q-btn
-                  class="no-padding no-margin"
-                  color="red" dense flat icon="delete" round
-                  size="sm" @click="fnDelete(item)" :disable="!(item.idval > 0)"
-                >
-                  <q-tooltip transition-hide="rotate" transition-show="rotate">
-                    {{ $t('deletingRecord') }}
-                  </q-tooltip>
-                </q-btn>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            <q-btn
+              :disable="!(item.idval > 0)"
+              class="no-padding no-margin"
+              color="red"
+              dense
+              flat
+              icon="delete"
+              round
+              size="sm"
+              @click="fnDelete(item)"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ $t('deletingRecord') }}
+              </q-tooltip>
+            </q-btn>
+          </td>
+        </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
-import { useQuasar } from 'quasar'
-import { api } from '@/boot/axios'
-import { expandAll, notifyError, notifyInfo, pack } from '@/utils/jsutils'
-import UpdaterFishFecundity from '@/pages/piscesreservoirs/UpdaterFishFecundity.vue'
-
-const props = defineProps({
-  name: String,
-})
+import { useQuasar, date } from 'quasar'
+import { api, tofi_dbeg, tofi_dend } from '@/boot/axios'
+import { notifyError, notifyInfo, pack, today } from '@/utils/jsutils'
+import UpdaterReservoirMeter from '@/pages/reservoirs/UpdaterReservoirMeter.vue'
+import UpdaterFecundityPage from "@/pages/piscesreservoirs/UpdaterFecundityPage.vue";
 
 const $q = useQuasar()
 const { proxy } = getCurrentInstance()
@@ -77,10 +114,33 @@ const { proxy } = getCurrentInstance()
 const rows = ref([])
 const cols = ref([])
 const loading = ref(false)
-
 const isExpanded = ref(true)
 const itemId = ref(null)
-const relobj = ref(0)
+const obj = ref(0)
+
+const dte = ref(today())
+const periodType = ref(11)
+const optPeriod = ref([])
+
+const dtFormat = (v) => {
+  return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
+}
+
+const fnSelectPeriodType = (v) => {
+  periodType.value = v.id
+  loadFishFecundity(obj.value)
+}
+
+const fnReqLabel = (label) => {
+  return proxy?.$t(label) + '*'
+}
+
+const fnDt = (val) => {
+  if (val && val.length === 10 && date.formatDate(val)) {
+    dte.value = val
+    loadFishFecundity(obj.value)
+  }
+}
 
 const fnDelete = (row) => {
   let nm = row.name
@@ -95,25 +155,35 @@ const fnDelete = (row) => {
     .onOk(() => {
       api
         .post('', {
-          method: 'data/deleteFishFecundity',
+          method: 'data/deleteReservoirsMeter',
           params: [row.idval],
         })
-        .then(
-          () => {
-            if (row.level === 0) {
-              rows.value[0].idval = null
-              rows.value[0].numberval = null
-            } else {
-              let childs = rows.value[0].children
-              let index = childs.findIndex((rec) => rec.id === row.id)
-              childs[index].idval = null
-              childs[index].numberval = null
+        .then(() => {
+          if (row.level === 0) {
+            let index = rows.value.findIndex((rec) => rec.id === row.id)
+            if (index > -1) {
+              rows.value[index].idval = null
+              rows.value[index].numberval = null
+              rows.value[index].dbeg = null
+              rows.value[index].dend = null
             }
-          },
-          (error) => {
-            notifyError(error.message)
-          },
-        )
+          } else {
+            let index = rows.value.findIndex((rec) => rec.id === row.parent)
+            if (index > -1 && rows.value[index].children) {
+              let child = rows.value[index].children
+              let index2 = child.findIndex((rec) => rec.id === row.id)
+              if (index2 > -1) {
+                child[index2].idval = null
+                child[index2].numberval = null
+                child[index2].dbeg = null
+                child[index2].dend = null
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          notifyError(error.message)
+        })
     })
     .onCancel(() => {
       notifyInfo(proxy?.$t('canceled'))
@@ -140,14 +210,19 @@ const updateRowValue = (currentRows, targetRec) => {
 
 const fnEdit = (row) => {
   let rec = {
-    relobj: relobj.value,
+    obj: obj.value,
     prop: row.id,
-    numberval: row.numberval || '',
     name: row.name,
     idval: row.idval,
+    numberval: row.numberval || '',
+    dependperiod: row.dependperiod,
+    dt: dte.value,
+    pt: periodType.value,
+    level: row.level,
   }
+
   $q.dialog({
-    component: UpdaterFishFecundity,
+    component: UpdaterFecundityPage,
     componentProps: {
       data: rec,
     },
@@ -181,12 +256,8 @@ const recursive = (currentObj, newObj, level, targetItemId, isExpend) => {
 }
 
 const iconName = (item) => {
-  if (item.expend) {
-    return 'remove_circle_outline'
-  }
-  if (item.children && item.children.length > 0) {
-    return 'control_point'
-  }
+  if (item.expend) return 'remove_circle_outline'
+  if (item.children && item.children.length > 0) return 'control_point'
   return ''
 }
 
@@ -218,38 +289,46 @@ const getColumns = () => [
     label: proxy?.$t('fldName'),
     field: 'name',
     align: 'left',
-    style: 'font-size: 1.2em; width: 75%',
+    style: 'font-size: 1.2em; width: 70%',
+  },
+  {
+    name: 'dbeg',
+    label: proxy?.$t('fldDbegShort'),
+    field: 'dbeg',
+    align: 'left',
+    style: 'font-size: 1.2em; width: 3%',
+  },
+  {
+    name: 'dend',
+    label: proxy?.$t('fldDendShort'),
+    field: 'dend',
+    align: 'left',
+    style: 'font-size: 1.2em; width: 3%',
   },
   {
     name: 'numberval',
     label: proxy?.$t('val'),
     field: 'numberval',
-    align: 'center',
-    style: 'font-size: 1.2em; width: 15%',
-  },
-  {
-    name: 'cmd',
-    field: 'cmd',
-    align: 'center',
+    align: 'left',
     style: 'font-size: 1.2em; width: 10%',
   },
+  { name: 'cmd', field: 'cmd', align: 'right', style: 'font-size: 1.2em; width: 4%' },
 ]
 
 const clearData = () => {
   rows.value = []
 }
 
-const loadFishFecundity = (targetRelObj) => {
+const loadFishFecundity = (targetObj) => {
   loading.value = true
-  relobj.value = targetRelObj
+  obj.value = targetObj
   api
     .post('', {
       method: 'data/loadFishFecundity',
-      params: [targetRelObj, 0],
+      params: [targetObj, 0, dte.value, periodType.value],
     })
     .then((response) => {
       rows.value = pack(response.data.result['records'], 'id')
-      expandAll(rows.value)
     })
     .finally(() => {
       loading.value = false
@@ -264,6 +343,15 @@ const arrayTreeObj = computed(() => {
 
 onMounted(() => {
   cols.value = getColumns()
+  loading.value = true
+  api
+    .post('', { method: 'data/loadPeriodType', params: [] })
+    .then((response) => {
+      optPeriod.value = response.data.result['records']
+    })
+    .finally(() => {
+      loading.value = false
+    })
 })
 
 defineExpose({
@@ -271,3 +359,23 @@ defineExpose({
   loadFishFecundity,
 })
 </script>
+
+<style scoped>
+.sticky-header-table {
+  max-height: 95%;
+  overflow: auto;
+}
+.sticky-header-table table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.sticky-header-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #607d8b;
+}
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
+</style>

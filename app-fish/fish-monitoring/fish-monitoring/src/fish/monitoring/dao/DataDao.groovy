@@ -1038,6 +1038,131 @@ class DataDao extends BaseMdbUtils {
         deleteOwnerWithProperties(id, 0)
     }
 
+
+    @DaoMethod
+    Store loadFishFecundity(long obj, long prop, String dte, long periodType) {
+        String props = "'Prop_FishFecundity','Prop_CalcStartPopulation','Prop_CalcStartPopulationBalanc'"
+
+
+        if (prop > 0) {
+            return mdb.loadQuery("""
+                select d.prop as id, v.numberval, v.dbeg, v.dend, v.id as idval
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=0 and d.objorrelobj=${obj} and d.prop=${prop}
+            """)
+        } else {
+            if (obj == 0)
+                return mdb.createStore()
+            Store st = apiMeta().get(ApiMeta).loadSql("""
+                WITH RECURSIVE r AS (
+                    SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                    FROM prop p, Measure m
+                    WHERE p.measure=m.id and p.cod in (${props})    
+                    UNION ALL    
+                    SELECT p1.id, p1.parent, p1.name || ' ('||m1.name||')' as name, p1.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                    FROM  prop p1
+                    JOIN Measure m1 ON p1.measure=m1.id
+                    JOIN r ON p1.parent = r.id
+                )
+                SELECT id, parent, name, dependperiod, dbeg, dend, numberval, idval
+                FROM r;
+            """, "")
+
+            Set<Object> idsProp = st.getUniqueValues("id")
+            //
+            Store stData = mdb.loadQuery("""
+                select d.prop as prop, v.numberval, v.dbeg, v.dend, v.id
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=0 and d.objorrelobj=${obj} and d.periodType=${periodType} and 
+                    '${dte}' between v.dbeg and v.dend and d.prop in (0${idsProp.join(",")})
+                union all
+                select d.prop as prop, v.numberval, v.dbeg, v.dend, v.id
+                from DataProp d
+                    left join DataPropVal v on d.id=v.dataProp
+                where d.isObj=0 and d.objorrelobj=${obj} and d.periodType is null and '${dte}' between v.dbeg and v.dend 
+                    and d.prop in (0${idsProp.join(",")})                
+            """)
+            StoreIndex indData = stData.getIndex("prop")
+            for (StoreRecord r in st) {
+                StoreRecord rec = indData.get(r.getLong("id"))
+                if (rec != null) {
+                    r.set("idval", rec.getLong("id"))
+                    r.set("numberval", rec.getDouble("numberval"))
+                    r.set("dbeg", rec.getString("dbeg"))
+                    r.set("dend", rec.getString("dend"))
+                }
+            }
+
+mdb.outTable(st)
+            return st
+        }
+    }
+
+
+    @DaoMethod
+    Store saveFishFecundity(Map<String, Object> rec) {
+        long obj = UtCnv.toLong(rec.get("obj"))
+        long prop = UtCnv.toLong(rec.get("prop"))
+        long idVal = UtCnv.toLong(rec.get("idval"))
+        boolean hasValue = rec.containsKey("numberval")
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        boolean dependperiod = UtCnv.toInt(rec.get("dependperiod") == 1)
+        long pt = UtCnv.toLong(rec.get("pt"))
+        String dt = UtCnv.toString(rec.get("dt"))
+        String dbeg = "1800-01-01"
+        String dend = "3333-12-31"
+        if (dependperiod) {
+            UtPeriod up = new UtPeriod()
+            dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+            dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+        }
+
+        if (idVal > 0) {
+            if (hasValue) {
+                String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+                mdb.execQueryNative("""
+                    update DataPropVal set numberval=${value}, dbeg='${dbeg}', dend='${dend}', timestamp='${tm}'
+                    where id=${idVal}
+                """)
+            } else {
+                mdb.execQueryNative("""
+                    delete from DataPropVal
+                    where dataProp in (select id from DataProp where isobj=1 and objorrelobj=${obj});
+                    delete from DataProp where id in (
+                            select id from dataprop
+                            except
+                            select dataProp as id from DataPropVal
+                    );
+                """)
+            }
+        } else if (hasValue) {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", 0)
+            recDP.set("objorrelobj", obj)
+            recDP.set("prop", prop)
+            if (dependperiod)
+                recDP.set("periodType", pt)
+            long idDP = mdb.insertRec("DataProp", recDP)
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", value)
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            recDPV.set("dbeg", dbeg)
+            recDPV.set("dend", dend)
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            mdb.insertRec("DataPropVal", recDPV, false)
+        }
+        return loadFishFecundity(obj, 0, dt, pt)
+    }
+
+/*
     @DaoMethod
     Store loadFishFecundity(long relobj, long prop) {
         if (prop > 0) {
@@ -1075,6 +1200,7 @@ class DataDao extends BaseMdbUtils {
             return st
         }
     }
+*/
 
     @DaoMethod
     void deleteFishFecundity(long idDPV) {
@@ -1089,7 +1215,7 @@ class DataDao extends BaseMdbUtils {
         """)
     }
 
-    @DaoMethod
+/*    @DaoMethod
     Store saveFishFecundiry(Map<String, Object> rec) {
         long relobj = UtCnv.toLong(rec.get("relobj"))
         long prop = UtCnv.toLong(rec.get("prop"))
@@ -1134,7 +1260,7 @@ class DataDao extends BaseMdbUtils {
             mdb.insertRec("DataPropVal", recDPV, false)
         }
         return loadFishFecundity(relobj, prop)
-    }
+    }*/
 
 
     @DaoMethod
