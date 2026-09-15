@@ -235,7 +235,7 @@ const cols = ref(getColumns())
 const updateSelected = () => {
   let obj = 0
   if (selected.value.length > 0) {
-    splitterModel.value = 70
+    splitterModel.value = 50
     obj = selected.value[0].obj
     name.value =
       selected.value[0].nameFishLocation +

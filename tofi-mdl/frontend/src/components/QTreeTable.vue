@@ -34,7 +34,7 @@
   <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
     <table class="q-table q-table--cell-separator q-table--bordered wrap">
       <thead class="text-bold text-white bg-blue-grey-13">
-        <tr class style="text-align: left">
+        <tr>
           <th
               v-for="(col, index) in cols"
               :key="index"

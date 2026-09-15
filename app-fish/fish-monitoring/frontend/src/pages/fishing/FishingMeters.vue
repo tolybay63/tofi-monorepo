@@ -5,10 +5,10 @@
     <table class="q-table q-table--cell-separator q-table--bordered wrap">
       <thead class="text-bold text-white bg-blue-grey-13">
       <tr>
-        <th style="font-size: 1.2em; width: 60%">
+        <th :style="cols[0]?.style">
           {{ cols[0]?.label }}
         </th>
-        <th style="font-size: 1.2em; width: 25%">
+        <th :style="cols[1]?.style">
           {{ cols[1]?.label }}
         </th>
         <th></th>
@@ -18,7 +18,7 @@
       <tbody style="background: aliceblue">
       <tr v-for="(item, index) in arrayTreeObj" :key="index">
         <td :data-th="cols[0]?.name" @click="toggle(item)">
-          <span class="q-tree-link q-tree-label" :style="setPadding(item)">
+          <span :style="setPadding(item)" class="q-tree-link q-tree-label">
             <q-icon :name="iconName(item)" color="secondary" style="cursor: pointer"/>
             {{ item.name }}
           </span>
@@ -37,8 +37,8 @@
           </q-btn>
 
           <q-btn
-            class="no-padding no-margin" color="red" dense flat icon="delete" round
-            size="sm" @click="fnDelete(item)" :disable="!(item.idval > 0)"
+            :disable="!(item.idval > 0)" class="no-padding no-margin" color="red" dense flat icon="delete"
+            round size="sm" @click="fnDelete(item)"
           >
             <q-tooltip transition-hide="rotate" transition-show="rotate">
               {{ $t("deletingRecord") }}
@@ -52,9 +52,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, getCurrentInstance } from 'vue'
-import { useQuasar } from 'quasar'
-import { api } from '@/boot/axios'
+import {computed, getCurrentInstance, onMounted, ref} from 'vue'
+import {useQuasar} from 'quasar'
+import {api} from '@/boot/axios'
 import {findRowForId, notifyError, notifyInfo, pack} from '@/utils/jsutils'
 import UpdaterFishingMeters from "@/pages/fishing/UpdaterFishingMeters.vue"
 
@@ -63,7 +63,7 @@ const props = defineProps({
 })
 
 const $q = useQuasar()
-const { proxy } = getCurrentInstance()
+const {proxy} = getCurrentInstance()
 
 const rows = ref([])
 const cols = ref([])
@@ -191,19 +191,19 @@ const getColumns = () => [
     label: proxy?.$t("fldName"),
     field: "name",
     align: "left",
-    style: "font-size: 1.2em; width: 60%",
+    style: "font-size: 1.2em; width: 70%",
   },
   {
     name: "numberval",
     label: proxy?.$t("val"),
     field: "numberval",
     align: "center",
-    style: "font-size: 1.2em; width: 15%",
+    style: "font-size: 1.2em; width: 20%",
   },
   {
     name: "cmd",
     field: "cmd",
-    align: "center",
+    align: "right",
     style: "font-size: 1.2em; width: 10%",
   }
 ]
@@ -248,16 +248,26 @@ defineExpose({
   max-height: 95%;
   overflow: auto;
 }
+
 .sticky-header-table table {
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse; /* Меняем на collapse, чтобы рамки ячеек сливались в единую сетку */
+  width: 100%;
 }
+
+/* Добавляем рамки для всех заголовков и ячеек */
+.sticky-header-table th,
+.sticky-header-table td {
+  border: 1px solid #c0c0c0; /* Цвет границы (можете поменять на нужный оттенок) */
+  padding: 8px 12px;         /* Необязательный внутренний отступ для красоты */
+}
+
 .sticky-header-table thead th {
   position: sticky;
   top: 0;
   z-index: 1;
   background-color: #607d8b;
 }
+
 .sticky-header-table .q-table--bordered {
   border-top: none;
 }

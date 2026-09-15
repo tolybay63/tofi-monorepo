@@ -105,7 +105,6 @@ import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useQuasar, date } from 'quasar'
 import { api, tofi_dbeg, tofi_dend } from '@/boot/axios'
 import { notifyError, notifyInfo, pack, today } from '@/utils/jsutils'
-import UpdaterReservoirMeter from '@/pages/reservoirs/UpdaterReservoirMeter.vue'
 import UpdaterFecundityPage from "@/pages/piscesreservoirs/UpdaterFecundityPage.vue";
 
 const $q = useQuasar()
@@ -365,16 +364,26 @@ defineExpose({
   max-height: 95%;
   overflow: auto;
 }
+
 .sticky-header-table table {
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse; /* Меняем на collapse, чтобы рамки ячеек сливались в единую сетку */
+  width: 100%;
 }
+
+/* Добавляем рамки для всех заголовков и ячеек */
+.sticky-header-table th,
+.sticky-header-table td {
+  border: 1px solid #c0c0c0; /* Цвет границы (можете поменять на нужный оттенок) */
+  padding: 8px 12px;         /* Необязательный внутренний отступ для красоты */
+}
+
 .sticky-header-table thead th {
   position: sticky;
   top: 0;
   z-index: 1;
   background-color: #607d8b;
 }
+
 .sticky-header-table .q-table--bordered {
   border-top: none;
 }
