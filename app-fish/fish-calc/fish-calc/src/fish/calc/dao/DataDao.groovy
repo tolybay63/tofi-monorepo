@@ -190,8 +190,8 @@ class DataDao extends BaseMdbUtils {
                     ownMon, "Prop_CalcStartPopulation,Prop_CalcStartPopulationBalance",
                     UtCnv.toLong(rec.get("CalcStartYear")), UtCnv.toLong(rec.get("CalcEndYear")), "monitoringdata")
 
-            mdb.outTable(stMonitoring)
             // Save to Calc
+            params.put("obj", obj)
             for (StoreRecord r in stMonitoring) {
                 long prop = r.getLong("id")
                 for (StoreField fld in r.getFields()) {
@@ -207,8 +207,61 @@ class DataDao extends BaseMdbUtils {
                     }
                 }
             }
-            //
+            //5. Pdu    Prop_CalcPdy
+            long objFV = UtCnv.toLong(rec.get("objCalcFishSpec"))
+            Store stTmp = loadSqlService("""
+                select cls from Obj where id=${objFV}
+            """, "", "monitoringdata")
+            long objCls = stTmp.get(0).getLong("cls")
+            stTmp = loadSqlMeta("""
+                select c.factorval 
+                from clsfactorval c, factor f 
+                where c.cls=${objCls} and c.factorval=f.id and f.cod <> 'FV_Fictive'
+            """, "")
 
+            long fv=stTmp.get(0).getLong("factorval")
+            stMonitoring = loadMetersWithPeriodFV(
+                    UtCnv.toLong(rec.get("objReservoirShore")), fv, "Prop_CalcPdy",
+                    UtCnv.toLong(rec.get("CalcStartYear")), UtCnv.toLong(rec.get("CalcEndYear")), "monitoringdata")
+            //mdb.outTable(stMonitoring)
+            // Save to Calc
+            params.put("obj", obj)
+            for (StoreRecord r in stMonitoring) {
+                long prop = r.getLong("id")
+                for (StoreField fld in r.getFields()) {
+                    if (fld.name.startsWith("v")) {
+                        String year = fld.name.substring(1)
+                        if (r.getLong("id" + year) == 0)
+                            continue
+                        params.put("prop", prop)
+                        params.put("numberval", r.getDouble(fld.name))
+                        params.put("dependperiod", true)
+                        params.put("year", year)
+                        saveMeter(params)
+                    }
+                }
+            }
+            //6. Weight:  Prop_WaterFishAverageWeight
+            stMonitoring = loadMetersWithPeriodFV(
+                    UtCnv.toLong(rec.get("objReservoirShore")), fv, "Prop_WaterFishAverageWeight",
+                    UtCnv.toLong(rec.get("CalcStartYear")), UtCnv.toLong(rec.get("CalcEndYear")), "monitoringdata")
+            // Save to Calc
+            params.put("obj", obj)
+            for (StoreRecord r in stMonitoring) {
+                long prop = r.getLong("id")
+                for (StoreField fld in r.getFields()) {
+                    if (fld.name.startsWith("v")) {
+                        String year = fld.name.substring(1)
+                        if (r.getLong("id" + year) == 0)
+                            continue
+                        params.put("prop", prop)
+                        params.put("numberval", r.getDouble(fld.name))
+                        params.put("dependperiod", true)
+                        params.put("year", year)
+                        saveMeter(params)
+                    }
+                }
+            }
         }
     }
 
@@ -791,6 +844,75 @@ class DataDao extends BaseMdbUtils {
         return st
     }
 
+    private Store loadMetersWithPeriodFV(long own, long fv, String props, long year1, long year2, String model) {
+        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
+        List<String> sel = new ArrayList<>();
+        for (long i in 0..count) {
+            String year = UtCnv.toString(year1 + i)
+            sel.add("null as id" + year + ",  null  as v" + year)
+        }
+        //
+        Set<Object> idsPropAll = new HashSet<>()
+        for (String cod in props.split(",")) {
+            Store stMeta = loadSqlMeta("""
+                select meter from Prop where cod='${cod}'
+            """, "")
+            long meter = stMeta.get(0).getLong("meter")
+            //
+            Store stTmp = loadSqlMeta("""
+                with mrfv as (
+                select meterrate, 
+                    string_to_array(STRING_AGG (cast(factorval as varchar(4000)), ','), ',') as arr
+                from meterratefv
+                group by meterrate
+                )
+                select id
+                from Prop
+                where meterrate in (
+                    select meterrate from mrfv 
+                    where ARRAY[arr] @> '{${fv}}'
+                ) and meter=${meter}
+                union all 
+                select id  
+                from Prop
+                where cod='${cod}'
+
+            """, "")
+            Set<Object> setIds = stTmp.getUniqueValues("id")
+            idsPropAll.addAll(setIds)
+        }
+
+        Store st = loadSqlMeta("""
+            select p.id, p.parent, p.name, ${sel.join(",")}
+            from prop p
+            where p.id in (${idsPropAll.join(",")})
+        """, "")
+
+        // sql for value
+        String sqlVal = """
+            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop in (${idsPropAll.join(",")}) and d1.periodType is not null
+                join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
+            where o.id=${own}
+        """
+        Store stVal = loadSqlService(sqlVal, "", model)
+        StoreIndex indVal = stVal.getIndex("key")
+        //mdb.outTable(stVal)
+        for (StoreRecord r in st) {
+            for (StoreField fld in r.fields) {
+                if (fld.name.startsWith("v")) {
+                    StoreRecord rec = indVal.get(r.getString("id") + "_" + fld.name)
+                    if (rec != null) {
+                        r.set("id" + fld.name.substring(1), rec.get("id"))
+                        r.set(fld.name, rec.get("numberval"))
+                    }
+                }
+            }
+        }
+        //mdb.outTable(st)
+        return st
+    }
 
     @DaoMethod
     Map<String, Long> getYears(long own) {
@@ -1030,20 +1152,62 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadWeightPage(long own) {
         String props = "Prop_WaterFishAverageWeight"
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcFishSpec", "")
+        Store st = mdb.loadQuery("""
+            select v.obj
+            from Obj o
+                left join DataProp d on d.isObj=1 and d.objorrelobj=o.id and d.prop=${map.get("Prop_CalcFishSpec")}
+                left join DataPropVal v on d.id=v.dataProp
+            where o.id=${own}
+        """)
+        long objFV = st.get(0).getLong("obj")
+        st = loadSqlService("""
+            select cls from Obj where id=${objFV}
+        """, "", "monitoringdata")
+        long objCls = st.get(0).getLong("cls")
+        st = loadSqlMeta("""
+            select c.factorval
+            from clsfactorval c, factor f
+            where c.cls=${objCls} and c.factorval=f.id and f.cod <> 'FV_Fictive'
+        """, "")
+
+        long fv=st.get(0).getLong("factorval")
+        //
         Map<String, Long> mapY = getYears(own)
         long year1 = mapY.get("year1")
         long year2 = mapY.get("year2")
-        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
+        return loadMetersWithPeriodFV(own, fv, props, year1, year2, "calcdata")
     }
 
     //**************************************  Tab Pdu **************************************//
     @DaoMethod
     Store loadPduPage(long own) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcFishSpec", "")
+        Store st = mdb.loadQuery("""
+            select v.obj
+            from Obj o
+                left join DataProp d on d.isObj=1 and d.objorrelobj=o.id and d.prop=${map.get("Prop_CalcFishSpec")}
+                left join DataPropVal v on d.id=v.dataProp
+            where o.id=${own}
+        """)
+        long objFV = st.get(0).getLong("obj")
+        st = loadSqlService("""
+            select cls from Obj where id=${objFV}
+        """, "", "monitoringdata")
+        long objCls = st.get(0).getLong("cls")
+        st = loadSqlMeta("""
+            select c.factorval
+            from clsfactorval c, factor f
+            where c.cls=${objCls} and c.factorval=f.id and f.cod <> 'FV_Fictive'
+        """, "")
+
+        long fv=st.get(0).getLong("factorval")
+
         String props = "Prop_CalcPdy"
         Map<String, Long> mapY = getYears(own)
         long year1 = mapY.get("year1")
         long year2 = mapY.get("year2")
-        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
+        return loadMetersWithPeriodFV(own, fv, props, year1, year2, "calcdata")
     }
     //**************************************  Tab Result **************************************//
     //**************************************  Tab numbers **************************************//
