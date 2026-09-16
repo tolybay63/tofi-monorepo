@@ -9,7 +9,7 @@
            title="Полное наименование"/>
 
     <!-- код -->
-    <field name="f.cod" parent="string" size="30" title="Код" req="true">
+    <field name="f.cod" parent="string" size="32" title="Код" req="true">
         <validator name="unique"/>
     </field>
 

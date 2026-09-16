@@ -1047,7 +1047,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     Store loadFishFecundity(long relobj, long prop, String dte, long periodType) {
-        String props = "'Prop_FishFecundity','Prop_CalcStartPopulation','Prop_CalcStartPopulationBalanc'"
+        String props = "'Prop_FishFecundity','Prop_CalcStartPopulation','Prop_CalcStartPopulationBalance'"
         return loadMetersOfOwnerWithPeriod(relobj, 0, prop, dte, periodType, props)
     }
 
