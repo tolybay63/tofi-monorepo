@@ -107,7 +107,7 @@
       </template>
 
       <template v-slot:after>
-        <FishFecundityPage ref="fishFecundityRef" ></FishFecundityPage>
+        <FishFecundityPage ref="fishFecundityRef" :name="name" ></FishFecundityPage>
       </template>
     </q-splitter>
   </div>
@@ -129,7 +129,7 @@ const rows = ref([])
 const filter = ref('')
 const selected = ref([])
 const loading = ref(false)
-//const name = ref('')
+const name = ref('')
 const fishFecundityRef = ref(null)
 
 const mapReservoir = ref(new Map())
@@ -198,17 +198,15 @@ const updateSelected = () => {
     splitterModel.value = 50
     relobj = selected.value[0].relobj
 
-/*
     name.value =
       mapReservoir.value.get(selected.value[0].reservoir) +
       ' - ' +
       mapTypeOfFish.value.get(selected.value[0].typeOfFish)
-*/
 
   } else {
     splitterModel.value = 100
     relobj = 0
-    //name.value = ''
+    name.value = ''
     fishFecundityRef.value?.clearData()
   }
   fishFecundityRef.value?.loadFishFecundity(relobj)

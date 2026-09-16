@@ -1,5 +1,7 @@
 <template>
   <div class="q-pa-sm row bg-amber-1">
+    <div class="q-mt-md" style="font-size: 18px"> {{name}} </div>
+    <q-space/>
     <!-- Date -->
     <q-input
       v-model="dte"
@@ -109,6 +111,10 @@ import UpdaterFecundityPage from "@/pages/piscesreservoirs/UpdaterFecundityPage.
 
 const $q = useQuasar()
 const { proxy } = getCurrentInstance()
+
+const props = defineProps({
+  name: String
+})
 
 const rows = ref([])
 const cols = ref([])
