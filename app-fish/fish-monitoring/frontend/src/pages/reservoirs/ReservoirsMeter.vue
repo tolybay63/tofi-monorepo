@@ -72,7 +72,7 @@
                 color="blue" dense flat icon="edit"
                 round size="sm" @click="fnEdit(item)"
               >
-                <q-tooltip transition-hide="rotate" transition-show="rotate">
+                <q-tooltip>
                   {{ $t('update') }}
                 </q-tooltip>
               </q-btn>
@@ -88,8 +88,19 @@
                 size="sm"
                 @click="fnDelete(item)"
               >
-                <q-tooltip transition-hide="rotate" transition-show="rotate">
+                <q-tooltip>
                   {{ $t('deletingRecord') }}
+                </q-tooltip>
+              </q-btn>
+
+              <q-btn
+                v-if="cods.includes(item.cod)"
+                class="no-padding no-margin"
+                color="green" dense flat icon="settings"
+                round size="sm" @click="fnAlgo(item)"
+              >
+                <q-tooltip>
+                  {{ $t('algo') }}
                 </q-tooltip>
               </q-btn>
             </td>
@@ -106,6 +117,7 @@ import { useQuasar, date } from 'quasar'
 import { api, tofi_dbeg, tofi_dend } from '@/boot/axios'
 import { notifyError, notifyInfo, pack, today } from '@/utils/jsutils'
 import UpdaterReservoirMeter from '@/pages/reservoirs/UpdaterReservoirMeter.vue'
+import FormAlgo from "@/pages/reservoirs/FormAlgo.vue";
 
 const $q = useQuasar()
 const { proxy } = getCurrentInstance()
@@ -120,6 +132,7 @@ const obj = ref(0)
 const dte = ref(today())
 const periodType = ref(11)
 const optPeriod = ref([])
+const cods = ref (["Prop_NumberFishCaught", "Prop_WaterNumberFishBio"])
 
 const dtFormat = (v) => {
   return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
@@ -139,6 +152,27 @@ const fnDt = (val) => {
     dte.value = val
     loadReservoirsMeter(obj.value)
   }
+}
+
+const fnAlgo = (item) => {
+  const data = {
+    prop: item.id,
+    name: item.name,
+    dependperiod: item.dependperiod,
+    dte: dte.value,
+    periodType: periodType.value,
+  }
+
+  $q.dialog({
+    component: FormAlgo,
+    componentProps: {
+      data: data,
+    },
+  })
+    .onOk((r) => {
+
+    })
+
 }
 
 const fnDelete = (row) => {
@@ -208,6 +242,7 @@ const updateRowValue = (currentRows, targetRec) => {
 }
 
 const fnEdit = (row) => {
+  console.info("ROW", row)
   let rec = {
     obj: obj.value,
     prop: row.id,

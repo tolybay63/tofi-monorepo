@@ -117,7 +117,7 @@ export default {
   FishFecundity: "Number of Eggs in a Female",
   FishSpawFrequency: "Fish Spawning Frequency",
 
-
+  algo: "Algorithm",
 
   typesOfFish: 'Types of fish',
   typeOfFish: 'Type of fish',

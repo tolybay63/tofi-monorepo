@@ -322,6 +322,10 @@
         <field name="prop" parent="long"/>
     </domain>
 
+    <domain name="Calc.algo" parent="base">
+        <field name="fv2" parent="long"/>
+        <field name="name_fv2" parent="string"/>
+    </domain>
 
 </root>
 

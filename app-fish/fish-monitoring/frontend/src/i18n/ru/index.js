@@ -131,6 +131,7 @@ export default {
   samplingStation: 'Станция отбора проб',
   fishingArea: 'Место (Рыбопромысловый район, участок)',
   fishArea: 'Место',
+  algo: "Алгоритм",
 
   chooseReserVoirs: "Выбор водоемов",
   dbeg: "Начало",

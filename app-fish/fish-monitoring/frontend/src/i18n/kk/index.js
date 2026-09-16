@@ -118,6 +118,8 @@ export default {
   FishFecundity: "Аналық балықтың жұмыртқа саны",
   FishSpawFrequency: "Балықтың уылдырық шашу жиілігі",
 
+  algo: "Алгоритм",
+
   typesOfFish: 'Балықтардың түрлері',
   typeOfFish: 'Балықтың түрі',
   reservoirs: 'Су қоймалары',

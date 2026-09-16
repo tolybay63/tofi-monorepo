@@ -43,69 +43,55 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
 
-
-/*
-    Store loadObj(String codTyp, long idObj) {
-        String whe = "o.id=${idObj}"
-        if (idObj == 0) {
-            Set<Object> ids = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
-            whe = "o.cls in (0${ids.join(",")})"
-        }
-        Store st = mdb.createStore("ObjAndObjVer")
-        mdb.loadQuery(st, """
-            select
-                o.id, o.cls, v.name, v.fullName, null as nameCls, o.cmt
-            from Obj o
-                left join ObjVer v on o.id=v.ownerVer and v.lastVer=1
-            where ${whe}
-        """)
-        Set<Object> idsCls = st.getUniqueValues("cls")
-        Store stCls = apiMeta().get(ApiMeta).loadSql("""
-            select c.id, v.name
-            from Cls c, ClsVer v where c.id=v.ownerVer and v.lastVer=1 and c.id in (0${idsCls.join(",")})
-        """, "")
-        StoreIndex indCls = stCls.getIndex("id")
-        for (StoreRecord r in st) {
-            StoreRecord rec = indCls.get(r.getLong("cls"))
-            if (rec != null)
-                r.set("nameCls", rec.getString("name"))
-        }
-        return st
-    }
-
     @DaoMethod
-    Map<String, Object> idNameParent(long cls) {
+    Map<String, Object> loadAlgo(Map<String, Object> params) {
         Map<String, Object> res = new HashMap<>()
-        Store st = mdb.loadQuery("""
-            select o.id, v.name from Obj o, ObjVer v where o.id=v.ownerVer and v.lastVer=1 and o.cls=:cls
-        """, [cls: cls])
-        if (st.size() == 0) {
-            res.put("id", 0) as Map<String, Object>
-            res.put("name", "") as Map<String, Object>
-        } else {
-            res.put("id", st.get(0).getLong("id"))
-            res.put("name", st.get(0).getString("name"))
+
+
+
+        Store stFv1 = loadSqlMeta("""
+            select id, name
+            from factor
+            where parent=1024
+            order by ord
+        """, "")
+
+        List<Map<String, String>> cols = new ArrayList<>();
+        cols.add(Map.of("name", "name", "label", "Возраст", "field", "name",
+                "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 30%"));
+
+
+        Store stFv2 = mdb.createStore()
+        stFv1.addField("fv2", "long");
+        stFv1.addField("name_fv2", "string", 60);
+
+        List<String> sel = new ArrayList<>();
+        String sep = "";
+        for (StoreRecord r in stFv1) {
+            for (StoreField f : r.getFields()) {
+                if (f.getName().equalsIgnoreCase("id")) {
+                    stFv2.addField("fv" + r.getString(f.getName()), "string", 20);
+                    sel.add("null as fv" + r.getString(f.getName()));
+                }
+            }
+            sep = (!sel.isEmpty()) ? ", " : ""
+            cols.add(Map.of("name", "fv" + r.getValue("id"),
+                    "label", UtCnv.toString(r.getValue("name")), "field", "fv" + r.getValue("id"),
+                    "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.2em",
+                    "style", "width: 10%"))
         }
+        //String sql = "select id, name " + sep + String.join(",", sel) + " from factor where parent=1073 order by ord"
+
+        stFv1 = loadSqlMeta("""
+            select id, name ${sep}  ${String.join(",", sel)}  from factor where parent=1073 order by ord
+        """, "")
+
+        res.put("cols", cols )
+        res.put("store", stFv1 )
+
+
         return res
     }
-
-    @DaoMethod
-    Map<String, Long> getClsIds(String codCls) {
-        if (codCls == "")
-            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", "", "Cls_%")
-        else
-            return apiMeta().get(ApiMeta).getIdFromCodOfEntity("Cls", codCls, "")
-    }
-
-    private StoreRecord loadObjRec(long obj) {
-        StoreRecord st = mdb.createStoreRecord("Obj.full")
-        mdb.loadQueryRecord(st, """
-            select o.*, v.name, v.fullName, v.objParent as parent from Obj o, ObjVer v
-            where o.id=v.ownerVer and v.lastVer=1 and o.id=:o
-        """, [o: obj])
-        return st
-    }
-*/
 
 
     //---------------- Reservors---------------- //
@@ -362,16 +348,16 @@ class DataDao extends BaseMdbUtils {
                 return mdb.createStore()
             Store st = apiMeta().get(ApiMeta).loadSql("""
                 WITH RECURSIVE r AS (
-                    SELECT p.id, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                    SELECT p.id, p.cod, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
                     FROM prop p, Measure m
                     WHERE p.measure=m.id and p.cod in (${props})    
                     UNION ALL    
-                    SELECT p1.id, p1.parent, p1.name || ' ('||m1.name||')' as name, p1.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                    SELECT p1.id, p1.cod, p1.parent, p1.name || ' ('||m1.name||')' as name, p1.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
                     FROM  prop p1
                     JOIN Measure m1 ON p1.measure=m1.id
                     JOIN r ON p1.parent = r.id
                 )
-                SELECT id, parent, name, dependperiod, dbeg, dend, numberval, idval
+                SELECT id, parent, cod, name, dependperiod, dbeg, dend, numberval, idval
                 FROM r;
             """, "")
 
