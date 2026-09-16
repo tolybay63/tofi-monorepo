@@ -46,13 +46,43 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Map<String, Object> loadAlgo(Map<String, Object> params) {
         Map<String, Object> res = new HashMap<>()
-
-
-
+        VariantMap pms = new VariantMap(params)
+        long own = pms.getLong("own")
+        long prop = pms.getLong("prop")
+        boolean dependperiod = pms.getBoolean("dependperiod")
+        String dte = pms.getString("dte")
+        long periodType = pms.getLong("periodType")
+        //
+        long meter = loadSqlMeta("""
+            select meter from Prop where id=${prop}
+        """, "").get(0).getLong("meter")
+        //
+        Store stProp2Lev = loadSqlMeta("""
+            with mrfv as (
+            select meterrate,
+                STRING_AGG (cast(factorval as varchar(200)), ',') as fvs,
+                ARRAY_LENGTH(STRING_TO_ARRAY(STRING_AGG (cast(factorval as varchar(200)), ','), ','), 1) sz
+            from meterratefv
+            group by meterrate
+            )
+            select id, fvs   
+            from Prop p, mrfv
+            where p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=2
+        """, "")
+        Set<Object> idsPropsAll = stProp2Lev.getUniqueValues("id")
+        StoreIndex indProp2Lev = stProp2Lev.getIndex("fvs")
+        Set<Long> setFv1 = new HashSet<>()
+        Set<Long> setFv2 = new HashSet<>()
+        for (StoreRecord r in stProp2Lev) {
+            String [] arr = r.getString("fvs").split(",")
+            setFv1.add(UtCnv.toLong(arr[0]))
+            setFv2.add(UtCnv.toLong(arr[1]))
+        }
+        //
         Store stFv1 = loadSqlMeta("""
             select id, name
             from factor
-            where parent=1024
+            where id in (${setFv1.join(",")})
             order by ord
         """, "")
 
@@ -62,16 +92,18 @@ class DataDao extends BaseMdbUtils {
 
 
         Store stFv2 = mdb.createStore()
-        stFv1.addField("fv2", "long");
-        stFv1.addField("name_fv2", "string", 60);
+        stFv2.addField("id", "long");
+        stFv2.addField("name", "string", 20);
 
         List<String> sel = new ArrayList<>();
         String sep = "";
         for (StoreRecord r in stFv1) {
             for (StoreField f : r.getFields()) {
                 if (f.getName().equalsIgnoreCase("id")) {
-                    stFv2.addField("fv" + r.getString(f.getName()), "string", 20);
-                    sel.add("null as fv" + r.getString(f.getName()));
+                    stFv2.addField("v" + r.getString(f.getName()), "long")
+                    stFv2.addField("p" + r.getString(f.getName()), "long")
+                    stFv2.addField("fv" + r.getString(f.getName()), "string", 20)
+                    sel.add("0 as v" + r.getString(f.getName()) + ", 0 as p" + r.getString(f.getName()) + ", null as fv" + r.getString(f.getName()))
                 }
             }
             sep = (!sel.isEmpty()) ? ", " : ""
@@ -80,15 +112,88 @@ class DataDao extends BaseMdbUtils {
                     "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.2em",
                     "style", "width: 10%"))
         }
-        //String sql = "select id, name " + sep + String.join(",", sel) + " from factor where parent=1073 order by ord"
 
-        stFv1 = loadSqlMeta("""
-            select id, name ${sep}  ${String.join(",", sel)}  from factor where parent=1073 order by ord
+        stFv2 = loadSqlMeta("""
+            select id, name ${sep}  ${String.join(",", sel)}  from factor where id in (${setFv2.join(",")}) order by ord
         """, "")
 
-        res.put("cols", cols )
-        res.put("store", stFv1 )
+        stFv2.get(0).set("id", 0)
+        stFv2.get(0).set("name", "Количество")
+        //
+        Store stProp1Lev = loadSqlMeta("""
+            with mrfv as (
+            select meterrate,
+                STRING_AGG (cast(factorval as varchar(20)), ',') as fvs,
+                ARRAY_LENGTH(STRING_TO_ARRAY(STRING_AGG (cast(factorval as varchar(20)), ','), ','), 1) sz
+            from meterratefv
+            group by meterrate
+            )
+            select id, fvs   
+            from Prop p, mrfv
+            where p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=1
+        """, "")
+        StoreIndex indProp1Lev = stProp1Lev.getIndex("fvs")
+        idsPropsAll.addAll(stProp1Lev.getUniqueValues("id"))
+        //Проставляем в каждую ячейку prop
+        for (StoreRecord r in stFv2) {
+            for (StoreField fld in r.getFields()) {
+                if (fld.name.startsWith("fv")) {
+                    String fvs = ""
+                    if (r.getLong("id")==0) {
+                        fvs = "${fld.name.substring(2)}"
+                        StoreRecord rec = indProp1Lev.get(fvs)
+                        if (rec!= null) {
+                            r.set("p"+fld.name.substring(2), rec.getLong("id"))
+                        }
+                    } else {
+                        fvs = "${fld.name.substring(2)},${r.getString("id")}"
+                        StoreRecord rec = indProp2Lev.get(fvs)
+                        if (rec!= null) {
+                            r.set("p"+fld.name.substring(2), rec.getLong("id"))
+                        }
+                    }
+                }
+            }
+        }
+        // Далее проставляем данные
+        String d1 = "1800-01-01"
+        String d2 = "3333-12-01"
+        if (dependperiod) {
+            UtPeriod up = new UtPeriod()
+            d1 = up.calcDbeg(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
+            d2 = up.calcDend(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
+        }
+        String sql = """
+            select d.prop, v.numberval
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType is null
+        """
+        if (dependperiod)
+            sql = """
+            select d.prop, v.numberval
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType=${periodType}
+                and v.dbeg='${d1}' and v.dend='${d2}'
+        """
+        Store stVal = mdb.loadQuery(sql)
+        StoreIndex indVal = stVal.getIndex("prop")
 
+        for (StoreRecord r in stFv2) {
+            for (StoreField fld in r.getFields()) {
+                if (fld.name.startsWith("fv")) {
+                    StoreRecord rec = indVal.get(r.getLong("p"+fld.name.substring(2)))
+                    if (rec != null) {
+                        r.set(fld.name, rec.getDouble("numberval"))
+                    }
+                }
+            }
+        }
+
+        res.put("cols", cols )
+        res.put("store", stFv2 )
+
+        System.out.println("prop = "+prop)
+        mdb.outTable(stFv2)
 
         return res
     }

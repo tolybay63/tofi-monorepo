@@ -156,6 +156,7 @@ const fnDt = (val) => {
 
 const fnAlgo = (item) => {
   const data = {
+    own: obj.value,
     prop: item.id,
     name: item.name,
     dependperiod: item.dependperiod,
