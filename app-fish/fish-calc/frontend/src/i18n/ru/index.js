@@ -54,7 +54,7 @@ export default {
   CalcFishSpec: "Вид рыбы",
   CalcUser: "Кто проводил расчет",
   CalcStatus: "Статус расчета",
-
+  chooseCalc: 'Выбор расчета...',
 
 
 //Dialog

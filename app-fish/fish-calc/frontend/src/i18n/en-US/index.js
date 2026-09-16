@@ -51,7 +51,7 @@ export default {
   CalcFishSpec: "Fish species",
   CalcUser: "Person who performed the calculation",
   CalcStatus: "Calculation status",
-
+  chooseCalc: 'Calculation Selection...',
 
   //Dialog
   confirmation: 'Confirmation',

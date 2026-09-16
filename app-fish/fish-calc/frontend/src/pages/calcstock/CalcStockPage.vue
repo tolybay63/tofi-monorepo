@@ -53,6 +53,21 @@
                 {{ tr("create1level") }}
               </q-tooltip>
             </q-btn>
+
+            <q-btn
+              v-if="hasTarget('calc')"
+              class="q-ml-sm"
+              color="secondary"
+              dense
+              icon="pan_tool_alt"
+              @click="showMenu(currentNode, 'calc')"
+              :disable="currentNode==null"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ tr("chooseCalc") }}
+              </q-tooltip>
+            </q-btn>
+
           </template>
         </q-banner>
 

@@ -52,7 +52,7 @@ export default {
   CalcFishSpec: "Балық түрі",
   CalcUser: "Есептеуді кім жүргізді",
   CalcStatus: "Есептеу мәртебесі",
-
+  chooseCalc: 'Есептеуді таңдау...',
 
   //Dialog
   confirmation: 'Растау',
