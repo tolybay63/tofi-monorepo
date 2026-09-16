@@ -293,7 +293,7 @@ const infoSelected = (row) => {
     ' ' +
     mapReservoir.value.get(row.reservoir) +
     ' (' +
-    mapTypeOfFish.value.get(row.typeoffish) +
+    mapTypeOfFish.value.get(row.typeOfFish) +
     ')'
   )
 }
