@@ -188,10 +188,8 @@ const fnDt = (val) => {
 }
 
 const summ = (r, c) => {
-  //console.info('summ', r[c.field], c.field)
-  let s = 0 //rows[0][c.field]
+  let s = 0
   for (let key in rows.value) {
-    console.info(`${key}, ${c.field}`, rows.value[key][c.field])
     if (rows.value[key]["id"] !== 0) {
       let x = rows.value[key][c.field]===undefined ? 0 : rows.value[key][c.field]
       s = s + parseInt(x, 10)
