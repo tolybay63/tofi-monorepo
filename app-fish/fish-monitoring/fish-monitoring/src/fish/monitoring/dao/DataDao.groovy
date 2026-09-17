@@ -209,16 +209,13 @@ class DataDao extends BaseMdbUtils {
         return saveMeter(rec)
     }
 
-
-    /*
-    obj
-    numberval
-    prop
-    dependperiod
-    dte
-    periodType
-    * */
-
+    @DaoMethod
+    void saveAlgo1Lev(List<Map<String, Object>> lst) {
+        for (Map<String, Object> map in lst) {
+            map.put("dependperiod", UtCnv.toInt(map.get("dependperiod")))
+            saveMeter(map)
+        }
+    }
 
     @DaoMethod
     void deleteAlgo(long idVal) {

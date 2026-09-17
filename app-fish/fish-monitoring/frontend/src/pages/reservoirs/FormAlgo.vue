@@ -183,7 +183,7 @@ const $q = useQuasar()
 const loading = ref(false)
 const cols = ref([])
 const rows = ref([])
-const bSave = ref(false)
+const bSave = ref(true)
 
 const emit = defineEmits(['ok', 'hide'])
 const {proxy} = getCurrentInstance()
@@ -270,40 +270,44 @@ const fnDeleteCell = (row, col)=> {
     })
 }
 
-const fnSave = () => {
+const fnSave = async () => {
   console.info("fnSave", rows.value[0])
-  let data = {
-    obj: form["own"],
-    dependperiod: form["dependperiod"],
-    dte: form["dte"],
-    periodType: form["periodType"],
-  }
+  let params = []
   for (let key in rows.value[0]) {
     if (key.includes("fv")) {
       if (rows.value[0][key]) {
-        data.numberval= rows.value[0][key]
-        data.prop= rows.value[0]["p"+key.substring(2)]
+        let data = {
+          obj: form["own"],
+          dependperiod: form["dependperiod"],
+          dte: form["dte"],
+          periodType: form["periodType"],
+          numberval: rows.value[0][key],
+          prop: rows.value[0]["p"+key.substring(2)]
+        }
         //
-        api
-          .post('', {
-            method: 'data/saveAlgo',
-            params: [data],
-          })
-          .then((response) => {
-              rows.value[0]["v"+key.substring(2)] = response.data.result
-          })
-          .catch((error) => {
-              console.error(error.message)
-          })
-          .finally(() => {
-          })
+        params.push(data)
       }
     }
   }
-  setTimeout(()=> {
-    bSave.value = !bSave.value
-    notifyInfo("Saved")
-  }, 1000)
+  if (params.length>0) {
+    console.info("params", params)
+
+    const resp = await api
+      .post('', {
+        method: 'data/saveAlgo1Lev',
+        params: [params],
+      })
+      .then(() => {
+        bSave.value = !bSave.value
+        notifySuccess("Saved!")
+      })
+      .catch((error) => {
+        console.error(error.message)
+      })
+      .finally(() => {
+      })
+  }
+
 }
 
 const fnCalc = () => {
@@ -314,7 +318,12 @@ const fnCalc = () => {
 
 }
 
+const reqSave = (c) => {
+
+}
+
 const summ = (c) => {
+  //
   let s = 0
   for (let key in rows.value) {
     if (rows.value[key]["id"] !== 0) {
@@ -323,6 +332,7 @@ const summ = (c) => {
       s = s + parseInt(x, 10)
     }
   }
+  //
   rows.value[0][c.field] = s===0? null : s
   return rows.value[0][c.field];
 }
