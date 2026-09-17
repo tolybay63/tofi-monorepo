@@ -115,7 +115,7 @@
 import {computed, getCurrentInstance, onMounted, ref} from 'vue'
 import {date, useQuasar} from 'quasar'
 import {api, tofi_dbeg, tofi_dend} from '@/boot/axios'
-import {notifyError, notifyInfo, pack, today} from '@/utils/jsutils'
+import {findRowForId, notifyError, notifyInfo, pack, today} from '@/utils/jsutils'
 import UpdaterReservoirMeter from '@/pages/reservoirs/UpdaterReservoirMeter.vue'
 import FormAlgo from "@/pages/reservoirs/FormAlgo.vue";
 
@@ -132,7 +132,7 @@ const obj = ref(0)
 const dte = ref(today())
 const periodType = ref(11)
 const optPeriod = ref([])
-const cods = ref(["Prop_NumberFishCaught", "Prop_WaterNumberFishBio"])
+const cods = ref(["Prop_NumberFishCaught", "Prop_WaterNumberFishBio", "Prop_WaterFishAverageWeight", "Prop_CalcPdy","Prop_GearCatchabilityNet","Prop_ReservoirPdy","Prop_GearCatchabilitySeine"])
 
 const dtFormat = (v) => {
   return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
@@ -194,6 +194,17 @@ const fnDelete = (row) => {
           params: [row.idval],
         })
         .then(() => {
+
+          let r = findRowForId(rows.value, row.id)
+          console.log("Reservoir Delete", r)
+          if (r) {
+            r.idval = null
+            r.numberval = null
+            r.dbeg = null
+            r.dend = null
+          }
+
+/*
           if (row.level === 0) {
             let index = rows.value.findIndex((rec) => rec.id === row.id)
             if (index > -1) {
@@ -215,6 +226,7 @@ const fnDelete = (row) => {
               }
             }
           }
+*/
         })
         .catch((error) => {
           notifyError(error.message)

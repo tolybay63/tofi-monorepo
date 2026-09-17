@@ -233,7 +233,8 @@ const fnEditCell = (row, col)=> {
       console.info("onOk", r)
       row[col.field] = r.numberval
       row["v"+col.field.substring(2)] = r.idval
-      bSave.value=true
+
+      checkSums()
     })
 
 }
@@ -259,7 +260,8 @@ const fnDeleteCell = (row, col)=> {
         .then(() => {
           row["v"+col.field.substring(2)] = null
           row[col.field] = null
-          bSave.value=true
+
+          checkSums()
         })
         .catch((error) => {
           notifyError(error.message)
@@ -280,6 +282,7 @@ const fnSave = async () => {
           obj: form["own"],
           dependperiod: form["dependperiod"],
           dte: form["dte"],
+          year: form["dte"].substring(0,4),
           periodType: form["periodType"],
           numberval: rows.value[0][key],
           prop: rows.value[0]["p"+key.substring(2)]
@@ -298,7 +301,7 @@ const fnSave = async () => {
         params: [params],
       })
       .then(() => {
-        bSave.value = !bSave.value
+        bSave.value = false
         notifySuccess("Saved!")
       })
       .catch((error) => {
@@ -318,8 +321,37 @@ const fnCalc = () => {
 
 }
 
-const reqSave = (c) => {
+const checkSums = () => {
+  if (!rows.value || rows.value.length === 0) return
 
+  const rowTotal = rows.value[0] // Строка "Количество" с сохраненными данными из базы
+  const ageRows = rows.value.filter(r => r.id !== 0) // Все строки возрастов
+  const fishCols = cols.value.filter(c => c.field && c.field.includes('fv'))
+
+  let hasMismatch = false
+
+  for (const col of fishCols) {
+    // Сохраненное значение из БД (если null/undefined — считаем 0)
+    const dbVal = parseFloat(rowTotal[col.field]) || 0
+    //const dbVal = parseFloat(rowTotal._dbValues?.[col.field]) || 0
+    //rowTotal._dbValues?.[col.field] || 0
+
+    // Считаем сумму по возрастам
+    let ageSum = 0
+    for (const r of ageRows) {
+      ageSum += parseFloat(r[col.field]) || 0
+    }
+
+    // Если есть данные и они не равны хотя бы для одного вида рыбы
+    if (Math.abs(dbVal - ageSum) > 0.001) {
+      hasMismatch = true
+      break
+    }
+  }
+
+  // Если есть несовпадение -> bSave = true (кнопка активна и мигает)
+  // Если у всех все совпало -> bSave = false (кнопка заблокирована, алгоритм доступен)
+  bSave.value = hasMismatch
 }
 
 const summ = (c) => {
@@ -347,6 +379,12 @@ const loadAlgo = () => {
     .then((response) => {
       cols.value = response.data.result.cols
       rows.value = response.data.result["store"]["records"]
+
+      // Сохраняем исходные значения БД в отдельное поле для сравнения
+      if (rows.value[0]) {
+        rows.value[0]._dbValues = { ...rows.value[0] }
+      }
+      checkSums()
     })
     .finally(() => {
       loading.value = false
