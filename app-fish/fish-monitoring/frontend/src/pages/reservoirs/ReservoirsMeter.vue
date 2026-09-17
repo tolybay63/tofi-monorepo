@@ -32,79 +32,79 @@
     <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
       <table class="q-table q-table--cell-separator q-table--bordered wrap">
         <thead class="text-bold text-white bg-blue-grey-13">
-          <tr>
-            <th style="font-size: 1.2em; width: 50%">
-              {{ cols[0]?.label }}
-            </th>
-            <th style="font-size: 1.2em; width: 14%">
-              {{ cols[1]?.label }}
-            </th>
-            <th style="font-size: 1.2em; width: 14%">
-              {{ cols[2]?.label }}
-            </th>
-            <th style="font-size: 1.2em; width: 12%">
-              {{ cols[3]?.label }}
-            </th>
-            <th></th>
-          </tr>
+        <tr>
+          <th style="font-size: 1.2em; width: 50%">
+            {{ cols[0]?.label }}
+          </th>
+          <th style="font-size: 1.2em; width: 14%">
+            {{ cols[1]?.label }}
+          </th>
+          <th style="font-size: 1.2em; width: 14%">
+            {{ cols[2]?.label }}
+          </th>
+          <th style="font-size: 1.2em; width: 12%">
+            {{ cols[3]?.label }}
+          </th>
+          <th></th>
+        </tr>
         </thead>
 
         <tbody style="background: aliceblue">
-          <tr v-for="(item, index) in arrayTreeObj" :key="index">
-            <td :data-th="cols[0]?.name" @click="toggle(item)">
-              <span class="q-tree-link q-tree-label" :style="setPadding(item)">
-                <q-icon :name="iconName(item)" color="secondary" style="cursor: pointer" />
+        <tr v-for="(item, index) in arrayTreeObj" :key="index">
+          <td :data-th="cols[0]?.name" @click="toggle(item)">
+              <span :style="setPadding(item)" class="q-tree-link q-tree-label">
+                <q-icon :name="iconName(item)" color="secondary" style="cursor: pointer"/>
                 {{ item.name }}
               </span>
-            </td>
-            <td :data-th="cols[2]?.name" style="text-align: center">
-              {{ dtFormat(item.dbeg) }}
-            </td>
-            <td :data-th="cols[3]?.name" style="text-align: center">
-              {{ dtFormat(item.dend) }}
-            </td>
-            <td :data-th="cols[1]?.name" style="text-align-last: right">
-              {{ item.numberval }}
-            </td>
-            <td :data-th="cols[4]?.name" style="text-align-last: right">
-              <q-btn
-                class="no-padding no-margin"
-                color="blue" dense flat icon="edit"
-                round size="sm" @click="fnEdit(item)"
-              >
-                <q-tooltip>
-                  {{ $t('update') }}
-                </q-tooltip>
-              </q-btn>
+          </td>
+          <td :data-th="cols[2]?.name" style="text-align: center">
+            {{ dtFormat(item.dbeg) }}
+          </td>
+          <td :data-th="cols[3]?.name" style="text-align: center">
+            {{ dtFormat(item.dend) }}
+          </td>
+          <td :data-th="cols[1]?.name" style="text-align-last: right">
+            {{ item.numberval }}
+          </td>
+          <td :data-th="cols[4]?.name" style="text-align-last: right">
+            <q-btn
+              class="no-padding no-margin"
+              color="blue" dense flat icon="edit"
+              round size="sm" @click="fnEdit(item)"
+            >
+              <q-tooltip>
+                {{ $t('update') }}
+              </q-tooltip>
+            </q-btn>
 
-              <q-btn
-                :disable="!(item.idval > 0)"
-                class="no-padding no-margin"
-                color="red"
-                dense
-                flat
-                icon="delete"
-                round
-                size="sm"
-                @click="fnDelete(item)"
-              >
-                <q-tooltip>
-                  {{ $t('deletingRecord') }}
-                </q-tooltip>
-              </q-btn>
+            <q-btn
+              :disable="!(item.idval > 0)"
+              class="no-padding no-margin"
+              color="red"
+              dense
+              flat
+              icon="delete"
+              round
+              size="sm"
+              @click="fnDelete(item)"
+            >
+              <q-tooltip>
+                {{ $t('deletingRecord') }}
+              </q-tooltip>
+            </q-btn>
 
-              <q-btn
-                v-if="cods.includes(item.cod)"
-                class="no-padding no-margin"
-                color="green" dense flat icon="settings"
-                round size="sm" @click="fnAlgo(item)"
-              >
-                <q-tooltip>
-                  {{ $t('algo') }}
-                </q-tooltip>
-              </q-btn>
-            </td>
-          </tr>
+            <q-btn
+              v-if="cods.includes(item.cod)"
+              class="no-padding no-margin"
+              color="green" dense flat icon="settings"
+              round size="sm" @click="fnAlgo(item)"
+            >
+              <q-tooltip>
+                {{ $t('algo') }}
+              </q-tooltip>
+            </q-btn>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -112,15 +112,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, getCurrentInstance } from 'vue'
-import { useQuasar, date } from 'quasar'
-import { api, tofi_dbeg, tofi_dend } from '@/boot/axios'
-import { notifyError, notifyInfo, pack, today } from '@/utils/jsutils'
+import {computed, getCurrentInstance, onMounted, ref} from 'vue'
+import {date, useQuasar} from 'quasar'
+import {api, tofi_dbeg, tofi_dend} from '@/boot/axios'
+import {notifyError, notifyInfo, pack, today} from '@/utils/jsutils'
 import UpdaterReservoirMeter from '@/pages/reservoirs/UpdaterReservoirMeter.vue'
 import FormAlgo from "@/pages/reservoirs/FormAlgo.vue";
 
 const $q = useQuasar()
-const { proxy } = getCurrentInstance()
+const {proxy} = getCurrentInstance()
 
 const rows = ref([])
 const cols = ref([])
@@ -132,7 +132,7 @@ const obj = ref(0)
 const dte = ref(today())
 const periodType = ref(11)
 const optPeriod = ref([])
-const cods = ref (["Prop_NumberFishCaught", "Prop_WaterNumberFishBio"])
+const cods = ref(["Prop_NumberFishCaught", "Prop_WaterNumberFishBio"])
 
 const dtFormat = (v) => {
   return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
@@ -171,7 +171,7 @@ const fnAlgo = (item) => {
     },
   })
     .onOk((r) => {
-
+      loadReservoirsMeter(obj.value)
     })
 
 }
@@ -347,7 +347,7 @@ const getColumns = () => [
     align: 'left',
     style: 'font-size: 1.2em; width: 10%',
   },
-  { name: 'cmd', field: 'cmd', align: 'right', style: 'font-size: 1.2em; width: 4%' },
+  {name: 'cmd', field: 'cmd', align: 'right', style: 'font-size: 1.2em; width: 4%'},
 ]
 
 const clearData = () => {
@@ -380,7 +380,7 @@ onMounted(() => {
   cols.value = getColumns()
   loading.value = true
   api
-    .post('', { method: 'data/loadPeriodType', params: [] })
+    .post('', {method: 'data/loadPeriodType', params: []})
     .then((response) => {
       optPeriod.value = response.data.result['records']
     })
@@ -410,7 +410,7 @@ defineExpose({
 .sticky-header-table th,
 .sticky-header-table td {
   border: 1px solid #c0c0c0; /* Цвет границы (можете поменять на нужный оттенок) */
-  padding: 8px 12px;         /* Необязательный внутренний отступ для красоты */
+  padding: 8px 12px; /* Необязательный внутренний отступ для красоты */
 }
 
 .sticky-header-table thead th {

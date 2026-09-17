@@ -42,6 +42,7 @@
             @update:model-value="fnSelectPeriodType"
           />
           <q-btn
+            :disable="!form['dependperiod']"
             class="q-pl-xl no-padding no-margin"
             color="blue" dense flat icon="refresh"
             round @click="loadAlgo"
@@ -50,7 +51,25 @@
               {{ $t('refresh') }}
             </q-tooltip>
           </q-btn>
+
           <q-space/>
+
+          <q-btn
+            :label="$t('save')" color="primary" dense
+            icon="save" @click="fnSave"
+            :disable="!bSave"
+            :class="{ 'btn-blink': bSave }"
+          />
+
+          <q-btn
+            :disable="bSave"
+            :label="$t('goAlgo')" color="primary" dense
+            icon="settings" @click="fnCalc"
+            class="q-ml-lg"
+          />
+
+          <q-space/>
+
           <div v-if="form['dependperiod']" class="q-pt-md">
             Зависит от периода
           </div>
@@ -86,7 +105,7 @@
                       <q-menu auto-close>
                         <q-btn
                           class="no-padding no-margin" color="blue" dense flat icon="edit" round
-                          size="sm" @click="fnEditCell(item, col.field)"
+                          size="sm" @click="fnEditCell(props.row, props.col)"
                         >
                           <q-tooltip>
                             {{ $t("update") }}
@@ -94,9 +113,10 @@
                         </q-btn>
 
                         <q-btn
-                          :disable="!item['id'+col.field.substring(1)]" class="no-padding no-margin" color="red" dense flat icon="delete" round
+                          :disable="!props.row['v'+props.col.field.substring(2)]" class="no-padding no-margin" color="red" dense
+                          flat icon="delete" round
                           size="sm"
-                          @click="fnDeleteCell(item, col.field)"
+                          @click="fnDeleteCell(props.row, props.col)"
                         >
                           <q-tooltip>
                             {{ $t("deletingRecord") }}
@@ -106,7 +126,7 @@
                     </q-btn>
                   </div>
                   <div v-else>
-                    {{ summ(props.row, props.col) }}
+                    {{ summ(props.col) }}
                   </div>
                 </div>
                 <div v-else>
@@ -126,20 +146,21 @@
         </div>
 
       </q-card-section>
-      <q-card-actions align="right">
+      <q-card-actions align="right" class="q-pr-lg">
         <q-btn
-          :label="$t('save')"
+
+          :label="$t('close')"
           color="primary"
-          icon="save"
+          icon="close"
           @click="onOKClick"
         />
 
-        <q-btn
+<!--        <q-btn
           :label="$t('cancel')"
           color="primary"
           icon="cancel"
           @click="onCancelClick"
-        />
+        />-->
 
       </q-card-actions>
     </q-card>
@@ -149,21 +170,22 @@
 <script setup>
 import {getCurrentInstance, onMounted, reactive, ref} from 'vue'
 import {api} from '@/boot/axios'
-import {date} from "quasar";
+import {date, useQuasar} from "quasar";
+import {notifyError, notifyInfo, notifySuccess} from "@/utils/jsutils.js";
+import UpdaterFormAlgo from "@/pages/reservoirs/UpdaterFormAlgo.vue";
 
 const props = defineProps({
   data: Object,
 })
-
+const $q = useQuasar()
 
 const loading = ref(false)
 const cols = ref([])
 const rows = ref([])
-
+const bSave = ref(false)
 
 const emit = defineEmits(['ok', 'hide'])
 const {proxy} = getCurrentInstance()
-
 const dialogRef = ref(null)
 const form = reactive({...props.data})
 
@@ -187,15 +209,121 @@ const fnDt = (val) => {
   }
 }
 
-const summ = (r, c) => {
+const fnEditCell = (row, col)=> {
+  console.info(row, col)
+
+  const data = {
+    numberval: row[col.field],
+    obj: form["own"],
+    prop: row["p"+col.field.substring(2)],
+    dependperiod: form["dependperiod"],
+    dte: form["dte"],
+    periodType: form["periodType"],
+    title: col.label + " ("+row["name"]+")",
+  }
+
+  $q.dialog({
+    component: UpdaterFormAlgo,
+    componentProps: {
+      data: data,
+    },
+  })
+    .onOk((r) => {
+      console.info("onOk", r)
+      row[col.field] = r.numberval
+      row["v"+col.field.substring(2)] = r.idval
+      bSave.value=true
+    })
+
+}
+
+const fnDeleteCell = (row, col)=> {
+  console.info(row.name, col.label, row["v"+col.field.substring(2)])
+
+  let nm = col.label + " ("+row.name+")"
+  $q.dialog({
+    title: proxy?.$t('confirmation'),
+    message: proxy?.$t('deleteRecord') + '</br>(' + nm + ')',
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: 'cancel',
+  })
+    .onOk(() => {
+      api
+        .post('', {
+          method: 'data/deleteAlgo',
+          params: [row["v"+col.field.substring(2)]],
+        })
+        .then(() => {
+          row["v"+col.field.substring(2)] = null
+          row[col.field] = null
+          bSave.value=true
+        })
+        .catch((error) => {
+          notifyError(error.message)
+        })
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t('canceled'))
+    })
+}
+
+const fnSave = () => {
+  console.info("fnSave", rows.value[0])
+  let data = {
+    obj: form["own"],
+    dependperiod: form["dependperiod"],
+    dte: form["dte"],
+    periodType: form["periodType"],
+  }
+  for (let key in rows.value[0]) {
+    if (key.includes("fv")) {
+      if (rows.value[0][key]) {
+        data.numberval= rows.value[0][key]
+        data.prop= rows.value[0]["p"+key.substring(2)]
+        //
+        api
+          .post('', {
+            method: 'data/saveAlgo',
+            params: [data],
+          })
+          .then((response) => {
+              rows.value[0]["v"+key.substring(2)] = response.data.result
+          })
+          .catch((error) => {
+              console.error(error.message)
+          })
+          .finally(() => {
+          })
+      }
+    }
+  }
+  setTimeout(()=> {
+    bSave.value = !bSave.value
+    notifyInfo("Saved")
+  }, 1000)
+}
+
+const fnCalc = () => {
+  setTimeout(()=> {
+    bSave.value = !bSave.value
+    notifyInfo("Calculation...")
+  }, 2000)
+
+}
+
+const summ = (c) => {
   let s = 0
   for (let key in rows.value) {
     if (rows.value[key]["id"] !== 0) {
-      let x = rows.value[key][c.field]===undefined ? 0 : rows.value[key][c.field]
+      let x = !rows.value[key][c.field] || rows.value[key][c.field] === undefined
+        ? 0 : rows.value[key][c.field]
       s = s + parseInt(x, 10)
     }
   }
-  return s
+  rows.value[0][c.field] = s===0? null : s
+  return rows.value[0][c.field];
 }
 
 const loadAlgo = () => {
@@ -228,12 +356,13 @@ const onDialogHide = () => {
 }
 
 const onOKClick = () => {
+  emit('ok', {res: true})
   hide()
 }
 
-const onCancelClick = () => {
+/*const onCancelClick = () => {
   hide()
-}
+}*/
 
 onMounted(() => {
   loading.value = true
@@ -255,3 +384,16 @@ defineExpose({
   hide,
 })
 </script>
+
+
+<style scoped>
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+.btn-blink {
+  animation: blink 1.2s infinite ease-in-out;
+}
+</style>

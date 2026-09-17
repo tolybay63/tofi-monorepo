@@ -119,6 +119,7 @@ export default {
   FishSpawFrequency: "Балықтың уылдырық шашу жиілігі",
 
   algo: "Алгоритм",
+  goAlgo: "Алгоритмді іске қосу",
 
   typesOfFish: 'Балықтардың түрлері',
   typeOfFish: 'Балықтың түрі',

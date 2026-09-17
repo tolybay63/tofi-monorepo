@@ -118,6 +118,7 @@ export default {
   FishSpawFrequency: "Fish Spawning Frequency",
 
   algo: "Algorithm",
+  goAlgo: "Run the algorithm",
 
   typesOfFish: 'Types of fish',
   typeOfFish: 'Type of fish',

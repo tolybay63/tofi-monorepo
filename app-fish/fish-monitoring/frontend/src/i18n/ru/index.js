@@ -132,6 +132,7 @@ export default {
   fishingArea: 'Место (Рыбопромысловый район, участок)',
   fishArea: 'Место',
   algo: "Алгоритм",
+  goAlgo: "Запустить алгоритм",
 
   chooseReserVoirs: "Выбор водоемов",
   dbeg: "Начало",

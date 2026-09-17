@@ -164,13 +164,13 @@ class DataDao extends BaseMdbUtils {
             d2 = up.calcDend(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
         }
         String sql = """
-            select d.prop, v.numberval
+            select d.prop, v.numberval, v.id as idval
             from DataProp d, DataPropVal v
             where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType is null
         """
         if (dependperiod)
             sql = """
-            select d.prop, v.numberval
+            select d.prop, v.numberval, v.id as idval
             from DataProp d, DataPropVal v
             where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType=${periodType}
                 and v.dbeg='${d1}' and v.dend='${d2}'
@@ -184,6 +184,7 @@ class DataDao extends BaseMdbUtils {
                     StoreRecord rec = indVal.get(r.getLong("p"+fld.name.substring(2)))
                     if (rec != null) {
                         r.set(fld.name, rec.getDouble("numberval"))
+                        r.set("v"+fld.name.substring(2), rec.getDouble("idval"))
                     }
                 }
             }
@@ -198,6 +199,36 @@ class DataDao extends BaseMdbUtils {
         return res
     }
 
+
+    @DaoMethod
+    long saveAlgo(Map<String, Object> rec) {
+        rec.put("dependperiod", UtCnv.toInt(rec.get("dependperiod")))
+        return saveMeter(rec)
+    }
+
+
+    /*
+    obj
+    numberval
+    prop
+    dependperiod
+    dte
+    periodType
+    * */
+
+
+    @DaoMethod
+    void deleteAlgo(long idVal) {
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where id=${idVal};
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+    }
 
     //---------------- Reservors---------------- //
     @DaoMethod
