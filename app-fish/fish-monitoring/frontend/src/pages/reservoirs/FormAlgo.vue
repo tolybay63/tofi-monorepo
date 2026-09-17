@@ -1,11 +1,11 @@
 <template>
   <q-dialog
     ref="dialogRef"
-    @hide="onDialogHide"
-    persistent
-    transition-show="slide-up"
-    transition-hide="slide-down"
     class="full-height full-width"
+    persistent
+    transition-hide="slide-down"
+    transition-show="slide-up"
+    @hide="onDialogHide"
   >
     <q-card class="q-dialog-plugin full-width" style="min-width: 100%">
       <q-bar class="text-white bg-primary">
@@ -17,6 +17,7 @@
           <!-- Date -->
           <q-input
             v-model="dte"
+            :disable="!form['dependperiod']"
             :label="$t('date')"
             class="q-mr-lg"
             dense
@@ -24,11 +25,11 @@
             style="width: 100px"
             type="date"
             @update:model-value="fnDt"
-            :disable="!form['dependperiod']"
           />
           <!-- PeriodType -->
           <q-select
             v-model="periodType"
+            :disable="true"
             :label="fnReqLabel('periodType')"
             :options="optPeriod"
             class="q-ml-lg"
@@ -39,7 +40,6 @@
             options-dense
             style="width: 100px"
             @update:model-value="fnSelectPeriodType"
-            :disable="true"
           />
           <q-btn
             class="q-pl-xl no-padding no-margin"
@@ -51,10 +51,10 @@
             </q-tooltip>
           </q-btn>
           <q-space/>
-          <div class="q-pt-md" v-if="form['dependperiod']">
+          <div v-if="form['dependperiod']" class="q-pt-md">
             Зависит от периода
           </div>
-          <div class="q-pt-md" v-else>
+          <div v-else class="q-pt-md">
             Не зависит от периода
           </div>
 
@@ -62,55 +62,58 @@
         </div>
         <div class="q-pa-sm">
           <q-table
+            :columns="cols"
+            :loading="loading"
+            :rows="rows"
+            :rows-per-page-options="[0]"
+            :wrap-cells="true"
+            card-class="bg-amber-1 text-brown"
             color="primary"
             dense
-            card-class="bg-amber-1 text-brown"
             row-key="obj"
-            :columns="cols"
-            :rows="rows"
-            :wrap-cells="true"
-            table-header-class="text-bold text-white bg-blue-grey-13"
             separator="cell"
-            :loading="loading"
-            :rows-per-page-options="[0]"
+            table-header-class="text-bold text-white bg-blue-grey-13"
           >
 
             <template #body-cell="props">
               <q-td :props="props">
                 <div v-if="props.col.field.includes('fv')">
-                  <q-btn
-                    color="blue" round size="sm" flat dense icon="more_vert" class="absolute-right"
-                  >
-                    <q-menu auto-close>
-                      <q-btn
-                        round size="sm" icon="edit" color="blue" flat dense
-                        @click="fnEditCell(item, col.field)" class="no-padding no-margin"
-                      >
-                        <q-tooltip>
-                          {{ $t("update") }}
-                        </q-tooltip>
-                      </q-btn>
+                  <div v-if="props.row['id']!==0">
+                    {{ props.value }}
+                    <q-btn
+                      class="absolute-right" color="blue" dense flat icon="more_vert" round size="sm"
+                    >
+                      <q-menu auto-close>
+                        <q-btn
+                          class="no-padding no-margin" color="blue" dense flat icon="edit" round
+                          size="sm" @click="fnEditCell(item, col.field)"
+                        >
+                          <q-tooltip>
+                            {{ $t("update") }}
+                          </q-tooltip>
+                        </q-btn>
 
-                      <q-btn
-                        round size="sm" icon="delete" color="red" flat dense class="no-padding no-margin"
-                        @click="fnDeleteCell(item, col.field)"
-                        :disable="!item['id'+col.field.substring(1)]"
-                      >
-                        <q-tooltip>
-                          {{ $t("deletingRecord") }}
-                        </q-tooltip>
-                      </q-btn>
-                    </q-menu>
-                  </q-btn>
-                  {{props.value}}
+                        <q-btn
+                          :disable="!item['id'+col.field.substring(1)]" class="no-padding no-margin" color="red" dense flat icon="delete" round
+                          size="sm"
+                          @click="fnDeleteCell(item, col.field)"
+                        >
+                          <q-tooltip>
+                            {{ $t("deletingRecord") }}
+                          </q-tooltip>
+                        </q-btn>
+                      </q-menu>
+                    </q-btn>
+                  </div>
+                  <div v-else>
+                    {{ summ(props.row, props.col) }}
+                  </div>
                 </div>
                 <div v-else>
-                  {{props.value}}
+                  {{ props.value }}
                 </div>
               </q-td>
             </template>
-
-
 
 
             <template #bottom-row>
@@ -122,18 +125,20 @@
           </q-table>
         </div>
 
-
-
-
       </q-card-section>
-
       <q-card-actions align="right">
         <q-btn
+          :label="$t('save')"
           color="primary"
-          icon="close"
-          :label="$t('close')"
+          icon="save"
           @click="onOKClick"
-          class="q-mt-xl absolute-bottom-right"
+        />
+
+        <q-btn
+          :label="$t('cancel')"
+          color="primary"
+          icon="cancel"
+          @click="onCancelClick"
         />
 
       </q-card-actions>
@@ -142,8 +147,8 @@
 </template>
 
 <script setup>
-import {ref, reactive, getCurrentInstance, computed, onMounted} from 'vue'
-import { api } from '@/boot/axios'
+import {getCurrentInstance, onMounted, reactive, ref} from 'vue'
+import {api} from '@/boot/axios'
 import {date} from "quasar";
 
 const props = defineProps({
@@ -157,10 +162,10 @@ const rows = ref([])
 
 
 const emit = defineEmits(['ok', 'hide'])
-const { proxy } = getCurrentInstance()
+const {proxy} = getCurrentInstance()
 
 const dialogRef = ref(null)
-const form = reactive({ ...props.data })
+const form = reactive({...props.data})
 
 let dte = form["dte"]
 const periodType = form["periodType"]
@@ -182,9 +187,20 @@ const fnDt = (val) => {
   }
 }
 
+const summ = (r, c) => {
+  //console.info('summ', r[c.field], c.field)
+  let s = 0 //rows[0][c.field]
+  for (let key in rows.value) {
+    console.info(`${key}, ${c.field}`, rows.value[key][c.field])
+    if (rows.value[key]["id"] !== 0) {
+      let x = rows.value[key][c.field]===undefined ? 0 : rows.value[key][c.field]
+      s = s + parseInt(x, 10)
+    }
+  }
+  return s
+}
 
-
-const loadAlgo = ()=> {
+const loadAlgo = () => {
   loading.value = true
   api
     .post('', {
@@ -217,10 +233,14 @@ const onOKClick = () => {
   hide()
 }
 
+const onCancelClick = () => {
+  hide()
+}
+
 onMounted(() => {
   loading.value = true
   api
-    .post('', { method: 'data/loadPeriodType', params: [] })
+    .post('', {method: 'data/loadPeriodType', params: []})
     .then((response) => {
       optPeriod.value = response.data.result['records']
     })
