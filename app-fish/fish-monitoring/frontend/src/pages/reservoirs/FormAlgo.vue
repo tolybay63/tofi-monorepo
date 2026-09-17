@@ -97,11 +97,18 @@
             <template #body-cell="props">
               <q-td :props="props">
                 <div v-if="props.col.field.includes('fv')">
+
                   <div v-if="props.row['id']!==0">
+
+                    <div v-if="props.row['p'+props.col.field.substring(2)] === 0" class="bg-red-2">
+ x
+                    </div>
+
+                    <div v-else>
+
                     {{ props.value }}
                     <q-btn
                       class="absolute-right" color="blue" dense flat icon="more_vert" round size="sm"
-                      v-if="props.row['p'+props.col.field.substring(2)]!==0"
                     >
                       <q-menu auto-close>
                         <q-btn
@@ -125,6 +132,9 @@
                         </q-btn>
                       </q-menu>
                     </q-btn>
+
+                    </div>
+
                   </div>
                   <div v-else>
                     {{ summ(props.col) }}
@@ -332,9 +342,8 @@ const checkSums = () => {
 
   for (const col of fishCols) {
     // Сохраненное значение из БД (если null/undefined — считаем 0)
-    const dbVal = parseFloat(rowTotal[col.field]) || 0
-    //const dbVal = parseFloat(rowTotal._dbValues?.[col.field]) || 0
-    //rowTotal._dbValues?.[col.field] || 0
+    //const dbVal = parseFloat(rowTotal[col.field]) || 0
+    const dbVal = parseFloat(rowTotal._dbValues?.[col.field]) || 0
 
     // Считаем сумму по возрастам
     let ageSum = 0
@@ -361,7 +370,7 @@ const summ = (c) => {
     if (rows.value[key]["id"] !== 0) {
       let x = !rows.value[key][c.field] || rows.value[key][c.field] === undefined
         ? 0 : rows.value[key][c.field]
-      s = s + parseInt(x, 10)
+      s = s + parseFloat(x)
     }
   }
   //
