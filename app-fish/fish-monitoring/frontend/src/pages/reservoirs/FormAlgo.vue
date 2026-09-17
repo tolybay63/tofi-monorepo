@@ -101,6 +101,7 @@
                     {{ props.value }}
                     <q-btn
                       class="absolute-right" color="blue" dense flat icon="more_vert" round size="sm"
+                      v-if="props.row['p'+props.col.field.substring(2)]!==0"
                     >
                       <q-menu auto-close>
                         <q-btn

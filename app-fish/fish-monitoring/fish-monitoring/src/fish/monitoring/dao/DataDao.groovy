@@ -82,7 +82,7 @@ class DataDao extends BaseMdbUtils {
         Store stFv1 = loadSqlMeta("""
             select id, name
             from factor
-            where id in (${setFv1.join(",")})
+            where id in (0${setFv1.join(",")})
             order by ord
         """, "")
 
@@ -114,8 +114,11 @@ class DataDao extends BaseMdbUtils {
         }
 
         stFv2 = loadSqlMeta("""
-            select id, name ${sep}  ${String.join(",", sel)}  from factor where id in (${setFv2.join(",")}) order by ord
+            select id, name ${sep}  ${String.join(",", sel)}  from factor where id in (0${setFv2.join(",")}) order by ord
         """, "")
+
+        if (stFv2.size()==0)
+            throw new XError("Нет возраст рыбы")
 
         stFv2.get(0).set("id", 0)
         stFv2.get(0).set("name", "Количество")

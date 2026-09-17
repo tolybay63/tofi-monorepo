@@ -177,6 +177,7 @@ const fnAlgo = (item) => {
 }
 
 const fnDelete = (row) => {
+  console.log("fnDelete", row)
   let nm = row.name
   $q.dialog({
     title: proxy?.$t('confirmation'),
