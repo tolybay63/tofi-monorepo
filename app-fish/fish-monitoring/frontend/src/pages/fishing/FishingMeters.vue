@@ -1,5 +1,32 @@
 <template>
-  <div class="q-pa-md bg-amber-1" style="font-size: 18px"> {{ name }}</div>
+  <div class="q-pa-sm row bg-amber-1">
+    <!-- Date -->
+    <q-input
+      v-model="dt"
+      :label="$t('date')"
+      class="q-mr-lg"
+      dense
+      stack-label
+      style="width: 100px"
+      type="date"
+      @update:model-value="fnDt"
+    />
+
+    <!-- PeriodType -->
+    <q-select
+      v-model="periodType"
+      :label="fnReqLabel('periodType')"
+      :options="optPeriod"
+      class="q-ml-lg"
+      dense
+      map-options
+      option-label="text"
+      option-value="id"
+      options-dense
+      style="width: 100px"
+      @update:model-value="fnSelectPeriodType"
+    />
+  </div>
 
   <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
     <table class="q-table q-table--cell-separator q-table--bordered wrap">
@@ -53,13 +80,13 @@
 
 <script setup>
 import {computed, getCurrentInstance, onMounted, ref} from 'vue'
-import {useQuasar} from 'quasar'
-import {api} from '@/boot/axios'
-import {findRowForId, notifyError, notifyInfo, pack} from '@/utils/jsutils'
+import {date, useQuasar} from 'quasar'
+import {api, tofi_dbeg, tofi_dend} from '@/boot/axios'
+import {findRowForId, notifyError, notifyInfo, pack, today} from '@/utils/jsutils'
 import UpdaterFishingMeters from "@/pages/fishing/UpdaterFishingMeters.vue"
 
 const props = defineProps({
-  name: String
+  //dte: String
 })
 
 const $q = useQuasar()
@@ -71,6 +98,31 @@ const loading = ref(false)
 const isExpanded = ref(true)
 const itemId = ref(null)
 const obj = ref(0)
+
+
+let dt = today()
+const periodType = ref(71)
+const optPeriod = ref([])
+
+const dtFormat = (v) => {
+  return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
+}
+
+const fnSelectPeriodType = (v) => {
+  periodType.value = v.id
+  loadFishingMeters(obj.value)
+}
+
+const fnReqLabel = (label) => {
+  return proxy?.$t(label) + '*'
+}
+
+const fnDt = (val) => {
+  if (val && val.length === 10 && date.formatDate(val)) {
+    dt = val
+    loadFishingMeters(obj.value)
+  }
+}
 
 const fnDelete = (row) => {
   let nm = row.name
@@ -116,13 +168,19 @@ const updateRowValue = (currentRow, targetRec) => {
 }
 
 const fnEdit = (row) => {
+  console.log("fnEdit 1", row)
   let rec = {
     obj: obj.value,
     prop: row.id,
     numberval: row.numberval || "",
     name: row.name,
-    idval: row.idval
+    idval: row.idval,
+    dte: dt,
+    periodType: periodType.value,
+    cod: row.cod,
+    level: row.level,
   }
+  console.log("fnEdit 2", rec)
   $q.dialog({
     component: UpdaterFishingMeters,
     componentProps: {
@@ -212,12 +270,20 @@ const clearFishingData = () => {
   rows.value = []
 }
 
+const setDte = (dte) => {
+  console.log("setDte", dte)
+  dt = dte.value
+}
+
 const loadFishingMeters = (targetObj) => {
+
+  console.log("loadFishingMeters", dt)
+
   loading.value = true
   obj.value = targetObj
   api.post('', {
     method: 'data/loadFishingMeters',
-    params: [targetObj],
+    params: [targetObj, 0, dt, periodType.value],
   })
     .then((response) => {
       rows.value = pack(response.data.result["records"], "id")
@@ -235,11 +301,21 @@ const arrayTreeObj = computed(() => {
 
 onMounted(() => {
   cols.value = getColumns()
+  loading.value = true
+  api
+    .post('', {method: 'data/loadPeriodType', params: []})
+    .then((response) => {
+      optPeriod.value = response.data.result['records']
+    })
+    .finally(() => {
+      loading.value = false
+    })
 })
 
 defineExpose({
   clearFishingData,
-  loadFishingMeters
+  loadFishingMeters,
+  setDte
 })
 </script>
 

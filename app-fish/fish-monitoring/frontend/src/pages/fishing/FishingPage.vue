@@ -119,7 +119,7 @@
       </template>
 
       <template v-slot:after>
-        <FishingMeters ref="fishingMetersRef" :name="name"></FishingMeters>
+        <FishingMeters ref="fishingMetersRef" ></FishingMeters>
       </template>
     </q-splitter>
   </div>
@@ -153,6 +153,8 @@ let dend = ref("")
 const reservoirName = ref("")
 const dbegUpd = ref("")
 const dendUpd = ref("")
+
+const dte = ref(today())
 
 const mapFishGear = ref(new Map())
 const mapFishManager = ref(new Map())
@@ -237,19 +239,26 @@ const updateSelected = () => {
   if (selected.value.length > 0) {
     splitterModel.value = 50
     obj = selected.value[0].obj
-    name.value =
+    dte.value = selected.value[0].StartDate
+
+    console.log("dte1", dte.value)
+
+/*    name.value =
       selected.value[0].nameFishLocation +
       ' (' +
       selected.value[0].nameCls +
       ' - ' +
       date.formatDate(selected.value[0].StartDate, 'DD.MM.YYYY') +
-      ')'
+      ')'*/
   } else {
     splitterModel.value = 100
     obj = 0
-    name.value = ''
+    dte.value = today()
+    console.log("dte2", dte.value)
+    //name.value = ''
     fishingMetersRef.value?.clearFishingData()
   }
+  fishingMetersRef.value.setDte(dte)
   fishingMetersRef.value?.loadFishingMeters(obj)
 }
 

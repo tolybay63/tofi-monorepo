@@ -132,7 +132,7 @@ const obj = ref(0)
 const dte = ref(today())
 const periodType = ref(11)
 const optPeriod = ref([])
-const cods = ref(["Prop_NumberFishCaught", "Prop_WaterNumberFishBio", "Prop_WaterFishAverageWeight", "Prop_CalcPdy","Prop_GearCatchabilityNet","Prop_ReservoirPdy","Prop_GearCatchabilitySeine"])
+const cods = ref(["Prop_NumberFishCaught", "Prop_WaterNumberFishBio", "Prop_WaterFishAverageWeight", "Prop_CalcPdy","Prop_GearCatchabilityNet","Prop_GearCatchabilitySeine"])
 
 const dtFormat = (v) => {
   return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')

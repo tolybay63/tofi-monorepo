@@ -2011,12 +2011,14 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadFishingMeters(long obj) {
+    Store loadFishingMeters(long obj, long prop, String dte, long periodType) {
         if (obj == 0)
             return mdb.createStore()
-        String props = "Prop_NumberFishCaught,Prop_NumberEggs,Prop_FishArea,Prop_WorkDuration,Prop_NumberNet"
-        return loadMetersWithOutPeriod(obj, props)
+        String props = "'Prop_NumberFishCaught','Prop_NumberEggs','Prop_FishArea','Prop_WorkDuration','Prop_NumberNet'"
+
+        return loadMetersOfOwnerWithPeriod(obj, 1, prop, dte, periodType, props)
     }
+
 
     @DaoMethod
     void deleteFishingMeters(long idDPV) {
@@ -2033,7 +2035,11 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     long saveFishingMeters(Map<String, Object> rec) {
-        rec.put("dependperiod", 0)
+        //todo use cod!
+        if (UtCnv.toInt(rec.get("level")) == 0)
+            rec.put("dependperiod", 0)
+        else
+            rec.put("dependperiod", 1)
         return saveMeter(rec)
     }
 
@@ -2047,7 +2053,7 @@ class DataDao extends BaseMdbUtils {
         String dbeg = "1800-01-01"
         String dend = "3333-12-31"
         if (dependperiod) {
-            pt = 11L
+            pt = UtCnv.toLong(rec.get("periodType"))
             String dt = XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE)
             if (rec.containsKey("year")) {
                 dt = UtCnv.toString(rec.get("year")) + "-01-01"
@@ -2056,7 +2062,7 @@ class DataDao extends BaseMdbUtils {
             } else {
                 throw new XError("Не известно [year|dte]")
             }
-            tofi.api.mdl.utils.UtPeriod up = new tofi.api.mdl.utils.UtPeriod()
+            UtPeriod up = new UtPeriod()
             dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
             dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
         }
