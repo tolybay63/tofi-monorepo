@@ -86,7 +86,7 @@ import {findRowForId, notifyError, notifyInfo, pack, today} from '@/utils/jsutil
 import UpdaterFishingMeters from "@/pages/fishing/UpdaterFishingMeters.vue"
 
 const props = defineProps({
-  //dte: String
+  reservoir: Number
 })
 
 const $q = useQuasar()
@@ -283,7 +283,7 @@ const loadFishingMeters = (targetObj) => {
   obj.value = targetObj
   api.post('', {
     method: 'data/loadFishingMeters',
-    params: [targetObj, 0, dt, periodType.value],
+    params: [targetObj, 0, dt, periodType.value, props.reservoir],
   })
     .then((response) => {
       rows.value = pack(response.data.result["records"], "id")

@@ -2011,19 +2011,25 @@ class DataDao extends BaseMdbUtils {
     }
 
     private void fromDay2YearForNumberFishCaught(Map<String, Object> params) {
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
+        Set<Object> setObj = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
         Map<String, Object> res = new HashMap<>()
         VariantMap pms = new VariantMap(params)
-        long own = pms.getLong("own")
-        long prop = pms.getLong("prop")
-        boolean dependperiod = pms.getBoolean("dependperiod")
+        long own = pms.getLong("obj")       // Не нужен
+        String codProp = "Prop_NumberFishCaught"   //pms.getString("cod")
+        boolean dependperiod = true     //pms.getBoolean("dependperiod")
         String dte = pms.getString("dte")
         long periodType = pms.getLong("periodType")
         //
-        long meter = loadSqlMeta("""
-            select meter from Prop where id=${prop}
-        """, "").get(0).getLong("meter")
+        Store stProp = loadSqlMeta("""
+            select id, meter from Prop where cod='${codProp}'
+        """, "")
         //
-        Store stProp2Lev = loadSqlMeta("""
+        long meter = stProp.get(0).getLong("meter")
+        long prop = stProp.get(0).getLong("id")
+
+
+        Store stProp1Lev = loadSqlMeta("""
             with mrfv as (
             select meterrate,
                 STRING_AGG (cast(factorval as varchar(200)), ',') as fvs,
@@ -2031,99 +2037,23 @@ class DataDao extends BaseMdbUtils {
             from meterratefv
             group by meterrate
             )
-            select id, fvs   
-            from Prop p, mrfv
-            where p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=2
-        """, "")
-        Set<Object> idsPropsAll = stProp2Lev.getUniqueValues("id")
-        StoreIndex indProp2Lev = stProp2Lev.getIndex("fvs")
-        Set<Long> setFv1 = new HashSet<>()
-        Set<Long> setFv2 = new HashSet<>()
-        for (StoreRecord r in stProp2Lev) {
-            String [] arr = r.getString("fvs").split(",")
-            setFv1.add(UtCnv.toLong(arr[0]))
-            setFv2.add(UtCnv.toLong(arr[1]))
-        }
-        //
-        Store stFv1 = loadSqlMeta("""
-            select id, name
-            from factor
-            where id in (0${setFv1.join(",")})
-            order by ord
-        """, "")
-
-        List<Map<String, String>> cols = new ArrayList<>();
-        cols.add(Map.of("name", "name", "label", "Возраст", "field", "name",
-                "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 30%"));
-
-
-        Store stFv2 = mdb.createStore()
-        stFv2.addField("id", "long");
-        stFv2.addField("name", "string", 20);
-
-        List<String> sel = new ArrayList<>();
-        String sep = "";
-        for (StoreRecord r in stFv1) {
-            for (StoreField f : r.getFields()) {
-                if (f.getName().equalsIgnoreCase("id")) {
-                    stFv2.addField("v" + r.getString(f.getName()), "long")
-                    stFv2.addField("p" + r.getString(f.getName()), "long")
-                    stFv2.addField("fv" + r.getString(f.getName()), "string", 20)
-                    sel.add("0 as v" + r.getString(f.getName()) + ", 0 as p" + r.getString(f.getName()) + ", null as fv" + r.getString(f.getName()))
-                }
-            }
-            sep = (!sel.isEmpty()) ? ", " : ""
-            cols.add(Map.of("name", "fv" + r.getValue("id"),
-                    "label", UtCnv.toString(r.getValue("name")), "field", "fv" + r.getValue("id"),
-                    "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.2em",
-                    "style", "width: 10%"))
-        }
-
-        stFv2 = loadSqlMeta("""
-            select id, name ${sep}  ${String.join(",", sel)}  from factor where id in (0${setFv2.join(",")}) order by ord
-        """, "")
-
-        if (stFv2.size()==0)
-            throw new XError("Нет возраст рыбы")
-
-        stFv2.get(0).set("id", 0)
-        stFv2.get(0).set("name", "Количество")
-        //
-        Store stProp1Lev = loadSqlMeta("""
-            with mrfv as (
-            select meterrate,
-                STRING_AGG (cast(factorval as varchar(20)), ',') as fvs,
-                ARRAY_LENGTH(STRING_TO_ARRAY(STRING_AGG (cast(factorval as varchar(20)), ','), ','), 1) sz
-            from meterratefv
-            group by meterrate
-            )
-            select id, fvs   
+            select id, fvs, null as idval, null as numberval   
             from Prop p, mrfv
             where p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=1
         """, "")
-        StoreIndex indProp1Lev = stProp1Lev.getIndex("fvs")
-        idsPropsAll.addAll(stProp1Lev.getUniqueValues("id"))
-        //Проставляем в каждую ячейку prop
-        for (StoreRecord r in stFv2) {
-            for (StoreField fld in r.getFields()) {
-                if (fld.name.startsWith("fv")) {
-                    String fvs = ""
-                    if (r.getLong("id")==0) {
-                        fvs = "${fld.name.substring(2)}"
-                        StoreRecord rec = indProp1Lev.get(fvs)
-                        if (rec!= null) {
-                            r.set("p"+fld.name.substring(2), rec.getLong("id"))
-                        }
-                    } else {
-                        fvs = "${fld.name.substring(2)},${r.getString("id")}"
-                        StoreRecord rec = indProp2Lev.get(fvs)
-                        if (rec!= null) {
-                            r.set("p"+fld.name.substring(2), rec.getLong("id"))
-                        }
-                    }
-                }
-            }
-        }
+        Set<Object> idsPropsAll = stProp1Lev.getUniqueValues("id")
+        //
+
+        System.out.println("prop = "+prop)
+        mdb.outTable(stProp1Lev)
+
+        Store stOwn = mdb.loadQuery("""
+            select id
+            from obj
+            where cls in (1035,1036,1037)
+        """)
+        Set<Object> idsOwn = stOwn.getUniqueValues("id")
+
         // Далее проставляем данные
         String d1 = "1800-01-01"
         String d2 = "3333-12-01"
@@ -2132,54 +2062,117 @@ class DataDao extends BaseMdbUtils {
             d1 = up.calcDbeg(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
             d2 = up.calcDend(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
         }
+
+
         String sql = """
-            select d.prop, v.numberval, v.id as idval
+            select d.prop, SUM(v.numberval) as numberval, date_part('year', v.dbeg) as year  
             from DataProp d, DataPropVal v
-            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType is null
-        """
-        if (dependperiod)
-            sql = """
-            select d.prop, v.numberval, v.id as idval
-            from DataProp d, DataPropVal v
-            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType=${periodType}
-                and v.dbeg='${d1}' and v.dend='${d2}'
+            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj in (
+                select d.objorrelobj as own 
+                from DataProp d, DataPropVal v
+                where d.id=v.dataprop and d.prop=${mapProp.get("Prop_ReservoirShore")} and v.obj=${own}
+                and d.objorrelobj in (
+                    select id from obj where cls in (0${setObj.join(",")})
+                    )
+            ) and d.prop in (0${idsPropsAll.join(",")}) and d.periodType=${periodType}
+            group by d.prop, year
         """
         Store stVal = mdb.loadQuery(sql)
-        StoreIndex indVal = stVal.getIndex("prop")
+        //
+//        mdb.outTable(stVal)
+        //
 
-        for (StoreRecord r in stFv2) {
-            for (StoreField fld in r.getFields()) {
-                if (fld.name.startsWith("fv")) {
-                    StoreRecord rec = indVal.get(r.getLong("p"+fld.name.substring(2)))
-                    if (rec != null) {
-                        r.set(fld.name, rec.getDouble("numberval"))
-                        r.set("v"+fld.name.substring(2), rec.getDouble("idval"))
-                    }
-                }
+        Map<String, Object> rec = new HashMap()
+        rec.put("obj", own)
+        rec.put("periodType", 11L)
+        rec.put("dependperiod", true)
+
+        for (StoreRecord r in stVal) {
+            rec.put("prop", r.getLong("prop"))
+            rec.put("numberval", r.getDouble("numberval"))
+            rec.put("year", r.getLong("year"))
+            saveMeterFishing(rec)
+        }
+    }
+
+    private long saveMeterFishing(Map<String, Object> rec) {
+        long obj = UtCnv.toLong(rec.get("obj"))
+        long prop = UtCnv.toLong(rec.get("prop"))
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        boolean dependperiod = UtCnv.toBoolean(rec.get("dependperiod"))
+        Long pt = null
+        String dbeg = "1800-01-01"
+        String dend = "3333-12-31"
+        if (dependperiod) {
+            pt = UtCnv.toLong(rec.get("periodType"))
+            String dt = XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE)
+            if (rec.containsKey("year")) {
+                dt = UtCnv.toString(rec.get("year")) + "-01-01"
+            } else if (rec.containsKey("dte")) {
+                dt = UtCnv.toString(UtCnv.toString(rec.get("dte")))
+            } else {
+                throw new XError("Не известно [year|dte]")
             }
+            UtPeriod up = new UtPeriod()
+            dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+            dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
         }
 
-        res.put("cols", cols )
-        res.put("store", stFv2 )
+        String sqlData = """
+            select v.id
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.prop=${prop} and d.periodType=${pt} and d.objorrelobj=${obj}
+                and v.dbeg='${dbeg}' and v.dend='${dend}'
+        """
+        Store stData = mdb.loadQuery(sqlData)
+        long idVal = 0
+        if (stData.size()>0)
+            idVal = stData.get(0).getLong("id")
 
-        System.out.println("prop = "+prop)
-        mdb.outTable(stFv2)
 
+        if (idVal > 0) {
+            String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+            mdb.execQueryNative("""
+                update DataPropVal set numberval=${value}, dbeg='${dbeg}', dend='${dend}', timestamp='${tm}'
+                where id=${idVal}
+            """)
 
+        } else {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", 1)
+            recDP.set("objorrelobj", obj)
+            recDP.set("prop", prop)
+            if (dependperiod)
+                recDP.set("periodType", pt)
+            long idDP = mdb.insertRec("DataProp", recDP)
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", value)
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            recDPV.set("dbeg", dbeg)
+            recDPV.set("dend", dend)
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            idVal = mdb.insertRec("DataPropVal", recDPV, false)
+        }
+        return idVal
     }
 
 
     @DaoMethod
-    Store loadFishingMeters(long obj, long prop, String dte, long periodType) {
+    Store loadFishingMeters(long obj, long prop, String dte, long periodType, long reservoir) {
         if (obj == 0)
             return mdb.createStore()
         String props = "'Prop_NumberFishCaught','Prop_NumberEggs','Prop_FishArea','Prop_WorkDuration','Prop_NumberNet'"
 
         // Svae for Prop_NumberFishCaught PeriodType(day) => PeriodType(year)
-        //fromDay2YearForNumberFishCaught(Map.of(obj, obj, prop, prop, dte, dte, periodType, periodType) as Map<String, Object>)
-
+        fromDay2YearForNumberFishCaught(Map.of("obj", reservoir, "prop", prop, "dte", dte, "periodType", periodType) as Map<String, Object>)
         //
-        return loadMetersOfOwnerWithPeriod(obj, 1, prop, dte, periodType, props)
+        return  loadMetersOfOwnerWithPeriod(obj, 1, prop, dte, periodType, props)
     }
 
 
@@ -2228,6 +2221,7 @@ class DataDao extends BaseMdbUtils {
             dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
             dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
         }
+
         if (idVal > 0) {
             String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
             mdb.execQueryNative("""

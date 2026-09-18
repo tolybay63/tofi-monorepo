@@ -119,7 +119,7 @@
       </template>
 
       <template v-slot:after>
-        <FishingMeters ref="fishingMetersRef" ></FishingMeters>
+        <FishingMeters ref="fishingMetersRef" :reservoir="reservoirs"></FishingMeters>
       </template>
     </q-splitter>
   </div>
