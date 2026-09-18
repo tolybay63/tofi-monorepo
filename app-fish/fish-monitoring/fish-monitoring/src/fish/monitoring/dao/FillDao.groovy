@@ -235,7 +235,8 @@ class FillDao extends BaseMdbUtils {
                 long prop = UtCnv.toLong(props_meter.get(k))
                 double val = UtCnv.toDouble(m.get(k))
                 //
-                saveMeter(UtCnv.toLong(own), true, prop, val, 0, "")
+                String dte = UtCnv.toString(m.get("Prop_StartDate"))
+                saveMeter(UtCnv.toLong(own), true, prop, val, 71, dte)
             }
 
         }
