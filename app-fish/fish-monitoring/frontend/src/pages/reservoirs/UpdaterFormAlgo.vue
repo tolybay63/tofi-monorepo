@@ -2,6 +2,7 @@
   <q-dialog
     ref="dialogRef"
     @hide="onDialogHide"
+    @show="onDialogShow"
     persistent
     transition-show="slide-up"
     transition-hide="slide-down"
@@ -14,7 +15,7 @@
       <q-card-section>
         <div> {{form['title']}}: </div>
         <q-input
-          autofocus
+          ref="inputNameRef"
           class="q-my-md"
           dense
           v-model="form['numberval']"
@@ -55,6 +56,7 @@ const emit = defineEmits(['ok', 'hide'])
 const { proxy } = getCurrentInstance()
 
 const dialogRef = ref(null)
+const inputNameRef = ref(null);
 const form = reactive({ ...props.data })
 
 console.info("UPDATER", form)
@@ -69,6 +71,10 @@ const show = () => {
 const hide = () => {
   dialogRef.value?.hide()
 }
+
+const onDialogShow = () => {
+  inputNameRef.value?.focus();
+};
 
 const onDialogHide = () => {
   emit('hide')
