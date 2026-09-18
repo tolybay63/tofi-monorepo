@@ -2048,8 +2048,14 @@ class DataDao extends BaseMdbUtils {
         String dend = "3333-12-31"
         if (dependperiod) {
             pt = 11L
-            //String dt = UtCnv.toString(rec.get("year")) + "-01-01"
-            String dt = UtCnv.toString(UtCnv.toString(rec.get("dte")).substring(0,4) ) + "-01-01"
+            String dt = XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE)
+            if (rec.containsKey("year")) {
+                dt = UtCnv.toString(rec.get("year")) + "-01-01"
+            } else if (rec.containsKey("dte")) {
+                dt = UtCnv.toString(UtCnv.toString(rec.get("dte")))
+            } else {
+                throw new XError("Не известно [year|dte]")
+            }
             tofi.api.mdl.utils.UtPeriod up = new tofi.api.mdl.utils.UtPeriod()
             dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
             dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
