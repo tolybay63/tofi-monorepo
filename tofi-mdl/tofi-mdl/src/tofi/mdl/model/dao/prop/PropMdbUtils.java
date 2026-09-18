@@ -12,6 +12,7 @@ import jandcode.core.std.CfgService;
 import jandcode.core.store.Store;
 import jandcode.core.store.StoreIndex;
 import jandcode.core.store.StoreRecord;
+import tofi.api.dta.ApiCalcData;
 import tofi.api.dta.ApiMonitoringData;
 import tofi.api.dta.ApiNSIData;
 import tofi.apinator.ApinatorApi;
@@ -34,7 +35,9 @@ public class PropMdbUtils extends BaseMdbUtils {
     ApinatorApi apiMonitoringData() {
         return getMdb().getApp().bean(ApinatorService.class).getApi("monitoringdata");
     }
-
+    ApinatorApi apiCalcData() {
+        return getMdb().getApp().bean(ApinatorService.class).getApi("calcdata");
+    }
 
     @DaoMethod
     public Store loadPropTree(long propGr) throws Exception {
@@ -361,6 +364,7 @@ public class PropMdbUtils extends BaseMdbUtils {
             if (recOld.getInt("digit") != UtCnv.toInt(rec.get("digit"))) {
                 mapChanged.put("digit", UtCnv.toLong(rec.get("digit")));
             }
+            mapChanged.put("isDependValueOnPeriod", UtCnv.toLong(rec.get("isDependValueOnPeriod")));
 
             Store tmp = getMdb().loadQuery("""
                         WITH RECURSIVE r AS (
@@ -392,7 +396,51 @@ public class PropMdbUtils extends BaseMdbUtils {
         IVariantMap oldMap = new VariantMap(oldRec);
         IVariantMap newMap = new VariantMap(newRec);
 
+        String whe = " and d.periodType is null";
+        if (oldMap.getBoolean("isDependValueOnPeriod"))
+            whe = " and d.periodType is not null";
+        if (oldMap.getLong("statusFactor") > 0)
+            whe += " and d.status is not null";
+        else
+            whe += " and d.status is null";
+        if (oldMap.getLong("providerTyp") > 0)
+            whe += " and d.provider is not null";
+        else
+            whe += " and d.provider is null";
+        String sql = """
+                    select distinct
+                        case when d.isObj=1 then o.cod else ro.cod end as cod,
+                        case when d.isObj=1 then ov.name else rv.name end as name
+                    from DataProp d left join DataPropVal v on d.id=v.dataProp
+                        left join Obj o on d.isObj=1 and d.objorrelobj =o.id
+                        inner join ObjVer ov on o.id=ov.ownerVer and ov.lastVer=1
+                        left join RelObj ro on d.isObj=0 and d.objorrelobj =ro.id
+                        inner join RelObjVer rv on rv.id=rv.ownerVer and rv.lastVer=1
+                    where d.prop=
+                """ + oldMap.getLong("id") + whe + " limit 1";
+
+
+        Store st = loadSqlService(sql, "", "nsidata");
+        List<String> lstModel = new ArrayList<>();
+        if (st.size() > 0) {
+            lstModel.add("nsidata");
+        }
+        st = loadSqlService(sql, "", "monitoringdata");
+        lstModel = new ArrayList<>();
+        if (st.size() > 0) {
+            lstModel.add("monitoringdata");
+        }
+        st = loadSqlService(sql, "", "calcdata");
+        lstModel = new ArrayList<>();
+        if (st.size() > 0) {
+            lstModel.add("calcdata");
+        }
+        if (!lstModel.isEmpty()) {
+            throw new XError("Существуют данные. Например: " + String.join(";", lstModel));
+        }
+
         // TODO: 02.04.2024 запрос на данные
+
 /*
         String whe = " and d.periodType is null";
         if (oldMap.getBoolean("isDependValueOnPeriod"))
@@ -2109,6 +2157,17 @@ public class PropMdbUtils extends BaseMdbUtils {
                     where p.parent=:prop
                 """;
         return getMdb().loadQuery(st, sql, Map.of("prop", prop));
+    }
+
+    private Store loadSqlService(String sql, String domain, String model) {
+        if (model.equalsIgnoreCase("nsidata"))
+            return apiNSIData().get(ApiNSIData.class).loadSql(sql, domain);
+        else if (model.equalsIgnoreCase("monitoringdata"))
+            return apiMonitoringData().get(ApiMonitoringData.class).loadSql(sql, domain);
+        else if (model.equalsIgnoreCase("calcdata"))
+            return apiCalcData().get(ApiCalcData.class).loadSql(sql, domain);
+        else
+            throw new XError("Unknown model [${model}]");
     }
 
 }
