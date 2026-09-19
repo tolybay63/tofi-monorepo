@@ -233,11 +233,15 @@ class DataDao extends BaseMdbUtils {
     //---------------- Reservors---------------- //
     @DaoMethod
     Store loadReservoirsFilial(Map<String, Object> params) {
+        //
+        long filial = UtCnv.toLong(params.get("filial"))
+        fromDay2YearForNumberFishCaughtFilial(filial)
+        //
 
         String codTyp = UtCnv.toString(params.get("codTyp"))
         long idObj = UtCnv.toLong(params.get("idObj"))
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
-        map.put("filial", UtCnv.toLong(params.get("filial")))
+        map.put("filial", filial)
         String whe = "o.id=${idObj}"
         if (idObj == 0) {
             Set<Object> ids = apiMeta().get(ApiMeta).idsChildClses(codTyp)
@@ -2010,12 +2014,84 @@ class DataDao extends BaseMdbUtils {
         deleteOwnerWithProperties(id, 1)
     }
 
-    private void fromDay2YearForNumberFishCaught(Map<String, Object> params) {
+
+    private void fromDay2YearForNumberFishCaught(long reservoir) {
         Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
         Set<Object> setObj = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
-        Map<String, Object> res = new HashMap<>()
+        String codProp = "Prop_NumberFishCaught"   //pms.getString("cod")
+        long ptFrom = 71L
+        long ptTo = 11L
+        //
+        Store stProp = loadSqlMeta("""
+            select id, meter from Prop where cod='${codProp}'
+        """, "")
+        //
+        long meter = stProp.get(0).getLong("meter")
+
+        Store stProp1Lev = loadSqlMeta("""
+            with mrfv as (
+            select meterrate,
+                STRING_AGG (cast(factorval as varchar(200)), ',') as fvs,
+                ARRAY_LENGTH(STRING_TO_ARRAY(STRING_AGG (cast(factorval as varchar(200)), ','), ','), 1) sz
+            from meterratefv
+            group by meterrate
+            )
+            select id, fvs, null as idval, null as numberval   
+            from Prop p, mrfv
+            where p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=1
+        """, "")
+        Set<Object> idsPropsAll = stProp1Lev.getUniqueValues("id")
+        //
+        mdb.outTable(stProp1Lev)
+        //
+        String sqlVal = """
+            select d.prop, SUM(v.numberval) as numberval, date_part('year', v.dbeg) as year  
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj in (
+                select d.objorrelobj as own 
+                from DataProp d, DataPropVal v
+                where d.id=v.dataprop and d.prop=${mapProp.get("Prop_ReservoirShore")} and v.obj=${reservoir}
+                and d.objorrelobj in (
+                    select id from obj where cls in (0${setObj.join(",")})
+                    )
+            ) and d.prop in (0${idsPropsAll.join(",")}) and d.periodType=${ptFrom}
+            group by d.prop, year
+        """
+        Store stVal = mdb.loadQuery(sqlVal)
+        //
+        mdb.outTable(stVal)
+        //
+        Map<String, Object> rec = new HashMap()
+        rec.put("obj", reservoir)
+
+        for (StoreRecord r in stVal) {
+            rec.put("prop", r.getLong("prop"))
+            rec.put("numberval", r.getDouble("numberval"))
+            rec.put("year", r.getLong("year"))
+            saveMeterFishing(rec)
+        }
+    }
+
+    private void fromDay2YearForNumberFishCaughtFilial(long filial) {
+        Store st = mdb.loadQuery("""
+            select o.id as reservoir
+            from Obj o
+                join DataProp d1 on d1.isobj=1 and d1.objorrelobj=o.id and d1.prop=1006
+                join DataPropVal v1 on d1.id=v1.dataprop and v1.obj=${filial}
+        """)
+
+        for (StoreRecord r in st) {
+            fromDay2YearForNumberFishCaught(r.getLong("reservoir"))
+        }
+
+    }
+
+    private void fromDay2YearForNumberFishCaught2(Map<String, Object> params) {
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "")
+        Set<Object> setObj = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
+        //Map<String, Object> res = new HashMap<>()
         VariantMap pms = new VariantMap(params)
-        long own = pms.getLong("obj")       // Не нужен
+        long own = pms.getLong("obj")       // Reservoir
         String codProp = "Prop_NumberFishCaught"   //pms.getString("cod")
         boolean dependperiod = true     //pms.getBoolean("dependperiod")
         String dte = pms.getString("dte")
@@ -2044,15 +2120,17 @@ class DataDao extends BaseMdbUtils {
         Set<Object> idsPropsAll = stProp1Lev.getUniqueValues("id")
         //
 
-        System.out.println("prop = "+prop)
+//        System.out.println("prop = "+prop)
         mdb.outTable(stProp1Lev)
 
+/*
         Store stOwn = mdb.loadQuery("""
             select id
             from obj
             where cls in (1035,1036,1037)
         """)
         Set<Object> idsOwn = stOwn.getUniqueValues("id")
+*/
 
         // Далее проставляем данные
         String d1 = "1800-01-01"
@@ -2095,28 +2173,15 @@ class DataDao extends BaseMdbUtils {
         }
     }
 
-    private long saveMeterFishing(Map<String, Object> rec) {
+    private void saveMeterFishing(Map<String, Object> rec) {
         long obj = UtCnv.toLong(rec.get("obj"))
         long prop = UtCnv.toLong(rec.get("prop"))
         double value = UtCnv.toDouble(rec.get("numberval"))
-        boolean dependperiod = UtCnv.toBoolean(rec.get("dependperiod"))
-        Long pt = null
-        String dbeg = "1800-01-01"
-        String dend = "3333-12-31"
-        if (dependperiod) {
-            pt = UtCnv.toLong(rec.get("periodType"))
-            String dt = XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE)
-            if (rec.containsKey("year")) {
-                dt = UtCnv.toString(rec.get("year")) + "-01-01"
-            } else if (rec.containsKey("dte")) {
-                dt = UtCnv.toString(UtCnv.toString(rec.get("dte")))
-            } else {
-                throw new XError("Не известно [year|dte]")
-            }
-            UtPeriod up = new UtPeriod()
-            dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
-            dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
-        }
+        Long pt = 11L
+        String dt = UtCnv.toString(rec.get("year")) + "-01-01"
+        UtPeriod up = new UtPeriod()
+        String dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+        String dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
 
         String sqlData = """
             select v.id
@@ -2142,8 +2207,7 @@ class DataDao extends BaseMdbUtils {
             recDP.set("isObj", 1)
             recDP.set("objorrelobj", obj)
             recDP.set("prop", prop)
-            if (dependperiod)
-                recDP.set("periodType", pt)
+            recDP.set("periodType", pt)
             long idDP = mdb.insertRec("DataProp", recDP)
             StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
             recDPV.set("dataProp", idDP)
@@ -2157,9 +2221,9 @@ class DataDao extends BaseMdbUtils {
             recDPV.set("dbeg", dbeg)
             recDPV.set("dend", dend)
             recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
-            idVal = mdb.insertRec("DataPropVal", recDPV, false)
+            mdb.insertRec("DataPropVal", recDPV, false)
         }
-        return idVal
+        //return idVal
     }
 
 
@@ -2171,7 +2235,7 @@ class DataDao extends BaseMdbUtils {
 
         // Svae for Prop_NumberFishCaught PeriodType(day) => PeriodType(year)
 
-        fromDay2YearForNumberFishCaught(Map.of("obj", reservoir, "prop", prop, "dte", dte, "periodType", periodType) as Map<String, Object>)
+        //fromDay2YearForNumberFishCaught(Map.of("obj", reservoir, "prop", prop, "dte", dte, "periodType", periodType) as Map<String, Object>)
         //
         return  loadMetersOfOwnerWithPeriod(obj, 1, prop, dte, periodType, props)
     }
