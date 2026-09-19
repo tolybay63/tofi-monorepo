@@ -2170,6 +2170,7 @@ class DataDao extends BaseMdbUtils {
         String props = "'Prop_NumberFishCaught','Prop_NumberEggs','Prop_FishArea','Prop_WorkDuration','Prop_NumberNet'"
 
         // Svae for Prop_NumberFishCaught PeriodType(day) => PeriodType(year)
+
         fromDay2YearForNumberFishCaught(Map.of("obj", reservoir, "prop", prop, "dte", dte, "periodType", periodType) as Map<String, Object>)
         //
         return  loadMetersOfOwnerWithPeriod(obj, 1, prop, dte, periodType, props)
