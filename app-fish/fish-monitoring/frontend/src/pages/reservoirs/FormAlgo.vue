@@ -61,7 +61,7 @@
             @click="fnSave"
           />
 
-          <div v-if="!cods.includes(props.cod)">
+          <div v-if="!cods_algo.includes(props.cod)">
             <q-btn
               :disable="bSave"
               :label="$t('goAlgo')" class="q-ml-lg" color="primary"
@@ -98,58 +98,50 @@
             <template #body-cell="props">
               <q-td :props="props">
                 <div v-if="props.col.field.includes('fv')">
-
-<!--                  1 - cтрока-->
-                  <div v-if="props.row['id']!==0">
-
-                    <div v-if="props.row['p'+props.col.field.substring(2)] === 0" class="bg-red-2">
-                      x
-                    </div>
-
-                    <div v-else>
-
-                      {{ props.value }}
-                      <q-btn
-                        class="absolute-right" color="blue" dense flat icon="more_vert" round size="sm"
-                      >
-                        <q-menu auto-close>
-                          <q-btn
-                            class="no-padding no-margin" color="blue" dense flat icon="edit" round
-                            size="sm" @click="fnEditCell(props.row, props.col)"
-                          >
-                            <q-tooltip>
-                              {{ $t("update") }}
-                            </q-tooltip>
-                          </q-btn>
-
-                          <q-btn
-                            :disable="!props.row['v'+props.col.field.substring(2)]" class="no-padding no-margin"
-                            color="red" dense
-                            flat icon="delete" round
-                            size="sm"
-                            @click="fnDeleteCell(props.row, props.col)"
-                          >
-                            <q-tooltip>
-                              {{ $t("deletingRecord") }}
-                            </q-tooltip>
-                          </q-btn>
-                        </q-menu>
-                      </q-btn>
-
-                    </div>
-
+                  <div v-if="props.row['p'+props.col.field.substring(2)] === 0" class="bg-red-2">
+                    x
                   </div>
                   <div v-else>
-                    <!--                        {{ summ(props.col) }}-->
-                    <div v-if="cod==='Prop_WaterFishAverageWeight'">
-                      {{ summ(props.col) }}
+                    <div v-if="props.row['id']===0">
+                      <div v-if="cods_sum.includes(cod)">
+<!--                        {{ summ(props.col) }}-->
+                        {{ props.value }}
+                      </div>
+                      <div v-else>
+                        {{ props.value }}
+                      </div>
                     </div>
                     <div v-else>
                       {{ props.value }}
                     </div>
 
-                  </div>
+                    <q-btn
+                      class="absolute-right" color="blue" dense flat icon="more_vert" round size="sm"
+                    >
+                      <q-menu auto-close>
+                        <q-btn
+                          class="no-padding no-margin" color="blue" dense flat icon="edit" round
+                          size="sm" @click="fnEditCell(props.row, props.col)"
+                        >
+                          <q-tooltip>
+                            {{ $t("update") }}
+                          </q-tooltip>
+                        </q-btn>
 
+                        <q-btn
+                          :disable="!props.row['v'+props.col.field.substring(2)]" class="no-padding no-margin"
+                          color="red" dense
+                          flat icon="delete" round
+                          size="sm"
+                          @click="fnDeleteCell(props.row, props.col)"
+                        >
+                          <q-tooltip>
+                            {{ $t("deletingRecord") }}
+                          </q-tooltip>
+                        </q-btn>
+                      </q-menu>
+                    </q-btn>
+                  </div>
                 </div>
                 <div v-else>
                   {{ props.value }}
@@ -176,14 +168,6 @@
           icon="close"
           @click="onOKClick"
         />
-
-        <!--        <q-btn
-                  :label="$t('cancel')"
-                  color="primary"
-                  icon="cancel"
-                  @click="onCancelClick"
-                />-->
-
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -201,7 +185,8 @@ const props = defineProps({
   cod: String,
 })
 const $q = useQuasar()
-const cods = ["Prop_WaterFishAverageWeight"]
+const cods_algo = ["Prop_WaterFishAverageWeight"]
+const cods_sum = ["Prop_WaterFishAverageWeight", "Prop_WaterNumberFishBio"]
 const loading = ref(false)
 const cols = ref([])
 const rows = ref([])
