@@ -54,12 +54,14 @@
 
           <q-space/>
 
-          <q-btn
-            :class="{ 'btn-blink': bSave }" :disable="!bSave" :label="$t('save')"
-            color="primary" dense
-            icon="save"
-            @click="fnSave"
-          />
+          <div v-if="!cods_save.includes(props.cod)">
+            <q-btn
+              :class="{ 'btn-blink': bSave }" :disable="!bSave" :label="$t('save')"
+              color="primary" dense
+              icon="save"
+              @click="fnSaveData"
+            />
+          </div>
 
           <div v-if="!cods_algo.includes(props.cod)">
             <q-btn
@@ -104,7 +106,7 @@
                   <div v-else>
                     <div v-if="props.row['id']===0">
                       <div v-if="cods_sum.includes(cod)">
-<!--                        {{ summ(props.col) }}-->
+                        <!--                        {{ summ(props.col) }}-->
                         {{ props.value }}
                       </div>
                       <div v-else>
@@ -185,8 +187,12 @@ const props = defineProps({
   cod: String,
 })
 const $q = useQuasar()
-const cods_algo = ["Prop_WaterFishAverageWeight"]
-const cods_sum = ["Prop_WaterFishAverageWeight", "Prop_WaterNumberFishBio"]
+const cods_save = "Prop_WaterFishAverageWeight"   //Не показать если есть
+const cods_algo = "Prop_WaterNumberFishBio, Prop_NumberFishCaught, Prop_WaterFishAverageWeight"
+const cods_sum = "Prop_WaterFishAverageWeight, Prop_WaterNumberFishBio"
+
+console.info("cods_algo", cods_algo, props.cod)
+
 const loading = ref(false)
 const cols = ref([])
 const rows = ref([])
@@ -320,6 +326,61 @@ const fnSave = async () => {
 
 }
 
+const fnSaveMatrix = async () => {
+  console.info("fnSave", rows.value[0])
+  let params = []
+  let param = []
+  for (let rowKey in rows.value) {
+    console.info("rowKey", rowKey)
+    for (let key in rows.value[rowKey]) {
+      if (key.includes("fv")) {
+        console.info("key", key)
+        if (rows.value[rowKey][key]) {
+          let data = {
+            obj: form["own"],
+            dependperiod: form["dependperiod"],
+            dte: form["dte"],
+            year: form["dte"].substring(0, 4),
+            periodType: form["periodType"],
+            numberval: rows.value[rowKey][key],
+            prop: rows.value[rowKey]["p" + key.substring(2)]
+          }
+          //
+          param.push(data)
+        }
+      }
+    }
+    params.push(param)
+  }
+
+  if (params.length > 0) {
+    console.info("params", params)
+
+    const resp = await api
+      .post('', {
+        method: 'data/saveAlgoMatrix',
+        params: [params],
+      })
+      .then(() => {
+        bSave.value = false
+        notifySuccess("Saved Matrix!")
+      })
+      .catch((error) => {
+        console.error(error.message)
+      })
+      .finally(() => {
+      })
+  }
+
+}
+
+const fnSaveData = async () => {
+  if (props.cod === "Prop_NumberFishCaught")
+    await fnSaveMatrix()
+  else
+    await fnSave()
+}
+
 const fnCalc = () => {
   setTimeout(() => {
     bSave.value = !bSave.value
@@ -340,17 +401,26 @@ const checkSums = () => {
   for (const col of fishCols) {
     // Сохраненное значение из БД (если null/undefined — считаем 0)
     //const dbVal = parseFloat(rowTotal[col.field]) || 0
-    const dbVal = parseFloat(rowTotal._dbValues?.[col.field]) || 0
+    //const dbVal = parseFloat(rowTotal._dbValues?.[col.field]) || 0
+    const dbVal = parseInt(rowTotal._dbValues?.[col.field]) || 0
 
     // Считаем сумму по возрастам
     let ageSum = 0
     for (const r of ageRows) {
-      ageSum += parseFloat(r[col.field]) || 0
+      //ageSum += parseFloat(r[col.field]) || 0
+      ageSum += parseInt(r[col.field]) || 0
     }
 
     // Если есть данные и они не равны хотя бы для одного вида рыбы
-    if (Math.abs(dbVal - ageSum) > 0.001) {
+    let eps = 0.001
+    if (props.cod === "Prop_NumberFishCaught") {
+      eps = 1
+    }
+
+    if (Math.abs(dbVal - ageSum) > eps) {
       hasMismatch = true
+      console.info("dbVal", dbVal)
+      console.info("ageSum", ageSum)
       break
     }
   }
