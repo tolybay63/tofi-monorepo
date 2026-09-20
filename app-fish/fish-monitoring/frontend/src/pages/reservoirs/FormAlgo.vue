@@ -107,7 +107,7 @@
                     <div v-if="props.row['id']===0">
                       <div v-if="cods_sum.includes(cod)">
                         <!--                        {{ summ(props.col) }}-->
-                        {{ props.value }}
+                        {{ summ(props.col) }}
                       </div>
                       <div v-else>
                         {{ props.value }}
@@ -188,7 +188,7 @@ const props = defineProps({
 })
 const $q = useQuasar()
 const cods_save = "Prop_WaterFishAverageWeight"   //Не показать если есть
-const cods_algo = "Prop_WaterNumberFishBio, Prop_NumberFishCaught, Prop_WaterFishAverageWeight"
+const cods_algo = "Prop_WaterNumberFishBio, Prop_NumberFishCaught, Prop_WaterFishAverageWeight, Prop_GearCatchabilityNet"
 const cods_sum = "Prop_WaterFishAverageWeight, Prop_WaterNumberFishBio"
 
 console.info("cods_algo", cods_algo, props.cod)
@@ -414,13 +414,14 @@ const checkSums = () => {
     // Если есть данные и они не равны хотя бы для одного вида рыбы
     let eps = 0.001
     if (props.cod === "Prop_NumberFishCaught") {
-      eps = 1
+      eps = 5
     }
 
     if (Math.abs(dbVal - ageSum) > eps) {
       hasMismatch = true
       console.info("dbVal", dbVal)
       console.info("ageSum", ageSum)
+      console.info("col", col.field)
       break
     }
   }

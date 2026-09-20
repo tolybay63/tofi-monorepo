@@ -1485,6 +1485,7 @@ public class PropMdbUtils extends BaseMdbUtils {
                         "delete from PropNameOnPeriod where prop=:prop" + ";" +
                         "delete from PropStatus where prop=:prop" + ";" +
                         "delete from PropProvider where prop=:prop" + ";" +
+                        "delete from TypCharGrProp where prop=:prop" + ";" +
                         "delete from Prop where id=:prop" + ";";
                 getMdb().execQuery(sql, Map.of("prop", mapOldMR2MP.get(key)));
             } else {
