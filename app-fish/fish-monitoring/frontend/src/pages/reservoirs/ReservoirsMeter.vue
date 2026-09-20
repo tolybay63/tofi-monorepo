@@ -163,14 +163,15 @@ const fnAlgo = (item) => {
     dte: dte.value,
     periodType: periodType.value,
   }
-
+console.log(item)
   $q.dialog({
     component: FormAlgo,
     componentProps: {
       data: data,
+      cod: item.cod,
     },
   })
-    .onOk((r) => {
+    .onOk(() => {
       loadReservoirsMeter(obj.value)
     })
 

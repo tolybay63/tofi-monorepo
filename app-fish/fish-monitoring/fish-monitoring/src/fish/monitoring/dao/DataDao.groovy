@@ -121,7 +121,10 @@ class DataDao extends BaseMdbUtils {
             throw new XError("Нет возраст рыбы")
 
         stFv2.get(0).set("id", 0)
-        stFv2.get(0).set("name", "Количество")
+        String name = "Количество"
+        if (pms.getString("cod")== "Prop_WaterFishAverageWeight")
+            name = "Вес"
+        stFv2.get(0).set("name", name)
         //
         Store stProp1Lev = loadSqlMeta("""
             with mrfv as (

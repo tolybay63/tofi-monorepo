@@ -55,19 +55,20 @@
           <q-space/>
 
           <q-btn
-            :label="$t('save')" color="primary" dense
-            icon="save" @click="fnSave"
-            :disable="!bSave"
-            :class="{ 'btn-blink': bSave }"
+            :class="{ 'btn-blink': bSave }" :disable="!bSave" :label="$t('save')"
+            color="primary" dense
+            icon="save"
+            @click="fnSave"
           />
 
-          <q-btn
-            :disable="bSave"
-            :label="$t('goAlgo')" color="primary" dense
-            icon="settings" @click="fnCalc"
-            class="q-ml-lg"
-          />
-
+          <div v-if="!cods.includes(props.cod)">
+            <q-btn
+              :disable="bSave"
+              :label="$t('goAlgo')" class="q-ml-lg" color="primary"
+              dense icon="settings"
+              @click="fnCalc"
+            />
+          </div>
           <q-space/>
 
           <div v-if="form['dependperiod']" class="q-pt-md">
@@ -98,47 +99,57 @@
               <q-td :props="props">
                 <div v-if="props.col.field.includes('fv')">
 
+<!--                  1 - cтрока-->
                   <div v-if="props.row['id']!==0">
 
                     <div v-if="props.row['p'+props.col.field.substring(2)] === 0" class="bg-red-2">
- x
+                      x
                     </div>
 
                     <div v-else>
 
-                    {{ props.value }}
-                    <q-btn
-                      class="absolute-right" color="blue" dense flat icon="more_vert" round size="sm"
-                    >
-                      <q-menu auto-close>
-                        <q-btn
-                          class="no-padding no-margin" color="blue" dense flat icon="edit" round
-                          size="sm" @click="fnEditCell(props.row, props.col)"
-                        >
-                          <q-tooltip>
-                            {{ $t("update") }}
-                          </q-tooltip>
-                        </q-btn>
+                      {{ props.value }}
+                      <q-btn
+                        class="absolute-right" color="blue" dense flat icon="more_vert" round size="sm"
+                      >
+                        <q-menu auto-close>
+                          <q-btn
+                            class="no-padding no-margin" color="blue" dense flat icon="edit" round
+                            size="sm" @click="fnEditCell(props.row, props.col)"
+                          >
+                            <q-tooltip>
+                              {{ $t("update") }}
+                            </q-tooltip>
+                          </q-btn>
 
-                        <q-btn
-                          :disable="!props.row['v'+props.col.field.substring(2)]" class="no-padding no-margin" color="red" dense
-                          flat icon="delete" round
-                          size="sm"
-                          @click="fnDeleteCell(props.row, props.col)"
-                        >
-                          <q-tooltip>
-                            {{ $t("deletingRecord") }}
-                          </q-tooltip>
-                        </q-btn>
-                      </q-menu>
-                    </q-btn>
+                          <q-btn
+                            :disable="!props.row['v'+props.col.field.substring(2)]" class="no-padding no-margin"
+                            color="red" dense
+                            flat icon="delete" round
+                            size="sm"
+                            @click="fnDeleteCell(props.row, props.col)"
+                          >
+                            <q-tooltip>
+                              {{ $t("deletingRecord") }}
+                            </q-tooltip>
+                          </q-btn>
+                        </q-menu>
+                      </q-btn>
 
                     </div>
 
                   </div>
                   <div v-else>
-                    {{ summ(props.col) }}
+                    <!--                        {{ summ(props.col) }}-->
+                    <div v-if="cod==='Prop_WaterFishAverageWeight'">
+                      {{ summ(props.col) }}
+                    </div>
+                    <div v-else>
+                      {{ props.value }}
+                    </div>
+
                   </div>
+
                 </div>
                 <div v-else>
                   {{ props.value }}
@@ -166,12 +177,12 @@
           @click="onOKClick"
         />
 
-<!--        <q-btn
-          :label="$t('cancel')"
-          color="primary"
-          icon="cancel"
-          @click="onCancelClick"
-        />-->
+        <!--        <q-btn
+                  :label="$t('cancel')"
+                  color="primary"
+                  icon="cancel"
+                  @click="onCancelClick"
+                />-->
 
       </q-card-actions>
     </q-card>
@@ -187,13 +198,14 @@ import UpdaterFormAlgo from "@/pages/reservoirs/UpdaterFormAlgo.vue";
 
 const props = defineProps({
   data: Object,
+  cod: String,
 })
 const $q = useQuasar()
-
+const cods = ["Prop_WaterFishAverageWeight"]
 const loading = ref(false)
 const cols = ref([])
 const rows = ref([])
-const bSave = ref(true)
+const bSave = ref(false)
 
 const emit = defineEmits(['ok', 'hide'])
 const {proxy} = getCurrentInstance()
@@ -220,17 +232,17 @@ const fnDt = (val) => {
   }
 }
 
-const fnEditCell = (row, col)=> {
+const fnEditCell = (row, col) => {
   console.info(row, col)
 
   const data = {
     numberval: row[col.field],
     obj: form["own"],
-    prop: row["p"+col.field.substring(2)],
+    prop: row["p" + col.field.substring(2)],
     dependperiod: form["dependperiod"],
     dte: form["dte"],
     periodType: form["periodType"],
-    title: col.label + " ("+row["name"]+")",
+    title: col.label + " (" + row["name"] + ")",
   }
 
   $q.dialog({
@@ -242,17 +254,17 @@ const fnEditCell = (row, col)=> {
     .onOk((r) => {
       console.info("onOk", r)
       row[col.field] = r.numberval
-      row["v"+col.field.substring(2)] = r.idval
+      row["v" + col.field.substring(2)] = r.idval
 
       checkSums()
     })
 
 }
 
-const fnDeleteCell = (row, col)=> {
-  console.info(row.name, col.label, row["v"+col.field.substring(2)])
+const fnDeleteCell = (row, col) => {
+  console.info(row.name, col.label, row["v" + col.field.substring(2)])
 
-  let nm = col.label + " ("+row.name+")"
+  let nm = col.label + " (" + row.name + ")"
   $q.dialog({
     title: proxy?.$t('confirmation'),
     message: proxy?.$t('deleteRecord') + '</br>(' + nm + ')',
@@ -265,10 +277,10 @@ const fnDeleteCell = (row, col)=> {
       api
         .post('', {
           method: 'data/deleteAlgo',
-          params: [row["v"+col.field.substring(2)]],
+          params: [row["v" + col.field.substring(2)]],
         })
         .then(() => {
-          row["v"+col.field.substring(2)] = null
+          row["v" + col.field.substring(2)] = null
           row[col.field] = null
 
           checkSums()
@@ -292,17 +304,17 @@ const fnSave = async () => {
           obj: form["own"],
           dependperiod: form["dependperiod"],
           dte: form["dte"],
-          year: form["dte"].substring(0,4),
+          year: form["dte"].substring(0, 4),
           periodType: form["periodType"],
           numberval: rows.value[0][key],
-          prop: rows.value[0]["p"+key.substring(2)]
+          prop: rows.value[0]["p" + key.substring(2)]
         }
         //
         params.push(data)
       }
     }
   }
-  if (params.length>0) {
+  if (params.length > 0) {
     console.info("params", params)
 
     const resp = await api
@@ -324,7 +336,7 @@ const fnSave = async () => {
 }
 
 const fnCalc = () => {
-  setTimeout(()=> {
+  setTimeout(() => {
     bSave.value = !bSave.value
     notifyInfo("Calculation...")
   }, 2000)
@@ -374,12 +386,13 @@ const summ = (c) => {
     }
   }
   //
-  rows.value[0][c.field] = s===0? null : s
+  rows.value[0][c.field] = s === 0 ? null : s
   return rows.value[0][c.field];
 }
 
 const loadAlgo = () => {
   loading.value = true
+  form.cod = props.cod
   api
     .post('', {
       method: 'data/loadAlgo',
@@ -391,8 +404,12 @@ const loadAlgo = () => {
 
       // Сохраняем исходные значения БД в отдельное поле для сравнения
       if (rows.value[0]) {
-        rows.value[0]._dbValues = { ...rows.value[0] }
+        rows.value[0]._dbValues = {...rows.value[0]}
       }
+      console.log("rows", rows.value)
+      console.log("rows 0", rows.value[0]._dbValues)
+
+
       checkSums()
     })
     .finally(() => {
@@ -446,9 +463,15 @@ defineExpose({
 
 <style scoped>
 @keyframes blink {
-  0% { opacity: 1; }
-  50% { opacity: 0.3; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .btn-blink {
