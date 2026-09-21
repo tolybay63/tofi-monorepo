@@ -63,10 +63,11 @@ class DataDao extends BaseMdbUtils {
         Set<Object> setCls2 = st.getUniqueValues("id")
         //
         st = mdb.loadQuery("""
-            select r2.cls, null as fv
+            select r2.cls, null as factorval
             from RelObj ro
                 join relobjmember r1 on r1.relobj=ro.id and r1.cls in (${setCls1.join(",")})
                 join relobjmember r2 on r2.relobj=ro.id and r2.cls in (${setCls2.join(",")})
+            where r1.obj=${reservoir}
         """)
         Store stCls  = loadSqlMeta("""
             select c.cls, c.factorval  
@@ -81,7 +82,7 @@ class DataDao extends BaseMdbUtils {
                 r.set("factorval", rec.getLong("factorval"))
             }
         }
-        return st.getUniqueValues("factorval")
+        return st.getUniqueValues("factorval") as Set<Object>
     }
 
     private Store loadAlgoMatrix(Map<String, Object> params) {
@@ -110,11 +111,15 @@ class DataDao extends BaseMdbUtils {
         """, "")
         Set<Object> idsPropsAll = stProp2Lev.getUniqueValues("id")
         StoreIndex indProp2Lev = stProp2Lev.getIndex("fvs")
+        //
+        Set<Object> fvsFromRelObj = getFvs(own)
+        //
         Set<Long> setFv1 = new HashSet<>()
         Set<Long> setFv2 = new HashSet<>()
         for (StoreRecord r in stProp2Lev) {
             String [] arr = r.getString("fvs").split(",")
-            setFv1.add(UtCnv.toLong(arr[0]))
+            if (fvsFromRelObj.contains(arr[0]))
+                setFv1.add(UtCnv.toLong(arr[0]))
             setFv2.add(UtCnv.toLong(arr[1]))
         }
         //
@@ -241,6 +246,7 @@ class DataDao extends BaseMdbUtils {
 
     private Store loadAlgoNumberFishBio(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
+/*
         long own = pms.getLong("own")
         long prop = pms.getLong("prop")
         boolean dependperiod = pms.getBoolean("dependperiod")
@@ -267,9 +273,13 @@ class DataDao extends BaseMdbUtils {
         StoreIndex indProp2Lev = stProp2Lev.getIndex("fvs")
         Set<Long> setFv1 = new HashSet<>()
         Set<Long> setFv2 = new HashSet<>()
+        //
+        Set<Object> fvsFromRelObj = getFvs(own)
+        //
         for (StoreRecord r in stProp2Lev) {
             String [] arr = r.getString("fvs").split(",")
-            setFv1.add(UtCnv.toLong(arr[0]))
+            if (fvsFromRelObj.contains(arr[0]))
+                setFv1.add(UtCnv.toLong(arr[0]))
             setFv2.add(UtCnv.toLong(arr[1]))
         }
         //
@@ -389,23 +399,42 @@ class DataDao extends BaseMdbUtils {
                 }
             }
         }
-        //
-        for (StoreRecord r in stFv2) {
+*/
+        Store st = loadAlgoMatrix(params)
+        System.out.println("Before " + pms.getString("cod"))
+        mdb.outTable(st)
+
+        // Прибавляем +1
+        for (StoreRecord r in st) {
             if (r.getLong("id") == 0) continue
             for (StoreField fld in r.getFields()) {
                 if (fld.name.startsWith("fv")) {
-                    if (stFv2.get(0).getDouble(fld.name) != 0) {
-                        r.set(fld.name, r.getDouble(fld.name) / stFv2.get(0).getDouble(fld.name))
-                    } else {
-                        r.set(fld.name, 0)
+                    if (st.get(0).getDouble(fld.name) != 0) {
+                        st.get(0).set(fld.name, st.get(0).getDouble(fld.name) + 1)
+                        r.set(fld.name, r.getDouble(fld.name) + 1)
+                    }
+                }
+            }
+        }
+        //
+        System.out.println("После +1")
+        mdb.outTable(st)
+        //
+        for (StoreRecord r in st) {
+            if (r.getLong("id") == 0) continue
+            for (StoreField fld in r.getFields()) {
+                if (fld.name.startsWith("fv")) {
+                    if (st.get(0).getDouble(fld.name) != 0) {
+                        r.set(fld.name, r.getDouble(fld.name) / st.get(0).getDouble(fld.name))
                     }
                 }
             }
         }
 
-        //mdb.outTable(stFv2)
+        System.out.println("После деления")
+        mdb.outTable(st)
 
-        return stFv2
+        return st
     }
 
     private Store loadAlgoReservoirPdy(Map<String, Object> params) {
@@ -438,10 +467,14 @@ class DataDao extends BaseMdbUtils {
         StoreIndex indProp2Lev = stProp2Lev.getIndex("fvs")
         Set<Long> setFv1 = new HashSet<>()
         Set<Long> setFv2 = new HashSet<>()
+        //
+        Set<Object> fvsFromRelObj = getFvs(own)
+        //
         for (StoreRecord r in stProp2Lev) {
             String [] arr = r.getString("fvs").split(",")
-            setFv1.add(UtCnv.toLong(arr[0]))
-            //setFv2.add(UtCnv.toLong(arr[1]))
+            if (fvsFromRelObj.contains(arr[0]))
+                setFv1.add(UtCnv.toLong(arr[0]))
+            //setFv2.add(UtCnv.toLong(arr[1])) // В модели от второго фактора не зависит
         }
         //
         Store stFv1 = loadSqlMeta("""
@@ -588,6 +621,7 @@ class DataDao extends BaseMdbUtils {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("own")
         long prop = pms.getLong("prop")
+        String codProp = pms.getString("cod")
         boolean dependperiod = pms.getBoolean("dependperiod")
         String dte = pms.getString("dte")
         long periodType = pms.getLong("periodType")
@@ -610,11 +644,15 @@ class DataDao extends BaseMdbUtils {
         """, "")
         Set<Object> idsPropsAll = stProp2Lev.getUniqueValues("id")
         StoreIndex indProp2Lev = stProp2Lev.getIndex("fvs")
+        //
+        Set<Object> fvsFromRelObj = getFvs(own)
+        //
         Set<Long> setFv1 = new HashSet<>()
         Set<Long> setFv2 = new HashSet<>()
         for (StoreRecord r in stProp2Lev) {
             String [] arr = r.getString("fvs").split(",")
-            setFv1.add(UtCnv.toLong(arr[0]))
+            if (fvsFromRelObj.contains(arr[0]))
+                setFv1.add(UtCnv.toLong(arr[0]))
             setFv2.add(UtCnv.toLong(arr[1]))
         }
         //
@@ -661,7 +699,7 @@ class DataDao extends BaseMdbUtils {
 
         stFv2.get(0).set("id", 0)
         String name = "Количество"
-        if (pms.getString("cod")== "Prop_WaterFishAverageWeight")
+        if (codProp == "Prop_WaterFishAverageWeight")
             name = "Вес"
         stFv2.get(0).set("name", name)
         //
@@ -738,7 +776,7 @@ class DataDao extends BaseMdbUtils {
         res.put("cols", cols )
         res.put("store", stFv2 )
 
-        System.out.println("prop = "+prop)
+        System.out.println("prop = "+ codProp + " - " + prop)
         mdb.outTable(stFv2)
         //1. Prop_NumberFishCaught
         if (pms.getString("cod") == "Prop_NumberFishCaught") {      //Количество пойманных рыб
@@ -749,8 +787,8 @@ class DataDao extends BaseMdbUtils {
             pms.put("prop", stProp.get(0).getLong("id"))
             Store stBio = loadAlgoNumberFishBio(pms)
             //
-            System.out.println("Prop_WaterNumberFishBio")
-            mdb.outTable(stBio)
+            //System.out.println("Prop_WaterNumberFishBio")
+            //mdb.outTable(stBio)
             //
             int index = 0
             for (StoreRecord r in stFv2) {
@@ -761,7 +799,9 @@ class DataDao extends BaseMdbUtils {
                 for (StoreField fld in r.getFields()) {
                     if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
                         if (stFv2.get(0).getDouble(fld.name) != 0 && stBio.get(index).getDouble(fld.name) != 0) {
-                            r.set(fld.name, round(stFv2.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name)))
+                            //r.set(fld.name, round(stFv2.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name)+0.5 as Double))
+                            double v = round(stFv2.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name))
+                            r.set(fld.name, v)
                         }
                     }
                 }
@@ -819,9 +859,10 @@ class DataDao extends BaseMdbUtils {
             mdb.outTable(stFishCaught)
             Map<String, Double> mapPeakCatch = new HashMap<>()
             Map<String, Double> mapPeakCatchFv = new HashMap<>()
-            for (StoreField fld in stFishCaught.get(1).getFields()) {
-                if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
-                    mapPeakCatch.put(fld.name, stFishCaught.get(1).getDouble(fld.name))
+            StoreRecord r0 = stFishCaught.get(1)
+            for (StoreField fld in r0.getFields()) {
+                if (fld.name.startsWith("fv") && r0.getLong("p"+fld.name.substring(2)) != 0 ) {
+                    mapPeakCatch.put(fld.name, r0.getDouble(fld.name))
                 }
             }
             //
@@ -831,7 +872,7 @@ class DataDao extends BaseMdbUtils {
             for (StoreRecord rr in stFishCaught) {
                 if (rr.getLong("id")==0) continue
                 for (StoreField fld in rr.getFields()) {
-                    if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
+                    if (fld.name.startsWith("fv") && rr.getLong("p"+fld.name.substring(2)) != 0 ) {
                         if (rr.getLong(fld.name) > mapPeakCatch.get(fld.name)) {
                             mapPeakCatch.put(fld.name, rr.getDouble(fld.name))
                             double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
@@ -887,12 +928,24 @@ class DataDao extends BaseMdbUtils {
             Map<String, Double> k_up = new HashMap<>()
             Map<String, Double> k_down = new HashMap<>()
             double L = log(9.0 as double)
+
             for (StoreField fld in stFishCaught.get(1).getFields()) {
-                if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
-                    mapDistLeft.put(fld.name, max(mapPeakCatchFv.get(fld.name) - 2 as float, 0.5 as double))
-                    mapDistRight.put(fld.name, mapMaxAgeFish.get(fld.name - mapPeakCatchFv.get(fld.name), 0.5 as double))
-                    k_up.put(fld.name, L / mapDistLeft.get(fld.name))
-                    k_down.put(fld.name, L / mapDistRight.get(fld.name))
+                if (fld.name.startsWith("fv") && stFishCaught.get(1).getLong(fld.name) != 0
+                        && stFishCaught.get(1).getLong("p"+fld.name.substring(2)) != 0 ) {
+                    try {
+                        double v1 = mapPeakCatchFv.get(fld.name) - 2.0
+                        double v2 = 0.5
+                        double d_left = max(v1, v2)
+                        mapDistLeft.put(fld.name, d_left)
+                        //
+                        v1 = mapMaxAgeFish.get(fld.name) - mapPeakCatchFv.get(fld.name)
+                        double d_right = max(v1, v2)
+                        mapDistRight.put(fld.name, d_right)
+                        k_up.put(fld.name, L / mapDistLeft.get(fld.name))
+                        k_down.put(fld.name, L / mapDistRight.get(fld.name))
+                    } catch (e) {
+                        e.printStackTrace()
+                    }
                 }
             }
             System.out.println("mapDistLeft,mapDistRight Границы")
@@ -914,7 +967,7 @@ class DataDao extends BaseMdbUtils {
                 if (rr.getLong("id") == 0) continue
                 double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
                 for (StoreField fld in rr.getFields()) {
-                    if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
                         sel_up.put(fld.name, 1 / ( 1 + exp(-k_up.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
                         sel_down.put(fld.name, 1 / ( 1 + exp(-k_down.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
                         //
@@ -932,7 +985,7 @@ class DataDao extends BaseMdbUtils {
             //
             Map<String, List<Double>> lst_mean_beel = new HashMap<>()
             for (StoreField fld in stFv2.get(0).getFields()) {
-                if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                if (fld.name.startsWith("fv") && stFv2.get(0).getLong("p" + fld.name.substring(2)) != 0) {
                     lst_mean_beel.put(fld.name, new ArrayList<>())
                 }
             }
@@ -940,7 +993,7 @@ class DataDao extends BaseMdbUtils {
             for (StoreRecord rr in stFv2) {
                 if (rr.getLong("id") == 0) continue
                 for (StoreField fld in rr.getFields()) {
-                    if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
                         if (rr.getDouble(fld.name) > max_beel.get(fld.name)) {
                             max_beel.put(fld.name, new BigDecimal(rr.getDouble(fld.name)).setScale(3, RoundingMode.HALF_EVEN).doubleValue())
                         }
@@ -970,7 +1023,7 @@ class DataDao extends BaseMdbUtils {
             for (StoreRecord rr in stFv2) {
                 if (rr.getLong("id") == 0) continue
                 for (StoreField fld in rr.getFields()) {
-                    if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
                         double k_exp = stFv2.get(0).getDouble(fld.name)
                         double scale = min(k_exp / mean_beel.get(fld.name) as Double, 0.85 / max_beel.get(fld.name) as Double)
                         double v = rr.getDouble(fld.name) * scale
