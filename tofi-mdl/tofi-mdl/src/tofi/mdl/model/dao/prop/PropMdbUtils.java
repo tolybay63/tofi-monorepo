@@ -20,6 +20,7 @@ import tofi.apinator.ApinatorService;
 import tofi.mdl.consts.*;
 import tofi.mdl.model.utils.EntityConst;
 import tofi.mdl.model.utils.EntityMdbUtils;
+import tofi.mdl.model.utils.UtData;
 import tofi.mdl.model.utils.UtMeterSoft;
 
 import java.util.*;
@@ -1285,7 +1286,7 @@ public class PropMdbUtils extends BaseMdbUtils {
         return st;
     }
 
-    //-----------------
+    //----------------- loadPropMeterForUpdSave -> savePropMeter -> loadPropMeter
     @DaoMethod
     public Store loadPropMeterForUpdSave(Map<String, Object> params) throws Exception {
         long meterStruct = UtCnv.toLong(params.get("meterStruct"));
@@ -1478,6 +1479,39 @@ public class PropMdbUtils extends BaseMdbUtils {
                     where id in
                 """ + idsPropOld);
         //Deleting
+        ////============< 21.09.2026
+        Set<Long> idsDel = new HashSet<Long>();
+        for (long key : mapOldMR2MP.keySet()) {
+            if (!setNewMR.contains(key)) {
+                idsDel.add(mapOldMR2MP.get(key));
+            }
+        }
+
+
+        String whe = "(0" + UtString.join(idsDel, ",") + ")";
+
+        List<String> lstModel = new ArrayList<>();
+        String sqlData = """
+            select * from DataProp d, DataPropval v
+            where d.id=v.dataProp and d.prop in
+         """ + whe + " limit 1";
+
+        Store stData = loadSqlService(sqlData, "", "monitoringdata");
+        if (stData.size() > 0)
+            lstModel.add("monitoringdata");
+        stData = loadSqlService(sqlData, "", "nsidata");
+        if (stData.size() > 0)
+            lstModel.add("nsidata");
+        stData = loadSqlService(sqlData, "", "calcdata");
+        if (stData.size() > 0)
+            lstModel.add("calcdata");
+
+        if (!lstModel.isEmpty()) {
+            throw new XError("Существуют данные в ["+ UtString.join(lstModel, "; ") +"]");
+        }
+        ////============>
+
+
         Set<Long> ids = new HashSet<Long>();
         for (long key : mapOldMR2MP.keySet()) {
             if (!setNewMR.contains(key)) {
