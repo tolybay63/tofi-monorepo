@@ -743,7 +743,7 @@ class DataDao extends BaseMdbUtils {
             //
             System.out.println("\n\n\n\n")
             StoreRecord r = stFv2.get(0)
-            Map<String, Long> map_CalcAgeSex = new HashMap<>()
+            Map<String, Double> map_CalcAgeSex = new HashMap<>()
             Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Calc%")
             for (StoreField fld in r.getFields()) {
                 if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
@@ -763,12 +763,12 @@ class DataDao extends BaseMdbUtils {
                             left join DataPropVal v on d.id=v.dataProp
                         where o.id=${objFish}
                     """)
-                    map_CalcAgeSex.put(fld.name, stCalcAgeSex.get(0).getLong("numberval"))
+                    map_CalcAgeSex.put(fld.name, stCalcAgeSex.get(0).getDouble("numberval"))
                 }
             }
             //mdb.outMap(map_CalcAgeSex)
 
-            // Pic year Prop_NumberFishCaught
+            // Peac year Prop_NumberFishCaught
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
                     select id from Prop where cod='Prop_NumberFishCaught'
                 """, "")
@@ -778,31 +778,31 @@ class DataDao extends BaseMdbUtils {
             Store stFishCaught = loadAlgoMatrix(pms)
             System.out.println("Prop_NumberFishCaught")
             mdb.outTable(stFishCaught)
-            Map<String, Long> mapPeakCatch = new HashMap<>()
-            Map<String, Long> mapPeakCatchFv = new HashMap<>()
+            Map<String, Double> mapPeakCatch = new HashMap<>()
+            Map<String, Double> mapPeakCatchFv = new HashMap<>()
             for (StoreField fld in stFishCaught.get(1).getFields()) {
                 if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
-                    mapPeakCatch.put(fld.name, stFishCaught.get(1).getLong(fld.name))
+                    mapPeakCatch.put(fld.name, stFishCaught.get(1).getDouble(fld.name))
                 }
             }
             //
             System.out.println("mapPeakCatch 0")
-            mdb.outMap(mapPeakCatch)
+            mdb.outMap(mapPeakCatch)    //Улов по возрастам
             //
             for (StoreRecord rr in stFishCaught) {
                 if (rr.getLong("id")==0) continue
                 for (StoreField fld in rr.getFields()) {
                     if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
                         if (rr.getLong(fld.name) > mapPeakCatch.get(fld.name)) {
-                            mapPeakCatch.put(fld.name, rr.getLong(fld.name))
-                            long yy = UtCnv.toLong(rr.getString("name").split(" ")[0])
-                            mapPeakCatchFv.put(fld.name, yy)
+                            mapPeakCatch.put(fld.name, rr.getDouble(fld.name))
+                            double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
+                            mapPeakCatchFv.put(fld.name, age)
                         }
                     }
                 }
             }
             //
-            System.out.println("mapPeakCatch")
+            System.out.println("mapPeakCatch Peak")
             mdb.outMap(mapPeakCatchFv)
             System.out.println("map_CalcAgeSex")
             mdb.outMap(map_CalcAgeSex)
@@ -831,20 +831,61 @@ class DataDao extends BaseMdbUtils {
                 where o.cls in (${stCls.getUniqueValues("cls").join(",")}) 
             """)
             //Максимальный возраст рыбы, лет
-            Map<String, Long> mapMaxAgeFish = new HashMap<>()
+            Map<String, Double> mapMaxAgeFish = new HashMap<>()
             for (StoreRecord rr in stFishObjData) {
                 StoreRecord rec = indCls.get(rr.getLong("cls"))
                 if (rec != null) {
-                    mapMaxAgeFish.put("fv"+rec.getString("factorval"), rr.getLong("numberval"))
+                    mapMaxAgeFish.put("fv"+rec.getString("factorval"), rr.getDouble("numberval"))
                 }
             }
             //
-            System.out.println("mapMaxAgeFish")
+            System.out.println("mapMaxAgeFish Максимальный возраст рыбы")
             mdb.outMap(mapMaxAgeFish)
+            //Границы
+            Map<String, Double> mapDistLeft = new HashMap<>()
+            Map<String, Double> mapDistRight = new HashMap<>()
+            //КРУТИЗНА СКЛОНОВ
+            Map<String, Double> k_up = new HashMap<>()
+            Map<String, Double> k_down = new HashMap<>()
+            double L = Math.log(9.0 as double)
+            for (StoreField fld in stFishCaught.get(1).getFields()) {
+                if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
+                    mapDistLeft.put(fld.name, Math.max(mapPeakCatchFv.get(fld.name) - 2 as float, 0.5 as double))
+                    mapDistRight.put(fld.name, mapMaxAgeFish.get(fld.name - mapPeakCatchFv.get(fld.name), 0.5 as double))
+                    k_up.put(fld.name, L / mapDistLeft.get(fld.name))
+                    k_down.put(fld.name, L / mapDistRight.get(fld.name))
+                }
+            }
+            System.out.println("mapDistLeft,mapDistRight Границы")
+            mdb.outMap(mapDistLeft)
+            mdb.outMap(mapDistRight)
+            System.out.println("mapDistLeft,mapDistRight  КРУТИЗНА СКЛОНОВ")
+            mdb.outMap(mapDistLeft)
+            mdb.outMap(mapDistRight)
+            //
+            /*
+              АСИММЕТРИЧНЫЙ КОЛОКОЛ (для каждого age)
+                 sel_up   = 1 / (1 + exp(−k_up   · (age − пик)))
+                 sel_down = 1 / (1 + exp( k_down · (age − пик)))
+            * */
+            Map<String, Double> sel_up = new HashMap<>()
+            Map<String, Double> sel_down = new HashMap<>()
 
-
-
-
+            for (StoreRecord rr in stFv2) {
+                if (rr.getLong("id") == 0) continue
+                double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
+                for (StoreField fld in rr.getFields()) {
+                    if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                        sel_up.put(fld.name, 1 / ( 1 + Math.exp(-k_up.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
+                        sel_down.put(fld.name, 1 / ( 1 + Math.exp(-k_down.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
+                        //
+                        double bell = sel_up.get(fld.name) * sel_down.get(fld.name)
+                        if (age > mapMaxAgeFish.get(fld.name))
+                            bell = 0
+                        rr.set(fld.name, bell)
+                    }
+                }
+            }
 
         }
 
