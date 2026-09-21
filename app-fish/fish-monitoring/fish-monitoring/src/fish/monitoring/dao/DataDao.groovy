@@ -29,9 +29,11 @@ import tofi.api.mdl.utils.dbfilestorage.DbFileStorageItem
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
-
+import java.math.RoundingMode
 import java.nio.file.Files
 import java.nio.file.Paths
+
+import static java.lang.Math.*
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
@@ -720,7 +722,7 @@ class DataDao extends BaseMdbUtils {
                 for (StoreField fld in r.getFields()) {
                     if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
                         if (stFv2.get(0).getDouble(fld.name) != 0 && stBio.get(index).getDouble(fld.name) != 0) {
-                            r.set(fld.name, Math.round(stFv2.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name)))
+                            r.set(fld.name, round(stFv2.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name)))
                         }
                     }
                 }
@@ -805,7 +807,7 @@ class DataDao extends BaseMdbUtils {
             System.out.println("map_CalcAgeSex")
             mdb.outMap(map_CalcAgeSex)
             for (def key in mapPeakCatchFv.keySet()) {
-                def v  = Math.max(mapPeakCatchFv.get(key), map_CalcAgeSex.get(key))
+                def v  = max(mapPeakCatchFv.get(key), map_CalcAgeSex.get(key))
                 mapPeakCatchFv.put(key, v)
             }
             System.out.println("mapPeakCatch Max")
@@ -845,10 +847,10 @@ class DataDao extends BaseMdbUtils {
             //КРУТИЗНА СКЛОНОВ
             Map<String, Double> k_up = new HashMap<>()
             Map<String, Double> k_down = new HashMap<>()
-            double L = Math.log(9.0 as double)
+            double L = log(9.0 as double)
             for (StoreField fld in stFishCaught.get(1).getFields()) {
                 if (fld.name.startsWith("fv") && r.getLong("p"+fld.name.substring(2)) != 0 ) {
-                    mapDistLeft.put(fld.name, Math.max(mapPeakCatchFv.get(fld.name) - 2 as float, 0.5 as double))
+                    mapDistLeft.put(fld.name, max(mapPeakCatchFv.get(fld.name) - 2 as float, 0.5 as double))
                     mapDistRight.put(fld.name, mapMaxAgeFish.get(fld.name - mapPeakCatchFv.get(fld.name), 0.5 as double))
                     k_up.put(fld.name, L / mapDistLeft.get(fld.name))
                     k_down.put(fld.name, L / mapDistRight.get(fld.name))
@@ -874,17 +876,70 @@ class DataDao extends BaseMdbUtils {
                 double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
                 for (StoreField fld in rr.getFields()) {
                     if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
-                        sel_up.put(fld.name, 1 / ( 1 + Math.exp(-k_up.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
-                        sel_down.put(fld.name, 1 / ( 1 + Math.exp(-k_down.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
+                        sel_up.put(fld.name, 1 / ( 1 + exp(-k_up.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
+                        sel_down.put(fld.name, 1 / ( 1 + exp(-k_down.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
                         //
                         double bell = sel_up.get(fld.name) * sel_down.get(fld.name)
                         if (age > mapMaxAgeFish.get(fld.name))
                             bell = 0
+                        bell = new BigDecimal(bell).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
                         rr.set(fld.name, bell)
                     }
                 }
             }
+            //
+            Map<String, Double> max_beel = new HashMap<>()
+            Map<String, Double> mean_beel = new HashMap<>()
+            //
+            Map<String, List<Double>> lst_mean_beel = new HashMap<>()
+            for (StoreField fld in stFv2.get(0).getFields()) {
+                if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                    lst_mean_beel.put(fld.name, new ArrayList<>())
+                }
+            }
+            //
+            for (StoreRecord rr in stFv2) {
+                if (rr.getLong("id") == 0) continue
+                for (StoreField fld in rr.getFields()) {
+                    if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                        if (rr.getDouble(fld.name) > max_beel.get(fld.name)) {
+                            max_beel.put(fld.name, new BigDecimal(rr.getDouble(fld.name)).setScale(3, RoundingMode.HALF_EVEN).doubleValue())
+                        }
+                        lst_mean_beel.get(fld.name).add(rr.getDouble(fld.name))
+                    }
+                }
+            }
 
+            for (String key in lst_mean_beel.keySet()) {
+                List<Double> lst = lst_mean_beel.get(key)
+                double s = 0
+                lst.forEach {
+                    s += it
+                }
+                double d = (s / lst.size()) as double
+                d = new BigDecimal(d).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
+                mean_beel.put(key, d)
+            }
+
+            System.out.println("max_beel, mean_beel")
+            mdb.outMap(max_beel)
+            mdb.outMap(mean_beel)
+
+            //
+            //scale = min( k_эксперт / mean_bell ,  0.85 / max_bell )
+            //result(age) = bell(age) × scale
+            for (StoreRecord rr in stFv2) {
+                if (rr.getLong("id") == 0) continue
+                for (StoreField fld in rr.getFields()) {
+                    if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                        double k_exp = stFv2.get(0).getDouble(fld.name)
+                        double scale = min(k_exp / mean_beel.get(fld.name) as Double, 0.85 / max_beel.get(fld.name) as Double)
+                        double v = rr.getDouble(fld.name) * scale
+                        v = new BigDecimal(v).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
+                        rr.set(fld.name, v)
+                    }
+                }
+            }
         }
 
 
