@@ -45,6 +45,45 @@ class DataDao extends BaseMdbUtils {
     ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
     //-----------------------------------------------------------------------------------------------//
 
+    /**
+     * fvs второго участника Typ_Reservoir <=> Typ_Fish
+     * @param reservoir
+     * @return set oj fvs
+     */
+    Set<Object> getFvs(long reservoir) {
+        Store st = loadSqlMeta("""
+            select c.id from Cls c, Typ t
+            where c.typ=t.id and t.cod='Typ_WaterBodies'
+        """, "")
+        Set<Object> setCls1 = st.getUniqueValues("id")
+        st = loadSqlMeta("""
+            select c.id from Cls c, Typ t
+            where c.typ=t.id and t.cod='Typ_Fish'
+        """, "")
+        Set<Object> setCls2 = st.getUniqueValues("id")
+        //
+        st = mdb.loadQuery("""
+            select r2.cls, null as fv
+            from RelObj ro
+                join relobjmember r1 on r1.relobj=ro.id and r1.cls in (${setCls1.join(",")})
+                join relobjmember r2 on r2.relobj=ro.id and r2.cls in (${setCls2.join(",")})
+        """)
+        Store stCls  = loadSqlMeta("""
+            select c.cls, c.factorval  
+            from clsfactorval c, factor f 
+            where c.factorval=f.id and f.cod <> 'FV_Fictive' and
+                c.cls in (${setCls2.join(",")})
+        """, "")
+        StoreIndex indCls = stCls.getIndex("cls")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("factorval", rec.getLong("factorval"))
+            }
+        }
+        return st.getUniqueValues("factorval")
+    }
+
     private Store loadAlgoMatrix(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("own")
