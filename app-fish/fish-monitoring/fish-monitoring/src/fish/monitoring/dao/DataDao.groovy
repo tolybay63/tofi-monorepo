@@ -44,7 +44,6 @@ class DataDao extends BaseMdbUtils {
     //-----------------------------------------------------------------------------------------------//
 
     private Store loadAlgoMatrix(Map<String, Object> params) {
-        //Map<String, Object> res = new HashMap<>()
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("own")
         long prop = pms.getLong("prop")
@@ -200,7 +199,6 @@ class DataDao extends BaseMdbUtils {
     }
 
     private Store loadAlgoNumberFishBio(Map<String, Object> params) {
-        //Map<String, Object> res = new HashMap<>()
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("own")
         long prop = pms.getLong("prop")
@@ -702,7 +700,7 @@ class DataDao extends BaseMdbUtils {
         System.out.println("prop = "+prop)
         mdb.outTable(stFv2)
         //1. Prop_NumberFishCaught
-        if (pms.getString("cod") == "Prop_NumberFishCaught") {
+        if (pms.getString("cod") == "Prop_NumberFishCaught") {      //Количество пойманных рыб
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
                 select id from Prop where cod='Prop_WaterNumberFishBio'
             """, "")
@@ -728,7 +726,7 @@ class DataDao extends BaseMdbUtils {
                 }
                 index++
             }
-        } else if (pms.getString("cod") == "Prop_CalcPdy") {
+        } else if (pms.getString("cod") == "Prop_CalcPdy") {    //Предельно допустимый улов, экземпляр
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
                 select id from Prop where cod='Prop_ReservoirPdy'
             """, "")
