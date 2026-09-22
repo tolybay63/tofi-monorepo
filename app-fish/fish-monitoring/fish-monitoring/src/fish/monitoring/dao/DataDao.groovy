@@ -845,7 +845,9 @@ class DataDao extends BaseMdbUtils {
                     map_CalcAgeSex.put(fld.name, stCalcAgeSex.get(0).getDouble("numberval"))
                 }
             }
-            //mdb.outMap(map_CalcAgeSex)
+
+            System.out.println("map_CalcAgeSex")    //Возраст половой зрелости рыбы
+            mdb.outMap(map_CalcAgeSex)
 
             // Peac year Prop_NumberFishCaught
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
@@ -855,16 +857,12 @@ class DataDao extends BaseMdbUtils {
             pms.put("prop", stProp.get(0).getLong("id"))
             pms.put("dependperiod", true)
             Store stFishCaught = loadAlgoMatrix(pms)
+            //
             System.out.println("Prop_NumberFishCaught")
             mdb.outTable(stFishCaught)
+            //
             Map<String, Double> mapPeakCatch = new HashMap<>()
-            Map<String, Double> mapPeakCatchFv = new HashMap<>()
-            StoreRecord r0 = stFishCaught.get(1)
-            for (StoreField fld in r0.getFields()) {
-                if (fld.name.startsWith("fv") && r0.getLong("p"+fld.name.substring(2)) != 0 ) {
-                    mapPeakCatch.put(fld.name, r0.getDouble(fld.name))
-                }
-            }
+            Map<String, Double> mapPeakCatchAge = new HashMap<>()
             //
             System.out.println("mapPeakCatch 0")
             mdb.outMap(mapPeakCatch)    //Улов по возрастам
@@ -876,25 +874,27 @@ class DataDao extends BaseMdbUtils {
                         if (rr.getLong(fld.name) > mapPeakCatch.get(fld.name)) {
                             mapPeakCatch.put(fld.name, rr.getDouble(fld.name))
                             double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
-                            mapPeakCatchFv.put(fld.name, age)
+                            mapPeakCatchAge.put(fld.name, age)
                         }
                     }
                 }
             }
             //
-            System.out.println("mapPeakCatch Peak")
-            mdb.outMap(mapPeakCatchFv)
-            System.out.println("map_CalcAgeSex")
-            mdb.outMap(map_CalcAgeSex)
-            for (def key in mapPeakCatchFv.keySet()) {
-                def v  = max(mapPeakCatchFv.get(key), map_CalcAgeSex.get(key))
-                mapPeakCatchFv.put(key, v)
+            System.out.println("mapPeakCatch; mapPeakCatchAge")
+            mdb.outMap(mapPeakCatch)
+            mdb.outMap(mapPeakCatchAge)
+
+            //Берем max(mapPeakCatchAge, map_CalcAgeSex)
+
+            for (def key in mapPeakCatchAge.keySet()) {
+                def v  = max(UtCnv.toDouble(mapPeakCatchAge.get(key)), UtCnv.toDouble(map_CalcAgeSex.get(key)))
+                mapPeakCatchAge.put(key, v)
             }
             System.out.println("mapPeakCatch Max")
-            mdb.outMap(mapPeakCatchFv)
-            // Находим fishObj from fv: mapPeakCatchFv.keySet()
+            mdb.outMap(mapPeakCatchAge)
+            // Находим fishObj from fv: mapPeakCatchAge.keySet()
             Set<Object> setFv = new HashSet<>()
-            mapPeakCatchFv.keySet().forEach { String it ->
+            mapPeakCatchAge.keySet().forEach { String it ->
                 setFv.add(UtCnv.toLong(it.substring(2)))
             }
             Store stCls = loadSqlMeta("""
@@ -924,21 +924,29 @@ class DataDao extends BaseMdbUtils {
             //Границы
             Map<String, Double> mapDistLeft = new HashMap<>()
             Map<String, Double> mapDistRight = new HashMap<>()
+            /*
+                 dist_left  = max(пик − 2,  0.5)
+                 dist_right = max(m1 − пик, 0.5)
+             */
             //КРУТИЗНА СКЛОНОВ
             Map<String, Double> k_up = new HashMap<>()
             Map<String, Double> k_down = new HashMap<>()
+            /*
+                k_up   = L / dist_left
+                k_down = L / dist_right               # k_down < k_up ⇒ склон положе
+             */
             double L = log(9.0 as double)
 
-            for (StoreField fld in stFishCaught.get(1).getFields()) {
-                if (fld.name.startsWith("fv") && stFishCaught.get(1).getLong(fld.name) != 0
-                        && stFishCaught.get(1).getLong("p"+fld.name.substring(2)) != 0 ) {
+            for (StoreField fld in stFishCaught.get(0).getFields()) {
+                if (fld.name.startsWith("fv") && stFishCaught.get(0).getLong(fld.name) != 0
+                        && stFishCaught.get(0).getLong("p"+fld.name.substring(2)) != 0 ) {
                     try {
-                        double v1 = mapPeakCatchFv.get(fld.name) - 2.0
+                        double v1 = mapPeakCatchAge.get(fld.name) - 2.0
                         double v2 = 0.5
                         double d_left = max(v1, v2)
                         mapDistLeft.put(fld.name, d_left)
                         //
-                        v1 = mapMaxAgeFish.get(fld.name) - mapPeakCatchFv.get(fld.name)
+                        v1 = mapMaxAgeFish.get(fld.name) - mapPeakCatchAge.get(fld.name)
                         double d_right = max(v1, v2)
                         mapDistRight.put(fld.name, d_right)
                         k_up.put(fld.name, L / mapDistLeft.get(fld.name))
@@ -948,42 +956,44 @@ class DataDao extends BaseMdbUtils {
                     }
                 }
             }
-            System.out.println("mapDistLeft,mapDistRight Границы")
+            System.out.println("mapDistLeft, mapDistRight Границы")
             mdb.outMap(mapDistLeft)
             mdb.outMap(mapDistRight)
-            System.out.println("mapDistLeft,mapDistRight  КРУТИЗНА СКЛОНОВ")
-            mdb.outMap(mapDistLeft)
-            mdb.outMap(mapDistRight)
+            System.out.println("k_up, k_down  КРУТИЗНА СКЛОНОВ")
+            mdb.outMap(k_up)
+            mdb.outMap(k_down)
             //
             /*
               АСИММЕТРИЧНЫЙ КОЛОКОЛ (для каждого age)
                  sel_up   = 1 / (1 + exp(−k_up   · (age − пик)))
                  sel_down = 1 / (1 + exp( k_down · (age − пик)))
             * */
-            Map<String, Double> sel_up = new HashMap<>()
-            Map<String, Double> sel_down = new HashMap<>()
-
             for (StoreRecord rr in stFv2) {
                 if (rr.getLong("id") == 0) continue
+                Map<String, Double> sel_up = new HashMap<>()
+                Map<String, Double> sel_down = new HashMap<>()
                 double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
                 for (StoreField fld in rr.getFields()) {
                     if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
-                        sel_up.put(fld.name, 1 / ( 1 + exp(-k_up.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
-                        sel_down.put(fld.name, 1 / ( 1 + exp(-k_down.get(fld.name) * (age - mapPeakCatchFv.get(fld.name)))))
+                        sel_up.put(fld.name, 1 / ( 1 + exp(-k_up.get(fld.name) * (age - mapPeakCatchAge.get(fld.name)))))
+                        sel_down.put(fld.name, 1 / ( 1 + exp(k_down.get(fld.name) * (age - mapPeakCatchAge.get(fld.name)))))
                         //
                         double bell = sel_up.get(fld.name) * sel_down.get(fld.name)
-                        if (age > mapMaxAgeFish.get(fld.name))
-                            bell = 0
+                        //if (age > mapMaxAgeFish.get(fld.name)) bell = 0 as Double
                         bell = new BigDecimal(bell).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
                         rr.set(fld.name, bell)
                     }
                 }
             }
             //
+            System.out.println("stFv2 =bell=")
+            mdb.outTable(stFv2)
+            //
             Map<String, Double> max_beel = new HashMap<>()
             Map<String, Double> mean_beel = new HashMap<>()
             //
             Map<String, List<Double>> lst_mean_beel = new HashMap<>()
+            //Выделяем памяти для списка
             for (StoreField fld in stFv2.get(0).getFields()) {
                 if (fld.name.startsWith("fv") && stFv2.get(0).getLong("p" + fld.name.substring(2)) != 0) {
                     lst_mean_beel.put(fld.name, new ArrayList<>())
