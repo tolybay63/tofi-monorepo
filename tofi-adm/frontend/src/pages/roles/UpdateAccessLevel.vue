@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -25,12 +25,9 @@
           option-value="id"
           option-label="text"
           map-options
-          :model-value="al"
-          @update:model-value="fnSelect()"
+          @update:model-value="fnSelect"
           clearable
         />
-
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
@@ -46,84 +43,58 @@
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api,} from "@/boot/axios";
+<script setup>
+import { ref, reactive, onMounted } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
 
-export default {
-  props: ["data", "dense"],
-
-  data() {
-    return {
-      form: JSON.parse(JSON.stringify(this.data)),
-      options: [],
-      al: this.data.accessLevel === undefined ? null : this.data.accessLevel,
-      loading: false
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    fnSelect() {
-      this.form.accessLevel = this.al ? this.al.id : null;
-    },
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
+  useDialogPluginComponent();
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]();
-    },
+const form = reactive(JSON.parse(JSON.stringify(props.data || {})));
+const options = ref([]);
+const al = ref(props.data?.accessLevel ?? null);
+const loading = ref(false);
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      this.$emit("ok", this.form);
-      this.hide();
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    this.loading = true
-    api
-      .post("", {
-        method: "dict/loadDictAsStore",
-        params: ["FD_AccessLevel"],
-      })
-      .then((response) => {
-        this.options = response.data.result.records;
-      })
-      .finally(()=> {
-        this.loading = false
-      })
-  },
+const fnSelect = () => {
+  form.accessLevel = al.value ? al.value.id : null;
 };
+
+const onOKClick = () => {
+  onDialogOK(form);
+};
+
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "dict/loadDictAsStore",
+      params: ["FD_AccessLevel"],
+    })
+    .then((response) => {
+      options.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+});
 </script>
+
+<style scoped></style>

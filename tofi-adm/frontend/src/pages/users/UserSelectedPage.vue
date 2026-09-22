@@ -58,10 +58,11 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {api} from "@/boot/axios";
-import {notifyError} from "../../utils/jsutils";
+
+import {notifyError} from "@/utils/jsutils.js";
 import UserRole from "@/pages/users/UserRole.vue";
 import UserPermis from "@/pages/users/UserPermis.vue";
+import {api} from "@/boot/axios.js";
 
 const route = useRoute();
 const router = useRouter();

@@ -5,7 +5,7 @@
         <q-item> {{ $t("fldName") }}:</q-item>
         <q-separator></q-separator>
         <q-item>
-          <strong> {{ role.name }} </strong>
+          <strong> {{ role?.name }} </strong>
         </q-item>
       </div>
 
@@ -13,7 +13,7 @@
         <q-item> {{ $t("fldFullName") }}:</q-item>
         <q-separator></q-separator>
         <q-item>
-          <strong> {{ role.fullName }} </strong>
+          <strong> {{ role?.fullName }} </strong>
         </q-item>
       </div>
 
@@ -26,51 +26,46 @@
       </div>
 
       <q-inner-loading :showing="loading" color="secondary" />
-
     </q-card-section>
   </q-card>
 </template>
 
-<script>
-import {api,} from "@/boot/axios";
-import {notifyError} from "../../utils/jsutils";
+<script setup>
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { api } from "@/boot/axios";
+import {notifyError} from "@/utils/jsutils.js";
 
-export default {
-  name: "RoleDesc",
-  props: ["role"],
 
-  data() {
-    return {
-      permis: "",
-      loading: false,
-    };
+const props = defineProps({
+  role: {
+    type: Object,
+    default: () => ({}),
   },
+});
 
-  mounted() {
-    let role_id = this.$route["params"].role;
-    this.loading = true;
-    api
-      .post("", {
-        method: "role/getRolePermis",
-        params: [role_id],
-      })
-      .then((response) => {
-        this.permis = response.data.result;
-      })
-      .catch((error) => {
-        notifyError(error.message);
-      })
-      .finally(() => {
-        this.loading = false;
-      });
+const route = useRoute();
+const permis = ref("");
+const loading = ref(false);
 
-    //this.fetchData(requestParam);
-  },
-
-  created() {
-    //console.log("created!", this.role);
-  },
-};
+onMounted(() => {
+  const roleId = route.params.role;
+  loading.value = true;
+  api
+    .post("", {
+      method: "role/getRolePermis",
+      params: [roleId],
+    })
+    .then((response) => {
+      permis.value = response.data.result;
+    })
+    .catch((error) => {
+      notifyError(error.message);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+});
 </script>
 
 <style scoped></style>

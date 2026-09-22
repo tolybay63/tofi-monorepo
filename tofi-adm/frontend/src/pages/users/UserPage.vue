@@ -208,7 +208,7 @@ import {getCurrentInstance, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {useQuasar} from "quasar";
 import {api} from "@/boot/axios";
-import {expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack} from "../../utils/jsutils";
+import {expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack} from "@/utils/jsutils";
 import QTreeTable from "@/components/QTreeTable.vue";
 import UpdateGroup from "@/pages/users/UpdateGroup.vue";
 import UpdateUser from "@/pages/users/UpdateUser.vue";

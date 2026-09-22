@@ -4,7 +4,7 @@
       <div style="margin-left: 20px">
         {{ $t("role2") }}:
         <span style="color: black; margin-left: 10px">
-          <strong>{{ this.infoRole() }}</strong>
+          <strong>{{ infoRole() }}</strong>
         </span>
       </div>
 
@@ -30,81 +30,61 @@
         <role-desc :role="role" />
       </q-tab-panel>
 
-      <q-tab-panel
-        name="permis"
-
-      >
+      <q-tab-panel name="permis">
         <role-permis />
       </q-tab-panel>
     </q-tab-panels>
   </q-page>
 </template>
 
-<script>
-import {ref} from "vue";
-import {api,} from "@/boot/axios";
+<script setup>
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { api } from "@/boot/axios";
 import RoleDesc from "@/pages/roles/RoleDesc.vue";
 import RolePermis from "@/pages/roles/RolePermis.vue";
-import {notifyError} from "../../utils/jsutils";
+import {notifyError} from "@/utils/jsutils.js";
 
-export default {
-  name: "RoleSelectedPage",
-  components: { RoleDesc, RolePermis },
 
-  data: function () {
-    return {
-      role_id: null,
-      role: {},
-    };
-  },
+const route = useRoute();
+const router = useRouter();
 
-  methods: {
-    toBack() {
-      this.$router["push"]({
-        name: "Roles",
-        params: {
-          role: this.role_id,
-        },
-      });
+const tab = ref("desc");
+const roleId = ref(null);
+const role = ref({});
+const loading = ref(false);
+
+const toBack = () => {
+  router.push({
+    name: "Roles",
+    params: {
+      role: roleId.value,
     },
-
-    infoRole() {
-      return this.role.name;
-    },
-  },
-
-  mounted() {
-    this.role_id = parseInt(this.$route["params"].role, 10);
-
-    // load role
-    this.loading = ref(true);
-    api
-      .post("", {
-        method: "role/loadRec",
-        params: [this.role_id],
-      })
-      .then((response) => {
-        this.role = response.data.result.records[0];
-      })
-      .catch((error) => {
-        notifyError(error.message);
-      })
-      .finally(() => {
-        this.loading = ref(false);
-      });
-    //
-  },
-
-  computed: {},
-
-  created() {},
-
-  setup() {
-    return {
-      tab: ref("desc"),
-    };
-  },
+  });
 };
+
+const infoRole = () => {
+  return role.value?.name || "";
+};
+
+onMounted(() => {
+  roleId.value = parseInt(route.params.role, 10);
+  loading.value = true;
+  api
+    .post("", {
+      method: "role/loadRec",
+      params: [roleId.value],
+    })
+    .then((response) => {
+      role.value = response.data.result.records[0] || {};
+    })
+    .catch((error) => {
+      notifyError(error.message);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+});
 </script>
 
 <style scoped></style>

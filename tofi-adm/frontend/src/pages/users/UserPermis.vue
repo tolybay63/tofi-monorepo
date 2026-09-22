@@ -93,9 +93,10 @@
 import {computed, getCurrentInstance, onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
 import {useQuasar} from "quasar";
-import {collapsAll, expandAll, hasTarget, pack} from "../../utils/jsutils";
+
 import {api} from "@/boot/axios";
 import UpdaterUserPermis from "@/pages/users/UpdaterUserPermis.vue";
+import {collapsAll, expandAll, hasTarget, pack} from "@/utils/jsutils.js";
 
 const { proxy } = getCurrentInstance();
 const $q = useQuasar();

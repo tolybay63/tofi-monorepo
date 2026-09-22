@@ -84,8 +84,8 @@
 <script setup>
 import {getCurrentInstance, onMounted, reactive, ref} from "vue";
 import {api} from "@/boot/axios";
-import {notifyError, notifySuccess, pack} from "../../utils/jsutils";
-import TreeSelect from "../../components/TreeSelect.vue";
+import {notifyError, notifySuccess, pack} from "@/utils/jsutils";
+import TreeSelect from "@/components/TreeSelect.vue";
 
 const props = defineProps({
   data: Object,
