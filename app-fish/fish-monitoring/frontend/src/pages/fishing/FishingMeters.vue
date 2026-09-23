@@ -1,31 +1,40 @@
 <template>
   <div class="q-pa-sm row bg-amber-1">
     <!-- Date -->
-    <q-input
-      v-model="dt"
-      :label="$t('date')"
-      class="q-mr-lg"
-      dense
-      stack-label
-      style="width: 100px"
-      type="date"
-      @update:model-value="fnDt"
-    />
 
-    <!-- PeriodType -->
-    <q-select
-      v-model="periodType"
-      :label="fnReqLabel('periodType')"
-      :options="optPeriod"
-      class="q-ml-lg"
-      dense
-      map-options
-      option-label="text"
-      option-value="id"
-      options-dense
-      style="width: 100px"
-      @update:model-value="fnSelectPeriodType"
-    />
+
+      <div class="q-mt-md">
+        {{ name }}
+      </div>
+
+      <q-space/>
+
+      <q-input
+        v-model="dt"
+        :label="$t('date')"
+        class="q-mr-lg"
+        dense
+        stack-label
+        style="width: 100px"
+        type="date"
+        @update:model-value="fnDt"
+      />
+
+      <!-- PeriodType -->
+      <q-select
+        v-model="periodType"
+        :label="fnReqLabel('periodType')"
+        :options="optPeriod"
+        class="q-ml-lg"
+        dense
+        map-options
+        option-label="text"
+        option-value="id"
+        options-dense
+        style="width: 100px"
+        @update:model-value="fnSelectPeriodType"
+      />
+
   </div>
 
   <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
@@ -71,6 +80,18 @@
               {{ $t("deletingRecord") }}
             </q-tooltip>
           </q-btn>
+
+          <q-btn
+            v-if="cods.includes(item.cod)"
+            class="no-padding no-margin"
+            color="green" dense flat icon="settings"
+            round size="sm" @click="fnAlgo(item)"
+          >
+            <q-tooltip>
+              {{ $t('algo') }}
+            </q-tooltip>
+          </q-btn>
+
         </td>
       </tr>
       </tbody>
@@ -84,14 +105,17 @@ import {date, useQuasar} from 'quasar'
 import {api, tofi_dbeg, tofi_dend} from '@/boot/axios'
 import {findRowForId, notifyError, notifyInfo, pack, today} from '@/utils/jsutils'
 import UpdaterFishingMeters from "@/pages/fishing/UpdaterFishingMeters.vue"
+import FormAlgoFishing from "@/pages/fishing/FormAlgoFishing.vue";
 
 const props = defineProps({
-  reservoir: Number
+  reservoir: [Number, String ],
+  name: String,
 })
 
 const $q = useQuasar()
 const {proxy} = getCurrentInstance()
 
+const cods = ref(["Prop_NumberFishCaught"])
 const rows = ref([])
 const cols = ref([])
 const loading = ref(false)
@@ -103,6 +127,32 @@ const obj = ref(0)
 let dt = today()
 const periodType = ref(71)
 const optPeriod = ref([])
+
+
+const fnAlgo = (item) => {
+  const data = {
+    own: obj.value,
+    prop: item.id,
+    name: item.name,
+    dependperiod: item.dependperiod,
+    dte: dt,
+    periodType: periodType.value,
+    reservoir: props.reservoir
+  }
+  console.log(item)
+  $q.dialog({
+    component: FormAlgoFishing,
+    componentProps: {
+      data: data,
+      cod: item.cod,
+    },
+  })
+    .onOk(() => {
+      //loadReservoirsMeter(obj.value)
+    })
+
+}
+
 
 const dtFormat = (v) => {
   return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
@@ -334,7 +384,7 @@ defineExpose({
 .sticky-header-table th,
 .sticky-header-table td {
   border: 1px solid #c0c0c0; /* Цвет границы (можете поменять на нужный оттенок) */
-  padding: 8px 12px;         /* Необязательный внутренний отступ для красоты */
+  padding: 8px 12px; /* Необязательный внутренний отступ для красоты */
 }
 
 .sticky-header-table thead th {

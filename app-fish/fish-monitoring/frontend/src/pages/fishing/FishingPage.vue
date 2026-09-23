@@ -88,6 +88,21 @@
                     {{ $t('deletingRecord') }}
                   </q-tooltip>
                 </q-btn>
+
+                <q-btn
+                  v-if="hasTarget('mon:rpv:algo')"
+                  icon="settings"
+                  dense
+                  color="green"
+                  class="q-ml-lg"
+                  @click="goAlgo()"
+                >
+                  <q-tooltip transition-show="rotate" transition-hide="rotate">
+                    {{ $t('deletingRecord') }}
+                  </q-tooltip>
+                </q-btn>
+
+
                 <q-space />
                 <q-input
                   dense
@@ -119,7 +134,7 @@
       </template>
 
       <template v-slot:after>
-        <FishingMeters ref="fishingMetersRef" :reservoir="reservoirs"></FishingMeters>
+        <FishingMeters ref="fishingMetersRef" :reservoir="selected.value[0].objReservoirShore" :name="name"/>
       </template>
     </q-splitter>
   </div>
@@ -145,7 +160,7 @@ const rows = ref([])
 const filter = ref('')
 const selected = ref([])
 const loading = ref(false)
-const name = ref('')
+const name = ref("")
 const fishingMetersRef = ref(null)
 let reservoirs = ref("")
 let dbeg = ref("")
@@ -234,6 +249,12 @@ const getColumns = () => [
 
 const cols = ref(getColumns())
 
+
+const goAlgo = () => {
+  console.log("Algo",  reservoirs.value, dbeg.value, dend.value)
+
+}
+
 const updateSelected = () => {
   let obj = 0
   if (selected.value.length > 0) {
@@ -241,8 +262,9 @@ const updateSelected = () => {
     obj = selected.value[0].obj
     dte.value = selected.value[0].StartDate
 
-    console.log("dte1", dte.value)
+    console.log("Reservoir", selected.value[0].objReservoirShore)
 
+    name.value = infoSelected(selected.value[0])
 /*    name.value =
       selected.value[0].nameFishLocation +
       ' (' +
@@ -255,7 +277,7 @@ const updateSelected = () => {
     obj = 0
     dte.value = today()
     console.log("dte2", dte.value)
-    //name.value = ''
+    name.value = ""
     fishingMetersRef.value?.clearFishingData()
   }
   fishingMetersRef.value.setDte(dte)
