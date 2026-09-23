@@ -157,7 +157,7 @@ import { notifySuccess } from '@/utils/jsutils'
 const props = defineProps({
   mode: String,
   data: Object,
-  reservoirs: String,
+  reservoir: Number,
   dbeg: String,
   dend: String,
 })
@@ -330,10 +330,12 @@ onMounted(() => {
   loading.value = true
   api
     .post('', { method: 'data/loadReservoirs',
-      params: [props.reservoirs] })
+      params: [props.reservoir] })
     .then((res) => {
       optReservoir.value = res.data.result['records']
       optReservoirOrg.value = res.data.result['records']
+
+      //console.info("optReservoir", optReservoir.value)
     })
     .finally(() => {
       loading.value = false

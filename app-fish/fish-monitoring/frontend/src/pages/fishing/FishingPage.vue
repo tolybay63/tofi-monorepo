@@ -134,7 +134,7 @@
       </template>
 
       <template v-slot:after>
-        <FishingMeters ref="fishingMetersRef" :reservoir="selected.value[0].objReservoirShore" :name="name"/>
+        <FishingMeters ref="fishingMetersRef" :reservoir="reservoir" :name="name"/>
       </template>
     </q-splitter>
   </div>
@@ -163,6 +163,7 @@ const loading = ref(false)
 const name = ref("")
 const fishingMetersRef = ref(null)
 let reservoirs = ref("")
+let reservoir = ref(0)
 let dbeg = ref("")
 let dend = ref("")
 const reservoirName = ref("")
@@ -252,6 +253,19 @@ const cols = ref(getColumns())
 
 const goAlgo = () => {
   console.log("Algo",  reservoirs.value, dbeg.value, dend.value)
+  api
+    .post('', {
+      method: 'data/smearing2age',
+      params: [reservoirs.value, dbeg.value, dend.value],
+    })
+    .then(() => {
+      notifyInfo("success")
+    })
+    .catch((error) => {
+      console.log(error.message)
+    })
+
+
 
 }
 
@@ -263,15 +277,8 @@ const updateSelected = () => {
     dte.value = selected.value[0].StartDate
 
     console.log("Reservoir", selected.value[0].objReservoirShore)
-
+    reservoir.value = selected.value[0].objReservoirShore
     name.value = infoSelected(selected.value[0])
-/*    name.value =
-      selected.value[0].nameFishLocation +
-      ' (' +
-      selected.value[0].nameCls +
-      ' - ' +
-      date.formatDate(selected.value[0].StartDate, 'DD.MM.YYYY') +
-      ')'*/
   } else {
     splitterModel.value = 100
     obj = 0
@@ -295,7 +302,7 @@ const editRow = (row, mode) => {
     componentProps: {
       mode: mode,
       data: data,
-      reservoirs: reservoirs.value,
+      reservoir: reservoir.value,
       dbeg: dbeg.value,
       dend: dend.value
     },

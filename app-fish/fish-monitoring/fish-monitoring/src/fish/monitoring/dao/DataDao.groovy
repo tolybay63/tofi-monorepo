@@ -85,6 +85,14 @@ class DataDao extends BaseMdbUtils {
         return st.getUniqueValues("factorval") as Set<Object>
     }
 
+    @DaoMethod
+    void smearing2age(String reservoirs, String dbeg, String dend) {
+
+        System.out.println(reservoirs + " - " + dbeg + " - " + dend)
+
+    }
+
+
     private Store loadAlgoMatrix(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("own")
