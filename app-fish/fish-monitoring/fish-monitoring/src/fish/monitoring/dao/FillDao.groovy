@@ -53,7 +53,12 @@ class FillDao extends BaseMdbUtils {
                 where p.id=${prop}
         """, "")
         //
+        if (stProp.size() == 0) {
+            throw new XError("Не найден проп [${prop}]")
+        }
+
         Integer digit = null
+
         double koef = stProp.get(0).getDouble("koef")
         if (koef == 0) koef = 1
         if (!stProp.get(0).isValueNull("digit"))
@@ -132,13 +137,14 @@ class FillDao extends BaseMdbUtils {
     def props_atrib = [
             "Prop_StartDate": 1044L,
     ]
-
     def props_meter = [
             "Prop_AreaOfTon": 1023,
-            "Prop_8730": 8730, "Prop_8775": 8775, "Prop_8869": 8869,
-            "Prop_8910": 8910, "Prop_9004": 9004, "Prop_9065": 9065,
-            "Prop_9133": 9133, "Prop_9201": 9201, "Prop_9269": 9269,
-            "Prop_8951": 8951, "Prop_8665": 8665, "Prop_8828": 8828,
+            "Prop_8665": 8665, "Prop_8730": 8730, "Prop_8775": 8775,
+            "Prop_8828": 8828, "Prop_8869": 8869, "Prop_8910": 8910,
+            "Prop_8951": 8951, "Prop_9004": 9004, "Prop_9337": 9337,
+            "Prop_10032": 10032, "Prop_10097": 10097, "Prop_10162": 10162,
+            "Prop_10227": 10227, "Prop_10292": 10292, "Prop_10357": 10357,
+            "Prop_10402": 10402, "Prop_10467": 10467, "Prop_10532": 10532
     ]
 
     def props_obj = [
