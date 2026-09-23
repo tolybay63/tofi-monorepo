@@ -513,7 +513,7 @@ class DataDao extends BaseMdbUtils {
                 v2.id as idCalcEndYear, v2.strVal as CalcEndYear,    
                 v3.id as idCalcCreatDate, v3.dateTimeVal as CalcCreatDate,
                 v4.id as idCalcLastDate, v4.dateTimeVal as CalcLastDate,    
-                v5.id as idCalcFishSpec, v5.propVal as pvCalcFishSpec, null as fvCalcFishSpec,
+                v5.id as idCalcFishSpec, v5.propVal as pvCalcFishSpec, v5.obj as objCalcFishSpec,
                 v6.id as idCalcStatus, v6.propVal as pvCalcStatus, null as fvCalcStatus,
                 v7.id as idCalcUser, v7.propVal as pvCalcUser, v7.obj as objCalcUser,
                 v8.id as idReservoirShore, v8.propVal as pvReservoirShore, v8.obj as objReservoirShore
@@ -665,6 +665,7 @@ class DataDao extends BaseMdbUtils {
 */
     }
 
+    // Проверить!
     @DaoMethod
     Map<Long, String> loadFvAsMap(String codProp) {
         return apiMeta().get(ApiMeta).loadFVasMap(codProp)
@@ -673,6 +674,11 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadFVasStore(String codProp) {
         return apiMeta().get(ApiMeta).storePropValForSelectFV(codProp)
+    }
+
+    @DaoMethod
+    Store loadFishes(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp, "monitoringdata")
     }
 
     @DaoMethod

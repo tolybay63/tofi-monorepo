@@ -27,7 +27,7 @@
 
         <field name="idCalcFishSpec" parent="long"/>
         <field name="pvCalcFishSpec" parent="long"/>
-        <field name="fvCalcFishSpec" parent="long"/>
+        <field name="objCalcFishSpec" parent="long"/>
 
         <field name="idCalcStatus" parent="long"/>
         <field name="pvCalcStatus" parent="long"/>
