@@ -10,7 +10,6 @@ import jandcode.commons.error.XError
 import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
 import jandcode.core.dao.DaoMethod
-import jandcode.core.dbm.domain.Domain
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreField
@@ -30,6 +29,7 @@ import tofi.api.mdl.utils.dbfilestorage.DbFileStorageItem
 import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+
 import java.math.RoundingMode
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -86,7 +86,7 @@ class DataDao extends BaseMdbUtils {
         return st.getUniqueValues("factorval") as Set<Object>
     }
 
-    private Store loadAlgoMatrix(Map<String, Object> params) {
+    private Map<String, Store> loadAlgoMatrix(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("own")
         long obj2 = pms.getLong("obj2")
@@ -138,9 +138,15 @@ class DataDao extends BaseMdbUtils {
 
 
         Store stFv2 = mdb.createStore()
-        stFv2.addField("id", "long");
-        stFv2.addField("name", "string", 20);
+        stFv2.addField("id", "long")
+        stFv2.addField("name", "string", 20)
+        //
+        Store stFv2Cpy = mdb.createStore()
+        stFv2Cpy.addField("ord", "int");
+        stFv2Cpy.addField("id", "long")
+        stFv2Cpy.addField("name", "string", 20)
 
+        //
         List<String> sel = new ArrayList<>();
         String sep = "";
         for (StoreRecord r in stFv1) {
@@ -150,6 +156,10 @@ class DataDao extends BaseMdbUtils {
                     stFv2.addField("p" + r.getString(f.getName()), "long")
                     stFv2.addField("fv" + r.getString(f.getName()), "double")
                     sel.add("0 as v" + r.getString(f.getName()) + ", 0 as p" + r.getString(f.getName()) + ", null as fv" + r.getString(f.getName()))
+                    //
+                    stFv2Cpy.addField("v" + r.getString(f.getName()), "long")
+                    stFv2Cpy.addField("p" + r.getString(f.getName()), "long")
+                    stFv2Cpy.addField("fv" + r.getString(f.getName()), "double")
                 }
             }
             sep = (!sel.isEmpty()) ? ", " : ""
@@ -228,9 +238,19 @@ class DataDao extends BaseMdbUtils {
                 and v.dbeg='${d1}' and v.dend='${d2}'
         """
         Store stVal = mdb.loadQuery(sql)
+        // Has data Lev1
+        mdb.outTable(stVal)
+        Set<Object> idsProp1Lev = stProp1Lev.getUniqueValues("id")
+        boolean hasData1Lev = false
+        for (StoreRecord record in stVal) {
+            if (idsProp1Lev.contains(record.getLong("prop"))) {
+                hasData1Lev = true
+            }
+        }
+        //
         StoreIndex indVal = stVal.getIndex("prop")
 
-        if (stVal.size() == 0) {
+        if (!hasData1Lev || stVal.size() == 0) {
             params.put("NoData", true)
         } else {
             params.put("NoData", false)
@@ -247,8 +267,11 @@ class DataDao extends BaseMdbUtils {
             }
             //mdb.outTable(stFv2)
         }
-
-        return stFv2
+        Map<String, Store> rez = new HashMap<>()
+        rez.put("stMatrix", stFv2)
+        rez.put("stMatrixCpy", stFv2Cpy)
+        //
+        return rez
     }
 
 
@@ -312,32 +335,17 @@ class DataDao extends BaseMdbUtils {
                 mapParamCath.put("own", obj)
                 mapParamCath.put("obj2", reservoir)
                 mapParamCath.put("dte", dte)
-                Store stCath = loadAlgoMatrix(mapParamCath)
+                //
+                Map<String, Store> mapCatch = loadAlgoMatrix(mapParamCath)
+                Store stCath = mapCatch.get("stMatrix")         //сторе с данными
+                Store stCathCpy = mapCatch.get("stMatrixCpy")   //сторе структура
                 //
                 println("Prop_NumberFishCaught До")
                 mdb.outTable(stCath)
                 ////////////////////
-                Store stCathCpy = mdb.createStore()
 
-                stCathCpy.addField("ord", "int");
-                stCathCpy.addField("id", "long");
-                stCathCpy.addField("name", "string", 20);
-
-//todo stCtch => stFv1
-                for (StoreRecord rr in stCath) {
-                    if (rr.getLong("id") == 0) {
-                        for (StoreField f : rr.getFields()) {
-                            if (f.name.startsWith("fv")) {
-                                stCathCpy.addField("v" + rr.getString(f.getName()), "long")
-                                stCathCpy.addField("p" + rr.getString(f.getName()), "long")
-                                stCathCpy.addField("fv" + rr.getString(f.getName()), "double")
-                            }
-                        }
-                    }
-                }
 
                 stCath.copyTo(stCathCpy)
-                //stCathCpy.get(0).set("name", "1 Kol")
                 int ord = 1
                 for (StoreRecord rr in stCathCpy) {
                     rr.set("ord", ord++)
@@ -366,12 +374,10 @@ class DataDao extends BaseMdbUtils {
                     index++
                 }
 
-
+                // Размазывание
                 for (StoreField fld in stCath.get(0).getFields()) {
-
                     // Нас интересуют только fv-колонки
                     if (!fld.name.startsWith("fv")) continue
-
                     // Проверяем, есть ли вообще итог по этой колонке
                     if (stCath.get(0).getDouble(fld.name) == 0) continue
 
@@ -397,13 +403,18 @@ class DataDao extends BaseMdbUtils {
                     }
                 }
 
+                //
+                println("stCathCpy")
+                stCathCpy.sort("ord") // Возвращаем сортировку по умолчанию для вывода
+                mdb.outTable(stCathCpy)
+                //
                 for (StoreRecord rr in stCathCpy) {
                     if (rr.getLong("id") == 0) continue
                     for (StoreField fld in rr.getFields()) {
-                        if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                        if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
                             if (rr.getDouble(fld.name) != 0) {
                                 double v = rr.getDouble(fld.name)
-                                r.set(fld.name, round(v))
+                                rr.set(fld.name, round(v))
                             }
                         }
                     }
@@ -414,6 +425,28 @@ class DataDao extends BaseMdbUtils {
                 println("Prop_NumberFishCaught После")
                 mdb.outTable(stCathCpy)
                 // Save DB
+                Map<String, Object> params = new HashMap<>()
+                params.put("dte", dte)
+                params.put("dependperiod", true)
+                params.put("periodType", 71L)
+                params.put("obj", r.getLong("obj"))
+                params.put("obj2", reservoir)
+
+                for (StoreRecord rr in stCathCpy) {
+                    if (rr.getLong("id")==0) continue
+                    for (StoreField fld in rr.getFields()) {
+                        if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
+                            if (rr.getDouble(fld.name) != 0) {
+                                params.put("prop", rr.getLong("p" + fld.name.substring(2)))
+                                params.put("numberval", rr.getDouble(fld.name))
+                                params.put("idval", rr.getLong("v" + fld.name.substring(2)))
+                                saveMeter(params)
+                                int oo=0
+                            }
+                        }
+                    }
+                }
+
 
 
                 int e = 0
@@ -435,7 +468,7 @@ class DataDao extends BaseMdbUtils {
     private Store loadAlgoNumberFishBio(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
 
-        Store st = loadAlgoMatrix(params)
+        Store st = loadAlgoMatrix(params).get("stMatrix")
         System.out.println("Before " + pms.getString("cod"))
         mdb.outTable(st)
 
@@ -447,43 +480,31 @@ class DataDao extends BaseMdbUtils {
                     if (st.get(0).getDouble(fld.name) != 0 && r.getLong("p" + fld.name.substring(2)) > 0) {
                         st.get(0).set(fld.name, st.get(0).getDouble(fld.name) + 1)
                         r.set(fld.name, r.getDouble(fld.name) + 1)
+                    } else {
+                        r.set(fld.name, 0)
                     }
                 }
             }
         }
         //
-        //System.out.println("После +1")
-        //mdb.outTable(st)
+        System.out.println("После +1")
+        mdb.outTable(st)
         //
-/*
-        Store st0 = mdb.createStore()
-        StoreRecord rec0 = st0.add(st.get(0))
-        rec0.setValues(st.get(0).getValues())
-        for (StoreRecord r in st) {
-            //if (r.getLong("id") == 0) continue
-            for (StoreField fld in r.getFields()) {
-                if (fld.name.startsWith("fv")) {
-                    if (rec0.getDouble(fld.name) != 0 && r.getLong("p"+fld.name.substring(2))>0) {
-                        r.set(fld.name, r.getDouble(fld.name) / rec0.getDouble(fld.name))
-                    }
-                }
-            }
-        }
-*/
-
         for (StoreRecord r in st) {
             if (r.getLong("id") == 0) continue
             for (StoreField fld in r.getFields()) {
                 if (fld.name.startsWith("fv")) {
                     if (st.get(0).getDouble(fld.name) != 0 && r.getLong("p" + fld.name.substring(2)) > 0) {
                         r.set(fld.name, r.getDouble(fld.name) / st.get(0).getDouble(fld.name))
+                    } else {
+                        r.set(fld.name, 0)
                     }
                 }
             }
         }
 
-        //System.out.println("После деления")
-        //mdb.outTable(st)
+        System.out.println("После деления")
+        mdb.outTable(st)
 
         return st
     }
@@ -906,7 +927,7 @@ class DataDao extends BaseMdbUtils {
             pms.put("cod", "Prop_NumberFishCaught")
             pms.put("prop", stProp.get(0).getLong("id"))
             pms.put("dependperiod", true)
-            Store stFishCaught = loadAlgoMatrix(pms)
+            Store stFishCaught = loadAlgoMatrix(pms).get("stMatrix")
             //
             System.out.println("Prop_NumberFishCaught")
             mdb.outTable(stFishCaught)
@@ -1375,6 +1396,7 @@ class DataDao extends BaseMdbUtils {
         mdb.outTable(stFv2Cpy)
 //
 
+        //Размазывание
 
         for (StoreField fld in stFv2.get(0).getFields()) {
 
@@ -3627,8 +3649,8 @@ class DataDao extends BaseMdbUtils {
                 WITH RECURSIVE r AS (
                     SELECT id
                     FROM prop
-                    WHERE cod='${cod}'    
-                    UNION ALL    
+                    WHERE cod='${cod}'
+                    UNION ALL
                     SELECT c.id
                     FROM prop c
                     JOIN r ON c.parent = r.id
@@ -3647,7 +3669,7 @@ class DataDao extends BaseMdbUtils {
 
         // sql for value
         String sqlVal = """
-            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
+            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key
             from Obj o
                 join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop in (${idsPropAll.join(",")}) and d1.periodType is not null
                 join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
