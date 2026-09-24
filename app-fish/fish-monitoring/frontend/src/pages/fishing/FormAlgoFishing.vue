@@ -54,7 +54,7 @@
 
           <q-space/>
 
-          <div v-if="!cods_save.includes(props.cod)">
+          <div v-if="false">
             <q-btn
               :class="{ 'btn-blink': bSave }" :disable="!bSave" :label="$t('save')"
               color="primary" dense
