@@ -10,6 +10,7 @@ import jandcode.commons.error.XError
 import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
 import jandcode.core.dao.DaoMethod
+import jandcode.core.dbm.domain.Domain
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import jandcode.core.store.StoreField
@@ -85,17 +86,10 @@ class DataDao extends BaseMdbUtils {
         return st.getUniqueValues("factorval") as Set<Object>
     }
 
-    @DaoMethod
-    void smearing2age(String reservoirs, String dbeg, String dend) {
-
-        System.out.println(reservoirs + " - " + dbeg + " - " + dend)
-
-    }
-
-
     private Store loadAlgoMatrix(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("own")
+        long obj2 = pms.getLong("obj2")
         long prop = pms.getLong("prop")
         boolean dependperiod = pms.getBoolean("dependperiod")
         String dte = pms.getString("dte")
@@ -120,7 +114,7 @@ class DataDao extends BaseMdbUtils {
         Set<Object> idsPropsAll = stProp2Lev.getUniqueValues("id")
         StoreIndex indProp2Lev = stProp2Lev.getIndex("fvs")
         //
-        Set<Object> fvsFromRelObj = getFvs(own)
+        Set<Object> fvsFromRelObj = getFvs(obj2)
         //
         Set<Long> setFv1 = new HashSet<>()
         Set<Long> setFv2 = new HashSet<>()
@@ -252,6 +246,81 @@ class DataDao extends BaseMdbUtils {
         return stFv2
     }
 
+
+    @DaoMethod
+    void smearing2age(String reservoirs, String dbeg, String dend) {
+        Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
+        if (setCls.isEmpty()) setCls.add(0L)
+        String whe = "cls in (${setCls.join(",")})"
+        String wheReservoirs = "v6.obj in (${reservoirs}) and v1.dateTimeVal between '${dbeg}' and '${dend}'"
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Store st = mdb.loadQuery("""
+            with ob as (
+            select
+                id, cls from Obj               
+                where ${whe}
+            )
+            select ob.id as obj, ob.cls,
+                v1.dateTimeVal::date as StartDate,
+                v6.obj as objReservoirShore
+            from ob
+                join DataProp d1 on d1.isObj=1 and d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
+                join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d6 on d6.isObj=1 and d6.objorrelobj=ob.id and d6.prop=:Prop_ReservoirShore
+                left join DataPropVal v6 on d6.id=v6.dataprop
+            where ${wheReservoirs}
+            order by v1.dateTimeVal
+        """, map)
+        //
+        //mapParamBio.put("Prop_ReservoirShore", map.get("Prop_ReservoirShore"))
+        //mapParamBio.put("Prop_NumberFishCaught", map.get("Prop_NumberFishCaught"))
+
+        Map<String, Object> mapParamBio = new HashMap<>()
+        mapParamBio.put("prop", map.get("Prop_WaterNumberFishBio"))
+        mapParamBio.put("cod", "Prop_WaterNumberFishBio")
+        mapParamBio.put("dependperiod", true)
+        mapParamBio.put("periodType", 11)
+        //
+        Map<String, Object> mapParamCath = new HashMap<>()
+        mapParamCath.put("dependperiod", true)
+        mapParamCath.put("periodType", 71)
+        mapParamCath.put("prop", map.get("Prop_NumberFishCaught"))
+        mapParamCath.put("cod", "Prop_NumberFishCaught")
+        /*
+        //long own = pms.getLong("own")
+        long prop = pms.getLong("prop")
+        //boolean dependperiod = pms.getBoolean("dependperiod")
+        //String dte = pms.getString("dte")
+        //long periodType = pms.getLong("periodType")
+
+         */
+
+        for (StoreRecord r in st) {
+            long obj = r.getLong("obj")
+            long reservoir = r.getLong("objReservoirShore")
+            String dte = r.getString("StartDate")
+            mapParamBio.put("dte", dte)
+            mapParamBio.put("own", reservoir)
+            mapParamBio.put("obj2", reservoir)
+            Store stBio = loadAlgoNumberFishBio(mapParamBio)
+            //
+            mdb.outTable(stBio)
+            int o=0
+
+            mapParamCath.put("own", obj)
+            mapParamCath.put("obj2", reservoir)
+            mapParamCath.put("dte", dte)
+            Store stCath = loadAlgoMatrix(mapParamCath)
+            mdb.outTable(stCath)
+            int e=0
+
+
+            break
+
+        }
+    }
+
     private Store loadAlgoNumberFishBio(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
 
@@ -275,9 +344,10 @@ class DataDao extends BaseMdbUtils {
         System.out.println("После +1")
         mdb.outTable(st)
         //
-        StoreRecord rec0 = st.add()
+/*
+        Store st0 = mdb.createStore()
+        StoreRecord rec0 = st0.add(st.get(0))
         rec0.setValues(st.get(0).getValues())
-
         for (StoreRecord r in st) {
             //if (r.getLong("id") == 0) continue
             for (StoreField fld in r.getFields()) {
@@ -288,8 +358,8 @@ class DataDao extends BaseMdbUtils {
                 }
             }
         }
+*/
 
-/*
         for (StoreRecord r in st) {
             if (r.getLong("id") == 0) continue
             for (StoreField fld in r.getFields()) {
@@ -300,7 +370,6 @@ class DataDao extends BaseMdbUtils {
                 }
             }
         }
-*/
 
         System.out.println("После деления")
         mdb.outTable(st)
@@ -1430,7 +1499,7 @@ class DataDao extends BaseMdbUtils {
                     JOIN Measure m1 ON p1.measure=m1.id
                     JOIN r ON p1.parent = r.id
                 )
-                SELECT id, parent, cod, name, dependperiod, dbeg, dend, numberval, idval
+                SELECT null as obj, id, parent, cod, name, dependperiod, dbeg, dend, numberval, idval
                 FROM r;
             """, "")
 
