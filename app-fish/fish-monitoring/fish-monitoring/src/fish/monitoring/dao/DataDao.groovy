@@ -316,7 +316,35 @@ class DataDao extends BaseMdbUtils {
                 //
                 println("Prop_NumberFishCaught До")
                 mdb.outTable(stCath)
-                //
+                ////////////////////
+                Store stCathCpy = mdb.createStore()
+
+                stCathCpy.addField("ord", "int");
+                stCathCpy.addField("id", "long");
+                stCathCpy.addField("name", "string", 20);
+
+//todo stCtch => stFv1
+                for (StoreRecord rr in stCath) {
+                    if (rr.getLong("id") == 0) {
+                        for (StoreField f : rr.getFields()) {
+                            if (f.name.startsWith("fv")) {
+                                stCathCpy.addField("v" + rr.getString(f.getName()), "long")
+                                stCathCpy.addField("p" + rr.getString(f.getName()), "long")
+                                stCathCpy.addField("fv" + rr.getString(f.getName()), "double")
+                            }
+                        }
+                    }
+                }
+
+                stCath.copyTo(stCathCpy)
+                //stCathCpy.get(0).set("name", "1 Kol")
+                int ord = 1
+                for (StoreRecord rr in stCathCpy) {
+                    rr.set("ord", ord++)
+                }
+                Map<String, Double> mapRasn = new HashMap<>()
+                mapRasn = stCath.get(0).getValues() as Map<String, Double>
+
                 int index = 0
                 for (StoreRecord rr in stCath) {
                     if (rr.getLong("id") == 0) {
@@ -326,16 +354,65 @@ class DataDao extends BaseMdbUtils {
                     for (StoreField fld in rr.getFields()) {
                         if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
                             if (stCath.get(0).getDouble(fld.name) != 0 && stBio.get(index).getDouble(fld.name) != 0) {
-                                double v = round(stCath.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name))
-                                rr.set(fld.name, v)
+                                double v = stCath.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name)
+                                rr.set(fld.name, round(v))
+                                stCathCpy.get(index).set(fld.name, v)
+                                //
+                                double razn = UtCnv.toDouble(mapRasn.get(fld.name)) - rr.getDouble(fld.name)
+                                mapRasn.put(fld.name, razn)
                             }
                         }
                     }
                     index++
                 }
 
+
+                for (StoreField fld in stCath.get(0).getFields()) {
+
+                    // Нас интересуют только fv-колонки
+                    if (!fld.name.startsWith("fv")) continue
+
+                    // Проверяем, есть ли вообще итог по этой колонке
+                    if (stCath.get(0).getDouble(fld.name) == 0) continue
+
+                    int razn = abs(UtCnv.toInt(mapRasn.get(fld.name)))
+                    if (razn == 0) continue
+
+                    double eps = UtCnv.toInt(mapRasn.get(fld.name)) > 0 ? 1 as double : -1 as double
+
+                    stCathCpy.sort("ord")
+                    stCathCpy.sort("*" + fld.name)
+
+                    int i = 1
+                    for (StoreRecord rr in stCathCpy) {
+                        if (rr.getLong("id") == 0) continue // пропускаем Итого
+                        if (rr.getLong("p" + fld.name.substring(2)) == 0) continue
+
+                        rr.set(fld.name, rr.getDouble(fld.name) + eps)
+
+                        if (i == razn) {
+                            break
+                        }
+                        i++
+                    }
+                }
+
+                for (StoreRecord rr in stCathCpy) {
+                    if (rr.getLong("id") == 0) continue
+                    for (StoreField fld in rr.getFields()) {
+                        if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                            if (rr.getDouble(fld.name) != 0) {
+                                double v = rr.getDouble(fld.name)
+                                r.set(fld.name, round(v))
+                            }
+                        }
+                    }
+                }
+
+                /////////////////////
+
                 println("Prop_NumberFishCaught После")
-                mdb.outTable(stCath)
+                mdb.outTable(stCathCpy)
                 // Save DB
 
 
@@ -1298,7 +1375,7 @@ class DataDao extends BaseMdbUtils {
         mdb.outTable(stFv2Cpy)
 //
 
-// Берем список полей один раз (например, из нулевой записи или из структуры)
+
         for (StoreField fld in stFv2.get(0).getFields()) {
 
             // Нас интересуют только fv-колонки
@@ -1312,16 +1389,12 @@ class DataDao extends BaseMdbUtils {
 
             double eps = UtCnv.toInt(mapRasn.get(fld.name)) > 0 ? 1 as double : -1 as double
 
-            // Сортируем копию ОДИН РАЗ для текущей колонки
             stFv2Cpy.sort("ord")
             stFv2Cpy.sort("*" + fld.name)
 
             int i = 1
             for (StoreRecord rr in stFv2Cpy) {
                 if (rr.getLong("id") == 0) continue // пропускаем Итого
-
-                // Важно: проверяем условие p != 0 уже здесь, при раздаче слонов.
-                // Нельзя давать остаток туда, где исходное значение было нулевым.
                 if (rr.getLong("p" + fld.name.substring(2)) == 0) continue
 
                 rr.set(fld.name, rr.getDouble(fld.name) + eps)
