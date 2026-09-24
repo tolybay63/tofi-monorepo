@@ -86,7 +86,8 @@ class DataDao extends BaseMdbUtils {
         return st.getUniqueValues("factorval") as Set<Object>
     }
 
-    private Map<String, Store> loadAlgoMatrix(Map<String, Object> params) {
+    @DaoMethod
+    Map<String, Store> loadAlgoMatrix(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
         long own = pms.getLong("own")
         long obj2 = pms.getLong("obj2")

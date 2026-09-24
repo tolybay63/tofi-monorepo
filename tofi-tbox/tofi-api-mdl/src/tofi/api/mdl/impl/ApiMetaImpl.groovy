@@ -222,7 +222,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 
     @Override
     Set<Object> setIdsOfCls(String codTyp) {
-        long al = getAccessLevel()
+        long al = 10 //getAccessLevel()
         Store st = mdb.loadQuery("""
             select c.id from Cls c, Typ t
             where c.typ=t.id and t.cod like :cod and c.accessLevel <= :al
