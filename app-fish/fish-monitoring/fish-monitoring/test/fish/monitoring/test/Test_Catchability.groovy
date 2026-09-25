@@ -29,6 +29,7 @@ class Test_Catchability extends Apx_Test {
     @Test
     void test1() {
         // 1. Подготавливаем данные
+/*
         double[][] catchesData = [
                 [30d, 120d, 450d, 600d, 350d, 200d],    //Date 1
                 [15d, 80d, 310d, 520d, 410d, 180d],     //Date 2
@@ -36,8 +37,12 @@ class Test_Catchability extends Apx_Test {
                 [100d, 300d, 600d, 400d, 200d, 50d],    //Date 4
                 [10d, 50d, 200d, 450d, 500d, 300d]      //Date 5
         ] as double[][]
+*/
 
-        double[] qKnown = [0.35d, 0.35d, 0.35d, 0.35d, 0.35d] as double[]
+        List<List<Double>> catchesData = getDataBream()
+        double[] qKnown = [0.35d, 0.35d, 0.35d, 0.35d, 0.35d,
+                           0.35d, 0.35d, 0.35d, 0.35d, 0.35d,
+                           0.35d, 0.35d, 0.35d, 0.35d, 0.35d] as double[]
 
         // Опционально: можно задать свои границы или оставить те, что по умолчанию
         double[] initGuess = [0.60d, 3.0d, 1.0d] as double[]
@@ -46,7 +51,7 @@ class Test_Catchability extends Apx_Test {
 
         // 2. Инициализируем и вызываем
         CatchabilityOptimizer optimizer = new CatchabilityOptimizer()
-        Map result = optimizer.optimize(catchesData, qKnown, initGuess, lower, upper)
+        Map result = optimizer.optimize(catchesData as double[][], qKnown, initGuess, lower, upper)
         // Если устраивают дефолтные границы, достаточно передать только данные:
         // Map result = optimizer.optimize(catchesData, qKnown)
 
@@ -64,13 +69,13 @@ class Test_Catchability extends Apx_Test {
     }
 
 
-    @Test
-    void test2() {
-        DataDao dao = mdb.createDao(DataDao.class)
-        def prop = 1049L
+    //@Test
+    List<List<Double>> getDataBream() {
+        //DataDao dao = mdb.createDao(DataDao.class)
+        //def prop = 1049L
         def reservoir = 1000L
         def periodType = 71L
-        def dependperiod = true
+        //def dependperiod = true
         def dbeg = "2015-01-01"
         def dend = "2015-12-31"
 
@@ -98,116 +103,73 @@ class Test_Catchability extends Apx_Test {
             order by v1.dateTimeVal
         """, map)
         //
-
-        mdb.outTable(st)
-
+        //mdb.outTable(st)
+        //
         Map<String, Object> mapParamCatch = new HashMap<>()
         mapParamCatch.put("dependperiod", true)
         mapParamCatch.put("periodType", 71)
         mapParamCatch.put("prop", map.get("Prop_NumberFishCaught"))
         mapParamCatch.put("cod", "Prop_NumberFishCaught")
 
+        List<List<Double>> lstData = new ArrayList<>()
+        int indexAll = 0
+        int index = 0
         for (StoreRecord r in st) {
+            List<Double> lst = new ArrayList<>()
             long obj = r.getLong("obj")
             String dte = r.getString("StartDate")
-
             mapParamCatch.put("own", obj)
             mapParamCatch.put("obj2", reservoir)
             mapParamCatch.put("dte", dte)
             //
-            Map<String, Store> mapCatch = dao.loadAlgoMatrix(mapParamCatch)
-            Store stCatch = mapCatch.get("stMatrix")         //сторе с данными
+            Set<Object> idsProp = getIdsProp()
+            Store stData = mdb.loadQuery("""
+                select d.prop, v.numberval, v.id as idval
+                from DataProp d, DataPropVal v
+                where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${obj} and d.prop in (${idsProp.join(",")}) and d.periodType=${periodType}
+                    and v.dbeg='${dte}' and v.dend='${dte}'
+            """)
 
-            mdb.outTable(stCatch)
+            //mdb.outTable(stData)
 
-
-            def oooo = 0
-
-
+            stData.forEach {StoreRecord it -> {
+                lst.add(it.getDouble("numberval"))
+            }}
+            if (lst.size()==15) {
+                lstData.add(index, lst)
+                index++
+            }
+            indexAll++
         }
 
-
-
-
-
-
-/*
-        def meter = loadSqlMeta("""
-            select meter from Prop where id=${prop}
-        """, "").get(0).getLong("meter")
+        println("countAll: ${indexAll}")
+        println("count: ${index}")
+        println(lstData)
         //
-        Store stProp2Lev = loadSqlMeta("""
+        return lstData
+    }
+
+    /////////////////////
+    Set<Object> getIdsProp() {
+        Store st = loadSqlMeta("""
             with mrfv as (
             select meterrate,
                 STRING_AGG (cast(factorval as varchar(200)), ',') as fvs,
+                string_to_array(STRING_AGG (cast(factorval as varchar(4000)), ','), ',') as arr,
                 ARRAY_LENGTH(STRING_TO_ARRAY(STRING_AGG (cast(factorval as varchar(200)), ','), ','), 1) sz
             from meterratefv
             group by meterrate
             )
-            select id, name, fvs
+            select id, name, fvs   
             from Prop p, mrfv
-            where p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=2
+            where p.meter=1006 and p.meterrate=mrfv.meterrate and mrfv.sz=2 and ARRAY[mrfv.arr] @> '{1025}'
+                and p.id<>8666
         """, "")
-        Set<Object> idsPropsAll = stProp2Lev.getUniqueValues("id")
-        StoreIndex indProp2Lev = stProp2Lev.getIndex("fvs")
-        //
-        Set<Object> fvsFromRelObj = dao.getFvs(reservoir)
-        //
-        Set<Long> setFv1 = new HashSet<>()
-        Set<Long> setFv2 = new HashSet<>()
-        for (StoreRecord r in stProp2Lev) {
-            String[] arr = r.getString("fvs").split(",")
-            if (fvsFromRelObj.contains(arr[0]))
-                setFv1.add(UtCnv.toLong(arr[0]))
-            setFv2.add(UtCnv.toLong(arr[1]))
-        }
-        //
-        Store stFv1 = loadSqlMeta("""
-            select id, name
-            from factor
-            where id in (0${setFv1.join(",")})
-            order by ord
-        """, "")
-
-        Store stFv2 = mdb.createStore()
-        stFv2.addField("id", "long")
-        stFv2.addField("name", "string", 20)
-
-
-        String d1 = "1800-01-01"
-        String d2 = "3333-12-01"
-        if (dependperiod) {
-            UtPeriod up = new UtPeriod()
-            d1 = up.calcDbeg(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
-            d2 = up.calcDend(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
-        }
-        String sql = """
-            select d.prop, v.numberval, v.id as idval
-            from DataProp d, DataPropVal v
-            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType is null
-        """
-        if (dependperiod)
-            sql = """
-            select d.prop, v.numberval, v.id as idval
-            from DataProp d, DataPropVal v
-            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType=${periodType}
-                and v.dbeg='${d1}' and v.dend='${d2}'
-        """
-        Store stVal = mdb.loadQuery(sql)
-        // Has data Lev1
-        mdb.outTable(stVal)
-*/
-
-
-
-
-
-
-
-
-
+        return st.getUniqueValues("id")
 
     }
+
+
     ////////////////
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
