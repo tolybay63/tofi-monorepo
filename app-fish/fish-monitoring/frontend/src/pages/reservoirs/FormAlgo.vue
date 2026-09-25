@@ -189,14 +189,14 @@ const props = defineProps({
 const $q = useQuasar()
 const cods_save = "Prop_WaterFishAverageWeight"   //Не показать если есть
 const cods_algo = "Prop_WaterNumberFishBio, Prop_NumberFishCaught, Prop_WaterFishAverageWeight, Prop_GearCatchabilityNet"
-const cods_sum = "Prop_WaterFishAverageWeight, Prop_WaterNumberFishBio"
+const cods_sum = "Prop_WaterNumberFishBio"
 
 console.info("cods_algo", cods_algo, props.cod)
 
 const loading = ref(false)
 const cols = ref([])
 const rows = ref([])
-const bSave = ref(false)
+const bSave = ref(true)
 
 const emit = defineEmits(['ok', 'hide'])
 const {proxy} = getCurrentInstance()
@@ -375,7 +375,7 @@ const fnSaveMatrix = async () => {
 }
 
 const fnSaveData = async () => {
-  if (props.cod === "Prop_NumberFishCaught")
+  if (props.cod === "Prop_NumberFishCaught" || props.cod === "Prop_GearCatchabilityNet")
     await fnSaveMatrix()
   else
     await fnSave()
@@ -466,7 +466,7 @@ const loadAlgo = () => {
       console.log("rows 0", rows.value[0]._dbValues)
 
 
-      checkSums()
+      //checkSums()
     })
     .finally(() => {
       loading.value = false

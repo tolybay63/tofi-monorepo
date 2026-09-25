@@ -9,7 +9,7 @@ import org.apache.commons.math3.optim.nonlinear.scalar.GoalType
 import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction
 import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.BOBYQAOptimizer
 
-class CatchabilityOptimizer {
+class CatchabilityAnnualOptimizer {
 
     /**
      * Формула сигмоиды для расчета уловистости по возрасту
@@ -19,31 +19,33 @@ class CatchabilityOptimizer {
     }
 
     /**
-     * Выполняет расчет оптимальных коэффициентов МНК (безпроизводный метод BOBYQA)
+     * Выполняет расчет оптимальных коэффициентов МНК на основе единого годового qKnown
      *
      * @param catchesData Двумерный массив уловов: строки - даты, колонки - возраста
-     * @param qKnown Массив известных коэффициентов q для каждой даты
-     * @param initialGuess Начальное приближение [qMax, a50, k]. По умолчанию [0.6, 3.0, 1.0]
-     * @param lowerBounds Нижние границы [qMax, a50, k]. По умолчанию [0.35, 0.5, 0.1]
-     * @param upperBounds Верхние границы [qMax, a50, k]. По умолчанию [1.0, 10.0, 5.0]
-     * @return Map с результатами: error (ошибка), qMax, a50, k, и qByAge (карта q для каждого возраста)
+     * @param qKnown Известное среднегодовое значение q для вида
+     * @param customInitialGuess Пользовательское начальное приближение (опционально)
+     * @param customLowerBounds Пользовательские нижние границы (опционально)
+     * @param customUpperBounds Пользовательские верхние границы (опционально)
+     * @return Map с результатами: error (квадрат ошибки), qMax, a50, k, и qByAge (карта q для каждого возраста)
      */
     Map<String, Object> optimize(
             double[][] catchesData,
-            double[] qKnown,
-            double[] initialGuess = [0.60d, 3.0d, 1.0d] as double[],
-            double[] lowerBounds  = [0.35d, 0.5d, 0.1d] as double[],
-            double[] upperBounds  = [1.00d, 10.0d, 5.0d] as double[]
+            double qKnown,
+            double[] customInitialGuess = null,
+            double[] customLowerBounds = null,
+            double[] customUpperBounds = null
     ) {
         if (!catchesData || catchesData.length == 0 || !catchesData[0]) {
             throw new IllegalArgumentException("Массив уловов пуст или имеет неверный формат")
         }
-        if (catchesData.length != qKnown.length) {
-            throw new IllegalArgumentException("Количество дат в catchesData должно совпадать с длиной массива qKnown")
-        }
 
         int numDates = catchesData.length
         int numAges = catchesData[0].length
+
+        // Динамические значения по умолчанию базируются на qKnown (если не переданы кастомные)
+        double[] lowerBounds = customLowerBounds ?: [qKnown, 0.5d, 0.1d] as double[]
+        double[] upperBounds = customUpperBounds ?: [1.00d, 12.0d, 5.0d] as double[]
+        double[] initialGuess = customInitialGuess ?: [Math.min(qKnown * 1.5d, 0.9d), 3.0d, 1.0d] as double[]
 
         // Целевая функция МНК
         MultivariateFunction lossFunction = new MultivariateFunction() {
@@ -53,33 +55,33 @@ class CatchabilityOptimizer {
                 double a50  = point[1]
                 double k    = point[2]
 
-                double sumSquaredErrors = 0.0d
+                double grandTotalCatch = 0.0d
+                double grandWeightedQSum = 0.0d
 
+                // Суммируем уловы и уловистости по ВСЕМ датам года
                 for (int t = 0; t < numDates; t++) {
-                    double totalCatch = 0.0d
-                    double weightedQSum = 0.0d
-
                     for (int aIdx = 0; aIdx < numAges; aIdx++) {
-                        double age = aIdx + 1 // Возраст (1, 2, 3...)
+                        double age = aIdx + 1
                         double c = catchesData[t][aIdx]
 
-                        totalCatch += c
-                        weightedQSum += c * sigmoidQ(age, qMax, a50, k)
+                        grandTotalCatch += c
+                        grandWeightedQSum += c * sigmoidQ(age, qMax, a50, k)
                     }
-
-                    // Защита от деления на ноль, если улов за дату равен нулю
-                    double qCalculatedMean = totalCatch > 0 ? weightedQSum / totalCatch : 0.0d
-                    double error = qCalculatedMean - qKnown[t]
-
-                    sumSquaredErrors += error * error
                 }
 
-                return sumSquaredErrors
+                if (grandTotalCatch == 0) return 0.0d
+
+                // Среднегодовой рассчитанный q
+                double qCalculatedAnnual = grandWeightedQSum / grandTotalCatch
+
+                // Квадрат отклонения от ЕДИНОГО qKnown
+                double error = qCalculatedAnnual - qKnown
+
+                return error * error
             }
         }
 
         // Оптимизатор BOBYQA
-        // Количество точек адаптивной сетки = 2 * N + 1 = 2*3 + 1 = 7
         BOBYQAOptimizer optimizer = new BOBYQAOptimizer(7)
 
         PointValuePair result = optimizer.optimize(
@@ -90,10 +92,10 @@ class CatchabilityOptimizer {
                 new SimpleBounds(lowerBounds, upperBounds)
         )
 
-        double[] optimalParams = result.getPoint()
-        double qMaxOpt = optimalParams[0]
-        double a50Opt  = optimalParams[1]
-        double kOpt    = optimalParams[2]
+        double[] opt = result.getPoint()
+        double qMaxOpt = opt[0]
+        double a50Opt  = opt[1]
+        double kOpt    = opt[2]
 
         // Рассчитываем точечные коэффициенты q(a) по возрастам
         Map<Integer, Double> qByAge = [:]

@@ -1,86 +1,96 @@
 package fish.monitoring.test
 
-import fish.monitoring.dao.DataDao
-import fish.monitoring.dao.utils.CatchabilityOptimizer
-import jandcode.commons.UtCnv
-import jandcode.commons.datetime.XDate
-import jandcode.commons.datetime.XDateTimeFormatter
+import fish.monitoring.dao.utils.CatchabilityAnnualOptimizer
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
-import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
 import org.junit.jupiter.api.Test
-import tofi.api.dta.model.utils.UtPeriod
 import tofi.api.mdl.ApiMeta
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
-class Test_Catchability extends Apx_Test {
+class CatchabilityAnnualOptimizer_Test extends Apx_Test {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
 
-    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
-
-    ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
-    //-----------------------------------------------------------------------------------------------//
-
-
-
     @Test
     void test1() {
-        // 1. Подготавливаем данные
-/*
-        double[][] catchesData = [
-                [30d, 120d, 450d, 600d, 350d, 200d],    //Date 1
-                [15d, 80d, 310d, 520d, 410d, 180d],     //Date 2
-                [50d, 200d, 500d, 480d, 300d, 150d],    //Date 3
-                [100d, 300d, 600d, 400d, 200d, 50d],    //Date 4
-                [10d, 50d, 200d, 450d, 500d, 300d]      //Date 5
+
+        // Создаем экземпляр оптимизатора
+        CatchabilityAnnualOptimizer optimizer = new CatchabilityAnnualOptimizer()
+
+        // === Пример 1: Судак ===
+        double[][] sudakCatches = [
+                [30d,  120d, 450d, 600d, 350d, 200d],
+                [15d,   80d, 310d, 520d, 410d, 180d],
+                [50d,  200d, 500d, 480d, 300d, 150d]
         ] as double[][]
-*/
+        double sudakQ = 0.35d
 
-        List<List<Double>> catchesData = getDataBream()
-        //
-        double[] qKnown = [0.35d, 0.35d, 0.35d, 0.35d, 0.35d,
-                           0.35d, 0.35d, 0.35d, 0.35d, 0.35d,
-                           0.35d, 0.35d, 0.35d, 0.35d, 0.35d] as double[]
+        Map sudakResult = optimizer.optimize(sudakCatches, sudakQ)
+
+        println "=== РЕЗУЛЬТАТ ДЛЯ ВИДА: Судак (q_known = ${sudakQ}) ==="
+        println "q_max = ${String.format('%.4f', sudakResult.qMax)} | a50 = ${String.format('%.2f', sudakResult.a50)} | k = ${String.format('%.2f', sudakResult.k)}"
+        sudakResult.qByAge.each { age, qVal ->
+            println "  Возраст ${age}: q = ${String.format('%.4f', qVal)}"
+        }
+        println ""
 
 
-        double[] initGuess = [0.60d, 3.0d, 1.0d] as double[]
-        double[] lower = [0.35d, 0.5d, 0.1d] as double[]
-        double[] upper = [1.00d, 10.0d, 5.0d] as double[]
+        // === Пример 2: Лещ ===
+        double[][] leshCatches = [
+                [100d, 300d, 250d, 180d, 90d],
+                [60d,  210d, 340d, 290d, 140d]
+        ] as double[][]
+        double leshQ = 0.25d
 
-        // 2. Инициализируем и вызываем
-        CatchabilityOptimizer optimizer = new CatchabilityOptimizer()
-        Map result = optimizer.optimize(catchesData as double[][], qKnown, initGuess, lower, upper)
+        Map leshResult = optimizer.optimize(leshCatches, leshQ)
 
-        // 3. Работаем с результатом
-        println "Минимальная ошибка МНК: ${result.error}"
-        println "q_max (макс. уловистость): ${result.qMax}"
-        println "a50 (возраст 50% отлова): ${result.a50}"
-        println "k (крутизна сигмоиды): ${result.k}"
-
-        println "Рассчитанные уловистости по возрастам:"
-        result.qByAge.each { age, qVal ->
-            println "Возраст ${age}: q = ${String.format('%.4f', qVal)}"
+        println "=== РЕЗУЛЬТАТ ДЛЯ ВИДА: Лещ (q_known = ${leshQ}) ==="
+        println "q_max = ${String.format('%.4f', leshResult.qMax)} | a50 = ${String.format('%.2f', leshResult.a50)} | k = ${String.format('%.2f', leshResult.k)}"
+        leshResult.qByAge.each { age, qVal ->
+            println "  Возраст ${age}: q = ${String.format('%.4f', qVal)}"
         }
 
     }
 
 
+
+
+    //******************************* TEST с реалными данными ***************************************//
+
     @Test
-    void test_getDataBream() {
-        getDataBream()
+    void test_tofi() {
+        CatchabilityAnnualOptimizer optimizer = new CatchabilityAnnualOptimizer()
+
+        double[][] leshCatches = getDataBream(16)
+        double leshQ = 0.6d
+        Map leshResult = optimizer.optimize(leshCatches, leshQ)
+
+        println "=== РЕЗУЛЬТАТ ДЛЯ ВИДА: Лещ (q_known = ${leshQ}) ==="
+        println "q_max = ${String.format('%.4f', leshResult.qMax)} | a50 = ${String.format('%.2f', leshResult.a50)} | k = ${String.format('%.2f', leshResult.k)}"
+        leshResult.qByAge.each { age, qVal ->
+            println "  Возраст ${age}: q = ${String.format('%.4f', qVal)}"
+        }
+
     }
 
-    List<List<Double>> getDataBream() {
+
+
+    @Test
+    void test_getDataBream() {
+        getDataBream(16)
+    }
+
+
+    List<List<Double>> getDataBream(int age) {
         //DataDao dao = mdb.createDao(DataDao.class)
         //def prop = 1049L
         def reservoir = 1000L
         def periodType = 71L
         //def dependperiod = true
-        def dbeg = "2021-01-01"
-        def dend = "2022-12-31"
+        def dbeg = "2015-01-01"
+        def dend = "2015-12-31"
 
         Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
         if (setCls.isEmpty()) setCls.add(0L)
@@ -115,10 +125,6 @@ class Test_Catchability extends Apx_Test {
         mapParamCatch.put("cod", "Prop_NumberFishCaught")
 
         Set<Object> idsProp = getIdsProp()
-/*        Map<Long, Double> mapFisgAge = new HashMap<>()
-        idsProp.forEach {long it -> {
-            mapFisgAge.put(it, 0)
-        }}*/
 
         List<List<Double>> lstData = new ArrayList<>()
         int indexAll = 0
@@ -143,7 +149,7 @@ class Test_Catchability extends Apx_Test {
             stData.forEach {StoreRecord it -> {
                 lst.add(it.getDouble("numberval"))
             }}
-            if (lst.size()==15) {
+            if (lst.size()==age-1) {
                 lstData.add(index, lst)
                 index++
             }
@@ -157,6 +163,7 @@ class Test_Catchability extends Apx_Test {
             println(lst)
         }
         //
+
         return lstData
     }
 
@@ -176,7 +183,7 @@ class Test_Catchability extends Apx_Test {
                 and p.id<>8666
         """, "")
 
-        mdb.outTable(st)
+        //mdb.outTable(st)
         return st.getUniqueValues("id")
     }
 
@@ -191,6 +198,7 @@ class Test_Catchability extends Apx_Test {
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
     }
+
 
 
 }
