@@ -44,7 +44,7 @@ class Test_Catchability extends Apx_Test {
                            0.35d, 0.35d, 0.35d, 0.35d, 0.35d,
                            0.35d, 0.35d, 0.35d, 0.35d, 0.35d] as double[]
 
-        // Опционально: можно задать свои границы или оставить те, что по умолчанию
+
         double[] initGuess = [0.60d, 3.0d, 1.0d] as double[]
         double[] lower = [0.35d, 0.5d, 0.1d] as double[]
         double[] upper = [1.00d, 10.0d, 5.0d] as double[]
@@ -52,8 +52,6 @@ class Test_Catchability extends Apx_Test {
         // 2. Инициализируем и вызываем
         CatchabilityOptimizer optimizer = new CatchabilityOptimizer()
         Map result = optimizer.optimize(catchesData as double[][], qKnown, initGuess, lower, upper)
-        // Если устраивают дефолтные границы, достаточно передать только данные:
-        // Map result = optimizer.optimize(catchesData, qKnown)
 
         // 3. Работаем с результатом
         println "Минимальная ошибка МНК: ${result.error}"
