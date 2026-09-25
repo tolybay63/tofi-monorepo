@@ -181,6 +181,9 @@ class DataDao extends BaseMdbUtils {
         String name = "Количество"
         if (pms.getString("cod") == "Prop_WaterFishAverageWeight")
             name = "Вес"
+        else if (pms.getString("cod") == "Prop_GearCatchabilityNet" ||
+                pms.getString("cod") == "Prop_GearCatchabilitySeine")
+            name = "Коэффициент"
         stFv2.get(0).set("name", name)
         //
         Store stProp1Lev = loadSqlMeta("""
@@ -773,6 +776,10 @@ class DataDao extends BaseMdbUtils {
         String name = "Количество"
         if (codProp == "Prop_WaterFishAverageWeight")
             name = "Вес"
+        else if (pms.getString("cod") == "Prop_GearCatchabilityNet" ||
+                pms.getString("cod") == "Prop_GearCatchabilitySeine")
+            name = "Коэффициент"
+
         stFv2.get(0).set("name", name)
         //
         Store stProp1Lev = loadSqlMeta("""
@@ -857,6 +864,7 @@ class DataDao extends BaseMdbUtils {
             """, "")
             pms.put("cod", "Prop_WaterNumberFishBio")
             pms.put("prop", stProp.get(0).getLong("id"))
+            pms.put("obj2", own)
             Store stBio = loadAlgoNumberFishBio(pms)
             //
             //System.out.println("Prop_WaterNumberFishBio")
@@ -928,6 +936,7 @@ class DataDao extends BaseMdbUtils {
             pms.put("cod", "Prop_NumberFishCaught")
             pms.put("prop", stProp.get(0).getLong("id"))
             pms.put("dependperiod", true)
+            pms.put("obj2", own)
             Store stFishCaught = loadAlgoMatrix(pms).get("stMatrix")
             //
             System.out.println("Prop_NumberFishCaught")
@@ -1210,6 +1219,10 @@ class DataDao extends BaseMdbUtils {
         String name = "Количество"
         if (codProp == "Prop_WaterFishAverageWeight")
             name = "Вес"
+        else if (pms.getString("cod") == "Prop_GearCatchabilityNet" ||
+                pms.getString("cod") == "Prop_GearCatchabilitySeine")
+            name = "Коэффициент"
+
         stFv2.get(0).set("name", name)
         //
         Store stProp1Lev = loadSqlMeta("""
