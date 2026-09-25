@@ -416,10 +416,10 @@ class DataDao extends BaseMdbUtils {
                     if (rr.getLong("id") == 0) continue
                     for (StoreField fld in rr.getFields()) {
                         if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
-                            if (rr.getDouble(fld.name) != 0) {
+                            //if (rr.getDouble(fld.name) != 0) {
                                 double v = rr.getDouble(fld.name)
                                 rr.set(fld.name, round(v))
-                            }
+                            //}
                         }
                     }
                 }
@@ -440,21 +440,15 @@ class DataDao extends BaseMdbUtils {
                     if (rr.getLong("id")==0) continue
                     for (StoreField fld in rr.getFields()) {
                         if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
-                            if (rr.getDouble(fld.name) != 0) {
+                            //if (rr.getDouble(fld.name) != 0) {
                                 params.put("prop", rr.getLong("p" + fld.name.substring(2)))
                                 params.put("numberval", rr.getDouble(fld.name))
                                 params.put("idval", rr.getLong("v" + fld.name.substring(2)))
                                 saveMeter(params)
-                                int oo=0
-                            }
+                            //}
                         }
                     }
                 }
-
-
-
-                int e = 0
-
             } else {            // Нет данных БИО для водоема
                 cntNo++
                 println("\n\n")

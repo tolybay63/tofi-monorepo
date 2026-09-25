@@ -84,7 +84,7 @@
           <q-btn
             v-if="cods.includes(item.cod)"
             class="no-padding no-margin"
-            color="green" dense flat icon="settings"
+            color="green" dense flat icon="visibility"
             round size="sm" @click="fnAlgo(item)"
           >
             <q-tooltip>

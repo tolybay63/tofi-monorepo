@@ -40,6 +40,7 @@ class Test_Catchability extends Apx_Test {
 */
 
         List<List<Double>> catchesData = getDataBream()
+        //
         double[] qKnown = [0.35d, 0.35d, 0.35d, 0.35d, 0.35d,
                            0.35d, 0.35d, 0.35d, 0.35d, 0.35d,
                            0.35d, 0.35d, 0.35d, 0.35d, 0.35d] as double[]
@@ -67,15 +68,19 @@ class Test_Catchability extends Apx_Test {
     }
 
 
-    //@Test
+    @Test
+    void test_getDataBream() {
+        getDataBream()
+    }
+
     List<List<Double>> getDataBream() {
         //DataDao dao = mdb.createDao(DataDao.class)
         //def prop = 1049L
         def reservoir = 1000L
         def periodType = 71L
         //def dependperiod = true
-        def dbeg = "2015-01-01"
-        def dend = "2015-12-31"
+        def dbeg = "2021-01-01"
+        def dend = "2022-12-31"
 
         Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
         if (setCls.isEmpty()) setCls.add(0L)
@@ -109,6 +114,12 @@ class Test_Catchability extends Apx_Test {
         mapParamCatch.put("prop", map.get("Prop_NumberFishCaught"))
         mapParamCatch.put("cod", "Prop_NumberFishCaught")
 
+        Set<Object> idsProp = getIdsProp()
+/*        Map<Long, Double> mapFisgAge = new HashMap<>()
+        idsProp.forEach {long it -> {
+            mapFisgAge.put(it, 0)
+        }}*/
+
         List<List<Double>> lstData = new ArrayList<>()
         int indexAll = 0
         int index = 0
@@ -120,7 +131,6 @@ class Test_Catchability extends Apx_Test {
             mapParamCatch.put("obj2", reservoir)
             mapParamCatch.put("dte", dte)
             //
-            Set<Object> idsProp = getIdsProp()
             Store stData = mdb.loadQuery("""
                 select d.prop, v.numberval, v.id as idval
                 from DataProp d, DataPropVal v
@@ -142,12 +152,14 @@ class Test_Catchability extends Apx_Test {
 
         println("countAll: ${indexAll}")
         println("count: ${index}")
-        println(lstData)
+        //println(lstData)
+        for (List<Double> lst in lstData) {
+            println(lst)
+        }
         //
         return lstData
     }
 
-    /////////////////////
     Set<Object> getIdsProp() {
         Store st = loadSqlMeta("""
             with mrfv as (
@@ -163,10 +175,17 @@ class Test_Catchability extends Apx_Test {
             where p.meter=1006 and p.meterrate=mrfv.meterrate and mrfv.sz=2 and ARRAY[mrfv.arr] @> '{1025}'
                 and p.id<>8666
         """, "")
-        return st.getUniqueValues("id")
 
+        mdb.outTable(st)
+        return st.getUniqueValues("id")
     }
 
+
+
+    @Test
+    void test_prop() {
+        getIdsProp()
+    }
 
     ////////////////
     private Store loadSqlMeta(String sql, String domain) {
