@@ -136,7 +136,7 @@ class DataDao extends BaseMdbUtils {
 
         List<Map<String, String>> cols = new ArrayList<>();
         cols.add(Map.of("name", "name", "label", "Возраст", "field", "name",
-                "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 30%"));
+                "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 5%"));
 
 
         Store stFv2 = mdb.createStore()
@@ -166,7 +166,7 @@ class DataDao extends BaseMdbUtils {
             sep = (!sel.isEmpty()) ? ", " : ""
             cols.add(Map.of("name", "fv" + r.getValue("id"),
                     "label", UtCnv.toString(r.getValue("name")), "field", "fv" + r.getValue("id"),
-                    "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.2em",
+                    "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em",
                     "style", "width: 10%"))
         }
 
@@ -561,7 +561,7 @@ class DataDao extends BaseMdbUtils {
 
         List<Map<String, String>> cols = new ArrayList<>();
         cols.add(Map.of("name", "name", "label", "Возраст", "field", "name",
-                "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 30%"));
+                "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 5%"));
 
 
         Store stFv2 = mdb.createStore()
@@ -582,7 +582,7 @@ class DataDao extends BaseMdbUtils {
             sep = (!sel.isEmpty()) ? ", " : ""
             cols.add(Map.of("name", "fv" + r.getValue("id"),
                     "label", UtCnv.toString(r.getValue("name")), "field", "fv" + r.getValue("id"),
-                    "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.2em",
+                    "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em",
                     "style", "width: 10%"))
         }
 
@@ -1364,7 +1364,7 @@ class DataDao extends BaseMdbUtils {
 
         List<Map<String, String>> cols = new ArrayList<>();
         cols.add(Map.of("name", "name", "label", "Возраст", "field", "name",
-                "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 30%"));
+                "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 5%"));
 
 
         Store stFv2 = mdb.createStore()
@@ -1385,7 +1385,7 @@ class DataDao extends BaseMdbUtils {
             sep = (!sel.isEmpty()) ? ", " : ""
             cols.add(Map.of("name", "fv" + r.getValue("id"),
                     "label", UtCnv.toString(r.getValue("name")), "field", "fv" + r.getValue("id"),
-                    "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.2em",
+                    "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em",
                     "style", "width: 10%"))
         }
 
