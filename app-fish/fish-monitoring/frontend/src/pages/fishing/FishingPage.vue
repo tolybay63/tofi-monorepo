@@ -264,9 +264,6 @@ const goAlgo = () => {
     .catch((error) => {
       console.log(error.message)
     })
-
-
-
 }
 
 const updateSelected = () => {

@@ -138,7 +138,6 @@ class DataDao extends BaseMdbUtils {
         cols.add(Map.of("name", "name", "label", "Возраст", "field", "name",
                 "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 5%"));
 
-
         Store stFv2 = mdb.createStore()
         stFv2.addField("id", "long")
         stFv2.addField("name", "string", 20)
@@ -282,7 +281,6 @@ class DataDao extends BaseMdbUtils {
         //
         return rez
     }
-
 
     @DaoMethod
     void smearing2age(String reservoirs, String dbeg, String dend) {
@@ -469,11 +467,7 @@ class DataDao extends BaseMdbUtils {
     }
 
     private Store loadAlgoNumberFishBio(Map<String, Object> params) {
-        VariantMap pms = new VariantMap(params)
-
         Store st = loadAlgoMatrix(params).get("stMatrix") as Store
-        //System.out.println("Before " + pms.getString("cod"))
-        //mdb.outTable(st)
 
         // Прибавляем +1
         for (StoreRecord r in st) {
@@ -508,10 +502,10 @@ class DataDao extends BaseMdbUtils {
 
         //System.out.println("После деления")
         //mdb.outTable(st)
-
         return st
     }
 
+    //todo Delete!
     private Store loadAlgoReservoirPdy(Map<String, Object> params) {
         //Map<String, Object> res = new HashMap<>()
         VariantMap pms = new VariantMap(params)
@@ -708,38 +702,7 @@ class DataDao extends BaseMdbUtils {
         System.out.println("prop = " + codProp + " - " + prop)
         //mdb.outTable(stFv2)
         //1. Prop_NumberFishCaught      //Количество пойманных рыб
-        if (pms.getString("cod") == "Prop_NumberFishCaught") {
-/*
-            Store stProp = apiMeta().get(ApiMeta).loadSql("""
-                select id from Prop where cod='Prop_WaterNumberFishBio'
-            """, "")
-            pms.put("cod", "Prop_WaterNumberFishBio")
-            pms.put("prop", stProp.get(0).getLong("id"))
-            pms.put("obj2", own)
-            Store stBio = loadAlgoNumberFishBio(pms)
-            //
-            //System.out.println("Prop_WaterNumberFishBio")
-            //mdb.outTable(stBio)
-            //
-            int index = 0
-            for (StoreRecord r in stFv2) {
-                if (r.getLong("id") == 0) {
-                    index++
-                    continue
-                }
-                for (StoreField fld in r.getFields()) {
-                    if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
-                        if (stFv2.get(0).getDouble(fld.name) != 0 && stBio.get(index).getDouble(fld.name) != 0) {
-                            //r.set(fld.name, round(stFv2.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name)+0.5 as Double))
-                            double v = round(stFv2.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name))
-                            r.set(fld.name, v)
-                        }
-                    }
-                }
-                index++
-            }*/
-            int ccc = 0
-        } else if (pms.getString("cod") == "Prop_CalcPdy") {    //Предельно допустимый улов, экземпляр
+        if (pms.getString("cod") == "Prop_CalcPdy") {    //Предельно допустимый улов, экземпляр
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
                 select id from Prop where cod='Prop_ReservoirPdy'
             """, "")
@@ -994,7 +957,7 @@ class DataDao extends BaseMdbUtils {
 
     //******************** Algoritms ***************************************//
 
-    //Prop_WaterFishAverageWeight
+    //Prop_WaterFishAverageWeight   Средний вес одной рыбы, грамм
     @DaoMethod
     Map<String, Object> goWaterFishAverageWeight(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -1008,7 +971,6 @@ class DataDao extends BaseMdbUtils {
 
         res.put("cols", cols)
         //
-
         Map<String, Double> mapSum = new HashMap<>()
         Map<String, Integer> mapCnt = new HashMap<>()
         for (StoreRecord r in stFv2) {
@@ -1035,10 +997,9 @@ class DataDao extends BaseMdbUtils {
         //
         res.put("store", stFv2)
         return res
-
     }
 
-    //Prop_NumberFishCaught
+    //Prop_NumberFishCaught Количество пойманных рыб
     @DaoMethod
     Map<String, Object> goNumberFishCaught(Map<String, Object> params) {
         VariantMap pms = new VariantMap(params)
@@ -1087,7 +1048,6 @@ class DataDao extends BaseMdbUtils {
         Map<String, Double> mapRasn = new HashMap<>()
         mapRasn = stFv2.get(0).getValues() as Map<String, Double>
         //
-
         for (StoreRecord r in stFv2) {
             if (r.getLong("id") == 0) continue
 
@@ -1097,9 +1057,6 @@ class DataDao extends BaseMdbUtils {
                 }
             }
         }
-        //
-        mdb.outMap(mapRasn)
-        //
 
         // Размазывание
         for (StoreField fld in stFv2.get(0).getFields()) {
@@ -1131,8 +1088,6 @@ class DataDao extends BaseMdbUtils {
         }
         //
         stFv2Cpy.sort("ord")
-        mdb.outTable(stFv2)
-        mdb.outTable(stFv2Cpy)
         //
         res.put("store", stFv2Cpy)
         return res
@@ -1146,9 +1101,11 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> mapMatrix = loadAlgoMatrix(params)
         Store stFv2 = mapMatrix.get("stMatrix") as Store
         List<Map<String, String>> cols = mapMatrix.get("cols") as List<Map<String, String>>
+/*
         long own = pms.getLong("own")
         long prop = pms.getLong("prop")
         String codProp = pms.getString("cod")
+*/
         Map<String, Object> res = new HashMap<>()
 
         res.put("cols", cols)
@@ -1173,8 +1130,6 @@ class DataDao extends BaseMdbUtils {
             }
         }
         //
-        println("Prop_GearCatchabilitySeine")
-        println(mapPropsFish)
 
         for (String key in mapPropsFish.keySet()) {
             pms.put("max_age", mapPropsFish.get(key).size())
@@ -1197,10 +1152,7 @@ class DataDao extends BaseMdbUtils {
                 }
             }
         }
-
-    mdb.outTable(stFv2)
-    return res
-
+        return res
     }
 
     List<List<Double>> getDataFish(VariantMap pms) {
@@ -1238,8 +1190,6 @@ class DataDao extends BaseMdbUtils {
             order by v1.dateTimeVal
         """, map)
         //
-        //mdb.outTable(st)
-        //
         Map<String, Object> mapParamCatch = new HashMap<>()
         mapParamCatch.put("dependperiod", true)
         mapParamCatch.put("periodType", 71)
@@ -1266,8 +1216,6 @@ class DataDao extends BaseMdbUtils {
                     and v.dbeg='${dt}' and v.dend='${dt}'
             """)
 
-            mdb.outTable(stData)
-
             stData.forEach { StoreRecord it ->
                 {
                     lst.add(it.getDouble("numberval"))
@@ -1280,12 +1228,12 @@ class DataDao extends BaseMdbUtils {
             indexAll++
         }
 
-        println("countAll: ${indexAll}")
-        println("count: ${index}")
+        //println("countAll: ${indexAll}")
+        //println("count: ${index}")
 
-        for (List<Double> lst in lstData) {
-            println(lst)
-        }
+        //for (List<Double> lst in lstData) {
+        //    println(lst)
+        //}
         //
         return lstData
     }
@@ -1494,9 +1442,8 @@ class DataDao extends BaseMdbUtils {
         pms.put("prop", stProp.get(0).getLong("id"))
         Store stBio = loadAlgoNumberFishBio(pms)
         //
-        System.out.println("prop = Prop_WaterNumberFishBio" + " - " + stProp.get(0).getLong("id"))
-        mdb.outTable(stBio)
-/////////////////
+        //System.out.println("prop = Prop_WaterNumberFishBio" + " - " + stProp.get(0).getLong("id"))
+        //mdb.outTable(stBio)
 
         Store stFv2Cpy = mdb.createStore()
 
@@ -1515,7 +1462,7 @@ class DataDao extends BaseMdbUtils {
         }
 
         stFv2.copyTo(stFv2Cpy)
-        stFv2Cpy.get(0).set("name", "1 Kol")
+        //stFv2Cpy.get(0).set("name", "1 Kol")
         int ord = 1
         for (StoreRecord r in stFv2Cpy) {
             r.set("ord", ord++)
@@ -1523,8 +1470,6 @@ class DataDao extends BaseMdbUtils {
         Map<String, Double> mapRasn = new HashMap<>()
         mapRasn = stFv2.get(0).getValues() as Map<String, Double>
 
-        println("mapRasn 0")
-        mdb.outMap(mapRasn)
         int index = 0
         for (StoreRecord r in stFv2) {
             if (r.getLong("id") == 0) {
@@ -1546,11 +1491,13 @@ class DataDao extends BaseMdbUtils {
             index++
         }
 
+/*
         println("Do")
         mdb.outMap(mapRasn)
         mdb.outTable(stFv2)
         mdb.outTable(stFv2Cpy)
-//
+*/
+
 
         //Размазывание
 
@@ -1585,9 +1532,11 @@ class DataDao extends BaseMdbUtils {
         }
 
 //
+/*
         println("После")
         stFv2Cpy.sort("ord") // Возвращаем сортировку по умолчанию для вывода
         mdb.outTable(stFv2Cpy)
+*/
 
         for (StoreRecord r in stFv2Cpy) {
             if (r.getLong("id") == 0) continue
@@ -1603,7 +1552,6 @@ class DataDao extends BaseMdbUtils {
 
         /////
         res.put("store", stFv2Cpy)
-
         return res
     }
 
