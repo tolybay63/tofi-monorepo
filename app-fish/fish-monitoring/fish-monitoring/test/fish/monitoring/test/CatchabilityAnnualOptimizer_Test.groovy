@@ -180,7 +180,7 @@ class CatchabilityAnnualOptimizer_Test extends Apx_Test {
             select id, name, fvs   
             from Prop p, mrfv
             where p.meter=1006 and p.meterrate=mrfv.meterrate and mrfv.sz=2 and ARRAY[mrfv.arr] @> '{1025}'
-                and p.id<>8666
+                --and p.id<>8666
         """, "")
 
         //mdb.outTable(st)

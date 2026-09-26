@@ -1,5 +1,6 @@
 package fish.monitoring.dao
 
+import fish.monitoring.dao.utils.CatchabilityAnnualOptimizer
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
 import jandcode.commons.UtFile
@@ -417,8 +418,8 @@ class DataDao extends BaseMdbUtils {
                     for (StoreField fld in rr.getFields()) {
                         if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
                             //if (rr.getDouble(fld.name) != 0) {
-                                double v = rr.getDouble(fld.name)
-                                rr.set(fld.name, round(v))
+                            double v = rr.getDouble(fld.name)
+                            rr.set(fld.name, round(v))
                             //}
                         }
                     }
@@ -437,14 +438,14 @@ class DataDao extends BaseMdbUtils {
                 params.put("obj2", reservoir)
 
                 for (StoreRecord rr in stCathCpy) {
-                    if (rr.getLong("id")==0) continue
+                    if (rr.getLong("id") == 0) continue
                     for (StoreField fld in rr.getFields()) {
                         if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
                             //if (rr.getDouble(fld.name) != 0) {
-                                params.put("prop", rr.getLong("p" + fld.name.substring(2)))
-                                params.put("numberval", rr.getDouble(fld.name))
-                                params.put("idval", rr.getLong("v" + fld.name.substring(2)))
-                                saveMeter(params)
+                            params.put("prop", rr.getLong("p" + fld.name.substring(2)))
+                            params.put("numberval", rr.getDouble(fld.name))
+                            params.put("idval", rr.getLong("v" + fld.name.substring(2)))
+                            saveMeter(params)
                             //}
                         }
                     }
@@ -892,7 +893,7 @@ class DataDao extends BaseMdbUtils {
             System.out.println("Prop_ReservoirPdy")
             mdb.outTable(stPdy)
             //....
-        } else if (pms.getString("cod") == "Prop_GearCatchabilityNet") {    //Коэффициент уловистости сети
+        } else if (pms.getString("cod") == "Prop_GearCatchabilityNet") {    //2. Коэффициент уловистости сети
             //
             System.out.println("\n\n\n\n")
             StoreRecord r = stFv2.get(0)
@@ -1049,14 +1050,20 @@ class DataDao extends BaseMdbUtils {
                 Map<String, Double> sel_down = new HashMap<>()
                 double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
                 for (StoreField fld in rr.getFields()) {
-                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
-                        sel_up.put(fld.name, 1 / (1 + exp(-k_up.get(fld.name) * (age - mapPeakCatchAge.get(fld.name)))))
-                        sel_down.put(fld.name, 1 / (1 + exp(k_down.get(fld.name) * (age - mapPeakCatchAge.get(fld.name)))))
-                        //
-                        double bell = sel_up.get(fld.name) * sel_down.get(fld.name)
-                        //if (age > mapMaxAgeFish.get(fld.name)) bell = 0 as Double
-                        bell = new BigDecimal(bell).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
-                        rr.set(fld.name, bell)
+                    try {
+                        if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
+                            if (rr.getDouble(fld.name) != 0) {
+                                sel_up.put(fld.name, 1 / (1 + exp(-k_up.get(fld.name) * (age - mapPeakCatchAge.get(fld.name)))))
+                                sel_down.put(fld.name, 1 / (1 + exp(k_down.get(fld.name) * (age - mapPeakCatchAge.get(fld.name)))))
+                                //
+                                double bell = sel_up.get(fld.name) * sel_down.get(fld.name)
+                                //if (age > mapMaxAgeFish.get(fld.name)) bell = 0 as Double
+                                bell = new BigDecimal(bell).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
+                                rr.set(fld.name, bell)
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace()
                     }
                 }
             }
@@ -1108,12 +1115,62 @@ class DataDao extends BaseMdbUtils {
             for (StoreRecord rr in stFv2) {
                 if (rr.getLong("id") == 0) continue
                 for (StoreField fld in rr.getFields()) {
-                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
-                        double k_exp = stFv2.get(0).getDouble(fld.name)
-                        double scale = min(k_exp / mean_beel.get(fld.name) as Double, 0.85 / max_beel.get(fld.name) as Double)
-                        double v = rr.getDouble(fld.name) * scale
-                        v = new BigDecimal(v).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
-                        rr.set(fld.name, v)
+                    try {
+                        if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
+                            double k_exp = stFv2.get(0).getDouble(fld.name)
+                            double scale = min(k_exp / mean_beel.get(fld.name) as Double, 0.85 / max_beel.get(fld.name) as Double)
+                            double v = rr.getDouble(fld.name) * scale
+                            v = new BigDecimal(v).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
+                            rr.set(fld.name, v)
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace()
+                    }
+
+                }
+            }
+        } else if (pms.getString("cod") == "Prop_GearCatchabilitySeine") {
+            //4. Prop_GearCatchabilitySeine 7431 Коэффициент уловистости невода
+            CatchabilityAnnualOptimizer optimizer = new CatchabilityAnnualOptimizer()
+
+            Map<String, List<Long>> mapPropsFish = new HashMap<>()
+            Map<String, Double> fishQ = new HashMap<>()
+            for (StoreField fld in stFv2.get(0).getFields()) {
+                if (fld.name.startsWith("fv") && stFv2.get(0).getLong("p" + fld.name.substring(2)) != 0) {
+                    mapPropsFish.put(fld.name, new ArrayList<Long>())
+                    fishQ.put(fld.name, stFv2.get(0).getDouble(fld.name))
+                }
+            }
+            for (StoreRecord rr in stFv2) {
+                if (rr.getLong("id") == 0) continue
+                for (StoreField fld in rr.getFields()) {
+                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) > 0) {
+                        mapPropsFish.get(fld.name).add(rr.getLong("p" + fld.name.substring(2)))
+                    }
+                }
+            }
+            //
+            println("Prop_GearCatchabilitySeine")
+            println(mapPropsFish)
+
+            for (String key in mapPropsFish.keySet()) {
+                pms.put("max_age", mapPropsFish.get(key).size())
+                pms.put("fvFish", key.substring(2))
+                List<List<Double>> dataFish = getDataFish(pms)
+                //
+                Map fishResult = optimizer.optimize(dataFish as double[][], fishQ.get(key))
+                Map<Integer, Double> qByAge = (Map<Integer, Double>) fishResult.get("qByAge")
+                //
+                int k = 0
+                for (StoreRecord rr in stFv2) {
+                    if (rr.getLong("id") == 0) continue
+                    k++
+                    StoreField fld = rr.findField(key)
+                    Double v = qByAge.get(k)
+                    if (v != null) {
+                        rr.set(fld.name, new BigDecimal(v).setScale(3, RoundingMode.HALF_EVEN).doubleValue())
+                    } else {
+                        rr.set(fld.name, null)
                     }
                 }
             }
@@ -1123,6 +1180,123 @@ class DataDao extends BaseMdbUtils {
         mdb.outTable(stFv2)
 
         return res
+    }
+
+
+    List<List<Double>> getDataFish(VariantMap pms) {
+        long own = pms.getLong("own")   //Reservoir
+        //String props = pms.getString("props")
+        long fvFish = pms.getLong("fvFish")
+        long prop = pms.getLong("prop")
+        //String codProp = pms.getString("cod")
+        String dte = pms.getString("dte")
+        long periodType = pms.getLong("periodType")
+        UtPeriod up = new UtPeriod()
+        String dbeg = up.calcDbeg(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
+        String dend = up.calcDend(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
+        int max_age = pms.getInt("max_age")
+
+        //
+        Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
+        if (setCls.isEmpty()) setCls.add(0L)
+        String whe = "cls in (${setCls.join(",")})"
+        String wheReservoirs = "v6.obj in (${own}) and v1.dateTimeVal between '${dbeg}' and '${dend}'"
+
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Store st = mdb.loadQuery("""
+            with ob as (
+            select
+                id, cls from Obj               
+                where ${whe}
+            )
+            select ob.id as obj, ob.cls,
+                v1.dateTimeVal::date as StartDate,
+                v6.obj as objReservoirShore
+            from ob
+                join DataProp d1 on d1.isObj=1 and d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
+                join DataPropVal v1 on d1.id=v1.dataprop
+                left join DataProp d6 on d6.isObj=1 and d6.objorrelobj=ob.id and d6.prop=:Prop_ReservoirShore
+                left join DataPropVal v6 on d6.id=v6.dataprop
+            where ${wheReservoirs}
+            order by v1.dateTimeVal
+        """, map)
+        //
+        //mdb.outTable(st)
+        //
+        Map<String, Object> mapParamCatch = new HashMap<>()
+        mapParamCatch.put("dependperiod", true)
+        mapParamCatch.put("periodType", 71)
+        mapParamCatch.put("prop", map.get("Prop_NumberFishCaught"))
+        mapParamCatch.put("cod", "Prop_NumberFishCaught")
+
+        Set<Object> idsProp = getIdsProp(mapParamCatch.get("prop") as int, fvFish)
+
+        List<List<Double>> lstData = new ArrayList<>()
+        int indexAll = 0
+        int index = 0
+        for (StoreRecord r in st) {
+            List<Double> lst = new ArrayList<>()
+            long obj = r.getLong("obj")
+            String dt = r.getString("StartDate")
+            mapParamCatch.put("own", obj)
+            mapParamCatch.put("obj2", own)
+            mapParamCatch.put("dte", dte)
+            //
+            Store stData = mdb.loadQuery("""
+                select d.prop, v.numberval, v.id as idval
+                from DataProp d, DataPropVal v
+                where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${obj} and d.prop in (0${idsProp.join(",")}) and d.periodType=71
+                    and v.dbeg='${dt}' and v.dend='${dt}'
+            """)
+
+            mdb.outTable(stData)
+
+            stData.forEach { StoreRecord it ->
+                {
+                    lst.add(it.getDouble("numberval"))
+                }
+            }
+            if (lst.size() == max_age) {
+                lstData.add(index, lst)
+                index++
+            }
+            indexAll++
+        }
+
+        println("countAll: ${indexAll}")
+        println("count: ${index}")
+
+        for (List<Double> lst in lstData) {
+            println(lst)
+        }
+        //
+
+        return lstData
+    }
+
+    Set<Object> getIdsProp(long prop, long fv) {
+        long meter = loadSqlMeta("""
+            select meter from Prop where id=${prop}
+        """, "").get(0).getLong("meter")
+
+        Store st = loadSqlMeta("""
+            with mrfv as (
+            select meterrate,
+                STRING_AGG (cast(factorval as varchar(200)), ',') as fvs,
+                string_to_array(STRING_AGG (cast(factorval as varchar(200)), ','), ',') as arr,
+                ARRAY_LENGTH(STRING_TO_ARRAY(STRING_AGG (cast(factorval as varchar(200)), ','), ','), 1) sz
+            from meterratefv
+            group by meterrate
+            )
+            select id, name, fvs   
+            from Prop p, mrfv
+            where p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=2 and ARRAY[mrfv.arr] @> '{${fv}}'
+                and not (ARRAY[mrfv.arr] @> '{1074}')
+        """, "")
+
+        mdb.outTable(st)
+
+        return st.getUniqueValues("id")
     }
 
 

@@ -53,10 +53,12 @@
           </q-btn>
 
           <q-space/>
-
+<!--               :class="{ 'btn-blink': bSave }" -->
           <div v-if="!cods_save.includes(props.cod)">
             <q-btn
-              :class="{ 'btn-blink': bSave }" :disable="!bSave" :label="$t('save')"
+
+              :disable="!bSave"
+              :label="$t('save')"
               color="primary" dense
               icon="save"
               @click="fnSaveData"
@@ -187,8 +189,12 @@ const props = defineProps({
   cod: String,
 })
 const $q = useQuasar()
-const cods_save = "Prop_WaterFishAverageWeight"   //Не показать если есть
+
+//Не показать если есть
+const cods_save = "Prop_WaterFishAverageWeight"
+//Не показать если есть
 const cods_algo = "Prop_WaterNumberFishBio, Prop_NumberFishCaught, Prop_WaterFishAverageWeight, Prop_GearCatchabilityNet"
+// Суммировать если есть
 const cods_sum = "Prop_WaterNumberFishBio"
 
 console.info("cods_algo", cods_algo, props.cod)
@@ -197,6 +203,8 @@ const loading = ref(false)
 const cols = ref([])
 const rows = ref([])
 const bSave = ref(true)
+
+console.info("Prop_WaterNumberFishBio", bSave.value)
 
 const emit = defineEmits(['ok', 'hide'])
 const {proxy} = getCurrentInstance()
@@ -247,7 +255,7 @@ const fnEditCell = (row, col) => {
       row[col.field] = r.numberval
       row["v" + col.field.substring(2)] = r.idval
 
-      checkSums()
+      //checkSums()
     })
 
 }
@@ -274,7 +282,7 @@ const fnDeleteCell = (row, col) => {
           row["v" + col.field.substring(2)] = null
           row[col.field] = null
 
-          checkSums()
+          //checkSums()
         })
         .catch((error) => {
           notifyError(error.message)
@@ -298,7 +306,8 @@ const fnSave = async () => {
           year: form["dte"].substring(0, 4),
           periodType: form["periodType"],
           numberval: rows.value[0][key],
-          prop: rows.value[0]["p" + key.substring(2)]
+          prop: rows.value[0]["p" + key.substring(2)],
+          idval: rows.value[0]["v" + key.substring(2)]
         }
         //
         params.push(data)
@@ -329,9 +338,10 @@ const fnSave = async () => {
 const fnSaveMatrix = async () => {
   console.info("fnSave", rows.value[0])
   let params = []
-  let param = []
+
   for (let rowKey in rows.value) {
     console.info("rowKey", rowKey)
+    let param = []
     for (let key in rows.value[rowKey]) {
       if (key.includes("fv")) {
         console.info("key", key)
@@ -343,23 +353,25 @@ const fnSaveMatrix = async () => {
             year: form["dte"].substring(0, 4),
             periodType: form["periodType"],
             numberval: rows.value[rowKey][key],
-            prop: rows.value[rowKey]["p" + key.substring(2)]
+            prop: rows.value[rowKey]["p" + key.substring(2)],
+            idval: rows.value[rowKey]["v" + key.substring(2)]
           }
-          //
           param.push(data)
         }
       }
     }
-    params.push(param)
+    // Добавляем массив строки в общий список, только если в нем есть данные
+    if (param.length > 0) {
+      params.push(param)
+    }
   }
 
   if (params.length > 0) {
     console.info("params", params)
-
     const resp = await api
       .post('', {
         method: 'data/saveAlgoMatrix',
-        params: [params],
+        params: [params], // Убедитесь, что бэкенд действительно ждет вложенный массив [[...], [...]]
       })
       .then(() => {
         bSave.value = false
@@ -368,14 +380,13 @@ const fnSaveMatrix = async () => {
       .catch((error) => {
         console.error(error.message)
       })
-      .finally(() => {
-      })
   }
-
 }
 
 const fnSaveData = async () => {
-  if (props.cod === "Prop_NumberFishCaught" || props.cod === "Prop_GearCatchabilityNet")
+  if (props.cod === "Prop_NumberFishCaught" ||
+      props.cod === "Prop_GearCatchabilityNet" ||
+        props.cod === "Prop_GearCatchabilitySeine")
     await fnSaveMatrix()
   else
     await fnSave()
@@ -465,8 +476,10 @@ const loadAlgo = () => {
       console.log("rows", rows.value)
       console.log("rows 0", rows.value[0]._dbValues)
 
+      if (props.cod === "Prop_WaterNumberFishBio") {
+        //checkSums()
+      }
 
-      //checkSums()
     })
     .finally(() => {
       loading.value = false
