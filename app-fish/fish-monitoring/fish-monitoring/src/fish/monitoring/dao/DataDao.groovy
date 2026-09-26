@@ -243,12 +243,16 @@ class DataDao extends BaseMdbUtils {
         """
         Store stVal = mdb.loadQuery(sql)
         // Has data Lev1
-        mdb.outTable(stVal)
-        Set<Object> idsProp1Lev = stProp1Lev.getUniqueValues("id")
-        boolean hasData1Lev = false
-        for (StoreRecord record in stVal) {
-            if (idsProp1Lev.contains(record.getLong("prop"))) {
-                hasData1Lev = true
+        //mdb.outTable(stVal)
+        //todo Анализировать!
+        boolean hasData1Lev = true
+        if (pms.getString("cod") != "Prop_WaterFishAverageWeight") {
+            Set<Object> idsProp1Lev = stProp1Lev.getUniqueValues("id")
+            hasData1Lev = false
+            for (StoreRecord record in stVal) {
+                if (idsProp1Lev.contains(record.getLong("prop"))) {
+                    hasData1Lev = true
+                }
             }
         }
         //
@@ -705,6 +709,7 @@ class DataDao extends BaseMdbUtils {
         //mdb.outTable(stFv2)
         //1. Prop_NumberFishCaught      //Количество пойманных рыб
         if (pms.getString("cod") == "Prop_NumberFishCaught") {
+/*
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
                 select id from Prop where cod='Prop_WaterNumberFishBio'
             """, "")
@@ -732,7 +737,8 @@ class DataDao extends BaseMdbUtils {
                     }
                 }
                 index++
-            }
+            }*/
+            int ccc = 0
         } else if (pms.getString("cod") == "Prop_CalcPdy") {    //Предельно допустимый улов, экземпляр
             Store stProp = apiMeta().get(ApiMeta).loadSql("""
                 select id from Prop where cod='Prop_ReservoirPdy'
@@ -986,7 +992,152 @@ class DataDao extends BaseMdbUtils {
         return res
     }
 
-    //////////////
+    //******************** Algoritms ***************************************//
+
+    //Prop_WaterFishAverageWeight
+    @DaoMethod
+    Map<String, Object> goWaterFishAverageWeight(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = pms.getLong("own")
+        params.put("obj2", own)
+
+        Map<String, Object> mapMatrix = loadAlgoMatrix(params)
+        Store stFv2 = mapMatrix.get("stMatrix") as Store
+        List<Map<String, String>> cols = mapMatrix.get("cols") as List<Map<String, String>>
+        Map<String, Object> res = new HashMap<>()
+
+        res.put("cols", cols)
+        //
+
+        Map<String, Double> mapSum = new HashMap<>()
+        Map<String, Integer> mapCnt = new HashMap<>()
+        for (StoreRecord r in stFv2) {
+            if (r.getLong("id") == 0) continue
+            for (StoreField fld in r.getFields()) {
+                if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                    if (r.getDouble(fld.name) > 0) {
+                        mapSum.put(fld.name, UtCnv.toDouble(mapSum.get(fld.name)) + r.getDouble(fld.name))
+                        mapCnt.put(fld.name, UtCnv.toInt(mapCnt.get(fld.name)) + 1)
+                    }
+                }
+            }
+        }
+
+        for (StoreField fld in stFv2.get(0).getFields()) {
+            if (fld.name.startsWith("fv") && stFv2.get(0).getLong("p" + fld.name.substring(2)) != 0) {
+                if (mapSum.get(fld.name)) {
+                    double v = UtCnv.toDouble(mapSum.get(fld.name)) / mapCnt.get(fld.name)
+                    v = new BigDecimal(v).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
+                    stFv2.get(0).set(fld.name, v)
+                }
+            }
+        }
+        //
+        res.put("store", stFv2)
+        return res
+
+    }
+
+    //Prop_NumberFishCaught
+    @DaoMethod
+    Map<String, Object> goNumberFishCaught(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = pms.getLong("own")
+        params.put("obj2", own)
+
+        Map<String, Object> mapMatrix = loadAlgoMatrix(params)
+        Store stFv2 = mapMatrix.get("stMatrix") as Store
+        Store stFv2Cpy = mapMatrix.get("stMatrixCpy") as Store
+        List<Map<String, String>> cols = mapMatrix.get("cols") as List<Map<String, String>>
+        Map<String, Object> res = new HashMap<>()
+
+        res.put("cols", cols)
+        res.put("store", stFv2)
+        //
+        Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select id from Prop where cod='Prop_WaterNumberFishBio'
+            """, "")
+        pms.put("cod", "Prop_WaterNumberFishBio")
+        pms.put("prop", stProp.get(0).getLong("id"))
+        pms.put("obj2", own)
+        Store stBio = loadAlgoNumberFishBio(pms)
+        //
+        int index = 0
+        for (StoreRecord r in stFv2) {
+            if (r.getLong("id") == 0) {
+                index++
+                continue
+            }
+            for (StoreField fld in r.getFields()) {
+                if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                    if (stFv2.get(0).getDouble(fld.name) != 0 && stBio.get(index).getDouble(fld.name) != 0) {
+                        double v = round(stFv2.get(0).getDouble(fld.name) * stBio.get(index).getDouble(fld.name))
+                        r.set(fld.name, v)
+                    }
+                }
+            }
+            index++
+        }
+        //
+        stFv2.copyTo(stFv2Cpy)
+        int ord = 1
+        for (StoreRecord rr in stFv2Cpy) {
+            rr.set("ord", ord++)
+        }
+        Map<String, Double> mapRasn = new HashMap<>()
+        mapRasn = stFv2.get(0).getValues() as Map<String, Double>
+        //
+
+        for (StoreRecord r in stFv2) {
+            if (r.getLong("id") == 0) continue
+
+            for (StoreField fld in r.getFields()) {
+                if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
+                    mapRasn.put(fld.name, UtCnv.toDouble(mapRasn.get(fld.name)) - r.getDouble(fld.name))
+                }
+            }
+        }
+        //
+        mdb.outMap(mapRasn)
+        //
+
+        // Размазывание
+        for (StoreField fld in stFv2.get(0).getFields()) {
+            // Нас интересуют только fv-колонки
+            if (!fld.name.startsWith("fv")) continue
+            // Проверяем, есть ли вообще итог по этой колонке
+            if (stFv2.get(0).getDouble(fld.name) == 0) continue
+
+            int razn = abs(UtCnv.toInt(mapRasn.get(fld.name)))
+            if (razn == 0) continue
+
+            double eps = UtCnv.toInt(mapRasn.get(fld.name)) > 0 ? 1 as double : -1 as double
+
+            stFv2Cpy.sort("ord")
+            stFv2Cpy.sort("*" + fld.name)
+
+            int i = 1
+            for (StoreRecord rr in stFv2Cpy) {
+                if (rr.getLong("id") == 0) continue // пропускаем Итого
+                if (rr.getLong("p" + fld.name.substring(2)) == 0) continue
+
+                rr.set(fld.name, rr.getDouble(fld.name) + eps)
+
+                if (i == razn) {
+                    break
+                }
+                i++
+            }
+        }
+        //
+        stFv2Cpy.sort("ord")
+        mdb.outTable(stFv2)
+        mdb.outTable(stFv2Cpy)
+        //
+        res.put("store", stFv2Cpy)
+        return res
+    }
+
     //Prop_GearCatchabilitySeine 7431 Коэффициент уловистости невода
     @DaoMethod
     Map<String, Object> goAlgoCatchabilitySeine(Map<String, Object> params) {

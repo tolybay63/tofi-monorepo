@@ -64,10 +64,10 @@
               @click="fnSaveData"
             />
           </div>
-
+<!--  :disable="!bAlgo"-->
           <div v-if="!cods_algo.includes(props.cod)">
             <q-btn
-              :disable="bSave"
+
               :label="$t('goAlgo')" class="q-ml-lg" color="primary"
               dense icon="settings"
               @click="fnCalc"
@@ -175,7 +175,7 @@
 </template>
 
 <script setup>
-import {getCurrentInstance, onMounted, reactive, ref} from 'vue'
+import {getCurrentInstance, onMounted, reactive, ref, watch} from 'vue'
 import {api} from '@/boot/axios'
 import {date, useQuasar} from "quasar";
 import {notifyError, notifyInfo, notifySuccess} from "@/utils/jsutils.js";
@@ -188,9 +188,12 @@ const props = defineProps({
 const $q = useQuasar()
 
 //Не показать если есть
-const cods_save = "Prop_WaterFishAverageWeight"
+//Prop_WaterFishAverageWeight
+const cods_save = ""
 //Не показать если есть
-const cods_algo = "Prop_WaterNumberFishBio, Prop_NumberFishCaught, Prop_WaterFishAverageWeight, Prop_GearCatchabilityNet"
+const cods_algo = "Prop_WaterNumberFishBio, Prop_GearCatchabilityNet"
+//Prop_NumberFishCaught
+//Prop_WaterFishAverageWeight,
 // Суммировать если есть
 const cods_sum = "Prop_WaterNumberFishBio"
 
@@ -200,9 +203,10 @@ const loading = ref(false)
 const cols = ref([])
 const rows = ref([])
 const bSave = ref(false)
+const bAlgo = ref(false)
 const bClose = ref(true)
 
-console.info("Prop_WaterNumberFishBio", bSave.value)
+console.info("Prop_WaterNumberFishBio bSave", bSave.value)
 
 const emit = defineEmits(['ok', 'hide'])
 const {proxy} = getCurrentInstance()
@@ -338,11 +342,11 @@ const fnSaveMatrix = async () => {
   let params = []
 
   for (let rowKey in rows.value) {
-    console.info("rowKey", rowKey)
+    //console.info("rowKey", rowKey)
     let param = []
     for (let key in rows.value[rowKey]) {
       if (key.includes("fv")) {
-        console.info("key", key)
+        //console.info("key", key)
         if (rows.value[rowKey][key]) {
           let data = {
             obj: form["own"],
@@ -365,7 +369,7 @@ const fnSaveMatrix = async () => {
   }
 
   if (params.length > 0) {
-    console.info("params", params)
+    //console.info("params", params)
     const resp = await api
       .post('', {
         method: 'data/saveAlgoMatrix',
@@ -386,24 +390,30 @@ const fnSaveData = async () => {
       props.cod === "Prop_GearCatchabilityNet" ||
         props.cod === "Prop_GearCatchabilitySeine")
     await fnSaveMatrix()
-  else
-    await fnSave()
+  else {
+    if (props.cod === "Prop_WaterFishAverageWeight")
+      await fnSave()
+  }
 }
 
 const fnCalc = async () => {
-  bSave.value = !bSave.value
-  if (props.cod === "Prop_GearCatchabilitySeine")
-    await algoGearCatchabilitySeine()
-
-}
-
-const algoGearCatchabilitySeine = async () => {
   loading.value = true
   bClose.value = false
   form.cod = props.cod
+  //
+  bSave.value = !bSave.value
+  let method = ""
+  if (props.cod === "Prop_GearCatchabilitySeine")
+    method = 'data/goAlgoCatchabilitySeine'
+  else if (props.cod === "Prop_NumberFishCaught")
+    method = 'data/goNumberFishCaught'
+  else if (props.cod === "Prop_WaterFishAverageWeight")
+    method = 'data/goWaterFishAverageWeight'
+
+  //
   api
     .post('', {
-      method: 'data/goAlgoCatchabilitySeine',
+      method: method,
       params: [form],
     })
     .then((response) => {
@@ -415,6 +425,46 @@ const algoGearCatchabilitySeine = async () => {
       loading.value = false
     })
 
+}
+
+const checkCondition = () => {
+  if (!rows.value || rows.value.length === 0) return
+
+  const rowTotal = rows.value[0] // Строка "Количество" с сохраненными данными из базы
+  const ageRows = rows.value.filter(r => r.id !== 0) // Все строки возрастов
+  const fishCols = cols.value.filter(c => c.field && c.field.includes('fv'))
+
+  let ageTotal = 0
+  for (const col of fishCols) {
+    ageTotal += parseFloat(rowTotal[col.field]) || 0
+  }
+  if (props.cod === "Prop_NumberFishCaught") {
+    if (ageTotal === 0) {
+      bSave.value = false
+      bAlgo.value = false
+      return;
+    }
+  }
+
+  for (const col of fishCols) {
+    // Сохраненное значение из БД (если null/undefined — считаем 0)
+    const dbVal = parseFloat(rowTotal._dbValues?.[col.field]) || 0
+
+    // Считаем сумму по возрастам
+    let ageSum = 0
+    for (const r of ageRows) {
+      ageSum += parseFloat(r[col.field]) || 0
+    }
+
+    //
+    if (props.cod === "Prop_NumberFishCaught") {
+      if (ageSum === 0) {
+        bSave.value = false
+        bAlgo.value = true
+      }
+    }
+    //
+  }
 }
 
 const checkSums = () => {
@@ -429,21 +479,16 @@ const checkSums = () => {
   for (const col of fishCols) {
     // Сохраненное значение из БД (если null/undefined — считаем 0)
     //const dbVal = parseFloat(rowTotal[col.field]) || 0
-    //const dbVal = parseFloat(rowTotal._dbValues?.[col.field]) || 0
-    const dbVal = parseInt(rowTotal._dbValues?.[col.field]) || 0
+    //const dbVal = parseInt(rowTotal._dbValues?.[col.field]) || 0
+    const dbVal = parseFloat(rowTotal._dbValues?.[col.field]) || 0
 
     // Считаем сумму по возрастам
     let ageSum = 0
     for (const r of ageRows) {
-      //ageSum += parseFloat(r[col.field]) || 0
-      ageSum += parseInt(r[col.field]) || 0
+      ageSum += parseFloat(r[col.field]) || 0
     }
-
     // Если есть данные и они не равны хотя бы для одного вида рыбы
     let eps = 0.001
-    if (props.cod === "Prop_NumberFishCaught") {
-      eps = 5
-    }
 
     if (Math.abs(dbVal - ageSum) > eps) {
       hasMismatch = true
@@ -456,7 +501,7 @@ const checkSums = () => {
 
   // Если есть несовпадение -> bSave = true (кнопка активна и мигает)
   // Если у всех все совпало -> bSave = false (кнопка заблокирована, алгоритм доступен)
-  bSave.value = hasMismatch
+  bAlgo.value = !hasMismatch
 }
 
 const summ = (c) => {
@@ -494,7 +539,8 @@ const loadAlgo = () => {
       console.log("rows 0", rows.value[0]._dbValues)
 
       if (props.cod === "Prop_NumberFishCaught") {
-        checkSums()
+        //checkSums()
+        checkCondition()
       }
     })
     .finally(() => {
@@ -520,12 +566,28 @@ const onOKClick = () => {
   hide()
 }
 
-/*const onCancelClick = () => {
-  hide()
-}*/
+const setParams = (cod) => {
+  console.info("setParams", cod)
+
+  if (cod === "Prop_NumberFishCaught") {
+    //checkSums()
+    checkCondition()
+  }
+
+}
+
+watch(
+  () => props.cod,
+  (newCod) => {
+    setParams(newCod);
+  },
+  {immediate: true}
+)
 
 onMounted(() => {
   loading.value = true
+  console.info("Mounted")
+
   api
     .post('', {method: 'data/loadPeriodType', params: []})
     .then((response) => {
