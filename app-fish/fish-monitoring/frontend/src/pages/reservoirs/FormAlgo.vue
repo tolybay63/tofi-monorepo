@@ -53,7 +53,7 @@
           </q-btn>
 
           <q-space/>
-<!--               :class="{ 'btn-blink': bSave }" -->
+
           <div v-if="!cods_save.includes(props.cod)">
             <q-btn
 
@@ -107,13 +107,10 @@
                   </div>
                   <div v-else>
                     <div v-if="props.row['id']===0">
-                      <div v-if="cods_sum.includes(cod)">
-                        <!--                        {{ summ(props.col) }}-->
-                        {{ summ(props.col) }}
-                      </div>
-                      <div v-else>
+<!--    v-if="cods_sum.includes(cod)"                  -->
+
                         {{ props.value }}
-                      </div>
+
                     </div>
                     <div v-else>
                       {{ props.value }}
@@ -166,7 +163,7 @@
       </q-card-section>
       <q-card-actions align="right" class="q-pr-lg">
         <q-btn
-
+          :disable="!bClose"
           :label="$t('close')"
           color="primary"
           icon="close"
@@ -202,7 +199,8 @@ console.info("cods_algo", cods_algo, props.cod)
 const loading = ref(false)
 const cols = ref([])
 const rows = ref([])
-const bSave = ref(true)
+const bSave = ref(false)
+const bClose = ref(true)
 
 console.info("Prop_WaterNumberFishBio", bSave.value)
 
@@ -371,7 +369,7 @@ const fnSaveMatrix = async () => {
     const resp = await api
       .post('', {
         method: 'data/saveAlgoMatrix',
-        params: [params], // Убедитесь, что бэкенд действительно ждет вложенный массив [[...], [...]]
+        params: [params], //бэкенд ждет вложенный массив [[...], [...]]
       })
       .then(() => {
         bSave.value = false
@@ -392,11 +390,30 @@ const fnSaveData = async () => {
     await fnSave()
 }
 
-const fnCalc = () => {
-  setTimeout(() => {
-    bSave.value = !bSave.value
-    notifyInfo("Calculation...")
-  }, 2000)
+const fnCalc = async () => {
+  bSave.value = !bSave.value
+  if (props.cod === "Prop_GearCatchabilitySeine")
+    await algoGearCatchabilitySeine()
+
+}
+
+const algoGearCatchabilitySeine = async () => {
+  loading.value = true
+  bClose.value = false
+  form.cod = props.cod
+  api
+    .post('', {
+      method: 'data/goAlgoCatchabilitySeine',
+      params: [form],
+    })
+    .then((response) => {
+      cols.value = response.data.result.cols
+      rows.value = response.data.result["store"]["records"]
+    })
+    .finally(() => {
+      bClose.value = true
+      loading.value = false
+    })
 
 }
 
@@ -476,10 +493,9 @@ const loadAlgo = () => {
       console.log("rows", rows.value)
       console.log("rows 0", rows.value[0]._dbValues)
 
-      if (props.cod === "Prop_WaterNumberFishBio") {
-        //checkSums()
+      if (props.cod === "Prop_NumberFishCaught") {
+        checkSums()
       }
-
     })
     .finally(() => {
       loading.value = false
