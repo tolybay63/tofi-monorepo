@@ -386,12 +386,10 @@ const fnSaveMatrix = async () => {
 }
 
 const fnSaveData = async () => {
-  if (props.cod === "Prop_NumberFishCaught" ||
-      props.cod === "Prop_GearCatchabilityNet" ||
-        props.cod === "Prop_GearCatchabilitySeine")
+  if (props.cod === "Prop_GearCatchabilityNet" || props.cod === "Prop_GearCatchabilitySeine")
     await fnSaveMatrix()
   else {
-    if (props.cod === "Prop_WaterFishAverageWeight")
+    if (props.cod === "Prop_WaterFishAverageWeight" || props.cod === "Prop_NumberFishCaught")
       await fnSave()
   }
 }
