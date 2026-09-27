@@ -64,7 +64,7 @@
               @click="fnSaveData"
             />
           </div>
-<!--  :disable="!bAlgo"-->
+          <!--  :disable="!bAlgo"-->
           <div v-if="!cods_algo.includes(props.cod)">
             <q-btn
 
@@ -107,9 +107,9 @@
                   </div>
                   <div v-else>
                     <div v-if="props.row['id']===0">
-<!--    v-if="cods_sum.includes(cod)"                  -->
+                      <!--    v-if="cods_sum.includes(cod)"                  -->
 
-                        {{ props.value }}
+                      {{ props.value }}
 
                     </div>
                     <div v-else>
@@ -191,9 +191,10 @@ const $q = useQuasar()
 //Prop_WaterFishAverageWeight
 const cods_save = ""
 //Не показать если есть
-const cods_algo = "Prop_WaterNumberFishBio, Prop_GearCatchabilityNet"
+const cods_algo = "Prop_WaterNumberFishBio"
 //Prop_NumberFishCaught
 //Prop_WaterFishAverageWeight,
+//Prop_GearCatchabilityNet
 // Суммировать если есть
 const cods_sum = "Prop_WaterNumberFishBio"
 
@@ -205,8 +206,6 @@ const rows = ref([])
 const bSave = ref(false)
 const bAlgo = ref(false)
 const bClose = ref(true)
-
-console.info("Prop_WaterNumberFishBio bSave", bSave.value)
 
 const emit = defineEmits(['ok', 'hide'])
 const {proxy} = getCurrentInstance()
@@ -342,7 +341,7 @@ const fnSaveMatrix = async () => {
   let params = []
 
   for (let rowKey in rows.value) {
-    //console.info("rowKey", rowKey)
+    if (rowKey === 0) continue
     let param = []
     for (let key in rows.value[rowKey]) {
       if (key.includes("fv")) {
@@ -362,6 +361,7 @@ const fnSaveMatrix = async () => {
         }
       }
     }
+    //}
     // Добавляем массив строки в общий список, только если в нем есть данные
     if (param.length > 0) {
       params.push(param)
@@ -386,10 +386,10 @@ const fnSaveMatrix = async () => {
 }
 
 const fnSaveData = async () => {
-  if (props.cod === "Prop_GearCatchabilityNet" || props.cod === "Prop_GearCatchabilitySeine")
+  if (props.cod === "Prop_GearCatchabilityNet" || props.cod === "Prop_GearCatchabilitySeine" || props.cod === "Prop_NumberFishCaught")
     await fnSaveMatrix()
   else {
-    if (props.cod === "Prop_WaterFishAverageWeight" || props.cod === "Prop_NumberFishCaught")
+    if (props.cod === "Prop_WaterFishAverageWeight")
       await fnSave()
   }
 }
@@ -407,6 +407,9 @@ const fnCalc = async () => {
     method = 'data/goNumberFishCaught'
   else if (props.cod === "Prop_WaterFishAverageWeight")
     method = 'data/goWaterFishAverageWeight'
+  else if (props.cod === "Prop_GearCatchabilityNet")
+    method = 'data/goAlgoCatchabilityNet'
+
 
   //
   api
