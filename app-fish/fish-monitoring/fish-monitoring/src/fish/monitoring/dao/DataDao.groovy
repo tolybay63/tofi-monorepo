@@ -2406,9 +2406,29 @@ class DataDao extends BaseMdbUtils {
     Store saveReservoirMeter(Map<String, Object> rec) {
         long obj = UtCnv.toLong(rec.get("obj"))
         long prop = UtCnv.toLong(rec.get("prop"))
+        //
+        //
+        Store stProp = loadSqlMeta("""
+            select p.id, p.cod, m.kfrombase, p.digit 
+            from prop p, measure m 
+            where p.id=${prop} and p.measure=m.id
+        """, "")
+
+        //
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("kfrombase")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+        //
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        value = value / koef
+        if (digit) value = value.round(digit)
+
+        //
         long idVal = UtCnv.toLong(rec.get("idval"))
         boolean hasValue = rec.containsKey("numberval")
-        double value = UtCnv.toDouble(rec.get("numberval"))
+
         boolean dependperiod = UtCnv.toInt(rec.get("dependperiod") == 1)
         long pt = UtCnv.toLong(rec.get("pt"))
         String dt = UtCnv.toString(rec.get("dt"))
@@ -4151,7 +4171,7 @@ class DataDao extends BaseMdbUtils {
 
         //
         Integer digit = null
-        double koef = stProp.get(0).getDouble("koef")
+        double koef = stProp.get(0).getDouble("kfrombase")
         if (koef == 0) koef = 1
         if (!stProp.get(0).isValueNull("digit"))
             digit = stProp.get(0).getInt("digit")
