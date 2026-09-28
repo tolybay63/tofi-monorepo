@@ -102,6 +102,18 @@
                   </q-tooltip>
                 </q-btn>
 
+                <q-btn
+                  v-if="hasTarget('mon:rpv:algo')"
+                  icon="settings"
+                  dense
+                  color="green"
+                  class="q-ml-lg"
+                  @click="goAlgoStok()"
+                >
+                  <q-tooltip transition-show="rotate" transition-hide="rotate">
+                    {{ $t('deletingRecord') }}
+                  </q-tooltip>
+                </q-btn>
 
                 <q-space />
                 <q-input
@@ -249,6 +261,21 @@ const getColumns = () => [
 ]
 
 const cols = ref(getColumns())
+
+const goAlgoStock = () => {
+  console.log("Algo",  reservoirs.value, dbeg.value, dend.value)
+  api
+    .post('', {
+      method: 'data/fishStock',
+      params: [reservoirs.value, dbeg.value, dend.value],
+    })
+    .then(() => {
+      notifyInfo("success")
+    })
+    .catch((error) => {
+      console.log(error.message)
+    })
+}
 
 
 const goAlgo = () => {

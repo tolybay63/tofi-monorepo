@@ -649,8 +649,9 @@ class DataDao extends BaseMdbUtils {
             if (stArea.size() == 0)
                 throw new XError("Не найден площадь водоема за [${year}г]")
 
-            double areaReseirvoir = stArea.get(0).getDouble("numberval")*1000000
-
+            double areaReseirvoir = stArea.get(0).getDouble("numberval")
+            double kFromBase = getKfromBase(0, "Prop_WaterArea")
+            areaReseirvoir = areaReseirvoir * kFromBase
 
             //
             int index = 0
@@ -715,6 +716,24 @@ class DataDao extends BaseMdbUtils {
 
 
         }
+    }
+
+    /**
+     *  параметры либо ид либо код
+     * @param prop
+     * @param cod
+     * @return
+     */
+    double getKfromBase(long prop, String cod) {
+        if (prop==0 && cod.isEmpty())
+            throw new XError("Не указан ид или код пропа")
+
+        Store st = loadSqlMeta("""
+            select p.id, p.cod, m.kfrombase, p.digit  
+            from prop p, measure m 
+            where p.measure=m.id and p.id=${prop}
+        """, "")
+        return st.get(0).getDouble("kFromBase")
     }
 
     @DaoMethod
@@ -2307,29 +2326,47 @@ class DataDao extends BaseMdbUtils {
 
     private Store loadMetersOfOwnerWithPeriod(long own, int isObj, long prop,
                                               String dte, long periodType, String props) {
-        //String props = "'Prop_WaterArea','Prop_WaterLevel','Prop_WaterLength','Prop_ReservoirWidth','Prop_ReservoirDepth','Prop_WaterFishAverageWeight','Prop_WaterNumberFishBio','Prop_CalcPdy','Prop_ReservoirPdy','Prop_CalcWaterFluct','Prop_NumberFishCaught','Prop_GearCatchabilityNet','Prop_GearCatchabilitySeine'"
         if (prop > 0) {
-            return mdb.loadQuery("""
+            Store st = mdb.loadQuery("""
                 select d.prop as id, v.numberval, v.dbeg, v.dend, v.id as idval
                 from DataProp d
                     left join DataPropVal v on d.id=v.dataProp
                 where d.isObj=${isObj} and d.objorrelobj=${own} and d.prop=${prop}
             """)
+            //
+            Set<Object> idsProp = st.getUniqueValues("id")
+            Store stPropInfo = loadSqlMeta("""
+                select p.id, m.kfrombase, p.digit  
+                from prop p, measure m 
+                where p.measure=m.id and p.id in (0${idsProp.join(",")})
+            """, "")
+            StoreIndex indPropInfo = stPropInfo.getIndex("id")
+            //
+            for (StoreRecord r in st) {
+                StoreRecord rec = indPropInfo.get(r.getLong("id"))
+                if (rec != null) {
+                    double kf = rec.getDouble("kfrombase")
+                    if (kf == 0) kf = 1
+                    r.set("numberval", r.getDouble("numberval") * kf)
+                }
+            }
+            //
+            return st
         } else {
             if (own == 0)
                 return mdb.createStore()
             Store st = apiMeta().get(ApiMeta).loadSql("""
                 WITH RECURSIVE r AS (
-                    SELECT p.id, p.cod, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                    SELECT p.id, p.cod, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval, m.kfrombase
                     FROM prop p, Measure m
                     WHERE p.measure=m.id and p.cod in (${props})    
                     UNION ALL    
-                    SELECT p1.id, p1.cod, p1.parent, p1.name || ' ('||m1.name||')' as name, p1.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval
+                    SELECT p1.id, p1.cod, p1.parent, p1.name || ' ('||m1.name||')' as name, p1.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval, m1.kfrombase
                     FROM  prop p1
                     JOIN Measure m1 ON p1.measure=m1.id
                     JOIN r ON p1.parent = r.id
                 )
-                SELECT null as obj, id, parent, cod, name, dependperiod, dbeg, dend, numberval, idval
+                SELECT null as obj, id, parent, cod, name, dependperiod, dbeg, dend, numberval, idval, kfrombase
                 FROM r;
             """, "")
 
@@ -2348,12 +2385,15 @@ class DataDao extends BaseMdbUtils {
                 where d.isObj=${isObj} and d.objorrelobj=${own} and d.periodType is null and '${dte}' between v.dbeg and v.dend 
                     and d.prop in (0${idsProp.join(",")})                
             """)
+
             StoreIndex indData = stData.getIndex("prop")
             for (StoreRecord r in st) {
                 StoreRecord rec = indData.get(r.getLong("id"))
                 if (rec != null) {
+                    double kf = r.getDouble("kfrombase")
+                    if (kf == 0) kf = 1
                     r.set("idval", rec.getLong("id"))
-                    r.set("numberval", rec.getDouble("numberval"))
+                    r.set("numberval", rec.getDouble("numberval") * kf)
                     r.set("dbeg", rec.getString("dbeg"))
                     r.set("dend", rec.getString("dend"))
                 }
@@ -4102,8 +4142,29 @@ class DataDao extends BaseMdbUtils {
     private long saveMeter(Map<String, Object> rec) {
         long obj = UtCnv.toLong(rec.get("obj"))
         long prop = UtCnv.toLong(rec.get("prop"))
+        //
+        Store stProp = loadSqlMeta("""
+            select p.id, p.cod, m.kfrombase, p.digit 
+            from prop p, measure m 
+            where p.id=${prop} and p.measure=m.id
+        """, "")
+
+        //
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+        //
+
         long idVal = UtCnv.toLong(rec.get("idval"))
         double value = UtCnv.toDouble(rec.get("numberval"))
+
+        //
+        value = value / koef
+        if (digit) value = value.round(digit)
+        //
+
         boolean dependperiod = UtCnv.toBoolean(rec.get("dependperiod"))
         Long pt = null
         String dbeg = "1800-01-01"
@@ -4170,14 +4231,15 @@ class DataDao extends BaseMdbUtils {
                 )
                 SELECT * FROM r;
             """, "")
+
             Set<Object> setIds = stTmp.getUniqueValues("id")
             idsPropAll.addAll(setIds)
         }
         //
         Store st = loadSqlMeta("""
-            select id, parent, cod, name, null as idval, null as numberval
-            from Prop 
-            where id in (${idsPropAll.join(",")})
+            select p.id, p.parent, p.cod, p.name, null as idval, null as numberval, m.kfrombase
+            from Prop p, measure m 
+            where p.measure=m.id and p.id in (${idsPropAll.join(",")})
         """, "")
         // Value
         Store stVal = mdb.loadQuery("""
@@ -4193,78 +4255,14 @@ class DataDao extends BaseMdbUtils {
         for (StoreRecord r in st) {
             StoreRecord rec = indStVal.get(r.getLong("id"))
             if (rec != null) {
+                double kf = r.getDouble("kfrombase")
+                if (kf == 0) kf = 1
+                r.set("numberval", rec.getDouble("numberval") * kf)
                 r.set("idval", rec.getLong("idval"))
-                r.set("numberval", rec.getDouble("numberval"))
             }
         }
         return st
     }
-
-    /*private Store loadMetersWithPeriod(long own, String props) {
-        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
-        map.put("own", own)
-        //year1 & year2
-        Map<String, Long> mapY = getYears(own)
-        long year1 = mapY.get("year1")
-        long year2 = mapY.get("year2")
-        //
-        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
-        List<String> sel = new ArrayList<>();
-        for (long i in 0..count) {
-            String year = UtCnv.toString(year1 + i)
-            sel.add("null as id" + year + ",  null  as v" + year)
-        }
-        //
-        Set<Object> idsPropAll = new HashSet<>()
-        for (String cod in props.split(",")) {
-            Store stTmp = loadSqlMeta("""
-                WITH RECURSIVE r AS (
-                    SELECT id
-                    FROM prop
-                    WHERE cod='${cod}'
-                    UNION ALL
-                    SELECT c.id
-                    FROM prop c
-                    JOIN r ON c.parent = r.id
-                )
-                SELECT * FROM r;
-            """, "")
-            Set<Object> setIds = stTmp.getUniqueValues("id")
-            idsPropAll.addAll(setIds)
-        }
-
-        Store st = loadSqlMeta("""
-            select p.id, p.parent, p.name, ${sel.join(",")}
-            from prop p
-            where p.id in (${idsPropAll.join(",")})
-        """, "")
-
-        // sql for value
-        String sqlVal = """
-            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key
-            from Obj o
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop in (${idsPropAll.join(",")}) and d1.periodType is not null
-                join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
-            where o.id=${own}
-        """
-        Store stVal = mdb.loadQuery(sqlVal)
-        StoreIndex indVal = stVal.getIndex("key")
-        //mdb.outTable(stVal)
-        for (StoreRecord r in st) {
-            for (StoreField fld in r.fields) {
-                if (fld.name.startsWith("v")) {
-                    StoreRecord rec = indVal.get(r.getString("id") + "_" + fld.name)
-                    if (rec != null) {
-                        r.set("id" + fld.name.substring(1), rec.get("id"))
-                        r.set(fld.name, rec.get("numberval"))
-                    }
-                }
-            }
-        }
-        //mdb.outTable(st)
-        return st
-    }*/
-
 
 //************************************************************************//
 
@@ -4698,7 +4696,7 @@ class DataDao extends BaseMdbUtils {
 
     private long getUser() throws Exception {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
-        long au = 1 //authSvc.getCurrentUser().getAttrs().getLong("id")
+        long au = authSvc.getCurrentUser().getAttrs().getLong("id")
         if (au == 0)
             throw new XError("notLoginned")
         return au
