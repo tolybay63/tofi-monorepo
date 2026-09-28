@@ -1,5 +1,6 @@
 package fish.monitoring.test
 
+import fish.monitoring.dao.DataDao
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
@@ -7,6 +8,13 @@ import org.junit.jupiter.api.Test
 
 class Db_Test extends Apx_Test {
 
+    @Test
+    void fishstock_test() {
+        DataDao dao = mdb.createDao(DataDao.class)
+
+        dao.fishStock(1000L as String, "2015-01-01", "2015-12-31")
+
+    }
 
     @Test
     void test1() {

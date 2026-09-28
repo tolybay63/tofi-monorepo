@@ -16,6 +16,7 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreField
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import org.junit.jupiter.api.Test
 import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
 import tofi.api.dta.model.utils.EntityMdbUtils
@@ -86,6 +87,202 @@ class DataDao extends BaseMdbUtils {
         }
         return st.getUniqueValues("factorval") as Set<Object>
     }
+
+
+    @DaoMethod
+    Map<String, Object> loadAlgoMatrixPopulation(Map<String, Object> params) {
+        VariantMap pms = new VariantMap(params)
+        long own = pms.getLong("own")
+        long obj2 = pms.getLong("obj2")
+        long prop = pms.getLong("prop")
+        boolean dependperiod = pms.getBoolean("dependperiod")
+        String dte = pms.getString("dte")
+        long periodType = pms.getLong("periodType")
+        //
+        long meter = loadSqlMeta("""
+            select meter from Prop where id=${prop}
+        """, "").get(0).getLong("meter")
+        //
+        Store stProp = loadSqlMeta("""
+            with mrfv as (
+            select meterrate,
+                STRING_AGG (cast(factorval as varchar(200)), ',') as fvs,
+                string_to_array(STRING_AGG (cast(factorval as varchar(4000)), ','), ',') as arr,
+                ARRAY_LENGTH(STRING_TO_ARRAY(STRING_AGG (cast(factorval as varchar(200)), ','), ','), 1) sz
+            from meterratefv
+            group by meterrate
+            )
+            select p.id, fvs   
+            from Prop p, mrfv, (
+                WITH RECURSIVE r AS (
+                    SELECT id
+                    FROM prop
+                    WHERE cod='Prop_sizePopulationOut1AreaMetho'    
+                    UNION ALL    
+                    SELECT c.id
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r
+            ) t
+            where p.id=t.id and p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=2 and ARRAY[mrfv.arr] @> '{1129}'
+            union all
+            select p.id, fvs   
+            from Prop p, mrfv, (
+                WITH RECURSIVE r AS (
+                    SELECT id
+                    FROM prop
+                    WHERE cod='Prop_sizePopulationOut1AreaMetho'    
+                    UNION ALL    
+                    SELECT c.id
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r
+            ) t
+            where p.id=t.id and p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=3 and ARRAY[mrfv.arr] @> '{1129}'
+        """, "")
+
+        Set<Object> idsProp = stProp.getUniqueValues("id")
+        StoreIndex indProp = stProp.getIndex("fvs")
+        //
+        Set<Object> fvsFromRelObj = getFvs(obj2)
+        //
+        Set<Long> setFv1 = new HashSet<>()
+        Set<Long> setFv2 = new HashSet<>()
+        for (StoreRecord r in stProp) {
+            String[] arr = r.getString("fvs").split(",")
+            if (arr.size() == 2) {
+                if (fvsFromRelObj.contains(arr[1]))
+                    setFv1.add(UtCnv.toLong(arr[1]))
+            } else if (arr.size() == 3) {
+                setFv2.add(UtCnv.toLong(arr[2]))
+            } else
+                setFv2.add(0L)
+        }
+        //
+        Store stFv1 = loadSqlMeta("""
+            select id, name
+            from factor
+            where id in (0${setFv1.join(",")})
+            order by ord
+        """, "")
+
+        List<Map<String, String>> cols = new ArrayList<>();
+        cols.add(Map.of("name", "name", "label", "Возраст", "field", "name",
+                "align", "left", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em", "style", "width: 5%"));
+
+        Store stFv2 = mdb.createStore()
+        stFv2.addField("id", "long")
+        stFv2.addField("name", "string", 20)
+        //
+        Store stFv2Cpy = mdb.createStore()
+        stFv2Cpy.addField("ord", "int");
+        stFv2Cpy.addField("id", "long")
+        stFv2Cpy.addField("name", "string", 20)
+        //
+        List<String> sel = new ArrayList<>();
+        String sep = "";
+        for (StoreRecord r in stFv1) {
+            for (StoreField f : r.getFields()) {
+                if (f.getName().equalsIgnoreCase("id")) {
+                    stFv2.addField("v" + r.getString(f.getName()), "long")
+                    stFv2.addField("p" + r.getString(f.getName()), "long")
+                    stFv2.addField("fv" + r.getString(f.getName()), "double")
+                    sel.add("0 as v" + r.getString(f.getName()) + ", 0 as p" + r.getString(f.getName()) + ", null as fv" + r.getString(f.getName()))
+                    //
+                    stFv2Cpy.addField("v" + r.getString(f.getName()), "long")
+                    stFv2Cpy.addField("p" + r.getString(f.getName()), "long")
+                    stFv2Cpy.addField("fv" + r.getString(f.getName()), "double")
+                }
+            }
+            sep = (!sel.isEmpty()) ? ", " : ""
+            cols.add(Map.of("name", "fv" + r.getValue("id"),
+                    "label", UtCnv.toString(r.getValue("name")), "field", "fv" + r.getValue("id"),
+                    "align", "center", "classes", "bg-blue-grey-1", "headerStyle", "font-size: 1.3em",
+                    "style", "width: 10%"))
+        }
+
+        stFv2 = loadSqlMeta("""
+            select 0 as id, 'Запас' as name ${sep} ${String.join(",", sel)}
+            union all
+            select id, name ${sep} ${String.join(",", sel)} from factor where id in (0${setFv2.join(",")})
+        """, "")
+
+        if (stFv2.size() == 0)
+            throw new XError("Нет возраст рыбы")
+
+
+        //Проставляем в каждую ячейку prop
+        for (StoreRecord r in stFv2) {
+            for (StoreField fld in r.getFields()) {
+                if (fld.name.startsWith("fv")) {
+                    String fvs = ""
+                    if (r.getLong("id") == 0) {
+                        fvs = "1129,${fld.name.substring(2)}"
+                        StoreRecord rec = indProp.get(fvs)
+                        if (rec != null) {
+                            r.set("p" + fld.name.substring(2), rec.getLong("id"))
+                        }
+                    } else {
+                        fvs = "1129,${fld.name.substring(2)},${r.getString("id")}"
+                        StoreRecord rec = indProp.get(fvs)
+                        if (rec != null) {
+                            r.set("p" + fld.name.substring(2), rec.getLong("id"))
+                        }
+                    }
+                }
+            }
+        }
+        // Далее проставляем данные
+        String d1 = "1800-01-01"
+        String d2 = "3333-12-01"
+        if (dependperiod) {
+            UtPeriod up = new UtPeriod()
+            d1 = up.calcDbeg(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
+            d2 = up.calcDend(XDate.create(dte), periodType, 0).toString(XDateTimeFormatter.ISO_DATE)
+        }
+        String sql = """
+            select d.prop, v.numberval, v.id as idval
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsProp.join(",")}) and d.periodType is null
+        """
+        if (dependperiod)
+            sql = """
+            select d.prop, v.numberval, v.id as idval
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsProp.join(",")}) and d.periodType=${periodType}
+                and v.dbeg='${d1}' and v.dend='${d2}'
+        """
+        Store stVal = mdb.loadQuery(sql)
+        // Has data Lev1
+        //mdb.outTable(stVal)
+
+        //
+        StoreIndex indVal = stVal.getIndex("prop")
+
+        for (StoreRecord r in stFv2) {
+            for (StoreField fld in r.getFields()) {
+                if (fld.name.startsWith("fv")) {
+                    StoreRecord rec = indVal.get(r.getLong("p" + fld.name.substring(2)))
+                    if (rec != null) {
+                        r.set(fld.name, rec.getDouble("numberval"))
+                        r.set("v" + fld.name.substring(2), rec.getDouble("idval"))
+                    }
+                }
+            }
+        }
+        //mdb.outTable(stFv2)
+
+
+        Map<String, Object> rez = new HashMap<>()
+        rez.put("stMatrix", stFv2)
+        rez.put("stMatrixCpy", stFv2Cpy)
+        rez.put("cols", cols)
+        //
+        return rez
+    }
+
 
     @DaoMethod
     Map<String, Object> loadAlgoMatrix(Map<String, Object> params) {
@@ -280,6 +477,244 @@ class DataDao extends BaseMdbUtils {
         rez.put("cols", cols)
         //
         return rez
+    }
+
+    Store stPropFromReservoir(long reservoir, long meter) {
+
+        Store st = loadSqlMeta("""
+            with mrfv as (
+            select meterrate,
+                STRING_AGG (cast(factorval as varchar(200)), ',') as fvs,
+                string_to_array(STRING_AGG (cast(factorval as varchar(4000)), ','), ',') as arr,
+                ARRAY_LENGTH(STRING_TO_ARRAY(STRING_AGG (cast(factorval as varchar(200)), ','), ','), 1) sz
+            from meterratefv
+            group by meterrate
+            )
+            select p.id, fvs   
+            from Prop p, mrfv, (
+                WITH RECURSIVE r AS (
+                    SELECT id
+                    FROM prop
+                    WHERE cod='Prop_sizePopulationOut1AreaMetho'    
+                    UNION ALL    
+                    SELECT c.id
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r
+            ) t
+            where p.id=t.id and p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=2 and ARRAY[mrfv.arr] @> '{1129}'
+            union all
+            select p.id, fvs   
+            from Prop p, mrfv, (
+                WITH RECURSIVE r AS (
+                    SELECT id
+                    FROM prop
+                    WHERE cod='Prop_sizePopulationOut1AreaMetho'    
+                    UNION ALL    
+                    SELECT c.id
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r
+            ) t
+            where p.id=t.id and p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=3 and ARRAY[mrfv.arr] @> '{1129}'
+        """, "")
+
+        //
+        Set<Object> fvsFromRelObj = getFvs(reservoir)
+        //
+        Set<Long> setFv1 = new HashSet<>()
+        Set<Long> setFv2 = new HashSet<>()
+        for (StoreRecord r in st) {
+            String[] arr = r.getString("fvs").split(",")
+            if (arr.size() == 2) {
+                if (fvsFromRelObj.contains(arr[1]))
+                    setFv1.add(UtCnv.toLong(arr[1]))
+            } else
+                setFv2.add(UtCnv.toLong(arr[2]))
+        }
+
+        //println(setFv1)
+        //println(setFv2)
+
+        return st
+    }
+
+    //fish stock
+    @DaoMethod
+    void fishStock(String reservoirs, String dbeg, String dend) {
+        Set<Object> setCls = apiMeta().get(ApiMeta).setIdsOfCls("Typ_FishCatch")
+        if (setCls.isEmpty()) setCls.add(0L)
+        String whe = "cls in (${setCls.join(",")})"
+        String wheReservoirs = "v6.obj in (${reservoirs}) and v1.dateTimeVal between '${dbeg}' and '${dend}'"
+
+        //todo Невод 1030
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_%")
+        Store st = mdb.loadQuery("""
+            with ob as (
+            select
+                id, cls from Obj               
+                where ${whe}
+            )
+            select ob.id as obj, ob.cls,
+                v1.dateTimeVal::date as StartDate,
+                v3.numberVal as AreaOfTon,
+                v6.obj as objReservoirShore
+            from ob
+                join DataProp d1 on d1.isObj=1 and d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
+                join DataPropVal v1 on d1.id=v1.dataprop
+                join DataProp d2 on d2.isObj=1 and d2.objorrelobj=ob.id and d2.prop=:Prop_FishGear
+                join DataPropVal v2 on d2.id=v2.dataprop and v2.obj=1030
+                join DataProp d3 on d3.isObj=1 and d3.objorrelobj=ob.id and d3.prop=:Prop_AreaOfTon
+                join DataPropVal v3 on d3.id=v3.dataprop
+                left join DataProp d6 on d6.isObj=1 and d6.objorrelobj=ob.id and d6.prop=:Prop_ReservoirShore
+                left join DataPropVal v6 on d6.id=v6.dataprop
+            where ${wheReservoirs}
+            order by v1.dateTimeVal
+        """, mapProp)
+
+        //mdb.outTable(st)
+        //
+        Map<String, Object> mapParamCath = new HashMap<>()
+        mapParamCath.put("dependperiod", true)
+        //mapParamCath.put("periodType", 11)
+        mapParamCath.put("periodType", 71)
+        mapParamCath.put("prop", mapProp.get("Prop_NumberFishCaught"))
+        mapParamCath.put("cod", "Prop_NumberFishCaught")
+        //
+        Map<String, Object> mapPopulation = new HashMap<>()
+        mapPopulation.put("dependperiod", 1)
+        mapPopulation.put("periodType", 71L)
+
+        for (StoreRecord r in st) {
+
+            long obj = r.getLong("obj")
+            long reservoir = r.getLong("objReservoirShore")
+            String dte = r.getString("StartDate")
+            double areaFish = r.getDouble("AreaOfTon")
+            areaFish = areaFish * 10000
+            mapParamCath.put("dte", dte)
+            mapParamCath.put("own", obj)
+            mapParamCath.put("reservoir", reservoir)
+
+
+            // 1
+            Store stCaught = loadAlgoFishing(mapParamCath)["store"] as Store
+            println("Prop_NumberFishCaught")
+            mdb.outTable(stCaught)
+            //
+
+            //2
+            Map<String, Object> mapSeine = new HashMap<>()
+            mapSeine.put("dte", dte)
+            mapSeine.put("own", reservoir)
+            mapSeine.put("dependperiod", 1)
+            mapSeine.put("periodType", 11)
+            mapSeine.put("prop", mapProp.get("Prop_GearCatchabilitySeine"))
+            mapSeine.put("cod", "Prop_GearCatchabilitySeine")
+            Store stCatchabilitySeine = loadAlgo(mapSeine)["store"] as Store
+            //
+            println("stCatchabilitySeine")
+            mdb.outTable(stCatchabilitySeine)
+            //
+
+
+            //3
+            //Prop_sizePopulationOut1AreaMetho
+            mapPopulation.put("dte", dte)
+            mapPopulation.put("own", reservoir)
+            mapPopulation.put("obj2", reservoir)
+            mapPopulation.put("prop", mapProp.get("Prop_sizePopulationOut1AreaMetho"))
+
+            Store stPopulation = loadAlgoMatrixPopulation(mapPopulation)["stMatrix"] as Store
+            //
+            //println("Prop_sizePopulationOut1AreaMetho")
+            //mdb.outTable(stPopulation)
+            //
+
+
+            // Площадь водоема
+            String year = dte.substring(0, 4)
+            String d1 = year + "-01-01"
+            Store stArea = loadSqlService("""
+                select
+                    o.id, v1.numberval  
+                from Obj o
+                    join DataProp d1 on d1.objorrelobj=o.id and d1.periodtype=11 and d1.prop=${mapProp.get("Prop_WaterArea")}    --1008  Prop_WaterArea
+                    join DataPropval v1 on d1.id=v1.dataprop and v1.dbeg='${d1}'            
+                where o.id=${reservoir}
+            """, "", "monitoringdata")
+
+            if (stArea.size() == 0)
+                throw new XError("Не найден площадь водоема за [${year}г]")
+
+            double areaReseirvoir = stArea.get(0).getDouble("numberval")*1000000
+
+
+            //
+            int index = 0
+            for (StoreRecord rr in stCaught) {
+                for (StoreField fld in rr.getFields()) {
+                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
+                        if (stCatchabilitySeine.get(index).findField(fld.name) && stCatchabilitySeine.get(index).getDouble(fld.name) != 0) {
+                            double v = rr.getDouble(fld.name) / stCatchabilitySeine.get(index).getDouble(fld.name)
+                            v = round((v / areaFish) * areaReseirvoir)
+                            rr.set(fld.name, v)
+                        }
+                    }
+                }
+                index++
+            }
+
+            //
+            //println("stCaught After calc")
+            //mdb.outTable(stCaught)
+            //
+
+
+            //
+
+            index = 0
+            for (StoreRecord rr in stPopulation) {
+                for (StoreField fld in rr.getFields()) {
+                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
+                        double v = round(stCaught.get(index).getDouble(fld.name))
+                        rr.set(fld.name, v)
+                    }
+                }
+                index++
+            }
+
+            println("stPopulation After")
+            mdb.outTable(stPopulation)
+            //
+
+            // Save to Db
+
+            Map<String, Object> param = new HashMap<>()
+            param.put("obj", obj)
+            param.put("dte", dte)
+            param.put("periodType", 71L)
+            param.put("dependperiod", 1)
+
+
+/*            for (StoreRecord rr in stPopulation) {
+                for (StoreField fld in rr.getFields()) {
+                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
+                        long prop = rr.getLong("p" + fld.name.substring(2))
+                        long idval = rr.getLong("v" + fld.name.substring(2))
+                        double val = rr.getDouble(fld.name)
+                        param.put("prop", prop)
+                        param.put("numberval", val)
+                        param.put("idval", idval)
+                        saveMeter(param)
+                    }
+                }
+            }*/
+
+
+        }
     }
 
     @DaoMethod
@@ -699,7 +1134,7 @@ class DataDao extends BaseMdbUtils {
         res.put("cols", cols)
         res.put("store", stFv2)
 
-        System.out.println("prop = " + codProp + " - " + prop)
+        //System.out.println("prop = " + codProp + " - " + prop)
         //mdb.outTable(stFv2)
         //1. Prop_NumberFishCaught      //Количество пойманных рыб
         if (pms.getString("cod") == "Prop_CalcPdy") {    //Предельно допустимый улов, экземпляр
@@ -710,257 +1145,12 @@ class DataDao extends BaseMdbUtils {
             pms.put("prop", stProp.get(0).getLong("id"))
             Store stPdy = loadAlgoReservoirPdy(pms)
             //
-            System.out.println("Prop_ReservoirPdy")
-            mdb.outTable(stPdy)
-            //....
-        } else if (pms.getString("cod") == "Prop_GearCatchabilityNet") {    //2. Коэффициент уловистости сети
-            //
-            System.out.println("\n\n\n\n")
-
-/*
-            StoreRecord r = stFv2.get(0)
-            Map<String, Double> map_CalcAgeSex = new HashMap<>()
-            Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Calc%")
-            for (StoreField fld in r.getFields()) {
-                if (fld.name.startsWith("fv") && r.getLong("p" + fld.name.substring(2)) != 0) {
-                    Store stCls = loadSqlMeta("""
-                        select cls from clsfactorval c 
-                        where factorval=${fld.name.substring(2)}
-                    """, "")
-                    long objFish = mdb.loadQuery("""
-                        select id from Obj
-                        where cls=${stCls.get(0).getLong("cls")}
-                    """).get(0).getLong("id")
-                    //Prop_CalcAgeSex       Возраст половой зрелости рыбы
-                    Store stCalcAgeSex = mdb.loadQuery("""
-                        select v.numberval
-                        from Obj o
-                            left join DataProp d on d.isObj=1 and d.objorrelobj=${objFish} and d.prop=${mapProp.get("Prop_CalcAgeSex")}
-                            left join DataPropVal v on d.id=v.dataProp
-                        where o.id=${objFish}
-                    """)
-                    map_CalcAgeSex.put(fld.name, stCalcAgeSex.get(0).getDouble("numberval"))
-                }
-            }
-
-            System.out.println("map_CalcAgeSex")    //Возраст половой зрелости рыбы
-            mdb.outMap(map_CalcAgeSex)
-
-            // Peac year Prop_NumberFishCaught
-            Store stProp = apiMeta().get(ApiMeta).loadSql("""
-                    select id from Prop where cod='Prop_NumberFishCaught'
-                """, "")
-            pms.put("cod", "Prop_NumberFishCaught")
-            pms.put("prop", stProp.get(0).getLong("id"))
-            pms.put("dependperiod", true)
-            pms.put("obj2", own)
-            Store stFishCaught = loadAlgoMatrix(pms).get("stMatrix") as Store
-            //
-            System.out.println("Prop_NumberFishCaught")
-            mdb.outTable(stFishCaught)
-            //
-            Map<String, Double> mapPeakCatch = new HashMap<>()
-            Map<String, Double> mapPeakCatchAge = new HashMap<>()
-            //
-            System.out.println("mapPeakCatch 0")
-            mdb.outMap(mapPeakCatch)    //Улов по возрастам
-            //
-            for (StoreRecord rr in stFishCaught) {
-                if (rr.getLong("id") == 0) continue
-                for (StoreField fld in rr.getFields()) {
-                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
-                        if (rr.getLong(fld.name) > mapPeakCatch.get(fld.name)) {
-                            mapPeakCatch.put(fld.name, rr.getDouble(fld.name))
-                            double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
-                            mapPeakCatchAge.put(fld.name, age)
-                        }
-                    }
-                }
-            }
-            //
-            System.out.println("mapPeakCatch; mapPeakCatchAge")
-            mdb.outMap(mapPeakCatch)
-            mdb.outMap(mapPeakCatchAge)
-
-            //Берем max(mapPeakCatchAge, map_CalcAgeSex)
-
-            for (def key in mapPeakCatchAge.keySet()) {
-                def v = max(UtCnv.toDouble(mapPeakCatchAge.get(key)), UtCnv.toDouble(map_CalcAgeSex.get(key)))
-                mapPeakCatchAge.put(key, v)
-            }
-            System.out.println("mapPeakCatch Max")
-            mdb.outMap(mapPeakCatchAge)
-            // Находим fishObj from fv: mapPeakCatchAge.keySet()
-            Set<Object> setFv = new HashSet<>()
-            mapPeakCatchAge.keySet().forEach { String it ->
-                setFv.add(UtCnv.toLong(it.substring(2)))
-            }
-            Store stCls = loadSqlMeta("""
-                select cls, factorval from clsfactorval 
-                where factorval in (0${setFv.join(",")})
-            """, "")
-            StoreIndex indCls = stCls.getIndex("cls")
-            mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FishMaxAge", "")
-            Store stFishObjData = mdb.loadQuery("""
-                select cls, v.numberval 
-                from Obj o
-                    left join DataProp d on d.isObj=1 and d.objorrelobj=o.id and d.prop=${mapProp.get("Prop_FishMaxAge")} and d.periodType is null
-                    left join DataPropVal v on d.id=v.dataProp
-                where o.cls in (${stCls.getUniqueValues("cls").join(",")}) 
-            """)
-            //Максимальный возраст рыбы, лет
-            Map<String, Double> mapMaxAgeFish = new HashMap<>()
-            for (StoreRecord rr in stFishObjData) {
-                StoreRecord rec = indCls.get(rr.getLong("cls"))
-                if (rec != null) {
-                    mapMaxAgeFish.put("fv" + rec.getString("factorval"), rr.getDouble("numberval"))
-                }
-            }
-            //
-            System.out.println("mapMaxAgeFish Максимальный возраст рыбы")
-            mdb.outMap(mapMaxAgeFish)
-            //Границы
-            Map<String, Double> mapDistLeft = new HashMap<>()
-            Map<String, Double> mapDistRight = new HashMap<>()
-            */
-/*
-                 dist_left  = max(пик − 2,  0.5)
-                 dist_right = max(m1 − пик, 0.5)
-             *//*
-
-            //КРУТИЗНА СКЛОНОВ
-            Map<String, Double> k_up = new HashMap<>()
-            Map<String, Double> k_down = new HashMap<>()
-            */
-/*
-                k_up   = L / dist_left
-                k_down = L / dist_right               # k_down < k_up ⇒ склон положе
-             *//*
-
-            double L = log(9.0 as double)
-
-            for (StoreField fld in stFishCaught.get(0).getFields()) {
-                if (fld.name.startsWith("fv") && stFishCaught.get(0).getLong(fld.name) != 0
-                        && stFishCaught.get(0).getLong("p" + fld.name.substring(2)) != 0) {
-                    try {
-                        double v1 = mapPeakCatchAge.get(fld.name) - 2.0
-                        double v2 = 0.5
-                        double d_left = max(v1, v2)
-                        mapDistLeft.put(fld.name, d_left)
-                        //
-                        v1 = mapMaxAgeFish.get(fld.name) - mapPeakCatchAge.get(fld.name)
-                        double d_right = max(v1, v2)
-                        mapDistRight.put(fld.name, d_right)
-                        k_up.put(fld.name, L / mapDistLeft.get(fld.name))
-                        k_down.put(fld.name, L / mapDistRight.get(fld.name))
-                    } catch (e) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-            System.out.println("mapDistLeft, mapDistRight Границы")
-            mdb.outMap(mapDistLeft)
-            mdb.outMap(mapDistRight)
-            System.out.println("k_up, k_down  КРУТИЗНА СКЛОНОВ")
-            mdb.outMap(k_up)
-            mdb.outMap(k_down)
-            //
-            */
-/*
-              АСИММЕТРИЧНЫЙ КОЛОКОЛ (для каждого age)
-                 sel_up   = 1 / (1 + exp(−k_up   · (age − пик)))
-                 sel_down = 1 / (1 + exp( k_down · (age − пик)))
-            * *//*
-
-            for (StoreRecord rr in stFv2) {
-                if (rr.getLong("id") == 0) continue
-                Map<String, Double> sel_up = new HashMap<>()
-                Map<String, Double> sel_down = new HashMap<>()
-                double age = UtCnv.toDouble(rr.getString("name").split(" ")[0])
-                for (StoreField fld in rr.getFields()) {
-                    try {
-                        if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
-                            if (rr.getDouble(fld.name) != 0) {
-                                sel_up.put(fld.name, 1 / (1 + exp(-k_up.get(fld.name) * (age - mapPeakCatchAge.get(fld.name)))))
-                                sel_down.put(fld.name, 1 / (1 + exp(k_down.get(fld.name) * (age - mapPeakCatchAge.get(fld.name)))))
-                                //
-                                double bell = sel_up.get(fld.name) * sel_down.get(fld.name)
-                                //if (age > mapMaxAgeFish.get(fld.name)) bell = 0 as Double
-                                bell = new BigDecimal(bell).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
-                                rr.set(fld.name, bell)
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-            //
-            System.out.println("stFv2 =bell=")
-            mdb.outTable(stFv2)
-            //
-            Map<String, Double> max_beel = new HashMap<>()
-            Map<String, Double> mean_beel = new HashMap<>()
-            //
-            Map<String, List<Double>> lst_mean_beel = new HashMap<>()
-            //Выделяем памяти для списка
-            for (StoreField fld in stFv2.get(0).getFields()) {
-                if (fld.name.startsWith("fv") && stFv2.get(0).getLong("p" + fld.name.substring(2)) != 0) {
-                    lst_mean_beel.put(fld.name, new ArrayList<>())
-                }
-            }
-            //
-            for (StoreRecord rr in stFv2) {
-                if (rr.getLong("id") == 0) continue
-                for (StoreField fld in rr.getFields()) {
-                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
-                        if (rr.getDouble(fld.name) > max_beel.get(fld.name)) {
-                            max_beel.put(fld.name, new BigDecimal(rr.getDouble(fld.name)).setScale(3, RoundingMode.HALF_EVEN).doubleValue())
-                        }
-                        lst_mean_beel.get(fld.name).add(rr.getDouble(fld.name))
-                    }
-                }
-            }
-
-            for (String key in lst_mean_beel.keySet()) {
-                List<Double> lst = lst_mean_beel.get(key)
-                double s = 0
-                lst.forEach {
-                    s += it
-                }
-                double d = (s / lst.size()) as double
-                d = new BigDecimal(d).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
-                mean_beel.put(key, d)
-            }
-
-            System.out.println("max_beel, mean_beel")
-            mdb.outMap(max_beel)
-            mdb.outMap(mean_beel)
-
-            //
-            //scale = min( k_эксперт / mean_bell ,  0.85 / max_bell )
-            //result(age) = bell(age) × scale
-            for (StoreRecord rr in stFv2) {
-                if (rr.getLong("id") == 0) continue
-                for (StoreField fld in rr.getFields()) {
-                    try {
-                        if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
-                            double k_exp = stFv2.get(0).getDouble(fld.name)
-                            double scale = min(k_exp / mean_beel.get(fld.name) as Double, 0.85 / max_beel.get(fld.name) as Double)
-                            double v = rr.getDouble(fld.name) * scale
-                            v = new BigDecimal(v).setScale(3, RoundingMode.HALF_EVEN).doubleValue()
-                            rr.set(fld.name, v)
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace()
-                    }
-
-                }
-            }
-*/
+            //System.out.println("Prop_ReservoirPdy")
+            //mdb.outTable(stPdy)
         }
+
         //
-        mdb.outTable(stFv2)
+        //mdb.outTable(stFv2)
         return res
     }
 
@@ -1229,8 +1419,8 @@ class DataDao extends BaseMdbUtils {
 //      dist_right = max(m1 − пик, 0.5)
 
 
-                //КРУТИЗНА СКЛОНОВ
-                Map<String, Double> k_up = new HashMap<>()
+        //КРУТИЗНА СКЛОНОВ
+        Map<String, Double> k_up = new HashMap<>()
         Map<String, Double> k_down = new HashMap<>()
 
 
@@ -1238,7 +1428,7 @@ class DataDao extends BaseMdbUtils {
 //        k_down = L / dist_right               # k_down < k_up ⇒ склон положе
 
 
-                double L = log(9.0 as double)
+        double L = log(9.0 as double)
 
         for (StoreField fld in stFishCaught.get(0).getFields()) {
             if (fld.name.startsWith("fv") && stFishCaught.get(0).getLong(fld.name) != 0
@@ -1265,7 +1455,7 @@ class DataDao extends BaseMdbUtils {
         System.out.println("k_up, k_down  КРУТИЗНА СКЛОНОВ")
         mdb.outMap(k_up)
         mdb.outMap(k_down)
-       //
+        //
 
 /*
                 АСИММЕТРИЧНЫЙ КОЛОКОЛ (для каждого age)
@@ -1704,8 +1894,8 @@ class DataDao extends BaseMdbUtils {
 
         res.put("cols", cols)
 
-        println("До")
-        res.put("store", stFv2)
+        //println("До")
+        //res.put("store", stFv2)
 
         ////*******************************************************************
 
@@ -1828,6 +2018,7 @@ class DataDao extends BaseMdbUtils {
             }
         }
 
+        stFv2Cpy.sort("ord")
         /////
         res.put("store", stFv2Cpy)
         return res
@@ -3876,7 +4067,7 @@ class DataDao extends BaseMdbUtils {
     Store loadFishingMeters(long obj, long prop, String dte, long periodType, long reservoir) {
         if (obj == 0)
             return mdb.createStore()
-        String props = "'Prop_NumberFishCaught','Prop_NumberEggs','Prop_FishArea','Prop_WorkDuration','Prop_NumberNet'"
+        String props = "'Prop_NumberFishCaught','Prop_NumberEggs','Prop_FishArea','Prop_WorkDuration','Prop_NumberNet', 'Prop_sizePopulationOut1AreaMetho'"
 
         // Svae for Prop_NumberFishCaught PeriodType(day) => PeriodType(year)
 
@@ -4507,7 +4698,7 @@ class DataDao extends BaseMdbUtils {
 
     private long getUser() throws Exception {
         AuthService authSvc = mdb.getApp().bean(AuthService.class)
-        long au = authSvc.getCurrentUser().getAttrs().getLong("id")
+        long au = 1 //authSvc.getCurrentUser().getAttrs().getLong("id")
         if (au == 0)
             throw new XError("notLoginned")
         return au
