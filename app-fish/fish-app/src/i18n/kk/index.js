@@ -12,10 +12,10 @@ export default {
   appUserDataName: "Пайдаланушының жеке кабинеті",
   appDataName: "Деректермен жұмыс істеу қызметі",
 
-  appCalcName: "Қорларды есептеу",
+  appCalcName: "Деректерді талдау",
   appMonitoringName: "Су нысандарын бақылау",
   appNsiName: "Нормативтік анықтамалық ақпарат",
-  appAnalyseName: "Қорларды талдау және болжау",
+  appAnalyseName: "Қорды бағалау және рұқсат етілген ең жоғары аулау",
 
   appMinIO: "Файлды сақтау",
   appCubesName: "Текшелермен жұмыс істеу қызметі",
