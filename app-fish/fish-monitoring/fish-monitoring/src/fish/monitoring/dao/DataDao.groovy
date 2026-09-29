@@ -298,7 +298,7 @@ class DataDao extends BaseMdbUtils {
             select meter from Prop where id=${prop}
         """, "").get(0).getLong("meter")
         //
-        Store stProp2Lev = loadSqlMeta("""
+        Store stProp = loadSqlMeta("""
             with mrfv as (
             select meterrate,
                 STRING_AGG (cast(factorval as varchar(200)), ',') as fvs,
@@ -306,22 +306,33 @@ class DataDao extends BaseMdbUtils {
             from meterratefv
             group by meterrate
             )
-            select id, fvs   
-            from Prop p, mrfv
-            where p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=2
+            select p.id, fvs, m.kFromBase   
+            from Prop p, mrfv, measure m
+            where p.meter=${meter} and p.measure=m.id and p.meterrate=mrfv.meterrate and mrfv.sz=1
+            union all
+            select p.id, fvs, m.kFromBase   
+            from Prop p, mrfv, measure m
+            where p.meter=${meter} and p.measure=m.id and p.meterrate=mrfv.meterrate and mrfv.sz=2
+
         """, "")
-        Set<Object> idsPropsAll = stProp2Lev.getUniqueValues("id")
-        StoreIndex indProp2Lev = stProp2Lev.getIndex("fvs")
+        Set<Object> idsProp = stProp.getUniqueValues("id")
+        StoreIndex indProp = stProp.getIndex("id")
+        StoreIndex indFvs = stProp.getIndex("fvs")
         //
         Set<Object> fvsFromRelObj = getFvs(obj2)
         //
         Set<Long> setFv1 = new HashSet<>()
         Set<Long> setFv2 = new HashSet<>()
-        for (StoreRecord r in stProp2Lev) {
+        for (StoreRecord r in stProp) {
             String[] arr = r.getString("fvs").split(",")
-            if (fvsFromRelObj.contains(arr[0]))
-                setFv1.add(UtCnv.toLong(arr[0]))
-            setFv2.add(UtCnv.toLong(arr[1]))
+            if (arr.size()==1) {
+                if (fvsFromRelObj.contains(arr[0]))
+                    setFv1.add(UtCnv.toLong(arr[0]))
+            } else if (arr.size()==2) {
+                if (fvsFromRelObj.contains(arr[0]))
+                    setFv1.add(UtCnv.toLong(arr[0]))
+                setFv2.add(UtCnv.toLong(arr[1]))
+            }
         }
         //
         Store stFv1 = loadSqlMeta("""
@@ -382,20 +393,6 @@ class DataDao extends BaseMdbUtils {
             name = "Коэффициент"
         stFv2.get(0).set("name", name)
         //
-        Store stProp1Lev = loadSqlMeta("""
-            with mrfv as (
-            select meterrate,
-                STRING_AGG (cast(factorval as varchar(20)), ',') as fvs,
-                ARRAY_LENGTH(STRING_TO_ARRAY(STRING_AGG (cast(factorval as varchar(20)), ','), ','), 1) sz
-            from meterratefv
-            group by meterrate
-            )
-            select id, fvs   
-            from Prop p, mrfv
-            where p.meter=${meter} and p.meterrate=mrfv.meterrate and mrfv.sz=1
-        """, "")
-        StoreIndex indProp1Lev = stProp1Lev.getIndex("fvs")
-        idsPropsAll.addAll(stProp1Lev.getUniqueValues("id"))
         //Проставляем в каждую ячейку prop
         for (StoreRecord r in stFv2) {
             for (StoreField fld in r.getFields()) {
@@ -403,13 +400,13 @@ class DataDao extends BaseMdbUtils {
                     String fvs = ""
                     if (r.getLong("id") == 0) {
                         fvs = "${fld.name.substring(2)}"
-                        StoreRecord rec = indProp1Lev.get(fvs)
+                        StoreRecord rec = indFvs.get(fvs)
                         if (rec != null) {
                             r.set("p" + fld.name.substring(2), rec.getLong("id"))
                         }
                     } else {
                         fvs = "${fld.name.substring(2)},${r.getString("id")}"
-                        StoreRecord rec = indProp2Lev.get(fvs)
+                        StoreRecord rec = indFvs.get(fvs)
                         if (rec != null) {
                             r.set("p" + fld.name.substring(2), rec.getLong("id"))
                         }
@@ -428,25 +425,37 @@ class DataDao extends BaseMdbUtils {
         String sql = """
             select d.prop, v.numberval, v.id as idval
             from DataProp d, DataPropVal v
-            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType is null
+            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsProp.join(",")}) and d.periodType is null
         """
         if (dependperiod)
             sql = """
             select d.prop, v.numberval, v.id as idval
             from DataProp d, DataPropVal v
-            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsPropsAll.join(",")}) and d.periodType=${periodType}
+            where d.id=v.dataProp and d.isObj=1 and d.objorrelobj=${own} and d.prop in (${idsProp.join(",")}) and d.periodType=${periodType}
                 and v.dbeg='${d1}' and v.dend='${d2}'
         """
         Store stVal = mdb.loadQuery(sql)
+        println("Before")
+        mdb.outTable(stVal)
+        //
+        for(StoreRecord r in stVal) {
+            StoreRecord rec = indProp.get(r.getLong("prop"))
+            if (rec != null)
+                r.set("numberval", r.getDouble("numberval") * rec.getDouble("kFromBase"))
+        }
+        println("After")
+        mdb.outTable(stVal)
+
+        //
         // Has data Lev1
         //mdb.outTable(stVal)
         //todo Анализировать!
         boolean hasData1Lev = true
         if (pms.getString("cod") != "Prop_WaterFishAverageWeight") {
-            Set<Object> idsProp1Lev = stProp1Lev.getUniqueValues("id")
+            Set<Object> idsProp1 = stProp.getUniqueValues("id")
             hasData1Lev = false
             for (StoreRecord record in stVal) {
-                if (idsProp1Lev.contains(record.getLong("prop"))) {
+                if (idsProp1.contains(record.getLong("prop"))) {
                     hasData1Lev = true
                 }
             }
