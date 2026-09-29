@@ -39,7 +39,8 @@ class Db_Test extends Apx_Test {
                     select id from (
                         select d.prop, d.periodtype, v.numberval, v.dbeg, count(*) as cnt, max(v.id) as id   
                         from dataprop d, datapropval v
-                        where d.id=v.dataprop and d.isobj=1 and d.objorrelobj=1000 and v.numberval is not null and d.periodtype is not null
+                        where d.id=v.dataprop and d.isobj=1 and v.numberval is not null and d.periodtype is not null
+                             --and d.objorrelobj=1000
                         group by d.prop, d.periodtype, v.numberval, v.dbeg
                         having count(*) > 1
                     ) t
@@ -48,7 +49,8 @@ class Db_Test extends Apx_Test {
             Store st = mdb.loadQuery("""
                 select d.prop, d.periodtype, v.numberval, v.dbeg, count(*) as cnt   
                 from dataprop d, datapropval v
-                where d.id=v.dataprop and d.isobj=1 and d.objorrelobj=1000 and v.numberval is not null and d.periodtype is not null
+                where d.id=v.dataprop and d.isobj=1 and v.numberval is not null and d.periodtype is not null
+                     --and d.objorrelobj=1000
                 group by d.prop, d.periodtype, v.numberval, v.dbeg
                 having count(*) > 1
             """)
