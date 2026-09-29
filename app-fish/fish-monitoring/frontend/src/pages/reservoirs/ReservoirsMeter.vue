@@ -64,7 +64,7 @@
             {{ dtFormat(item.dend) }}
           </td>
           <td :data-th="cols[1]?.name" style="text-align-last: right">
-            {{ item.numberval }}
+            {{ numFormat(item.numberval, 1) }}
           </td>
           <td :data-th="cols[4]?.name" style="text-align-last: right">
             <q-btn
@@ -136,6 +136,20 @@ const cods = ref(["Prop_NumberFishCaught", "Prop_WaterNumberFishBio", "Prop_Wate
 
 const dtFormat = (v) => {
   return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
+}
+
+const numFormat = (val, decimals=3) => {
+  if (val === null || val === undefined || val === '') return '';
+
+  // Выбирайте нужный return:
+  // Простой вариант:
+  // return Number(val).toFixed(decimals);
+
+  // Или вариант с разделителями разрядов (пробелами):
+  return Number(val).toLocaleString('ru-RU', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
 }
 
 const fnSelectPeriodType = (v) => {
