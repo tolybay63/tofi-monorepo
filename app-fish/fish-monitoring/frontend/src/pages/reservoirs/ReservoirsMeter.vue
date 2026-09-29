@@ -204,30 +204,6 @@ const fnDelete = (row) => {
             r.dbeg = null
             r.dend = null
           }
-
-/*
-          if (row.level === 0) {
-            let index = rows.value.findIndex((rec) => rec.id === row.id)
-            if (index > -1) {
-              rows.value[index].idval = null
-              rows.value[index].numberval = null
-              rows.value[index].dbeg = null
-              rows.value[index].dend = null
-            }
-          } else {
-            let index = rows.value.findIndex((rec) => rec.id === row.parent)
-            if (index > -1 && rows.value[index].children) {
-              let child = rows.value[index].children
-              let index2 = child.findIndex((rec) => rec.id === row.id)
-              if (index2 > -1) {
-                child[index2].idval = null
-                child[index2].numberval = null
-                child[index2].dbeg = null
-                child[index2].dend = null
-              }
-            }
-          }
-*/
         })
         .catch((error) => {
           notifyError(error.message)
