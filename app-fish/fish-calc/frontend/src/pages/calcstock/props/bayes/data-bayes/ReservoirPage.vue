@@ -73,7 +73,8 @@
               </q-menu>
             </q-btn>
 
-            {{ item[col.field] }}
+            {{ numFormat(item.cod,  item[col.field]) }}
+
           </td>
 
         </tr>
@@ -107,6 +108,30 @@ const cols = ref([])
 const loading = ref(false)
 const isExpanded = ref(true)
 const itemId = ref(null)
+
+
+const numFormat = (cod, val) => {
+  if (val === null || val === undefined || val === '') return '';
+
+  const cods_1 = "Prop_WaterArea,Prop_CalcWaterFluct"
+  const cods_0 = ""
+  let decimals = 3
+  if (cods_1.includes(cod))
+    decimals = 1
+  if (cods_0.includes(cod))
+    decimals = 0
+
+  // Простой вариант:
+  // return Number(val).toFixed(decimals);
+
+  // вариант с разделителями разрядов (пробелами):
+  return Number(val).toLocaleString('ru-RU', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+}
+
+
 
 const fnExpand = () => {
   expandAll(rows.value)

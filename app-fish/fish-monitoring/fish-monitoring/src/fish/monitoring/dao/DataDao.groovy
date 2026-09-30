@@ -760,12 +760,13 @@ class DataDao extends BaseMdbUtils {
             )
             select ob.id as obj, ob.cls,
                 v1.dateTimeVal::date as StartDate,
-                v6.obj as objReservoirShore
+                v6.obj as objReservoirShore, ov.name as nameReservoir
             from ob
                 join DataProp d1 on d1.isObj=1 and d1.objorrelobj=ob.id and d1.prop=:Prop_StartDate
                 join DataPropVal v1 on d1.id=v1.dataprop
                 left join DataProp d6 on d6.isObj=1 and d6.objorrelobj=ob.id and d6.prop=:Prop_ReservoirShore
                 left join DataPropVal v6 on d6.id=v6.dataprop
+                join ObjVer ov on v6.obj=ov.ownerver and ov.lastver=1
             where ${wheReservoirs}
             order by v1.dateTimeVal
         """, map)
@@ -789,11 +790,28 @@ class DataDao extends BaseMdbUtils {
             cntAll++
             long obj = r.getLong("obj")
             long reservoir = r.getLong("objReservoirShore")
+            String nameReservoir = r.getString("nameReservoir")
             String dte = r.getString("StartDate")
             mapParamBio.put("dte", dte)
             mapParamBio.put("own", reservoir)
             mapParamBio.put("obj2", reservoir)
             Store stBio = loadAlgoNumberFishBio(mapParamBio)
+            // Test on run
+
+            double s = 0
+            for (StoreRecord rr in stBio) {
+                if (rr.getLong("id") == 0) continue
+                for (StoreField fld in rr.getFields()) {
+                    if (fld.name.startsWith("fv") && rr.getLong("p" + fld.name.substring(2)) != 0) {
+                        s = s + rr.getDouble(fld.name)
+                    }
+                }
+            }
+            if (s==0) {
+                throw new XError("Алгоритм распределения пойманных рыб по возрастам еще не запущен: ${nameReservoir} - ${dte}")
+            }
+
+
             //
             println("Prop_WaterNumberFishBio")
             mdb.outTable(stBio)
@@ -1248,6 +1266,9 @@ class DataDao extends BaseMdbUtils {
         pms.put("prop", stProp.get(0).getLong("id"))
         pms.put("obj2", own)
         Store stBio = loadAlgoNumberFishBio(pms)
+        //
+
+
         //
         int index = 0
         for (StoreRecord r in stFv2) {

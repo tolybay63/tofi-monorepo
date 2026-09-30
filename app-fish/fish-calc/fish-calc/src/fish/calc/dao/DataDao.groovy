@@ -947,6 +947,8 @@ class DataDao extends BaseMdbUtils {
         //long year1 = mapY.get("year1")
         //long year2 = mapY.get("year2")
         //
+
+        String frm_props = "'" + props.split(",").join("','") + "'"
         long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
         List<String> sel = new ArrayList<>();
         for (long i in 0..count) {
@@ -954,35 +956,37 @@ class DataDao extends BaseMdbUtils {
             sel.add("null as id" + year + ",  null  as v" + year)
         }
         //
-        Set<Object> idsPropAll = new HashSet<>()
-        for (String cod in props.split(",")) {
-            Store stTmp = loadSqlMeta("""
+        //Set<Object> idsPropAll = new HashSet<>()
+        //for (String cod in props.split(",")) {
+            Store st = loadSqlMeta("""
                 WITH RECURSIVE r AS (
-                    SELECT id
+                    SELECT id, parent, cod, name, ${sel.join(",")}
                     FROM prop
-                    WHERE cod='${cod}'    
+                    WHERE cod in (${frm_props})    
                     UNION ALL    
-                    SELECT c.id
+                    SELECT c.id, c.parent, r.cod, c.name, ${sel.join(",")} 
                     FROM prop c
                     JOIN r ON c.parent = r.id
                 )
                 SELECT * FROM r;
             """, "")
-            Set<Object> setIds = stTmp.getUniqueValues("id")
-            idsPropAll.addAll(setIds)
-        }
+            //Set<Object> setIds = stTmp.getUniqueValues("id")
+            Set<Object> idsProp = st.getUniqueValues("id")
+        //}
 
+/*
         Store st = loadSqlMeta("""
             select p.id, p.parent, p.name, ${sel.join(",")}
             from prop p
-            where p.id in (${idsPropAll.join(",")})
+            where p.id in (0${idsProp.join(",")})
         """, "")
+*/
 
         // sql for value
         String sqlVal = """
             select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
             from Obj o
-                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop in (${idsPropAll.join(",")}) and d1.periodType is not null
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop in (${idsProp.join(",")}) and d1.periodType is not null
                 join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
             where o.id=${own}
         """
@@ -1006,35 +1010,36 @@ class DataDao extends BaseMdbUtils {
 
     private Store loadMetersWithOutPeriod(long own, int isObj, String props, String model) {
 
-        Set<Object> idsPropAll = new HashSet<>()
-        for (String cod in props.split(",")) {
-            Store stTmp = loadSqlMeta("""
+        //Set<Object> idsPropAll = new HashSet<>()
+        String frm_props = "'" + props.split(",").join("','") + "'"
+        //for (String cod in props.split(",")) {
+            Store st = loadSqlMeta("""
                 WITH RECURSIVE r AS (
-                    SELECT id
+                    SELECT id, parent, cod, name, null as idvalue, null as numberval
                     FROM prop
-                    WHERE cod='${cod}'    
+                    WHERE cod in (${frm_props})    
                     UNION ALL    
-                    SELECT c.id
+                    SELECT c.id, c.parent, r.cod, c.name, null as idvalue, null as numberval
                     FROM prop c
                     JOIN r ON c.parent = r.id
                 )
                 SELECT * FROM r;
             """, "")
-            Set<Object> setIds = stTmp.getUniqueValues("id")
-            idsPropAll.addAll(setIds)
-        }
+            Set<Object> setIds = st.getUniqueValues("id")
+            //idsPropAll.addAll(setIds)
+        //}
         //
-        Store st = loadSqlMeta("""
+/*        Store st = loadSqlMeta("""
             select id, parent, cod, name, null as idvalue, null as numberval
             from Prop 
             where id in (${idsPropAll.join(",")})
-        """, "")
+        """, "")*/
         // Value
         Store stVal = loadSqlService("""
             select  d1.prop, v1.id as idvalue, v1.numberval
             from Obj o
                 join DataProp d1 on d1.isObj=${isObj} and d1.objOrRelObj=o.id and d1.periodtype is null
-                    and d1.prop in (${idsPropAll.join(",")})
+                    and d1.prop in (${setIds.join(",")})
                 join DataPropVal v1 on v1.dataprop=d1.id 
             where o.id=${own}
         """, "", model)
@@ -1121,7 +1126,7 @@ class DataDao extends BaseMdbUtils {
     //**************************************  Tab Fish **************************************//
     @DaoMethod
     Store loadFishPage(long own) {
-        //String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry"
+
         String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_CalcMaxNumberFry"
         return loadMetersWithOutPeriod(own, 1, props, "calcdata")
     }
