@@ -109,11 +109,11 @@
                     <div v-if="props.row['id']===0">
                       <!--    v-if="cods_sum.includes(cod)"                  -->
 
-                      {{ props.value }}
+                      {{ numFormat(props.value) }}
 
                     </div>
                     <div v-else>
-                      {{ props.value }}
+                      {{ numFormat(props.value) }}
                     </div>
 
                     <q-btn
@@ -215,6 +215,31 @@ const form = reactive({...props.data})
 let dte = form["dte"]
 const periodType = form["periodType"]
 const optPeriod = ref([])
+
+//
+const numFormat = (val) => {
+  if (val === null || val === undefined || val === '') return '';
+
+  const cods_1 = "Prop_WaterArea,Prop_WaterLevel,Prop_WaterLength,Prop_ReservoirWidth,Prop_ReservoirDepth,Prop_WaterFishAverageWeight,Prop_CalcPdy,Prop_ReservoirPdy,Prop_CalcWaterFluct,Prop_GearCatchabilityNet,Prop_GearCatchabilitySeine"
+  const cods_0 = "Prop_NumberFishCaught,Prop_WaterNumberFishBio"
+  let decimals = 3
+  if (cods_1.includes(props.cod))
+    decimals = 1
+  if (cods_0.includes(props.cod))
+    decimals = 0
+
+  // Простой вариант:
+  // return Number(val).toFixed(decimals);
+
+  // вариант с разделителями разрядов (пробелами):
+  return Number(val).toLocaleString('ru-RU', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+}
+
+
+//
 
 const fnSelectPeriodType = (v) => {
   periodType.value = v.id
