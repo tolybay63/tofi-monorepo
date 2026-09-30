@@ -64,7 +64,7 @@
             {{ dtFormat(item.dend) }}
           </td>
           <td :data-th="cols[1]?.name" style="text-align-last: right">
-            {{ numFormat(item.numberval, 1) }}
+            {{ numFormat(item.cod, item.numberval) }}
           </td>
           <td :data-th="cols[4]?.name" style="text-align-last: right">
             <q-btn
@@ -138,14 +138,21 @@ const dtFormat = (v) => {
   return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
 }
 
-const numFormat = (val, decimals=3) => {
+const numFormat = (cod, val) => {
   if (val === null || val === undefined || val === '') return '';
 
-  // Выбирайте нужный return:
+  const cods_1 = "Prop_WaterArea,Prop_WaterLevel,Prop_WaterLength,Prop_ReservoirWidth,Prop_ReservoirDepth,Prop_WaterFishAverageWeight,Prop_CalcPdy,Prop_ReservoirPdy,Prop_CalcWaterFluct,Prop_GearCatchabilityNet,Prop_GearCatchabilitySeine"
+  const cods_0 = "Prop_NumberFishCaught,Prop_WaterNumberFishBio"
+  let decimals = 3
+  if (cods_1.includes(cod))
+    decimals = 1
+  if (cods_0.includes(cod))
+    decimals = 0
+
   // Простой вариант:
   // return Number(val).toFixed(decimals);
 
-  // Или вариант с разделителями разрядов (пробелами):
+  // вариант с разделителями разрядов (пробелами):
   return Number(val).toLocaleString('ru-RU', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals

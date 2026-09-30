@@ -60,7 +60,7 @@
           </span>
         </td>
         <td :data-th="cols[1]?.name" style="text-align: center">
-          {{ item.numberval }}
+          {{ numFormat(item.cod, item.numberval) }}
         </td>
         <td :data-th="cols[2]?.name" style="text-align: right">
           <q-btn
@@ -153,6 +153,27 @@ const fnAlgo = (item) => {
 
 }
 
+// Prop_NumberEggs ??????????????????
+const numFormat = (cod, val) => {
+  if (val === null || val === undefined || val === '') return '';
+
+  const cods_1 = "Prop_FishArea,Prop_WorkDuration,Prop_NumberEggs"
+  const cods_0 = "Prop_NumberFishCaught,Prop_NumberNet,Prop_sizePopulationOut1AreaMetho"
+  let decimals = 3
+  if (cods_1.includes(cod))
+    decimals = 1
+  if (cods_0.includes(cod))
+    decimals = 0
+
+  // Простой вариант:
+  // return Number(val).toFixed(decimals);
+
+  // вариант с разделителями разрядов (пробелами):
+  return Number(val).toLocaleString('ru-RU', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+}
 
 const dtFormat = (v) => {
   return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
@@ -327,7 +348,7 @@ const setDte = (dte) => {
 
 const loadFishingMeters = (targetObj) => {
 
-  console.log("loadFishingMeters", dt)
+  //console.log("loadFishingMeters", dt)
 
   loading.value = true
   obj.value = targetObj

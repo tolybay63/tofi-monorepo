@@ -24,7 +24,7 @@
           </span>
         </td>
         <td :data-th="cols[1]?.name" style="text-align-last: right">
-          {{ item.numberval }}
+          {{ numFormat(item.cod, item.numberval) }}
         </td>
         <td :data-th="cols[2]?.name" style="text-align-last: right">
           <q-btn
@@ -71,6 +71,28 @@ const loading = ref(false)
 const isExpanded = ref(true)
 const itemId = ref(null)
 const obj = ref(0)
+
+
+const numFormat = (cod, val) => {
+  if (val === null || val === undefined || val === '') return '';
+
+  const cods_1 = "Prop_FishSpeed,Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef"
+  const cods_0 = "Prop_CalcAgeSex,Prop_FishMaxAge,Prop_CalcAgePrey,Prop_CalcMaxNumberFry"
+  let decimals = 3
+  if (cods_1.includes(cod))
+    decimals = 1
+  if (cods_0.includes(cod))
+    decimals = 0
+
+  // Простой вариант:
+  // return Number(val).toFixed(decimals);
+
+  // вариант с разделителями разрядов (пробелами):
+  return Number(val).toLocaleString('ru-RU', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+}
 
 const fnDelete = (row) => {
   let nm = row.name

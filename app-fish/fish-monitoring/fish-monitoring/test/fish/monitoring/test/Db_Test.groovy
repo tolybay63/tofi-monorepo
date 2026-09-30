@@ -1,6 +1,6 @@
 package fish.monitoring.test
 
-import fish.monitoring.dao.DataDao
+
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
 import jandcode.core.store.StoreRecord
@@ -10,10 +10,8 @@ class Db_Test extends Apx_Test {
 
     @Test
     void fishstock_test() {
-        DataDao dao = mdb.createDao(DataDao.class)
-
-        dao.fishStock(1000L as String, "2015-01-01", "2015-12-31")
-
+        //DataDao dao = mdb.createDao(DataDao.class)
+        //dao.fishStock(1000L as String, "2015-01-01", "2015-12-31")
     }
 
     @Test
@@ -21,7 +19,6 @@ class Db_Test extends Apx_Test {
         Store st = mdb.loadQuery("""
             select * from DataPropVal where dbeg is null
         """)
-
         for (StoreRecord r in st) {
             mdb.execQuery("""
                 update DataPropVal set dbeg='1800-01-01', dend='3333-12-31' where id=${r.getLong("id")}
@@ -29,10 +26,12 @@ class Db_Test extends Apx_Test {
         }
     }
 
+    ///////////////////////////////////////////
+
     @Test
     void test2() {
 
-        for (;;) {
+        for (; ;) {
             mdb.execQuery("""
                 delete 
                 from datapropval where id in (
@@ -56,10 +55,38 @@ class Db_Test extends Apx_Test {
             """)
             if (st.size() == 0) break
         }
-
-
+        //
     }
 
+    @Test
+    void test3() {
+
+        for (; ;) {
+            mdb.execQuery("""
+                delete 
+                from datapropval where id in (
+                    select id from (                
+                        select d.objorrelobj, d.prop, d.periodtype, v.dbeg, count(*) as cnt, max(v.id) as id    --v.numberval,    
+                        from dataprop d, datapropval v
+                        where d.id=v.dataprop and d.isobj=1 and v.numberval is not null and d.periodtype is not null
+                             --and d.objorrelobj=1000
+                        group by d.objorrelobj, d.prop, d.periodtype, v.dbeg --, v.numberval
+                        having count(*) > 1                
+                    ) t
+                )
+            """)
+            Store st = mdb.loadQuery("""
+                    select d.objorrelobj, d.prop, d.periodtype, v.dbeg, count(*) as cnt, max(v.id) as id    --v.numberval,    
+                    from dataprop d, datapropval v
+                    where d.id=v.dataprop and d.isobj=1 and v.numberval is not null and d.periodtype is not null
+                         --and d.objorrelobj=1000
+                    group by d.objorrelobj, d.prop, d.periodtype, v.dbeg --, v.numberval
+                    having count(*) > 1
+            """)
+            if (st.size() == 0) break
+        }
+
+    }
 
 
 }
