@@ -777,6 +777,10 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void deletePersonnel(long id) {
+
+        checkForExistData(id, 1)
+
+/*
         Store st = loadSqlService("""
             select distinct v.name 
             from Obj o
@@ -788,8 +792,9 @@ class DataDao extends BaseMdbUtils {
 
         if (st.size() > 0) {
             String msg = st.getUniqueValues("name").join(";\n\r")
-            throw new XError("Cотрудник используется в следующих ловлах:\n\r${msg}")
+            throw new XError("Cотрудник используется в следующих выловах:\n\r${msg}")
         }
+*/
 
         deleteOwnerWithProperties(id, 1)
     }
@@ -1218,6 +1223,10 @@ class DataDao extends BaseMdbUtils {
 
     private void checkForExistData(long id, int isObj) {
         if (isObj == 1) {
+            //
+            long cls = mdb.loadQuery("select cls from Obj where id=${id}").get(0).getLong("cls")
+
+            //
             // 1 Родитель ?
             Store stTmp = mdb.loadQuery("""
                 select distinct ov1.name
@@ -1269,7 +1278,8 @@ class DataDao extends BaseMdbUtils {
                     d.prop, d.periodType, v.dbeg, v.dend, d.isObj,
                     case when d.isObj = 1 then ov1.name when d.isObj = 0 then rv1.name end as nm2
                 from DataProp d
-                    inner join DataPropVal v on d.id=v.dataprop
+                    join DataPropVal v on d.id=v.dataprop
+                    join Obj o on v.obj=o.id and o.cls=${cls}
                     left join ObjVer ov1 on d.isObj=1 and d.objorrelobj=ov1.ownerver and ov1.lastver=1
                     left join RelObjVer rv1 on d.isObj=0 and d.objorrelobj=rv1.ownerver and rv1.lastver=1
                 where v.obj=${id}
