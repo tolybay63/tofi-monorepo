@@ -11,6 +11,10 @@
         <action name="auth"
                 class="tofi.auth.TofiAuthAction"/>
 
+        <action name="calc/upload"
+                class = "fish.calc.action.UploadCalcAction"
+        />
+
 
         <filter name="jc-auth-engine"
                 class="jandcode.core.apx.auth.AuthFilter"
