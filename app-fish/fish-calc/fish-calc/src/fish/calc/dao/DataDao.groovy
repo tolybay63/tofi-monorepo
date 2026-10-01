@@ -1152,6 +1152,7 @@ class DataDao extends BaseMdbUtils {
     @DaoMethod
     Store loadNumbersPage(long own) {
         String props = "Prop_CalcStartPopulation,Prop_CalcStartPopulationBalance"
+        //String props = "Prop_sizePopulationOut1AreaMetho,Pop_sizePopulationOut1BalanceMet"
 
         Map<String, Long> mapY = getYears(own)
         long year1 = mapY.get("year1")
