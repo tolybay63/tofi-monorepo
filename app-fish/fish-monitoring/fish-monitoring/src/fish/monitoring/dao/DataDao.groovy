@@ -52,6 +52,7 @@ class DataDao extends BaseMdbUtils {
      * @param reservoir
      * @return set oj fvs
      */
+    @DaoMethod
     Set<Object> getFvs(long reservoir) {
         Store st = loadSqlMeta("""
             select c.id from Cls c, Typ t
@@ -64,6 +65,7 @@ class DataDao extends BaseMdbUtils {
         """, "")
         Set<Object> setCls2 = st.getUniqueValues("id")
         //
+        // если mdb то запрос к БД текущего сервиса, т.е. в данном случае к monitoring
         st = mdb.loadQuery("""
             select r2.cls, null as factorval
             from RelObj ro
