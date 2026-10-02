@@ -314,7 +314,6 @@ class DataDao extends BaseMdbUtils {
             select p.id, fvs, m.kFromBase   
             from Prop p, mrfv, measure m
             where p.meter=${meter} and p.measure=m.id and p.meterrate=mrfv.meterrate and mrfv.sz=2
-
         """, "")
         Set<Object> idsProp = stProp.getUniqueValues("id")
         StoreIndex indProp = stProp.getIndex("id")
