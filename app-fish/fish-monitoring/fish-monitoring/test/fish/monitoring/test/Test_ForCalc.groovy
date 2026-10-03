@@ -1,11 +1,9 @@
 package fish.monitoring.test
 
 import fish.monitoring.dao.DataDao
-import jandcode.commons.UtCnv
 import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.core.apx.test.Apx_Test
-import jandcode.core.dao.DaoMethod
 import jandcode.core.store.Store
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
@@ -33,56 +31,46 @@ class Test_ForCalc extends Apx_Test {
 
     ////////////////////////////////////////
 
-    @Test
-    void test_fish() {
-        Store st = loadTypesFish()
 
+    //1. Prop_NumberFishCaught		Количество пойманных рыб
+    @Test
+    void testCatch() {
+        Store st = loadPropsCathBioWeightNetSein(1000, "Prop_NumberFishCaught", 2015)
         mdb.outTable(st)
     }
 
-    Store loadTypesFish() {
-        String codTyp = "Typ_Fish"
-
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_FishTyp", "")
-
-        Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTyp)
-        String whe = "o.cls in (${idsCls.join(",")})"
-
-        //Store st = mdb.createStore("Obj.typesFish")
-        Store st = mdb.loadQuery("""
-            select o.id as obj, o.cls, v.name,
-                v2.propVal as pvFishTyp, null as fvFishTyp, null as nameFishTyp
-            from Obj o
-                left join ObjVer v on o.id=v.ownerver and v.lastver=1
-                left join DataProp d2 on d2.isObj=1 and d2.objorrelobj=o.id and d2.prop=:Prop_FishTyp
-                left join DataPropVal v2 on d2.id=v2.dataprop
-            where ${whe}
-        """, map)
-
-        Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
-        StoreIndex indFV = stFV.getIndex("propval")
-
-        for (StoreRecord r in st) {
-            StoreRecord rec = indFV.get(r.getLong("pvFishTyp"))
-            if (rec != null) {
-                r.set("fvFishTyp", rec.getLong("factorval"))
-                r.set("nameFishTyp", rec.getString("name"))
-            }
-        }
-        return st
-    }
-
-
+    //2. Prop_GearCatchabilityNet		Коэффициент уловистости сети
     @Test
-    void test1() {
-        Store st = loadWaterNumberFishBio(1000, "Prop_WaterNumberFishBio", 2015)
-
+    void testNet() {
+        Store st = loadPropsCathBioWeightNetSein(1000, "Prop_GearCatchabilityNet", 2015)
         mdb.outTable(st)
-
     }
 
-    //Prop_WaterNumberFishBio
-    Store loadWaterNumberFishBio(long reservoir, String codProp, int year) {
+    //3. Prop_GearCatchabilitySeine		Коэффициент уловистости невода
+    @Test
+    void testSeine() {
+        Store st = loadPropsCathBioWeightNetSein(1000, "Prop_GearCatchabilitySeine", 2015)
+        mdb.outTable(st)
+    }
+
+    //4. Prop_WaterFishAverageWeight			Средний вес одной рыбы
+    @Test
+    void testAverageWeight() {
+        Store st = loadPropsCathBioWeightNetSein(1000, "Prop_WaterFishAverageWeight", 2015)
+        mdb.outTable(st)
+    }
+
+    //----------------------------------
+    //5. Количество рыб, подвергнутых биологической обработке
+    @Test
+    void testBio() {
+        Store st = loadPropsCathBioWeightNetSein(1000, "Prop_WaterNumberFishBio", 2015)
+        mdb.outTable(st)
+    }
+
+
+    //
+    Store loadPropsCathBioWeightNetSein(long reservoir, String codProp, int year) {
         long periodType = 11L
         String dte = year + "-01-01"
 
@@ -163,67 +151,8 @@ class Test_ForCalc extends Apx_Test {
     }
 
 
-    //------------------------------------------
-    @Test
-    void test2() {
-        Store st = loadMetersOfOwnerWithPeriod(1000, 1, "Prop_WaterNumberFishBio", 2015, 2016)
 
-        mdb.outTable(st)
-
-    }
-
-
-    Store loadMetersOfOwnerWithPeriod(long own, int isObj, String codProp, int start_year, int end_year) {
-
-        long periodType = 11L
-        String dte = start_year + "-01-01"
-
-        Store st = apiMeta().get(ApiMeta).loadSql("""
-                WITH RECURSIVE r AS (
-                    SELECT p.id, p.cod, p.parent, p.name || ' ('||m.name||')' as name, p.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval, m.kfrombase
-                    FROM prop p, Measure m
-                    WHERE p.measure=m.id and p.cod = '${codProp}'    
-                    UNION ALL    
-                    SELECT p1.id, p1.cod as cod, p1.parent, p1.name || ' ('||m1.name||')' as name, p1.isdependvalueonperiod as dependperiod, null as dbeg, null as dend, null as numberval, null as idval, m1.kfrombase
-                    FROM  prop p1
-                    JOIN Measure m1 ON p1.measure=m1.id
-                    JOIN r ON p1.parent = r.id
-                )
-                SELECT id, parent, cod, name, dependperiod, dbeg, dend, numberval, idval, kfrombase
-                FROM r;
-            """, "")
-
-        Set<Object> idsProp = st.getUniqueValues("id")
-        //
-        Store stData = mdb.loadQuery("""
-                select d.prop as prop, v.numberval, v.dbeg, v.dend, v.id
-                from DataProp d
-                    left join DataPropVal v on d.id=v.dataProp
-                where d.isObj=${isObj} and d.objorrelobj=${own} and d.periodType=${periodType} and 
-                    '${dte}' between v.dbeg and v.dend and d.prop in (0${idsProp.join(",")})
-                union all
-                select d.prop as prop, v.numberval, v.dbeg, v.dend, v.id
-                from DataProp d
-                    left join DataPropVal v on d.id=v.dataProp
-                where d.isObj=${isObj} and d.objorrelobj=${own} and d.periodType is null and '${dte}' between v.dbeg and v.dend 
-                    and d.prop in (0${idsProp.join(",")})                
-            """)
-
-        StoreIndex indData = stData.getIndex("prop")
-        for (StoreRecord r in st) {
-            StoreRecord rec = indData.get(r.getLong("id"))
-            if (rec != null) {
-                double kf = r.getDouble("kfrombase")
-                if (kf == 0) kf = 1
-                r.set("idval", rec.getLong("id"))
-                r.set("numberval", rec.getDouble("numberval") * kf)
-                r.set("dbeg", rec.getString("dbeg"))
-                r.set("dend", rec.getString("dend"))
-            }
-        }
-        return st
-    }
-
+    //=============================================================
 
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
