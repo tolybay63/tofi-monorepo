@@ -15,6 +15,9 @@
                 class = "fish.calc.action.UploadCalcAction"
         />
 
+        <action name="calc/save-all-results"
+                class = "fish.calc.action.SaveDataAction"
+        />
 
         <filter name="jc-auth-engine"
                 class="jandcode.core.apx.auth.AuthFilter"

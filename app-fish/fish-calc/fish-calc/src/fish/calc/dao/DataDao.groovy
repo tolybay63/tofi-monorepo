@@ -1736,4 +1736,13 @@ class DataDao extends BaseMdbUtils {
             throw new XError("notLoginned")
         return au
     }
+
+    @DaoMethod
+    static void saveDataFromCalcFastApi(File fle) {
+
+        fle.eachLine { line ->
+            println line
+        }
+
+    }
 }
