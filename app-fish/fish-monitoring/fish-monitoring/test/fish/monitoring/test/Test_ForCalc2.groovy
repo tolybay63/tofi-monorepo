@@ -24,7 +24,7 @@ Prop_FishSpeed						Крейсерская скорость рыбы
 
     @Test
     void test0() {
-        Store st = loadFishProps(1000)
+        Store st = loadFishProps(1005)
         mdb.outTable(st)
     }
     /* Result

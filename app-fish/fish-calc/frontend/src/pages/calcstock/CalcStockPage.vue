@@ -350,7 +350,7 @@ const fnEdit = async (rec, isMain, isChild, mode) => {
     });
 }
 
-const fnCalc = (rec) => {
+const fnCalc = async (rec) => {
   if (props.codCls === "Cls_CalcDeterm") {
     router["push"]({
       name: 'CalculationDeterm',
@@ -360,13 +360,26 @@ const fnCalc = (rec) => {
       }
     })
   } else if (props.codCls === "Cls_CalcBayes") {
-    router["push"]({
+    // Определяем префикс для FastAPI приложения в зависимости от окружения (PROD / Dev)
+    const apiPrefix = import.meta.env.PROD ? '/fish/calc/' : 'http://127.0.0.1:8000/'
+
+    // Формируем URL с передачей calc_id в параметры запроса
+    const url = `${apiPrefix}?calc_id=${rec.id}`
+
+    // Перенаправляем пользователя на интерфейс calc-fastapi
+    window.location.href = url
+
+    // Если нужно открывать в новой вкладке, можно использовать:
+    // window.open(url, '_blank')
+
+/*    router["push"]({
       name: 'CalculationBayes',
       params: {
         id: rec.id,
         title: rec.name,
       }
-    })
+    })*/
+
   }
 
 };
