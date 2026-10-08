@@ -52,7 +52,7 @@
         />
 
         <!-- Prop_CalcFishSpec -->
-        <q-select
+<!--        <q-select
           class="q-ma-md"
           v-model="form['fvCalcFishSpec']"
           dense
@@ -62,7 +62,7 @@
           option-value="id" option-label="name" map-options
           :disable="true"
           @update:model-value="fnSelectCalcFishSpec"
-        />
+        />-->
 
         <!-- Prop_CalcStatus -->
         <q-select
@@ -186,12 +186,12 @@ const checkYear = () => {
   return form['CalcStartYear'] <= form['CalcEndYear']
 }
 
-const fnSelectCalcFishSpec = (v) => {
+/*const fnSelectCalcFishSpec = (v) => {
   if (v) {
     form.fvCalcFishSpec = v.id
     form.pvCalcFishSpec = v["pv"]
   }
-}
+}*/
 
 const fnSelectCalcStatus = (v) => {
   if (v) {
@@ -224,7 +224,7 @@ const filterReservoir = (val, update) => {
 }
 
 const validSave = () => {
-  let valid = !form["CalcCreatDate"] || !form["fvCalcFishSpec"] || !form["fvCalcStatus"] || !form["objReservoirShore"];
+  let valid = !form["CalcCreatDate"] || !form["fvCalcStatus"] || !form["objReservoirShore"];
   if (valid) return true
   if (!form["CalcStartYear"] || (form["CalcStartYear"] && form["CalcStartYear"].length !== 4)) return true;
   return !form["CalcEndYear"] || (form["CalcEndYear"] && form["CalcEndYear"].length !== 4);

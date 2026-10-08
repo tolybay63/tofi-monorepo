@@ -60,7 +60,7 @@ const props = defineProps({
 
 const loading = ref(false);
 const rows = ref([])
-const mapFishes = ref(new Map())
+//const mapFishes = ref(new Map())
 const mapCalcStatus = ref(new Map())
 const mapReservoir = ref(new Map())
 
@@ -136,7 +136,7 @@ const loadFvAsMap = async (objId, codProp) => {
     });
 }
 
-const loadFishes = async (objId, codProp) => {
+/*const loadFishes = async (objId, codProp) => {
   if (!objId) return;
   loading.value = true;
   await api
@@ -162,7 +162,7 @@ const loadFishes = async (objId, codProp) => {
     .finally(() => {
       loading.value = false;
     });
-}
+}*/
 
 const loadReservoirAsMap = async (objId, codProp) => {
   if (!objId) return;
@@ -209,12 +209,14 @@ const cols = [
     label: 'Конечный год',
     field: 'CalcEndYear',
   },
+/*
   {
     name: 'objCalcFishSpec',
     label: 'Вид рыбы',
     field: 'objCalcFishSpec',
     format: (v) => mapFishes.value ? mapFishes.value[v] : null
   },
+*/
   {
     name: 'objCalcUser',
     label: 'Пользователь проводивший расчет',
@@ -232,7 +234,7 @@ watch(
   () => props.own,
   (newObj) => {
     loadReservoirAsMap(newObj, "Prop_ReservoirShore")
-    loadFishes(newObj, "Prop_CalcFishSpec")
+    //loadFishes(newObj, "Prop_CalcFishSpec")
     loadFvAsMap(newObj, "Prop_CalcStatus")
     loadData(newObj);
   },

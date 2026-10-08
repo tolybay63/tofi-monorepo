@@ -29,7 +29,7 @@ import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
 @CompileStatic
-class DataDao extends BaseMdbUtils {
+class DataDao_old extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
 
@@ -93,7 +93,175 @@ class DataDao extends BaseMdbUtils {
         if (objParent > 0) {    // Наследуем свойства if child objParent => obj
             parent2childProps(objParent, obj)
         } else {    //
+            // Fill props: Prop_ReservoirShore, Prop_CalcFishSpec
             fillProperties(true, "Prop_ReservoirShore", rec)
+            fillProperties(true, "Prop_CalcFishSpec", rec)
+            //
+            //*********************************
+            //1. Reservoir: Prop_WaterArea, Prop_CalcWaterFluct
+            Store stMonitoring = loadMetersWithPeriod(
+                    UtCnv.toLong(rec.get("objReservoirShore")), "Prop_WaterArea,Prop_CalcWaterFluct",
+                    UtCnv.toLong(rec.get("CalcStartYear")), UtCnv.toLong(rec.get("CalcEndYear")), "monitoringdata")
+
+            // Save to Calc
+            Map<String, Object> params = new HashMap<>()
+            params.put("obj", obj)
+            //mdb.outTable(stMonitoring)
+
+            for (StoreRecord r in stMonitoring) {
+                long prop = r.getLong("id")
+                for (StoreField fld in r.getFields()) {
+                    if (fld.name.startsWith("v")) {
+                        String year = fld.name.substring(1)
+                        if (r.getLong("id" + year) == 0)
+                            continue
+                        params.put("prop", prop)
+                        params.put("numberval", r.getDouble(fld.name))
+                        params.put("dependperiod", true)
+                        params.put("year", year)
+                        saveMeter(params)
+                    }
+                }
+            }
+            //*********************************
+            //2. Fish: Prop_CalcAgeSex, Prop_CalcAgePrey, Prop_CalcMaxNumberFry
+            long ownMon = UtCnv.toLong(rec.get("objCalcFishSpec"))
+            stMonitoring = loadMetersWithOutPeriod(
+                    ownMon, 1, "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_CalcMaxNumberFry", "monitoringdata")
+
+            //mdb.outTable(stMonitoring)
+
+            // Save to Calc
+            params.put("obj", obj)
+            for (StoreRecord r in stMonitoring) {
+                if (r.getLong("idvalue") == 0)
+                    continue
+                long prop = r.getLong("id")
+                params.put("prop", prop)
+                params.put("numberval", r.getDouble("numberval"))
+                params.put("dependperiod", false)
+                saveMeter(params)
+            }
+            //*********************************
+            //2 a Fish: Prop_FishFecundity
+            long uch1 = UtCnv.toLong(rec.get("objReservoirShore"))
+            long uch2 = UtCnv.toLong(rec.get("objCalcFishSpec"))
+            ownMon = getRelObj(uch1, uch2)
+            stMonitoring = loadMetersWithOutPeriod(
+                    ownMon, 0, "Prop_FishFecundity", "monitoringdata")
+            // Save to Calc
+            params.put("obj", obj)
+            for (StoreRecord r in stMonitoring) {
+                if (r.getLong("idvalue") == 0)
+                    continue
+                long prop = r.getLong("id")
+                params.put("prop", prop)
+                params.put("numberval", r.getDouble("numberval"))
+                params.put("dependperiod", false)
+                saveMeter(params)
+            }
+            //
+            //*********************************
+            //3. Rand
+            //Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef
+            ownMon = UtCnv.toLong(rec.get("objCalcFishSpec"))
+            stMonitoring = loadMetersWithOutPeriod(
+                    ownMon, 1, "Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef", "monitoringdata")
+            // Save to Calc
+            params = new HashMap<>()
+            params.put("obj", obj)
+
+            for (StoreRecord r in stMonitoring) {
+                if (r.getLong("idvalue") == 0)
+                    continue
+                long prop = r.getLong("id")
+                params.put("prop", prop)
+                params.put("numberval", r.getDouble("numberval"))
+                params.put("dependperiod", false)
+                saveMeter(params)
+            }
+
+            //4. Number: Prop_CalcStartPopulation,Prop_CalcStartPopulationBalance
+            uch1 = UtCnv.toLong(rec.get("objReservoirShore"))
+            uch2 = UtCnv.toLong(rec.get("objCalcFishSpec"))
+            ownMon = getRelObj(uch1, uch2)
+
+            stMonitoring = loadMetersWithPeriodCustom(
+                    ownMon, "Prop_CalcStartPopulation,Prop_CalcStartPopulationBalance",
+                    UtCnv.toLong(rec.get("CalcStartYear")), UtCnv.toLong(rec.get("CalcEndYear")), "monitoringdata")
+
+            // Save to Calc
+            params.put("obj", obj)
+            for (StoreRecord r in stMonitoring) {
+                long prop = r.getLong("id")
+                for (StoreField fld in r.getFields()) {
+                    if (fld.name.startsWith("v")) {
+                        String year = fld.name.substring(1)
+                        if (r.getLong("id" + year) == 0)
+                            continue
+                        params.put("prop", prop)
+                        params.put("numberval", r.getDouble(fld.name))
+                        params.put("dependperiod", true)
+                        params.put("year", year)
+                        saveMeter(params)
+                    }
+                }
+            }
+            //5. Pdu    Prop_CalcPdy
+            long objFV = UtCnv.toLong(rec.get("objCalcFishSpec"))
+            Store stTmp = loadSqlService("""
+                select cls from Obj where id=${objFV}
+            """, "", "monitoringdata")
+            long objCls = stTmp.get(0).getLong("cls")
+            stTmp = loadSqlMeta("""
+                select c.factorval 
+                from clsfactorval c, factor f 
+                where c.cls=${objCls} and c.factorval=f.id and f.cod <> 'FV_Fictive'
+            """, "")
+
+            long fv=stTmp.get(0).getLong("factorval")
+            stMonitoring = loadMetersWithPeriodFV(
+                    UtCnv.toLong(rec.get("objReservoirShore")), fv, "Prop_CalcPdy",
+                    UtCnv.toLong(rec.get("CalcStartYear")), UtCnv.toLong(rec.get("CalcEndYear")), "monitoringdata")
+            //mdb.outTable(stMonitoring)
+            // Save to Calc
+            params.put("obj", obj)
+            for (StoreRecord r in stMonitoring) {
+                long prop = r.getLong("id")
+                for (StoreField fld in r.getFields()) {
+                    if (fld.name.startsWith("v")) {
+                        String year = fld.name.substring(1)
+                        if (r.getLong("id" + year) == 0)
+                            continue
+                        params.put("prop", prop)
+                        params.put("numberval", r.getDouble(fld.name))
+                        params.put("dependperiod", true)
+                        params.put("year", year)
+                        saveMeter(params)
+                    }
+                }
+            }
+            //6. Weight:  Prop_WaterFishAverageWeight
+            stMonitoring = loadMetersWithPeriodFV(
+                    UtCnv.toLong(rec.get("objReservoirShore")), fv, "Prop_WaterFishAverageWeight",
+                    UtCnv.toLong(rec.get("CalcStartYear")), UtCnv.toLong(rec.get("CalcEndYear")), "monitoringdata")
+            // Save to Calc
+            params.put("obj", obj)
+            for (StoreRecord r in stMonitoring) {
+                long prop = r.getLong("id")
+                for (StoreField fld in r.getFields()) {
+                    if (fld.name.startsWith("v")) {
+                        String year = fld.name.substring(1)
+                        if (r.getLong("id" + year) == 0)
+                            continue
+                        params.put("prop", prop)
+                        params.put("numberval", r.getDouble(fld.name))
+                        params.put("dependperiod", true)
+                        params.put("year", year)
+                        saveMeter(params)
+                    }
+                }
+            }
         }
     }
 

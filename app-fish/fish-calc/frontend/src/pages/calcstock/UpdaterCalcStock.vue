@@ -75,6 +75,8 @@
               @update:model-value="fnSelectReservoir"
             />
             <!-- Prop_CalcFishSpec -->
+
+<!--
             <q-select
               v-model="form['objCalcFishSpec']"
               :label="fmReqLabel('CalcFishSpec', true)"
@@ -88,6 +90,7 @@
               @filter="filterCalcFishSpec"
               @update:model-value="fnSelectCalcFishSpec"
             />
+-->
           </div>
         </div>
       </q-card-section>
@@ -142,8 +145,6 @@ const form = reactive({...props.data});
 const optReservoir = ref([])
 const optReservoirOrg = ref([])
 //
-const optCalcFishSpec = ref([])
-const optCalcFishSpecOrg = ref([])
 
 const fmReqLabel = (label, req) => {
   if (req)
@@ -170,10 +171,6 @@ const checkYear2P = () => {
   return (form["CalcEndYear"] && form["CalcEndYear"].length === 4 && form['CalcStartYear'] <= form['CalcEndYear'])
 }
 
-/*const checkYear2 = () => {
-  if (!form['CalcStartYear'] || !form['CalcEndYear']) return true
-  return form['CalcStartYear'] <= form['CalcEndYear'] && form['CalcEndYear'] <= y2P
-}*/
 
 const validName = () => {
   console.info(form)
@@ -185,19 +182,22 @@ const validName = () => {
     if (props.isChild) {
       return !checkYear1() || !checkYear2();
     } else {
-      return !form["objCalcFishSpec"] || !form["objReservoirShore"] || !checkYear1P() || !checkYear2P();
+      return !form["objReservoirShore"] || !checkYear1P() || !checkYear2P();
     }
   } else {
     return form["name"] === "";
   }
 }
 
+/*
 const fnSelectCalcFishSpec = (v) => {
   if (v) {
     form.objCalcFishSpec = v.id
     form.pvCalcFishSpec = v["pv"]
   }
 }
+*/
+
 const fnSelectReservoir = (v) => {
   if (v) {
     form.objReservoirShore = v.id
@@ -220,22 +220,6 @@ const filterReservoir = (val, update) => {
     if (optReservoirOrg.value.length < 2) return
     const needle = val.toLowerCase()
     optReservoir.value = optReservoirOrg.value.filter((v) => {
-      return v.name?.toLowerCase().indexOf(needle) > -1
-    })
-  })
-}
-
-const filterCalcFishSpec = (val, update) => {
-  if (val === null || val === '') {
-    update(() => {
-      optCalcFishSpec.value = optCalcFishSpecOrg.value
-    })
-    return
-  }
-  update(() => {
-    if (optCalcFishSpecOrg.value.length < 2) return
-    const needle = val.toLowerCase()
-    optCalcFishSpec.value = optCalcFishSpecOrg.value.filter((v) => {
       return v.name?.toLowerCase().indexOf(needle) > -1
     })
   })
@@ -285,13 +269,6 @@ const onOKClick = () => {
 const onCancelClick = () => {
   hide();
 };
-
-const loadObjCalcFishSpec = async (reservoir) => {
-  const resp2 = await api.post('', {method: 'data/loadObjCalcFishSpec', params: [reservoir]})
-  optCalcFishSpec.value = resp2.data.result['records']
-  optCalcFishSpecOrg.value = resp2.data.result['records']
-}
-
 
 onMounted(async () => {
   console.info("onMounted upd", props.isChild, props.parentName);
