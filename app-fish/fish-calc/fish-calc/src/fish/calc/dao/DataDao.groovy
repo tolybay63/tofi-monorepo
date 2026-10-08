@@ -1737,12 +1737,12 @@ class DataDao extends BaseMdbUtils {
         return au
     }
 
+
     @DaoMethod
-    static void saveDataFromCalcFastApi(File fle) {
-
+    static void saveDataFromCalcFastApi(File fle, String filename) {
+        def file = new File("d:\\rashet.txt")
         fle.eachLine { line ->
-            println line
+            file << line + "\r\n"
         }
-
     }
 }

@@ -1,20 +1,28 @@
 package fish.calc.action;
 
 import fish.calc.dao.DataDao;
+import jandcode.commons.UtCnv;
+import jandcode.commons.UtJson;
 import jandcode.commons.error.XError;
 import jandcode.commons.variant.IVariantMap;
+import jandcode.commons.variant.VariantMapNoCase;
 import jandcode.core.dbm.ModelService;
 import jandcode.core.dbm.mdb.Mdb;
 import jandcode.core.web.action.BaseAction;
 
 import java.io.File;
+import java.util.Map;
 
 public class SaveDataAction extends BaseAction {
 
     protected void onExec() throws Exception {
         //Извлекаем параметры метаданных
         IVariantMap params = getReq().getParams();
-        String fnOrg = params.getString("filename");
+
+        String jsonStr = params.getString("params");
+        Map innerMap = UtJson.getGson().fromJson(jsonStr, Map.class);
+        String fnOrg = innerMap != null ? String.valueOf(innerMap.get("filename")) : "";
+
 
         javax.servlet.http.Part filePart = getReq().getPart("file");
 
@@ -32,7 +40,7 @@ public class SaveDataAction extends BaseAction {
         Mdb mdb = modelSvc.getModel().createMdb();
         DataDao dao = mdb.createDao(DataDao.class);
 
-        dao.saveDataFromCalcFastApi(fle);
+        dao.saveDataFromCalcFastApi(fle, fnOrg);
 
         getReq().render("filename: " + fnOrg);
 
