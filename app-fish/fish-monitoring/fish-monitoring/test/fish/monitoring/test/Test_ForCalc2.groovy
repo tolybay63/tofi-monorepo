@@ -58,6 +58,7 @@ records: 8
      * @return
      */
     Store loadFishProps(long reservoir) {
+        //!!! Запрос на Модель
         Store stTmp = loadSqlMeta("""
             select c.id from Cls c, Typ t
             where c.typ=t.id and t.cod='Typ_WaterBodies'
@@ -69,7 +70,7 @@ records: 8
         """, "")
         Set<Object> setCls2 = stTmp.getUniqueValues("id")
         //
-        // если mdb то запрос к БД текущего сервиса, т.е. в данном случае к monitoring
+        // !!! если mdb то запрос к БД текущего сервиса, т.е. в данном случае к monitoring
         stTmp = mdb.loadQuery("""
             select r2.obj as objFish
             from RelObj ro

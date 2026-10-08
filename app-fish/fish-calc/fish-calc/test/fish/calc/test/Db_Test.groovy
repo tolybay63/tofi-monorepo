@@ -21,7 +21,7 @@ class Db_Test extends Apx_Test {
 
     @Test
     void test1() {
-        Store st = getPropsOfCalc(1038)
+        Store st = getPropsOfCalc(1039)
         mdb.outTable(st)
     }
 

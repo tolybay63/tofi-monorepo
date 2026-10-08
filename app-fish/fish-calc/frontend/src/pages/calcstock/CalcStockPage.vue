@@ -367,7 +367,8 @@ const fnCalc = async (rec) => {
     const url = `${apiPrefix}?calc_id=${rec.id}`
 
     // Перенаправляем пользователя на интерфейс calc-fastapi
-    window.location.href = url
+    //window.location.href = url
+    window.open(url, '_blank')
 
     // Если нужно открывать в новой вкладке, можно использовать:
     // window.open(url, '_blank')
