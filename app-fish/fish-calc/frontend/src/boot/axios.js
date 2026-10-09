@@ -26,6 +26,22 @@ const api = axios.create({
     'Content-Type': 'application/json'
   }
 })
+//
+// Отдельный экземпляр для нового FastAPI сервиса байесовских расчетов
+let fastApiBaseURL = "/api/fast/";
+if (import.meta.env.QUASAR_PROD || (typeof window !== 'undefined' && !window.location.port)) {
+  fastApiBaseURL = `/fish/${SERVICE_NAME}/api/fast/`;
+} else {
+  fastApiBaseURL = 'http://127.0.0.1:8001/';
+}
+
+const fastApi = axios.create({
+  baseURL: fastApiBaseURL,
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
+});
 
 // Автоматический перехватчик: вытаскивает токен из сессии НАПРЯМУЮ перед КАЖДЫМ запросом
 api.interceptors.request.use(
@@ -230,4 +246,4 @@ const tofi_dbeg = "1800-01-01";
 const tofi_dend = "3333-12-31";
 
 // Полный набор всех старых и новых экспортов для совместимости со всем проектом
-export { api, authApi, authURL, urlMainApp, tofi_dbeg, tofi_dend };
+export { api, authApi, authURL, urlMainApp, tofi_dbeg, tofi_dend, fastApi };

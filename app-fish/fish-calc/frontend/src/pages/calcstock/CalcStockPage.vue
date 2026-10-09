@@ -188,7 +188,7 @@ import {computed, getCurrentInstance, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import {extend, useQuasar} from "quasar";
 import {collapsAll, expandAll, findRowForId, hasTarget, notifyError, notifyInfo, pack} from '@/utils/jsutils'
-import {api} from "@/boot/axios";
+import {api, fastApi} from "@/boot/axios";
 import UpdaterCalcStock from "./UpdaterCalcStock.vue";
 import PropsMainPage from "@/pages/calcstock/PropsMainPage.vue";
 
@@ -350,6 +350,26 @@ const fnEdit = async (rec, isMain, isChild, mode) => {
     });
 }
 
+async function handleCalculate(calcId) {
+  try {
+    const response = await fastApi.post('/api/stock/recalculate', null, {
+      params: { calc_id: calcId }
+    });
+    //const response = await fastApi.post('/api/stock/recalculate', { calc_id: calcId });
+    console.log('Результат от FastAPI:', response.data);
+
+    // СОХРАНЯЕМ ДАННЫЕ В РЕАКТИВНУЮ ПЕРЕМЕННУЮ СТРАНИЦЫ
+    // (замените `calculationResult` на название вашей переменной, отвечающей за данные таблицы/формы)
+    calculationResult.value = response.data;
+
+    // Или если данные сохраняются в Pinia-хранилище:
+    // store.setCalculationData(response.data);
+
+  } catch (error) {
+    console.error('Ошибка запроса к расчету:', error);
+  }
+}
+
 const fnCalc = async (rec) => {
   if (props.codCls === "Cls_CalcDeterm") {
     router["push"]({
@@ -362,15 +382,11 @@ const fnCalc = async (rec) => {
   } else if (props.codCls === "Cls_CalcBayes") {
     // Определяем префикс для FastAPI приложения в зависимости от окружения (PROD / Dev)
 
-    let baseUrl = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8080';
-    let url = `${baseUrl}?calc_id=${rec.id}`;
+    //await handleCalculate(rec.id)
+    let baseUrl = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8000/';
+    let url = `${baseUrl}bayes?calc_id=${rec.id}`;
     window.open(url, '_blank');
 
-
-    //const apiPrefix = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8000/'
-    //const url = `${apiPrefix}?calc_id=${rec.id}`
-    //window.location.href = url
-    //window.open(url, '_blank')
 
 
 /*    router["push"]({
