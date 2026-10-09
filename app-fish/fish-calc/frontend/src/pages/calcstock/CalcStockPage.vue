@@ -361,17 +361,17 @@ const fnCalc = async (rec) => {
     })
   } else if (props.codCls === "Cls_CalcBayes") {
     // Определяем префикс для FastAPI приложения в зависимости от окружения (PROD / Dev)
-    const apiPrefix = import.meta.env.PROD ? '/fish/calc/' : 'http://127.0.0.1:8000/'
 
-    // Формируем URL с передачей calc_id в параметры запроса
-    const url = `${apiPrefix}?calc_id=${rec.id}`
+    let baseUrl = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8080';
+    let url = `${baseUrl}?calc_id=${rec.id}`;
+    window.open(url, '_blank');
 
-    // Перенаправляем пользователя на интерфейс calc-fastapi
+
+    //const apiPrefix = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8000/'
+    //const url = `${apiPrefix}?calc_id=${rec.id}`
     //window.location.href = url
-    window.open(url, '_blank')
+    //window.open(url, '_blank')
 
-    // Если нужно открывать в новой вкладке, можно использовать:
-    // window.open(url, '_blank')
 
 /*    router["push"]({
       name: 'CalculationBayes',
