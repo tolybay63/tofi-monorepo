@@ -98,7 +98,7 @@ const loadData = async (objId) => {
     .then(
       (response) => {
         rows.value = response.data.result["records"];
-        console.info("SERVER ROWS:", rows.value);
+        //console.info("SERVER ROWS:", rows.value);
       },
       (error) => {
         let msg = error.message;
@@ -135,34 +135,6 @@ const loadFvAsMap = async (objId, codProp) => {
       loading.value = false;
     });
 }
-
-/*const loadFishes = async (objId, codProp) => {
-  if (!objId) return;
-  loading.value = true;
-  await api
-    .post("", {
-      method: "data/loadFishes",
-      params: [codProp]
-    })
-    .then(
-      (response) => {
-        response.data.result.records.forEach((it) => {
-          mapFishes.value[it['id']] = it['name']
-        })
-
-        console.info("Map Fishes:", mapFishes.value);
-      },
-      (error) => {
-        let msg = error.message;
-        if (error.response)
-          msg = proxy?.$t(error.response.data?.error?.message);
-        console.error(msg);
-      }
-    )
-    .finally(() => {
-      loading.value = false;
-    });
-}*/
 
 const loadReservoirAsMap = async (objId, codProp) => {
   if (!objId) return;
