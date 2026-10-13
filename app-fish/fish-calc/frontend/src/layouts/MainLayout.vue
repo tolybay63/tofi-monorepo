@@ -185,7 +185,7 @@ const essentialLinks = computed(() => [
     icon: 'calculate',
     to: '/calc_bayes',
     target: 'calc',
-  },
+  }
   /*
 
     {
