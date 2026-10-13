@@ -186,41 +186,41 @@ const essentialLinks = computed(() => [
     to: '/calc_bayes',
     target: 'calc',
   },
+  /*
+
+    {
+      label: t('calcMPC'),
+      info: '',
+      icon: 'calculate',
+      //to: '/calc_mpc',
+      target: 'calc',
+    },
 
 
-  {
-    label: t('calcMPC'),
-    info: '',
-    icon: 'calculate',
-    //to: '/calc_mpc',
-    target: 'calc',
-  },
-/*
+    {
+      label: 'Fast API EndPoints',
+      info: '',
+      icon: 'link',
+      target: 'calc',
+      children: [
+        {
+          label: "Test 1",
+          info: 'Fast API from Meta',
+          icon: 'link',
+          to: '/calcA',
+          target: 'calc',
+        },
+        {
+          label: "Test 2",
+          info: 'Fast API from NSI',
+          icon: 'link',
+          to: '/calcB',
+          target: 'calc',
+        }
+      ]
+    },
 
-  {
-    label: 'Fast API EndPoints',
-    info: '',
-    icon: 'link',
-    target: 'calc',
-    children: [
-      {
-        label: "Test 1",
-        info: 'Fast API from Meta',
-        icon: 'link',
-        to: '/calcA',
-        target: 'calc',
-      },
-      {
-        label: "Test 2",
-        info: 'Fast API from NSI',
-        icon: 'link',
-        to: '/calcB',
-        target: 'calc',
-      }
-    ]
-  },
-
-*/
+  */
 ])
 
 // Methods
