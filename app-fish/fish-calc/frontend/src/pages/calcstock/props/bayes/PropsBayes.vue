@@ -34,6 +34,5 @@ const props = defineProps({
 
 
 const tab = ref("desc")
-tab = ref("props")
-tab = ref("desc")
+
 </script>
