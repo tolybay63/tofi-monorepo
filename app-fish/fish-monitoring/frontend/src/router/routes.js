@@ -1,52 +1,63 @@
 const routes = [
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    component: () => import('@/layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') },
-
-      {path: '/kato', name: "KatoPage", component: () => import('pages/kato/KatoPage.vue')},
+      { path: '', component: () => import('@/pages/IndexPage.vue') },
 
       {
         path: '/reservoirs',
-        name: 'ReservoirsPage',
-        component: () => import('pages/reservoirs/ReservoirsPage.vue'),
+        name: 'FilialsPage',
+        component: () => import('@/pages/reservoirs/Filials.vue'),
+      },
+      {
+        path: '/reservoirs/:filial',
+        name: 'ReservoirFilialPage',
+        component: () => import('@/pages/reservoirs/ReservoirsFilialPage.vue'),
       },
 
-      {
-        path: '/samplingstations',
-        name: 'SamplingStationsPage',
-        component: () => import('pages/samplingstations/SamplingStationsPage.vue'),
-        //component: () => import('pages/samplingstations/StationAreaTabs.vue'),
-      },
+      { path: '/samplingstations', name: 'SamplingStationsPage', component: () => import('@/pages/samplingstations/SamplingStationsPage.vue')},
+
 
       {
         path: '/typesfish',
         name: 'TypesFishPage',
-        component: () => import('pages/typesfish/TypesFishPage.vue'),
-      },
-
-      {
-        path: '/fishGear',
-        name: 'FishGearPage',
-        component: () => import('pages/fishgear/FishGearPage.vue'),
+        component: () => import('@/pages/typesfish/TypesFishPage.vue'),
       },
 
       {
         path: '/piscesreservoirs',
         name: 'PiscesReservoirsTabs',
-        component: () => import('pages/piscesreservoirs/PiscesReservoirsPage.vue'),
+        component: () => import('@/pages/piscesreservoirs/PiscesReservoirsPage.vue'),
       },
 
-      { path: '/test', name: 'TestPage', component: () => import('pages/test/TestPage.vue') },
+      {
+        path: '/fishing/:reservoirs/:dbeg/:dend', name: 'FishingPage',
+        component: () => import('@/pages/fishing/FishingPage.vue'),
+      },
+
+      {
+        path: '/chosefishing',
+        component: () => import('@/pages/fishing/SelectFishingPage.vue'),
+      },
+
+
+      { path: '/fill', name: 'TestPage', component: () => import('@/pages/test/TestPage.vue') },
+
     ],
+  },
+
+
+  {
+    path: "/confirm-pws",
+    component: () => import("@/pages/ConfirmPassword.vue")
   },
 
   // Always leave this as last one,
   // but you can also remove it
   {
     path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue'),
+    component: () => import('@/pages/ErrorNotFound.vue'),
   },
 ]
 

@@ -480,8 +480,6 @@ export default {
 
   created() {
     //console.log("CREARE MeterValue", this.kfc, this.measurename, this.digit)
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
     this.cols = this.getColumns();
   },
 

@@ -12,6 +12,7 @@ export default {
   logIn: 'Login',
   logOut: 'Logout',
   browserDenied: 'Browser denied file download...',
+  charts: "Charts",
 
   notLoginned: "Login required",
   notAccess: "You do not have the rights to perform this operation",
@@ -116,7 +117,8 @@ export default {
   FishFecundity: "Number of Eggs in a Female",
   FishSpawFrequency: "Fish Spawning Frequency",
 
-
+  algo: "Algorithm",
+  goAlgo: "Run the algorithm",
 
   typesOfFish: 'Types of fish',
   typeOfFish: 'Type of fish',
@@ -130,16 +132,26 @@ export default {
   fisArea: 'Place',
   enterprise: 'Enterprise',
 
+  fishing: "Fishing",
+  fishingType: "Fishing Type",
+  StartDate: "Fishing Start Date",
+  FishLocation: "Fishing Location",
+  AreaOfTon: "Fishing Area, ha",
+  FishGear: 'Fishing Gear',
+  FishManager: "Fishing Supervisor",
+  FishParticipants: "Fishing Participants",
+
   region: "Region",
   district: "District",
   addRegion: 'Add the region',
   addDistrict: 'Add the district',
 
   kato: "Classifier of administrative-territorial objects",
-  struct_enterprise: "Organizational structure of the enterprise",
 
   kato2: "Region/District",
-  struct_enterprise2: "Branch",
+  filial: "Branch",
+  countReservoirs: "Number of reservoirs",
+  back: "Back",
 
   nameCls: 'Type of gun',
   attached_files: 'Attached files',
@@ -171,7 +183,6 @@ export default {
   CurrentSpeed: 'The speed of the current, m/s',
   SplitLife: 'Cannot split life span',
   ExistsValueOnDate: 'There is a value on the specified date',
-  AreaOfTon: "Area of the ton, ha",
   AreaOfTonShort: "Area, ha",
 
   reservoirDepth_maxGRavg: 'Error (The depth of the reservoir): maximum value >= average value',
@@ -203,14 +214,14 @@ export default {
   FishWeight: 'Weight',
   FishLength: 'Length',
 
-  FishGear: 'Fishing tools',
+  FishGear_: 'Fishing tools',
   FishGearType: 'Type of fishing gear',
   FishGender: 'Fish Gender',
 
   research: 'Research',
   researchResults: 'Research results',
 
-  test: 'Заливка',
+  fill: 'Filling',
 
   nameDoc: 'The name of the document',
   numberDoc: 'Document number',

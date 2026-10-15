@@ -17,10 +17,10 @@
       </q-bar>
 
       <q-card-section>
-
         <!-- name -->
         <q-input
-          autofocus dense
+          autofocus
+          dense
           v-model="form.name"
           :label="fmReqLabel('fldName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
@@ -34,18 +34,34 @@
           class="q-mb-md"
         />
 
+        <!-- Reservoir -->
+        <q-select
+          v-model="form.objReservoirShore"
+          :label="fmReqLabel('reservoir')"
+          :model-value="form.objReservoirShore"
+          :options="optReservoir"
+          class="q-mb-lg"
+          dense
+          map-options
+          option-label="name"
+          option-value="id"
+          use-input
+          @filter="filterReservoir"
+          @update:model-value="fnSelectReservoir"
+        />
+
         <!-- AreaOfTon -->
         <q-input
           v-model="form.AreaOfTon"
           :label="fmReqLabel('AreaOfTon')"
-          type="number" dense
+          type="number"
+          dense
           class="q-mb-md"
         />
 
         <!-- Description -->
         <q-input v-model="form['Description']" type="textarea" :label="$t('description')" />
       </q-card-section>
-      <!---->
 
       <q-card-actions align="right">
         <q-btn
@@ -61,82 +77,116 @@
   </q-dialog>
 </template>
 
-<script>
-import {api} from 'boot/axios'
-import {notifySuccess} from 'src/utils/jsutils'
+<script setup>
+import { getCurrentInstance, onMounted, reactive, ref } from 'vue'
+import { api } from '@/boot/axios'
+import { notifySuccess } from '@/utils/jsutils'
 
-export default {
-  props: ['mode', 'data'],
+const props = defineProps({
+  mode: String,
+  data: Object,
+})
 
-  data() {
-    return {
-      form: this.data,
-      loading: false,
-    }
-  },
+const emit = defineEmits(['ok', 'hide'])
+const { proxy } = getCurrentInstance()
 
-  emits: [
-    // REQUIRED
-    'ok',
-    'hide',
-  ],
+const dialog = ref(null)
+const optReservoir = ref([])
+const optReservoirOrg = ref([])
+const loading = ref(false)
+const form = reactive({ ...props.data })
 
-  methods: {
-    fmReqLabel(label) {
-      return this.$t(label) + '*'
-    },
-
-    validSave() {
-      if (!this.form.AreaOfTon || !this.form["Coordinate"] || !this.form.name) return true
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]()
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]()
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit('hide')
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      let err = false
-      this.form.mode = this.mode
-      api
-        .post('', {
-          method: 'data/saveSamplingStation',
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            err = false
-            this.$emit('ok', response.data.result["records"][0])
-            notifySuccess(this.$t('success'))
-          })
-        .finally(() => {
-          if (!err) this.hide()
-        })
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide()
-    },
-  },
-  created() {
-  },
+const fmReqLabel = (label) => {
+  return proxy?.$t(label) + '*'
 }
+
+const validSave = () => {
+  if (!form.AreaOfTon || !form['Coordinate'] || !form.name || !form.objReservoirShore) {
+    return true
+  }
+}
+
+const fnSelectReservoir = (v) => {
+  if (v) {
+    form.objReservoirShore = v.id
+    form.pvReservoirShore = v.pv
+  } else {
+    form.objReservoirShore = null
+    form.pvReservoirShore = null
+  }
+}
+
+const filterReservoir = (val, update) => {
+  if (val === null || val === '') {
+    update(() => {
+      optReservoir.value = optReservoirOrg.value
+    })
+    return
+  }
+  update(() => {
+    if (optReservoirOrg.value.length < 2) return
+    const needle = val.toLowerCase()
+    optReservoir.value = optReservoirOrg.value.filter((v) => {
+      return v.name?.toLowerCase().indexOf(needle) > -1
+    })
+  })
+}
+
+const show = () => {
+  dialog.value?.show()
+}
+
+const hide = () => {
+  dialog.value?.hide()
+}
+
+const onDialogHide = () => {
+  emit('hide')
+}
+
+const onOKClick = () => {
+  let err = false
+  form.mode = props.mode
+  api
+    .post('', {
+      method: 'data/saveSamplingStation',
+      params: [form],
+    })
+    .then((response) => {
+      err = false
+      emit('ok', response.data.result['records'][0])
+      notifySuccess(proxy?.$t('success'))
+    })
+    .catch(() => {
+      err = true
+    })
+    .finally(() => {
+      if (!err) hide()
+    })
+}
+
+const onCancelClick = () => {
+  hide()
+}
+
+onMounted(() => {
+  loading.value = true
+  api
+    .post('', {
+      method: 'data/loadReservoir',
+      params: ['Prop_ReservoirShore'],
+    })
+    .then((response) => {
+      optReservoir.value = response.data.result['records']
+      optReservoirOrg.value = response.data.result['records']
+    })
+    .finally(() => {
+      loading.value = false
+    })
+})
+
+defineExpose({
+  show,
+  hide,
+})
 </script>

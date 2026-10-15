@@ -13,16 +13,20 @@
 
     <apinator>
 
-        <api name="userdata" invoker="model" model="userdata">
-            <item name="tofi.api.dta.ApiUserData"
-                  class="tofi.api.dta.impl.ApiUserDataImpl"/>
-        </api>
-
         <api name="monitoringdata" invoker="model" model="monitoringdata">
             <item name="tofi.api.dta.ApiMonitoringData"
                   class="tofi.api.dta.impl.ApiMonitoringDataImpl"/>
         </api>
 
+        <api name="nsidata" invoker="model" model="nsidata">
+            <item name="tofi.api.dta.ApiNSIData"
+                  class="tofi.api.dta.impl.ApiNSIDataImpl"/>
+        </api>
+
+        <api name="calcdata" invoker="model" model="calcdata">
+            <item name="tofi.api.dta.ApiCalcData"
+                  class="tofi.api.dta.impl.ApiCalcDataImpl"/>
+        </api>
 
     </apinator>
 

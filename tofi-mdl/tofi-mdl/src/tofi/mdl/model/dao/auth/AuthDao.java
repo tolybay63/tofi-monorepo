@@ -42,7 +42,7 @@ public class AuthDao extends BaseMdbUtils {
         String userTargets = usr.getAttrs().getString("target", "");
         String[] targets = userTargets.trim().split("\\s*,\\s*");
         if (!Arrays.asList(targets).contains(target)) {
-            if (target.equals("meta")) {
+            if (target.equals("mdl")) {
                 throw new XError("notAccessService");
             }
             throw new XError("notAccess");

@@ -14,7 +14,7 @@
     <div class="q-pa-lg bg-elements">
       <img
         alt="Fish logo"
-        src="~assets/fish.webp"
+        src="../assets/fish.webp"
         style="width: 200px; height: 150px"
       />
     </div>
@@ -24,29 +24,27 @@
       <div style="height: 50%; width: 80%">
 
         <div class="row q-ma-md justify-center">
+
           <!-- adm -->
           <q-btn
             rounded
             class="bg-orange text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
-            @click="fnAdm()"
+            style="height: 100px; width: 730px; font-size: 26px; opacity: 0.7"
+            @click="fnAdm"
           >
-            <div class="column">
+            <div class="column-3">
               <div>
                 <q-avatar icon="manage_accounts" color="green"></q-avatar>
                 {{ $t("appAdmName") }}
               </div>
             </div>
           </q-btn>
-        </div>
 
-
-        <div class="row q-ma-md justify-center">
           <!-- model -->
           <q-btn
             rounded
             class="bg-blue text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
+            style="height: 100px; width: 730px; font-size: 26px; opacity: 0.7"
             @click="fnMdl()"
           >
             <div class="column">
@@ -56,65 +54,21 @@
               </div>
             </div>
           </q-btn>
-
-          <!-- data -->
-          <q-btn
-            rounded
-            class="bg-blue text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
-            @click="fnData()"
-          >
-            <div class="column">
-              <div>
-                <q-avatar icon="edit_note" color="orange"></q-avatar>
-                {{ $t("appDataName") }}
-              </div>
-            </div>
-          </q-btn>
-
-          <!-- cube -->
-          <q-btn
-            rounded
-            class="bg-blue text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
-            @click="fnCube()"
-          >
-            <div class="column">
-              <div>
-                <q-avatar icon="view_in_ar" color="orange"></q-avatar>
-                {{ $t("appCubesName") }}
-              </div>
-            </div>
-          </q-btn>
-          <!-- User Data -->
-          <q-btn
-            rounded
-            class="bg-blue text-white text-bold q-ma-md"
-            style="height: 200px; width: 350px; font-size: 24px; opacity: 0.7"
-            @click="fnUserData()"
-          >
-            <div class="column">
-              <div>
-                <q-avatar icon="contacts" color="orange"></q-avatar>
-                {{ $t("appUserDataName") }}
-              </div>
-            </div>
-          </q-btn>
-
         </div>
 
         <div class="row q-ma-md justify-center">
-          <!-- Personnel -->
+
+          <!-- NSI -->
           <q-btn
             rounded
             class="bg-green text-white text-bold q-ma-md"
             style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
-            @click="fnPersonnel()"
+            @click="fnNSI()"
           >
             <div class="column">
               <div>
-                <q-avatar icon="groups" color="orange"></q-avatar>
-                <div>{{ $t("appPersonnelName") }}</div>
+                <q-avatar icon="menu_book" color="orange"></q-avatar>
+                <div>{{ $t("appNsiName") }}</div>
               </div>
             </div>
           </q-btn>
@@ -133,7 +87,6 @@
               </div>
             </div>
           </q-btn>
-
           <!-- Calc -->
           <q-btn
             rounded
@@ -149,6 +102,20 @@
             </div>
           </q-btn>
 
+          <!-- Analyse -->
+          <q-btn
+            rounded
+            class="bg-green text-white text-bold q-ma-md"
+            style="height: 200px; width: 350px; font-size: 26px; opacity: 0.7"
+            @click="fnAnalyse()"
+          >
+            <div class="column">
+              <div>
+                <q-avatar icon="biotech" color="orange"></q-avatar>
+                <div>{{ $t("appAnalyseName") }}</div>
+              </div>
+            </div>
+          </q-btn>
         </div>
 
       </div>
@@ -157,66 +124,47 @@
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue";
-import {
-  appAdmURL,
-  appCalcURL,
-  appCubeURL,
-  appDataURL,
-  appDataUserURL,
-  appModelURL,
-  appMonitoringURL,
-  appPersonnelURL
-} from "boot/axios";
+<script setup>
+import {appAdmURL, appCalcURL, appModelURL, appMonitoringURL, appNsiURL} from "@/boot/axios";
 import {Notify} from "quasar";
 
+function fnAdm() {
+  window.open(appAdmURL, "_self");
+}
 
-export default defineComponent({
-  name: "IndexPage",
+function fnMdl() {
+  window.open(appModelURL, "_self");
+}
 
-  methods: {
-    fnAdm() {
-      open(appAdmURL, "_self");
-    },
+function fnNSI() {
+  window.open(appNsiURL, "_self");
+}
 
-    fnMdl() {
-      open(appModelURL, "_self");
-    },
+function fnMonitoring() {
+  window.open(appMonitoringURL, "_self");
+}
 
-    fnUserData() {
-      open(appDataUserURL, "_self");
-    },
+function fnCalc() {
+/*  Notify.create({
+    type: 'negative',
+    message: "На стадии реализации",
+    position: 'top',
+    timeout: 5000,
+    actions: [{ icon: 'close', color: 'white' }]
+  });*/
+  window.open(appCalcURL, "_self");
+}
 
-    fnData() {
-      open(appDataURL, "_self");
-    },
+function fnAnalyse() {
+  Notify.create({
+    type: 'negative',
+    message: "На стадии реализации",
+    position: 'top',
+    timeout: 5000,
+    actions: [{ icon: 'close', color: 'white' }]
+  });
 
-    fnCube() {
-      open(appCubeURL, "_self");
-    },
-
-    fnPersonnel() {
-      open(appPersonnelURL, "_self");
-    },
-
-    fnMonitoring() {
-      open(appMonitoringURL, "_self");
-    },
-
-    fnCalc() {
-      //open(appCalcURL, "_self");
-      Notify.create({
-        type: 'negative',
-        message: "На стадии реализации",
-        position: 'top',
-        timeout: 5000,
-        actions: [{ icon: 'close', color: 'white' }]
-      });
-    },
-
-  },
-});
+}
 </script>
 
 <style scoped>
@@ -301,83 +249,5 @@ export default defineComponent({
   66% { transform: translate(-20px, 20px) rotate(-10deg); }
   100% { transform: translate(0, 0) rotate(0deg); }
 }
-
-/*
-.fish-phantom {
-  !* Создаем маску: переход от прозрачного к черному *!
-  !* Предполагаем, что голова слева, хвост справа *!
-  -webkit-mask-image: linear-gradient(to left, black 33%, transparent 66%);
-  mask-image: linear-gradient(to left, black 33%, transparent 66%);
-
-  -webkit-mask-size: 300% 100%;
-  mask-size: 300% 100%;
-
-  !* Запускаем анимацию *!
-  animation: dissolve-logic 6s ease-in-out infinite;
-}
-
-@keyframes dissolve-logic {
-  0% {
-    !* Рыба полностью видна *!
-    -webkit-mask-position: 0% 0;
-    mask-position: 0% 0;
-  }
-  40% {
-    !* Исчезает: хвост уходит первым (сдвигаем прозрачную часть на рыбу) *!
-    -webkit-mask-position: 70% 0;
-    mask-position: 70% 0;
-  }
-  50%, 60% {
-    !* Полностью растворилась (пауза в небытии) *!
-    -webkit-mask-position: 100% 0;
-    mask-position: 100% 0;
-  }
-  100% {
-    !* Появляется: голова выходит первой из тумана *!
-    -webkit-mask-position: 0% 0;
-    mask-position: 0% 0;
-  }
-}
-*/
-
-/*
-
-.fish-phantom-vertical {
-  !* Градиент сверху вниз: черная область (видимость) сверху *!
-  -webkit-mask-image: linear-gradient(to bottom, black 33%, transparent 66%);
-  mask-image: linear-gradient(to bottom, black 33%, transparent 66%);
-
-  !* Делаем маску высокой (100% ширина, 300% высота) *!
-  -webkit-mask-size: 100% 300%;
-  mask-size: 100% 300%;
-
-  animation: dissolve-vertical 4s ease-in-out infinite;
-}
-
-@keyframes dissolve-vertical {
-  0% {
-    !* Рыба полностью видна (черная часть маски наверху) *!
-    -webkit-mask-position: 0 0%;
-    mask-position: 0 0%;
-  }
-  40% {
-    !* Растворяется снизу вверх: сдвигаем прозрачную часть вверх *!
-    -webkit-mask-position: 0 70%;
-    mask-position: 0 70%;
-  }
-  50%, 60% {
-    !* Полное исчезновение *!
-    -webkit-mask-position: 0 100%;
-    mask-position: 0 100%;
-  }
-  100% {
-    !* Появляется сверху вниз: черная часть возвращается на место *!
-    -webkit-mask-position: 0 0%;
-    mask-position: 0 0%;
-  }
-}
-*/
-
-
 
 </style>

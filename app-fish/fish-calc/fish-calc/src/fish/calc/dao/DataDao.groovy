@@ -1,11 +1,30 @@
 package fish.calc.dao
 
 import groovy.transform.CompileStatic
+import jandcode.commons.UtCnv
+import jandcode.commons.datetime.XDate
+import jandcode.commons.datetime.XDateTime
+import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
+import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
+import jandcode.core.auth.AuthUser
+import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
+import jandcode.core.store.StoreField
+import jandcode.core.store.StoreIndex
+import jandcode.core.store.StoreRecord
+import tofi.api.dta.ApiCalcData
+import tofi.api.dta.ApiMonitoringData
+import tofi.api.dta.ApiNSIData
+import tofi.api.dta.model.utils.EntityMdbUtils
 import tofi.api.mdl.ApiMeta
+import tofi.api.mdl.model.consts.FD_AttribValType_consts
+import tofi.api.mdl.model.consts.FD_InputType_consts
+import tofi.api.mdl.model.consts.FD_PeriodType_consts
+import tofi.api.mdl.model.consts.FD_PropType_consts
+import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -13,11 +32,1535 @@ import tofi.apinator.ApinatorService
 class DataDao extends BaseMdbUtils {
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
+
+    ApinatorApi apiNSIData() { return app.bean(ApinatorService).getApi("nsidata") }
+
+    ApinatorApi apiMonitoringData() { return app.bean(ApinatorService).getApi("monitoringdata") }
+
+    ApinatorApi apiCalcData() { return app.bean(ApinatorService).getApi("calcdata") }
     //-----------------------------------------------------------------------------------------------//
 
 
+    @DaoMethod
+    long getCls(String codCls) {
+        Store st = apiMeta().get(ApiMeta).loadSql("""
+            select id from Cls where cod like '${codCls}'
+        """, "")
+        if (st.size() == 0)
+            throw new XError("Не найден код класса [Cls_CalcDeterm/Cls_CalcBayes]")
+        return st.get(0).getLong("id")
+    }
+
+    @DaoMethod
+    Store loadCalc(long id) {
+        return mdb.loadQuery("""
+            select o.id, 
+                v.objParent as parent,
+                v.name, o.cls as cls 
+            from Obj o, ObjVer v
+            where o.id=v.ownerVer and v.lastVer=1 and o.cls=${id}
+        """)
+    }
+
+    @DaoMethod
+    void insertCalc(Map<String, Object> rec) throws Exception {
+        // Права доступа
+        //checkTarget("calc")
+        //
+        // Check Props if child
+        long objParent = UtCnv.toLong(rec.get("parent"))
+        if (objParent > 0) {
+            hasProps(objParent)
+        }
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        long obj = eu.insertEntity(rec)
+        // Fill prop CalcCreatDate for any calc
+        Map<String, Object> map = new HashMap<>()
+        rec.put("own", obj)
+        rec.put("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+        fillProperties(true, "Prop_CalcCreatDate", rec)
+        fillProperties(true, "Prop_CalcStartYear", rec)
+        fillProperties(true, "Prop_CalcEndYear", rec)
+        // Prop_CalcStatus
+        Map<String, Long> mapFV = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Factor", "FV_Preliminary", "")
+        long pv = apiMeta().get(ApiMeta).idPV("FactorVal", mapFV.get("FV_Preliminary"), "Prop_CalcStatus")
+        rec.put("fvCalcStatus", mapFV.get("FV_Preliminary"))
+        rec.put("pvCalcStatus", pv)
+        fillProperties(true, "Prop_CalcStatus", rec)
+        //
+
+        if (objParent > 0) {    // Наследуем свойства if child objParent => obj
+            parent2childProps(objParent, obj)
+        } else {    //
+            fillProperties(true, "Prop_ReservoirShore", rec)
+        }
+    }
+
+    //----------------
+
+    @DaoMethod
+    void hasProps(long obj) {
+        String props = "Prop_CalcLastDate,Prop_CalcStatus"
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
+        map.put("obj", obj)
+
+        Store st = mdb.loadQuery("""
+            select o.id, v2.propval 
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcLastDate
+                join DataPropVal v1 on v1.dataprop=d1.id
+                join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcStatus
+                join DataPropVal v2 on v2.dataprop=d2.id                
+            where o.id=:obj
+        """, map)
+        if (st.size() == 0)
+            throw new XError("Расчет еще не проводился")
+        else {
+            long pv = st.get(0).getLong("propval")
+            Store stFV = loadSqlMeta("""
+                select factorval from PropVal where id=${pv}
+            """, "")
+            map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Factor", "FV_Approved")
+            if (UtCnv.toLong(map.get("FV_Approved")) == stFV.get(0).getLong("factorval"))
+                throw new XError("Расчет утвержден!")
+        }
+    }
+
+    private void parent2childProps(long parent, long id) {
+        /*
+            Основные свойства расчета:
+            атрибут-строка, атрибут-дата, атрибут-многосточный текст,
+            фактор, объект, измерител
+        * */
+        //1.
+        String props = "Prop_CalcStatus,Prop_CalcDescription"
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
+        map.put("obj", parent)
+        Store stPrt = mdb.createStore("Calc.main.props.copy")
+        mdb.loadQuery(stPrt, """
+            select
+                v6.propVal as pvCalcStatus,
+                v9.multiStrVal as CalcDescription
+            from Obj o
+                join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
+                join DataPropVal v6 on v6.dataprop=d6.id
+                join DataProp d9 on d9.isObj=1 and d9.objOrRelObj=o.id and d9.prop=:Prop_CalcDescription
+                join DataPropVal v9 on v9.dataprop=d9.id
+            where o.id=:obj
+        """, map)
+        if (stPrt.size() == 1) {
+            Map<String, Object> mapProp = stPrt.get(0).getValues()
+            mapProp.put("own", id)
+            for (final def prop in props.split(",")) {
+                fillProperties(true, prop, mapProp)
+            }
+        }
+        // Остальные только измерители и показатели
+        //2. свойства водоема: Prop_WaterArea, Prop_CalcWaterFluct
+        parent2childPropsOfMeter(parent, id, "Prop_WaterArea, Prop_CalcWaterFluct", true)
+
+        //3. свойства рыбы: Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry
+        parent2childPropsOfMeter(parent, id, "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_FishFecundityMin,Prop_FishFecundityMax,Prop_CalcMaxNumberFry", false)
+
+        //4. Случайные величины): Prop_CalcBaseMortality, Prop_CalcParabolaLeft, Prop_CalcParabolaRight, Prop_CalcBaseEating, Prop_CalcPdyDevCoef, Prop_CalcEggSurvivalRate
+        parent2childPropsOfMeter(parent, id, "Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef", true)
+        parent2childPropsOfMeter(parent, id, "Prop_CalcEggSurvivalRate", false)
+
+        //5. Начальная численность: Prop_CalcStartPopulation
+        parent2childPropsOfMeter(parent, id, "Prop_CalcStartPopulation", true)
+
+        //6. ПДУ: Prop_CalcPdy
+        parent2childPropsOfMeter(parent, id, "Prop_CalcPdy", true)
+
+        //7. средний вес рыбы: Prop_WaterFishAverageWeight
+        parent2childPropsOfMeter(parent, id, "Prop_WaterFishAverageWeight", true)
+    }
+
+    private void parent2childPropsOfMeter(long parent, long id, String props, boolean dependperiod) {
+        Set<Object> idsPropAll = new HashSet<>()
+        for (String cod in props.split(",")) {
+            Store stTmp = loadSqlMeta("""
+                WITH RECURSIVE r AS (
+                    SELECT id
+                    FROM prop
+                    WHERE cod='${cod}'    
+                    UNION ALL    
+                    SELECT c.id
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r;
+            """, "")
+            Set<Object> setIds = stTmp.getUniqueValues("id")
+            idsPropAll.addAll(setIds)
+        }
+
+        String sql = """
+            select d1.prop, v1.numberval  
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${idsPropAll.join(",")})
+                join DataPropVal v1 on v1.dataprop=d1.id 
+            where o.id=${parent}
+        """
+        if (dependperiod)
+            sql = """
+                select d1.prop, v1.numberval, date_part('year', v1.dbeg) as year  
+                from Obj o
+                    join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype=11
+                        and d1.prop in (${idsPropAll.join(",")})
+                    join DataPropVal v1 on v1.dataprop=d1.id 
+                where o.id=${parent}
+            """
+
+        Store st = mdb.loadQuery(sql)
+        //
+        Set<Long> setProp = new HashSet<>()
+        for (StoreRecord r in st) {
+            long idDP = 0L
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            if (!setProp.contains(r.getLong("prop"))) {
+                setProp.add(r.getLong("prop"))
+
+                recDP.set("isObj", 1)
+                recDP.set("objorrelobj", id)
+                recDP.set("prop", r.getLong("prop"))
+                if (dependperiod)
+                    recDP.set("periodType", 11L)
+                idDP = mdb.insertRec("DataProp", recDP)
+            } else {
+                String whePeriod = dependperiod ? "d.periodType is not null" : "d.periodType is null"
+                idDP = mdb.loadQuery("""
+                    select d.id
+                    from DataProp d, DataPropVal v
+                    where d.id=v.dataProp and d.isObj=1 and d.objOrRelObj=${id} and d.prop=${r.getLong("prop")} 
+                        and ${whePeriod}
+                """).get(0).getLong("id")
+            }
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", r.getDouble("numberval"))
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            //
+            Long pt = null
+            String dbeg = "1800-01-01"
+            String dend = "3333-12-31"
+            if (dependperiod) {
+                pt = 11L
+                String dt = UtCnv.toString(r.getLong("year")) + "-01-01"
+                UtPeriod up = new UtPeriod()
+                dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+                dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+            }
+            recDPV.set("dbeg", dbeg)
+            recDPV.set("dend", dend)
+            //
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            mdb.insertRec("DataPropVal", recDPV, false)
+        }
+    }
+
+    @DaoMethod
+    void updateCalc(Map<String, Object> rec) {
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, "Obj")
+        UtCnv.toLong(rec.get("id"))
+        eu.updateEntity(rec)
+    }
+
+    @DaoMethod
+    void deleteCalc(long id) {
+        deleteOwnerWithProperties(id, 1)
+    }
+
+    private void deleteOwnerWithProperties(long id, int isObj) {
+        String tableName = isObj == 1 ? "Obj" : "RelObj"
+        //
+        //checkForExistData(id, isObj)
+        //
+        EntityMdbUtils eu = new EntityMdbUtils(mdb, tableName)
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where dataProp in (select id from DataProp where isobj=${isObj} and objorrelobj=${id});
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+        if (tableName.equalsIgnoreCase("RelObj")) {
+            try {
+                mdb.execQueryNative("""
+                    delete from RelObjMember
+                    where relobj=${id};
+                """)
+            } finally {
+                eu.deleteEntity(id)
+            }
+        } else
+            eu.deleteEntity(id)
+    }
+
+    //*************************** Props Main *****************************//
+    @DaoMethod
+    Store loadDesc(long obj) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcDescription", "")
+        Store st = mdb.createStore("Calc.desc")
+        mdb.loadQuery(st, """
+            select o.id as obj, v.objParent as parent, o.cls, 
+                v1.id as idCalcDescription, v1.multiStrVal as CalcDescription
+            from Obj o
+                join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=${map.get("Prop_CalcDescription")}
+                join DataPropVal v1 on v1.dataprop=d1.id
+            where o.id=${obj}
+        """)
+        return st
+    }
+
+    @DaoMethod
+    void saveDesc(Map<String, Object> rec) {
+        long idVal = UtCnv.toLong(rec.get("idCalcDescription"))
+        if (idVal == 0)
+            fillProperties(true, "Prop_CalcDescription", rec)
+        else
+            updateProperties("Prop_CalcDescription", rec)
+    }
+
+    @DaoMethod
+    Store loadMainProps(long obj) {
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "") as Map<String, Object>
+        Map<String, Object> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Calc%") as Map<String, Object>
+        mapProp.putAll(map)
+        Store st = mdb.createStore("Calc.main.props")
+        mdb.loadQuery(st, """
+            select o.id as own, v.objParent as parent, o.cls,
+                v1.id as idCalcStartYear, v1.strVal as CalcStartYear,
+                v2.id as idCalcEndYear, v2.strVal as CalcEndYear,    
+                v3.id as idCalcCreatDate, v3.dateTimeVal as CalcCreatDate,
+                v4.id as idCalcLastDate, v4.dateTimeVal as CalcLastDate,    
+                --v5.id as idCalcFishSpec, v5.propVal as pvCalcFishSpec, v5.obj as objCalcFishSpec,
+                v6.id as idCalcStatus, v6.propVal as pvCalcStatus, null as fvCalcStatus,
+                v7.id as idCalcUser, v7.propVal as pvCalcUser, v7.obj as objCalcUser,
+                v8.id as idReservoirShore, v8.propVal as pvReservoirShore, v8.obj as objReservoirShore
+            from Obj o
+                join ObjVer v on o.id=v.ownerVer and v.lastVer=1
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
+                join DataPropVal v1 on v1.dataprop=d1.id
+                join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
+                join DataPropVal v2 on v2.dataprop=d2.id
+                join DataProp d3 on d3.isObj=1 and d3.objOrRelObj=o.id and d3.prop=:Prop_CalcCreatDate
+                join DataPropVal v3 on v3.dataprop=d3.id
+                left join DataProp d4 on d4.isObj=1 and d4.objOrRelObj=o.id and d4.prop=:Prop_CalcLastDate
+                left join DataPropVal v4 on v4.dataprop=d4.id
+                --join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
+                --join DataPropVal v5 on v5.dataprop=d5.id
+                left join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
+                left join DataPropVal v6 on v6.dataprop=d6.id
+                left join DataProp d7 on d7.isObj=1 and d7.objOrRelObj=o.id and d7.prop=:Prop_CalcUser
+                left join DataPropVal v7 on v7.dataprop=d7.id
+                join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
+                join DataPropVal v8 on v8.dataprop=d8.id    
+            where o.id=${obj}
+        """, mapProp)
+
+        Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
+        StoreIndex indFV = stFV.getIndex("propval")
+        for (StoreRecord r in st) {
+/*
+            StoreRecord rec = indFV.get(r.getLong("pvCalcFishSpec"))
+            if (rec != null)
+                r.set("fvCalcFishSpec", rec.getLong("factorval"))
+*/
+            //
+            StoreRecord rec = indFV.get(r.getLong("pvCalcStatus"))
+            if (rec != null)
+                r.set("fvCalcStatus", rec.getLong("factorval"))
+        }
+        return st
+    }
+
+    @DaoMethod
+    Store newRecMainProps(long obj) {
+        Store st = mdb.createStore("Calc.main.props")
+        StoreRecord rec = mdb.createStoreRecord("Calc.main.props")
+        rec.set("own", obj)
+        AuthService authService = getModel().getApp().bean(AuthService.class);
+        AuthUser usr = authService.getCurrentUser();
+        rec.set("objCalcUser", usr.getAttrs().getLong("id"))
+        rec.set("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+        st.add(rec)
+        return st
+    }
+
+    @DaoMethod
+    void saveMainProps(Map<String, Object> rec) {
+        VariantMap params = new VariantMap(rec)
+        //Attr
+        //1 !req
+/*
+        if (params.getLong("idCalcCreatDate") == 0) {
+            if (params.getString("CalcCreatDate").isEmpty())
+                throw new XError("CalcCreatDate is required")
+            else
+                fillProperties(true, "Prop_CalcCreatDate", params)
+        } else {
+            if (params.getString("CalcCreatDate").isEmpty())
+                throw new XError("CalcCreatDate is required")
+            else
+                updateProperties("Prop_CalcCreatDate", params)
+        }
+*/
+
+        //2 !req
+        if (params.getLong("idCalcLastDate") == 0) {
+            if (!params.getString("CalcLastDate").isEmpty())
+                fillProperties(true, "Prop_CalcLastDate", params)
+        } else {
+            if (params.getString("CalcLastDate").isEmpty())
+                updateProperties("Prop_CalcLastDate", params)
+        }
+        //3
+        if (params.getLong("idCalcStartYear") == 0) {
+            if (params.getString("CalcStartYear").isEmpty())
+                throw new XError("CalcStartYear is required")
+            else
+                fillProperties(true, "Prop_CalcStartYear", params)
+        } else {
+            if (params.getString("CalcStartYear").isEmpty())
+                throw new XError("CalcStartYear is required")
+            else
+                updateProperties("Prop_CalcStartYear", params)
+        }
+
+        //4
+        if (params.getLong("idCalcEndYear") == 0) {
+            if (params.getString("CalcEndYear").isEmpty())
+                throw new XError("CalcEndYear is required")
+            else
+                fillProperties(true, "Prop_CalcEndYear", params)
+        } else {
+            if (params.getString("CalcEndYear").isEmpty())
+                throw new XError("CalcEndYear is required")
+            else
+                updateProperties("Prop_CalcEndYear", params)
+        }
+        //5
+        if (params.getLong("idCalcFishSpec") == 0) {
+            if (params.getLong("fvCalcFishSpec") > 0)
+                fillProperties(true, "Prop_CalcFishSpec", params)
+            else
+                throw new XError("CalcFishSpec is required")
+        } else {
+            if (params.getLong("fvCalcFishSpec") > 0)
+                updateProperties("Prop_CalcFishSpec", params)
+            else
+                throw new XError("CalcFishSpec is required")
+        }
+        //6
+        if (params.getLong("idCalcStatus") == 0) {
+            if (params.getLong("fvCalcStatus") > 0)
+                fillProperties(true, "Prop_CalcStatus", params)
+            else
+                throw new XError("CalcStatus is required")
+        } else {
+            if (params.getLong("fvCalcStatus") > 0)
+                updateProperties("Prop_CalcStatus", params)
+            else
+                throw new XError("CalcStatus is required")
+        }
+        //7
+
+        if (params.getLong("idReservoirShore") == 0) {
+            if (params.getLong("objReservoirShore") > 0)
+                fillProperties(true, "Prop_ReservoirShore", params)
+            else
+                throw new XError("ReservoirShore is required")
+        } else {
+            if (params.getLong("objReservoirShore") > 0)
+                updateProperties("Prop_ReservoirShore", params)
+            else
+                throw new XError("ReservoirShore is required")
+        }
+        //8 !req
+/*
+        if (params.getLong("idCalcUser") == 0) {
+            if (params.getLong("objCalcUser") > 0)
+                fillProperties(true, "Prop_CalcUser", params)
+        } else {
+            updateProperties("Prop_CalcUser", params)
+        }
+*/
+    }
+
+    // Проверить!
+    @DaoMethod
+    Map<Long, String> loadFvAsMap(String codProp) {
+        return apiMeta().get(ApiMeta).loadFVasMap(codProp)
+    }
+
+    @DaoMethod
+    Store loadFVasStore(String codProp) {
+        return apiMeta().get(ApiMeta).storePropValForSelectFV(codProp)
+    }
+
+    @DaoMethod
+    Store loadFishes(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp, "monitoringdata")
+    }
+
+    @DaoMethod
+    Store loadReservoirs(String codTypOrProp) {
+        return loadObjForSelect(codTypOrProp, "monitoringdata")
+    }
+
+    long getRelObj(long uch1, long uch2) {
+        Map<String, Long> mapTyp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WaterBodies", "")
+        Store stTyp = loadSqlMeta("""
+            select id from cls where typ=${mapTyp.get("Typ_WaterBodies")}
+        """, "")
+        Set<Object> idsUch1 = stTyp.getUniqueValues("id")
+        //
+        mapTyp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Fish", "")
+        stTyp = loadSqlMeta("""
+            select id from cls where typ=${mapTyp.get("Typ_Fish")}
+        """, "")
+        Set<Object> idsUch2 = stTyp.getUniqueValues("id")
+        //
+        Store st = loadSqlService("""
+            select u1.relobj  
+            from relobjmember u1
+            join relobjmember u2 on u1.relobj=u2.relobj and u2.cls in (0${idsUch2.join(",")}) and u2.obj=${uch2}
+            join ObjVer v on u2.obj=v.ownerver and v.lastver=1
+            where u1.cls in (0${idsUch1.join(",")}) and u1.obj=${uch1} 
+        """, "", "monitoringdata")
+        //
+        return st.get(0).getLong("relobj")
+    }
+
+    @DaoMethod
+    Store loadObjCalcFishSpec(long uch1) {
+        //Typ_WaterBodies	1000
+        //Typ_Fish	1002
+        Map<String, Long> mapTyp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_WaterBodies", "")
+        Store stTyp = loadSqlMeta("""
+            select id from cls where typ=${mapTyp.get("Typ_WaterBodies")}
+        """, "")
+        Set<Object> idsUch1 = stTyp.getUniqueValues("id")
+        //
+        mapTyp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Typ", "Typ_Fish", "")
+        stTyp = loadSqlMeta("""
+            select id from cls where typ=${mapTyp.get("Typ_Fish")}
+        """, "")
+        Set<Object> idsUch2 = stTyp.getUniqueValues("id")
+        //
+
+        Store st = loadSqlService("""
+            select u2.obj as id, v.name, u2.cls, null as pv 
+            from relobjmember u1
+            join relobjmember u2 on u1.relobj=u2.relobj and u2.cls in (0${idsUch2.join(",")})
+            join ObjVer v on u2.obj=v.ownerver and v.lastver=1
+            where u1.cls in (0${idsUch1.join(",")}) and u1.obj=${uch1}
+        """, "", "monitoringdata")
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcFishSpec", "")
+        Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select cls, id as propval
+                from PropVal
+                where prop=${mapProp.get("Prop_CalcFishSpec")} and cls is not null
+            """, "")
+        StoreIndex indCls = stProp.getIndex("cls")
+
+        for (StoreRecord r in st) {
+            StoreRecord rec = indCls.get(r.getLong("cls"))
+            if (rec != null) {
+                r.set("pv", rec.getLong("propval"))
+            }
+        }
+
+
+        return st
+    }
+
+
+    Store loadObjForSelect(String codTypOrProp, String model) {
+        if (codTypOrProp.startsWith("Typ_")) {
+            Set<Object> idsCls = apiMeta().get(ApiMeta).setIdsOfCls(codTypOrProp)
+            idsCls.add(0)
+            return loadSqlService("""
+                select o.id, o.cls, v.name
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (${idsCls.join(",")})
+            """, "", model)
+        } else if (codTypOrProp.startsWith("Prop_")) {
+            Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", codTypOrProp, "")
+            Store stProp = apiMeta().get(ApiMeta).loadSql("""
+                select cls, id as propval
+                from PropVal
+                where prop=${mapProp.get(codTypOrProp)} and cls is not null
+            """, "")
+            StoreIndex indProp = stProp.getIndex("cls")
+
+            Set<Object> idsCls = stProp.getUniqueValues("cls")
+
+            Store stObj = loadSqlService("""
+                select o.id, o.cls, v.name, null as pv
+                from Obj o, ObjVer v
+                where o.id=v.ownerVer and v.lastVer=1 and o.cls in (0${idsCls.join(",")})
+            """, "", model)
+            for (StoreRecord r in stObj) {
+                StoreRecord rec = indProp.get(r.getLong("cls"))
+                if (rec != null) {
+                    r.set("pv", rec.getLong("propval"))
+                }
+            }
+            return stObj
+        } else {
+            throw new XError("Неверный параметр")
+        }
+    }
+    //**************************************  Bayes Calc **************************************//
+    private Store loadMetersWithPeriodCustom(long own, String props, long year1, long year2, String model) {
+
+        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
+        List<String> sel = new ArrayList<>();
+        for (long i in 0..count) {
+            String year = UtCnv.toString(year1 + i)
+            sel.add("null as id" + year + ",  null  as v" + year)
+        }
+        //
+        Set<Object> idsPropAll = new HashSet<>()
+        for (String cod in props.split(",")) {
+            Store stTmp = loadSqlMeta("""
+                WITH RECURSIVE r AS (
+                    SELECT id
+                    FROM prop
+                    WHERE cod='${cod}'    
+                    UNION ALL    
+                    SELECT c.id
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r;
+            """, "")
+            Set<Object> setIds = stTmp.getUniqueValues("id")
+            idsPropAll.addAll(setIds)
+        }
+
+        Store st = loadSqlMeta("""
+            select p.id, p.parent, p.name, ${sel.join(",")}
+            from prop p
+            where p.id in (${idsPropAll.join(",")})
+        """, "")
+
+        // sql for value
+        String sqlVal = """
+            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
+            from Obj o
+                join DataProp d1 on d1.isObj=0 and d1.objOrRelObj=o.id and d1.prop in (${idsPropAll.join(",")}) and d1.periodType is not null
+                join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
+            where o.id=${own}
+        """
+        Store stVal = loadSqlService(sqlVal, "", model)
+        StoreIndex indVal = stVal.getIndex("key")
+        //mdb.outTable(stVal)
+        for (StoreRecord r in st) {
+            for (StoreField fld in r.fields) {
+                if (fld.name.startsWith("v")) {
+                    StoreRecord rec = indVal.get(r.getString("id") + "_" + fld.name)
+                    if (rec != null) {
+                        r.set("id" + fld.name.substring(1), rec.get("id"))
+                        r.set(fld.name, rec.get("numberval"))
+                    }
+                }
+            }
+        }
+        //mdb.outTable(st)
+        return st
+    }
+
+    private Store loadMetersWithPeriodFV(long own, long fv, String props, long year1, long year2, String model) {
+        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
+        List<String> sel = new ArrayList<>();
+        for (long i in 0..count) {
+            String year = UtCnv.toString(year1 + i)
+            sel.add("null as id" + year + ",  null  as v" + year)
+        }
+        //
+        Set<Object> idsPropAll = new HashSet<>()
+        for (String cod in props.split(",")) {
+            Store stMeta = loadSqlMeta("""
+                select meter from Prop where cod='${cod}'
+            """, "")
+            long meter = stMeta.get(0).getLong("meter")
+            //
+            Store stTmp = loadSqlMeta("""
+                with mrfv as (
+                select meterrate, 
+                    string_to_array(STRING_AGG (cast(factorval as varchar(4000)), ','), ',') as arr
+                from meterratefv
+                group by meterrate
+                )
+                select id
+                from Prop
+                where meterrate in (
+                    select meterrate from mrfv 
+                    where ARRAY[arr] @> '{${fv}}'
+                ) and meter=${meter}
+                union all 
+                select id  
+                from Prop
+                where cod='${cod}'
+
+            """, "")
+            Set<Object> setIds = stTmp.getUniqueValues("id")
+            idsPropAll.addAll(setIds)
+        }
+
+        Store st = loadSqlMeta("""
+            select p.id, p.parent, p.name, ${sel.join(",")}
+            from prop p
+            where p.id in (${idsPropAll.join(",")})
+        """, "")
+
+        // sql for value
+        String sqlVal = """
+            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop in (${idsPropAll.join(",")}) and d1.periodType is not null
+                join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
+            where o.id=${own}
+        """
+        Store stVal = loadSqlService(sqlVal, "", model)
+        StoreIndex indVal = stVal.getIndex("key")
+        //mdb.outTable(stVal)
+        for (StoreRecord r in st) {
+            for (StoreField fld in r.fields) {
+                if (fld.name.startsWith("v")) {
+                    StoreRecord rec = indVal.get(r.getString("id") + "_" + fld.name)
+                    if (rec != null) {
+                        r.set("id" + fld.name.substring(1), rec.get("id"))
+                        r.set(fld.name, rec.get("numberval"))
+                    }
+                }
+            }
+        }
+        //mdb.outTable(st)
+        return st
+    }
+
+    @DaoMethod
+    Map<String, Long> getYears(long own) {
+        Map<String, Long> res = new HashMap<>()
+        String props = "Prop_CalcStartYear,Prop_CalcEndYear"
+        Map<String, Object> map = apiMeta().get(ApiMeta).getIdsFromCodsOfEntityAsMap("Prop", props)
+        map.put("own", own)
+        Store stYear = mdb.loadQuery("""
+            select 
+                v1.strVal as year1, v2.strVal as year2    
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
+                join DataPropVal v1 on v1.dataprop=d1.id
+                join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
+                join DataPropVal v2 on v2.dataprop=d2.id
+            where o.id=${own}
+        """, map)
+        res.put("year1", stYear.get(0).getLong("year1"))
+        res.put("year2", stYear.get(0).getLong("year2"))
+        return res
+    }
+
+    private Store loadMetersWithPeriod(long own, String props, long year1, long year2, String model) {
+        //year1 & year2
+        //Map<String, Long> mapY = getYears(own)
+        //long year1 = mapY.get("year1")
+        //long year2 = mapY.get("year2")
+        //
+
+        String frm_props = "'" + props.split(",").join("','") + "'"
+        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
+        List<String> sel = new ArrayList<>();
+        for (long i in 0..count) {
+            String year = UtCnv.toString(year1 + i)
+            sel.add("null as id" + year + ",  null  as v" + year)
+        }
+        //
+        //Set<Object> idsPropAll = new HashSet<>()
+        //for (String cod in props.split(",")) {
+            Store st = loadSqlMeta("""
+                WITH RECURSIVE r AS (
+                    SELECT id, parent, cod, name, ${sel.join(",")}
+                    FROM prop
+                    WHERE cod in (${frm_props})    
+                    UNION ALL    
+                    SELECT c.id, c.parent, r.cod, c.name, ${sel.join(",")} 
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r;
+            """, "")
+            //Set<Object> setIds = stTmp.getUniqueValues("id")
+            Set<Object> idsProp = st.getUniqueValues("id")
+        //}
+
+/*
+        Store st = loadSqlMeta("""
+            select p.id, p.parent, p.name, ${sel.join(",")}
+            from prop p
+            where p.id in (0${idsProp.join(",")})
+        """, "")
+*/
+
+        // sql for value
+        String sqlVal = """
+            select v1.id, v1.numberval, d1.prop || '_' || 'v'||date_part('year', v1.dbeg) as key   
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop in (${idsProp.join(",")}) and d1.periodType is not null
+                join DataPropVal v1 on v1.dataprop=d1.id and v1.numberval is not null
+            where o.id=${own}
+        """
+        Store stVal = loadSqlService(sqlVal, "", model)
+        StoreIndex indVal = stVal.getIndex("key")
+        //mdb.outTable(stVal)
+        for (StoreRecord r in st) {
+            for (StoreField fld in r.fields) {
+                if (fld.name.startsWith("v")) {
+                    StoreRecord rec = indVal.get(r.getString("id") + "_" + fld.name)
+                    if (rec != null) {
+                        r.set("id" + fld.name.substring(1), rec.get("id"))
+                        r.set(fld.name, rec.get("numberval"))
+                    }
+                }
+            }
+        }
+        //mdb.outTable(st)
+        return st
+    }
+
+    private Store loadMetersWithOutPeriod(long own, int isObj, String props, String model) {
+
+        //Set<Object> idsPropAll = new HashSet<>()
+        String frm_props = "'" + props.split(",").join("','") + "'"
+        //for (String cod in props.split(",")) {
+            Store st = loadSqlMeta("""
+                WITH RECURSIVE r AS (
+                    SELECT id, parent, cod, name, null as idvalue, null as numberval
+                    FROM prop
+                    WHERE cod in (${frm_props})    
+                    UNION ALL    
+                    SELECT c.id, c.parent, r.cod, c.name, null as idvalue, null as numberval
+                    FROM prop c
+                    JOIN r ON c.parent = r.id
+                )
+                SELECT * FROM r;
+            """, "")
+            Set<Object> setIds = st.getUniqueValues("id")
+            //idsPropAll.addAll(setIds)
+        //}
+        //
+/*        Store st = loadSqlMeta("""
+            select id, parent, cod, name, null as idvalue, null as numberval
+            from Prop 
+            where id in (${idsPropAll.join(",")})
+        """, "")*/
+        // Value
+        Store stVal = loadSqlService("""
+            select  d1.prop, v1.id as idvalue, v1.numberval
+            from Obj o
+                join DataProp d1 on d1.isObj=${isObj} and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${setIds.join(",")})
+                join DataPropVal v1 on v1.dataprop=d1.id 
+            where o.id=${own}
+        """, "", model)
+
+        StoreIndex indStVal = stVal.getIndex("prop")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indStVal.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("idvalue", rec.getLong("idvalue"))
+                r.set("numberval", rec.getDouble("numberval"))
+            }
+        }
+        return st
+    }
+    //**************************************  Tab Reservoir **************************************//
+    // load from Monitoring for Calc
+
+
+    //***************************
+    @DaoMethod
+    List<Map<String, Object>> getCols(long own) throws Exception {
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        long count = UtCnv.toLong(year2) - UtCnv.toLong(year1)
+        long w1 = 50
+        double w = 50 / (count + 1)
+        if (count > 8) {
+            w1 = 30
+            w = 70 / (count + 1)
+        }
+        String w1Str = UtCnv.toString(w1)
+        String wStr = UtCnv.toString(w)
+        List<Map<String, Object>> cols = new ArrayList<>()
+        Map<String, Object> map = new HashMap<>()
+        map.put("name", "name")
+        map.put("label", "Наименование")
+        map.put("field", "name")
+        map.put("align", "left")
+        map.put("style", "font-size: 1.2em; width: " + w1Str + "%")
+        cols.add(map)
+
+        for (long i in 0..count) {
+            long y = year1 + i
+            String yStr = UtCnv.toString(y)
+            map = new HashMap<>()
+            map.put("name", "v" + yStr)
+            map.put("label", yStr)
+            map.put("field", "v" + yStr)
+            map.put("align", "left")
+            map.put("style", "font-size: 1.2em; width: " + wStr + "%")
+            cols.add(map)
+        }
+        return cols
+    }
+
+    @DaoMethod
+    Store loadReservoirPage(long own) {
+        String props = "Prop_WaterArea,Prop_CalcWaterFluct"
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
+    }
+
+    @DaoMethod
+    long saveReservoirPage(Map<String, Object> rec) {
+        rec.put("dependperiod", 1)
+        return saveMeter(rec)
+    }
+
+    @DaoMethod
+    void deleteValueOfProp(long idDPV) {
+        mdb.execQueryNative("""
+            delete from DataPropVal
+            where id=${idDPV};
+            delete from DataProp where id in (
+                select id from dataprop
+                except
+                select dataProp as id from DataPropVal
+            );
+        """)
+    }
+    //**************************************  Tab Fish **************************************//
+    @DaoMethod
+    Store loadFishPage(long own) {
+
+        String props = "Prop_CalcAgeSex,Prop_CalcAgePrey,Prop_FishFecundity,Prop_CalcMaxNumberFry"
+        return loadMetersWithOutPeriod(own, 1, props, "calcdata")
+    }
+
+    @DaoMethod
+    long saveFishPage(Map<String, Object> rec) {
+        return saveMeter(rec)
+    }
+    //**************************************  Tab Rand **************************************//
+    @DaoMethod
+    Store loadRandPage(long own) {
+        String props = "Prop_CalcEggSurvivalRate,Prop_CalcBaseMortality,Prop_CalcParabolaLeft,Prop_CalcParabolaRight,Prop_CalcBaseEating,Prop_CalcPdyDevCoef"
+        return loadMetersWithOutPeriod(own, 1, props, "calcdata")
+/*
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
+*/
+    }
+
+    //**************************************  Tab Numbers **************************************//
+    @DaoMethod
+    Store loadNumbersPage(long own) {
+        String props = "Prop_CalcStartPopulation,Prop_CalcStartPopulationBalance"
+        //String props = "Prop_sizePopulationOut1AreaMetho,Pop_sizePopulationOut1BalanceMet"
+
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
+    }
+
+    //**************************************  Tab Weight **************************************//
+    @DaoMethod
+    Store loadWeightPage(long own) {
+        String props = "Prop_WaterFishAverageWeight"
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcFishSpec", "")
+        Store st = mdb.loadQuery("""
+            select v.obj
+            from Obj o
+                left join DataProp d on d.isObj=1 and d.objorrelobj=o.id and d.prop=${map.get("Prop_CalcFishSpec")}
+                left join DataPropVal v on d.id=v.dataProp
+            where o.id=${own}
+        """)
+        long objFV = st.get(0).getLong("obj")
+        st = loadSqlService("""
+            select cls from Obj where id=${objFV}
+        """, "", "monitoringdata")
+        long objCls = st.get(0).getLong("cls")
+        st = loadSqlMeta("""
+            select c.factorval
+            from clsfactorval c, factor f
+            where c.cls=${objCls} and c.factorval=f.id and f.cod <> 'FV_Fictive'
+        """, "")
+
+        long fv=st.get(0).getLong("factorval")
+        //
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriodFV(own, fv, props, year1, year2, "calcdata")
+    }
+
+    //**************************************  Tab Pdu **************************************//
+    @DaoMethod
+    Store loadPduPage(long own) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcFishSpec", "")
+        Store st = mdb.loadQuery("""
+            select v.obj
+            from Obj o
+                left join DataProp d on d.isObj=1 and d.objorrelobj=o.id and d.prop=${map.get("Prop_CalcFishSpec")}
+                left join DataPropVal v on d.id=v.dataProp
+            where o.id=${own}
+        """)
+        long objFV = st.get(0).getLong("obj")
+        st = loadSqlService("""
+            select cls from Obj where id=${objFV}
+        """, "", "monitoringdata")
+        long objCls = st.get(0).getLong("cls")
+        st = loadSqlMeta("""
+            select c.factorval
+            from clsfactorval c, factor f
+            where c.cls=${objCls} and c.factorval=f.id and f.cod <> 'FV_Fictive'
+        """, "")
+
+        long fv=st.get(0).getLong("factorval")
+
+        String props = "Prop_CalcPdy"
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriodFV(own, fv, props, year1, year2, "calcdata")
+    }
+    //**************************************  Tab Result **************************************//
+    //**************************************  Tab numbers **************************************//
+    @DaoMethod
+    Store loadResultNumbers(long own) {
+        String props = "Prop_ResultPopulation,Prop_ResultPopulationExc,Prop_ResultSpawning,Prop_ResultCommercial,Prop_Result25Population,Prop_Result75Population"
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
+    }
+
+    @DaoMethod
+    Store loadResultNumbersNotPeriod(long own) {
+        String props = "Prop_ResultDiv,Prop_ResultGRCoef"
+        Set<Object> idsProp = apiMeta().get(ApiMeta).getIdsFromCodOfEntity("Prop", props)
+        Store st = loadSqlMeta("""
+            select id, parent, name, null as idvalue, null as numberval
+            from Prop 
+            where id in (${idsProp.join(",")})
+        """, "")
+        //
+        Store stVal = mdb.loadQuery("""
+            select d1.prop, v1.id as idvalue, v1.numberval
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${idsProp.join(",")})
+                join DataPropVal v1 on v1.dataprop=d1.id
+            where o.id=${own}
+        """)
+
+        StoreIndex indStVal = stVal.getIndex("prop")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indStVal.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("idvalue", rec.getLong("idvalue"))
+                r.set("numberval", rec.getDouble("numberval"))
+            }
+        }
+        return st
+    }
+
+    //**************************************  Tab mass **************************************//
+    @DaoMethod
+    Store loadResultMass(long own) {
+        String props = "Prop_ResultTotalIchthyomass,Prop_ResultSpawningBiomass,Prop_ResultCommercialBiomass,Prop_Result25Ichthyomass,Prop_Result75Ichthyomass"
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
+    }
+    //**************************************  Tab mortality **************************************//
+    @DaoMethod
+    Store loadResultMortality(long own) {
+        String props = "Prop_ResultMortalityCoef,Prop_Result25Mortality,Prop_Result75Mortality"
+        Map<String, Long> mapY = getYears(own)
+        long year1 = mapY.get("year1")
+        long year2 = mapY.get("year2")
+        return loadMetersWithPeriod(own, props, year1, year2, "calcdata")
+    }
+
+    @DaoMethod
+    Store loadResultMortalityNotPeriod(long own) {
+        String props = "Prop_ResultGRCoefMortality"
+        Set<Object> idsProp = apiMeta().get(ApiMeta).getIdsFromCodOfEntity("Prop", props)
+        Store st = loadSqlMeta("""
+            select id, parent, name, null as idvalue, null as numberval
+            from Prop 
+            where id in (${idsProp.join(",")})
+        """, "")
+        //
+        Store stVal = mdb.loadQuery("""
+            select d1.prop, v1.id as idvalue, v1.numberval
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.periodtype is null
+                    and d1.prop in (${idsProp.join(",")})
+                join DataPropVal v1 on v1.dataprop=d1.id
+            where o.id=${own}
+        """)
+
+        StoreIndex indStVal = stVal.getIndex("prop")
+        for (StoreRecord r in st) {
+            StoreRecord rec = indStVal.get(r.getLong("id"))
+            if (rec != null) {
+                r.set("idvalue", rec.getLong("idvalue"))
+                r.set("numberval", rec.getDouble("numberval"))
+            }
+        }
+        return st
+    }
+
+    ////
+    private long saveMeter(Map<String, Object> rec) {
+        long obj = UtCnv.toLong(rec.get("obj"))
+        long prop = UtCnv.toLong(rec.get("prop"))
+        long idVal = UtCnv.toLong(rec.get("idval"))
+        double value = UtCnv.toDouble(rec.get("numberval"))
+        boolean dependperiod = UtCnv.toBoolean(rec.get("dependperiod"))
+        Long pt = null
+        String dbeg = "1800-01-01"
+        String dend = "3333-12-31"
+        if (dependperiod) {
+            pt = 11L
+            String dt = UtCnv.toString(rec.get("year")) + "-01-01"
+            UtPeriod up = new UtPeriod()
+            dbeg = up.calcDbeg(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+            dend = up.calcDend(XDate.create(dt), pt, 0).toString(XDateTimeFormatter.ISO_DATE)
+        }
+        if (idVal > 0) {
+            String tm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+            mdb.execQueryNative("""
+                update DataPropVal set numberval=${value}, dbeg='${dbeg}', dend='${dend}', timestamp='${tm}'
+                where id=${idVal}
+            """)
+
+        } else {
+            StoreRecord recDP = mdb.createStoreRecord("DataProp")
+            recDP.set("isObj", 1)
+            recDP.set("objorrelobj", obj)
+            recDP.set("prop", prop)
+            if (dependperiod)
+                recDP.set("periodType", pt)
+            long idDP = mdb.insertRec("DataProp", recDP)
+            StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+            recDPV.set("dataProp", idDP)
+            recDPV.set("numberVal", value)
+            long au = getUser()
+            recDPV.set("authUser", au)
+            recDPV.set("inputType", FD_InputType_consts.app)
+            long idDPV = mdb.getNextId("DataPropVal")
+            recDPV.set("id", idDPV)
+            recDPV.set("ord", idDPV)
+            recDPV.set("dbeg", dbeg)
+            recDPV.set("dend", dend)
+            recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+            idVal = mdb.insertRec("DataPropVal", recDPV, false)
+        }
+        return idVal
+    }
+
+    //*****************************************************************************************//
+    void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
+        long own = UtCnv.toLong(params.get("own"))
+        long au = getUser()
+        String keyValue = cod.split("_")[1]
+        long objRef = UtCnv.toLong(params.get("obj" + keyValue))
+        long propVal = UtCnv.toLong(params.get("pv" + keyValue))
+
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long prop = stProp.get(0).getLong("id")
+        long propType = stProp.get(0).getLong("propType")
+        Long periodType = null
+        if (stProp.get(0).getBoolean("dependPeriod")) {
+            if (params.containsKey("periodType"))
+                periodType = UtCnv.toLong("periodType")
+            else
+                periodType = FD_PeriodType_consts.year
+        }
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        long idDP
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        String whe = isObj ? "and isObj=1 " : "and isObj=0 "
+        if (stProp.get(0).getLong("statusFactor") > 0) {
+            long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+            whe += "and status = ${fv} "
+        } else {
+            whe += "and status is null "
+        }
+        //todo if (stProp.get(0).getLong("providerTyp") > 0)
+        whe += "and provider is null "
+        //
+        if (stProp.get(0).getBoolean("dependPeriod")) {
+            whe += "and periodType=${periodType}"
+        } else {
+            whe += "and periodType is null "
+        }
+        Store stDP = mdb.loadQuery("""
+            select * from DataProp
+            where objOrRelObj=${own} and prop=${prop} ${whe}
+        """)
+        if (stDP.size() > 0) {
+            idDP = stDP.get(0).getLong("id")
+            recDP.setValues(stDP.get(0))
+        } else {
+            recDP.set("isObj", isObj)
+            recDP.set("objOrRelObj", own)
+            recDP.set("prop", prop)
+            if (stProp.get(0).getLong("statusFactor") > 0) {
+                long fv = apiMeta().get(ApiMeta).getDefaultStatus(prop)
+                recDP.set("status", fv)
+            }
+            if (stProp.get(0).getLong("providerTyp") > 0) {
+                //todo
+                // provider
+                //
+            }
+            if (stProp.get(0).getBoolean("dependperiod")) {
+                recDP.set("periodType", periodType)
+            }
+            idDP = mdb.insertRec("DataProp", recDP, true)
+        }
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        recDPV.set("dataProp", idDP)
+        // For Attrib
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcStartYear") ||
+                    cod.equalsIgnoreCase("Prop_CalcEndYear")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcCreatDate") ||
+                    cod.equalsIgnoreCase("Prop_CalcLastDate")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("dateTimeVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcDescription")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    recDPV.set("multiStrVal", UtCnv.toString(params.get(keyValue)))
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    cod.equalsIgnoreCase("Prop_CalcUser") ||
+                    cod.equalsIgnoreCase("Prop_CalcFishSpec")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcStatus")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcWaterFluct") ||
+                    cod.equalsIgnoreCase("Prop_WaterArea")) {
+                if (params.get(keyValue) != null || params.get(keyValue) != "") {
+                    double v = UtCnv.toDouble(params.get(keyValue))
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    recDPV.set("numberVal", v)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        //
+        if (recDP.getLong("periodType") > 0) {
+            if (!params.containsKey("dte"))
+                params.put("dte", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
+            UtPeriod utPeriod = new UtPeriod()
+            XDate d1 = utPeriod.calcDbeg(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            XDate d2 = utPeriod.calcDend(UtCnv.toDate(params.get("dte")), recDP.getLong("periodType"), 0)
+            recDPV.set("dbeg", d1.toString(XDateTimeFormatter.ISO_DATE))
+            recDPV.set("dend", d2.toString(XDateTimeFormatter.ISO_DATE))
+        } else {
+            recDPV.set("dbeg", "1800-01-01")
+            recDPV.set("dend", "3333-12-31")
+        }
+
+        recDPV.set("authUser", au)
+        recDPV.set("inputType", FD_InputType_consts.app)
+        long idDPV = mdb.getNextId("DataPropVal")
+        recDPV.set("id", idDPV)
+        recDPV.set("ord", idDPV)
+        recDPV.set("timeStamp", XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME))
+        mdb.insertRec("DataPropVal", recDPV, false)
+    }
+
+    void updateProperties(String cod, Map<String, Object> params) {
+        VariantMap mapProp = new VariantMap(params)
+        long au = getUser()
+        String keyValue = cod.split("_")[1]
+        long idVal = mapProp.getLong("id" + keyValue)
+        //
+        StoreRecord recDPV = mdb.createStoreRecord("DataPropVal")
+        mdb.loadQueryRecord(recDPV, "select * from DataPropVal where id=${idVal}")
+        StoreRecord recDP = mdb.createStoreRecord("DataProp")
+        mdb.loadQueryRecord(recDP, """
+            select d.* from DataPropVal v, DataProp d where v.id=${idVal} and v.dataProp=d.id
+        """)
+        long idDP = recDP.getLong("id")
+        //
+        long objRef = mapProp.getLong("obj" + keyValue)
+        long propVal = mapProp.getLong("pv" + keyValue)
+        Store stProp = apiMeta().get(ApiMeta).getPropInfo(cod)
+        //
+        long propType = stProp.get(0).getLong("propType")
+        long attribValType = stProp.get(0).getLong("attribValType")
+        Integer digit = null
+        double koef = stProp.get(0).getDouble("koef")
+        if (koef == 0) koef = 1
+        if (!stProp.get(0).isValueNull("digit"))
+            digit = stProp.get(0).getInt("digit")
+
+        def tmst = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+        def strValue = mapProp.getString(keyValue)
+        recDPV.set("authUser", au)
+        recDPV.set("timeStamp", tmst)
+        // For Attrib (str)
+        if ([FD_AttribValType_consts.str].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcStartYear") ||
+                    cod.equalsIgnoreCase("Prop_CalcEndYear")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                } else {
+                    recDPV.set("strVal", strValue)
+                    mdb.updateRec("DataPropVal", recDPV)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Attrib (multistr)
+        if ([FD_AttribValType_consts.multistr].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcDescription")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                } else {
+                    recDPV.set("multiStrVal", strValue)
+                    mdb.updateRec("DataPropVal", recDPV)
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+        // For Attrib (dt)
+        if ([FD_AttribValType_consts.dt].contains(attribValType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcCreatDate") ||
+                    cod.equalsIgnoreCase("Prop_CalcLastDate")) {
+                if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                } else {
+                    recDPV.set("dateTimeVal", strValue)
+                    mdb.updateRec("DataPropVal", recDPV)
+                }
+            } else
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+        }
+        // For FV
+        if ([FD_PropType_consts.factor].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcStatus")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                    mdb.updateRec("DataPropVal", recDPV)
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Measure
+        if ([FD_PropType_consts.measure].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_Measure")) {
+                if (propVal > 0) {
+                    recDPV.set("propVal", propVal)
+                    mdb.updateRec("DataPropVal", recDPV)
+                    //
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Meter
+        if ([FD_PropType_consts.meter, FD_PropType_consts.rate].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_CalcWaterFluct") ||
+                    cod.equalsIgnoreCase("Prop_WaterArea")) {
+                if (mapProp.keySet().contains(keyValue) && mapProp[keyValue] != "") {
+                    def v = mapProp.getDouble(keyValue)
+                    v = v / koef
+                    if (digit) v = v.round(digit)
+                    recDPV.set("numberVal", v)
+                    mdb.updateRec("DataPropVal", recDPV)
+                    //
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+        // For Typ
+        if ([FD_PropType_consts.typ].contains(propType)) {
+            if (cod.equalsIgnoreCase("Prop_ReservoirShore") ||
+                    cod.equalsIgnoreCase("Prop_CalcUser") ||
+                    cod.equalsIgnoreCase("Prop_CalcFishSpec")) {
+                if (objRef > 0) {
+                    recDPV.set("propVal", propVal)
+                    recDPV.set("obj", objRef)
+                    mdb.updateRec("DataPropVal", recDPV)
+                } else {
+                    mdb.deleteRec("DataPropVal", idVal)
+                    //
+                    mdb.execQueryNative("""
+                        delete from DataProp where id in (
+                            select id from DataProp
+                            except
+                            select dataProp as id from DataPropVal
+                        )
+                    """)
+                }
+            } else {
+                throw new XError("for dev: [${cod}] отсутствует в реализации")
+            }
+        }
+    }
+
+    private Store loadSqlService(String sql, String domain, String model) {
+        if (model.equalsIgnoreCase("nsidata"))
+            return apiNSIData().get(ApiNSIData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("monitoringdata"))
+            return apiMonitoringData().get(ApiMonitoringData).loadSql(sql, domain)
+        else if (model.equalsIgnoreCase("calcdata"))
+            return apiCalcData().get(ApiCalcData).loadSql(sql, domain)
+        else
+            throw new XError("Unknown model [${model}]")
+    }
+
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
+    }
+
+    private Store loadSqlMetaWithParams(String sql, String domain, Map<String, Object> params) {
+        return apiMeta().get(ApiMeta).loadSqlWithParams(sql, domain, params)
     }
 
     private long getUser() throws Exception {
@@ -29,4 +1572,13 @@ class DataDao extends BaseMdbUtils {
     }
 
 
+    @DaoMethod
+    static void saveDataFromCalcFastApi(File fle, String filename) {
+        //def file = new File("C:\\Users\\Envy\\Documents\\rashet.txt")
+        def file = new File("C:\\Users\\Professional\\Documents\\rashet.txt")
+        file << filename + "\r\n\r\n"
+        fle.eachLine { line ->
+            file << line + "\r\n"
+        }
+    }
 }

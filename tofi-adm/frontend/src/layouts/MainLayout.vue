@@ -160,15 +160,16 @@
 import {computed, onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {storeToRefs} from 'pinia'
-import {useUserStore} from 'stores/user-store'
+import {useUserStore} from '@/stores/user-store'
 import {useI18n} from 'vue-i18n'
-import RegUser from 'components/RegUser.vue'
-import ProfileUser from 'components/ProfileUser.vue'
-import LoginUser from 'components/LoginUser.vue'
-import SetLocale from 'components/SetLocale.vue'
-import {api, authURL, urlMainApp} from 'boot/axios'
-import {notifyError, notifySuccess} from 'src/utils/jsutils'
+import RegUser from '@/components/RegUser.vue'
+import ProfileUser from '@/components/ProfileUser.vue'
+import LoginUser from '@/components/LoginUser.vue'
+import SetLocale from '@/components/SetLocale.vue'
+import {api, authURL, urlMainApp} from '@/boot/axios'
+import {notifyError, notifySuccess} from '../utils/jsutils.js'
 import {useQuasar} from 'quasar'
+import axios from "axios";
 
 // Composables
 const router = useRouter()
@@ -247,16 +248,18 @@ const loginOnOff = () => {
         router.push('/')
         api
           .post("", {
-            method: "auth/checkTarget",
+            method: "usr/checkTarget",
             params: ["adm"],
           })
       })
   } else {
-    api
-      .post(authURL + '/logout', {
-        params: {},
-      })
+    axios
+      .post(authURL + '/logout', new URLSearchParams()) // <-- Склеиваем динамически со слэшем!
       .then(() => {
+        clearUserStore()
+      })
+      .catch((err) => {
+        console.error("Ошибка при logout на сервере:", err)
         clearUserStore()
       })
       .finally(() => {

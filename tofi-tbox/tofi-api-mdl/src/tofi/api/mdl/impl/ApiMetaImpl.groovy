@@ -181,6 +181,29 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
+    Set<Object> getIdsFromCodOfEntity(String entity, String cods) {
+        String frm_cods = "('" + cods.split(",").join("','") + "')"
+        Store stEnt = mdb.loadQuery("""
+            select id from ${entity} where cod in ${frm_cods}
+        """)
+        Set<Object> idsEnt = stEnt.getUniqueValues("id")
+        String st = """
+            select id from ${entity} where id in (${idsEnt.join(",")})
+            union all
+            select id from ${entity} where parent in (${idsEnt.join(",")})
+        """
+        if (entity.equalsIgnoreCase("prop")) {
+            stEnt = mdb.loadQuery("""
+                select id from ${entity} where id in (${idsEnt.join(",")})
+                union all
+                select id from ${entity} where parent in (${idsEnt.join(",")})
+            """)
+            idsEnt = stEnt.getUniqueValues("id")
+        }
+        return idsEnt
+    }
+
+    @Override
     Map<String, Long> getIdFromCodOfProp(long cls) {
         Store st = mdb.loadQuery("""
             select p.id, p.cod
@@ -199,7 +222,7 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
 
     @Override
     Set<Object> setIdsOfCls(String codTyp) {
-        long al = getAccessLevel()
+        long al = 10 //getAccessLevel()
         Store st = mdb.loadQuery("""
             select c.id from Cls c, Typ t
             where c.typ=t.id and t.cod like :cod and c.accessLevel <= :al
@@ -465,13 +488,26 @@ class ApiMetaImpl extends BaseMdbUtils implements ApiMeta {
     }
 
     @Override
-    Map<String, Long> getIdsFromCodOfEntity(String Entity, String cods) {
+    Map<String, Object> getIdsFromCodsOfEntityAsMap(String Entity, String cods) {
+        if (cods.isEmpty())
+            throw new XError("Cods Is Empty of ${Entity}")
+        String frm_cods = "('"+ cods.split(",").join("','") + "')"
         Store st = mdb.loadQuery("""
-            select id, cod from ${Entity} where cod in (${cods})
+            select id, cod from ${Entity} where cod in ${frm_cods}
         """)
         if (st.size()==0)
-            throw new XError("NotFoundCod@${cods}")
-        Map<String, Long> map = new HashMap<>()
+            throw new XError("Not Found Cods ${cods}")
+
+        Set<String> emtyCods = new HashSet<>()
+        for(StoreRecord r in st) {
+            if (!cods.contains(r.getString("cod"))) {
+                emtyCods.add(r.getString("cod"))
+            }
+        }
+        if (emtyCods.size() > 0) {
+            throw new XError("Not Found cods ${emtyCods.join(",")} of ${Entity}")
+        }
+        Map<String, Object> map = new HashMap<>()
         for(StoreRecord r in st) {
             map.put(r.getString("cod"), r.getLong("id"))
         }

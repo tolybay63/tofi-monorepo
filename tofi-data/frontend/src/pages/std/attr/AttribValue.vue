@@ -931,8 +931,6 @@ export default {
   },
 
   created() {
-    this.lang = localStorage.getItem("curLang")
-    this.lang = this.lang === "en-US" ? "en" : this.lang
     this.cols = this.getColumns()
   },
 

@@ -12,6 +12,7 @@
             <item name="cube" method="*" invoker="model:default"
                   class="tofi.cube.dao.CubeDao"/>
 
+            <item name="psw" class="tofi.auth.TofiPasswordResetAction" method="*"/>
 
         </holder>
 

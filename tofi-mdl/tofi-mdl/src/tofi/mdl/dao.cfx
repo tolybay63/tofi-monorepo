@@ -182,6 +182,7 @@
                   method="*"
             />
 
+            <item name="psw" class="tofi.auth.TofiPasswordResetAction" method="*"/>
 
         </holder>
     </dao>

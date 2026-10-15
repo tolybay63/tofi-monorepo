@@ -1,7 +1,7 @@
-import {defineConfig} from '#q-app/wrappers'
+import {defineConfig} from '#q-app'
 import {fileURLToPath} from 'node:url'
 
-let url = process.env.VITE_PRODUCT_URL || 'http://127.0.0.1:8080'
+let url = import.meta.QUASAR_PROD ? import.meta.env.QCLI_PRODUCT_URL : 'http://127.0.0.1:8080'
 
 export default defineConfig((ctx) => {
   //***********************************
@@ -90,10 +90,10 @@ export default defineConfig((ctx) => {
         type: 'http',
       },
       port: 8181,
-      open: true, // opens browser window automatically
+      open: false, // opens browser window automatically
       proxy: {
         '/api': {
-          target: url + '/api',
+          target: url,
           changeOrigin: true,
         },
         '/auth': {
@@ -133,7 +133,7 @@ export default defineConfig((ctx) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: ["Dialog", "Notify", "LocalStorage", 'LoadingBar', 'Loading'],
+      plugins: ["Dialog", "Notify", "LocalStorage", "SessionStorage", "LoadingBar", "Loading"],
 
     },
 

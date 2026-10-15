@@ -221,6 +221,11 @@ const routes = [
     ],
   },
 
+  {
+    path: "/confirm-pws",
+    component: () => import("pages/ConfirmPassword.vue")
+  },
+
   // Always leave this as last one,
   // but you can also remove it
   {

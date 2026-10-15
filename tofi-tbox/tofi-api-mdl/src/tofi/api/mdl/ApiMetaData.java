@@ -14,7 +14,7 @@ public interface ApiMetaData {
 
     /**
      *
-     * @param params [dataType: {std|multi|flat}, dataBase: {userdata|kpi|...} ]
+     * @param params [dataType: {std|multi|flat}, dataBase: {adm|mdl|...} ]
      * @return owners first level
      */
     Store loadOwnersParent(Map<String, Object> params);

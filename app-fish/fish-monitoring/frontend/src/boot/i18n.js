@@ -1,6 +1,6 @@
-import {defineBoot} from '#q-app/wrappers'
-import {createI18n} from 'vue-i18n'
-import messages from 'src/i18n'
+import {boot} from "quasar/wrappers";
+import {createI18n} from "vue-i18n";
+import messages from "@/i18n";
 
 let lang = localStorage.getItem('curLang')
 if (!lang) {
@@ -8,7 +8,7 @@ if (!lang) {
   localStorage.setItem('curLang', lang)
 }
 
-export default defineBoot(({ app }) => {
+export default boot(({ app }) => {
   const i18n = createI18n({
     locale: lang,
     globalInjection: true,

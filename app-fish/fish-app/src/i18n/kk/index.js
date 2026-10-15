@@ -11,9 +11,11 @@ export default {
   appAdmName: "Әкімшілік ортасы",
   appUserDataName: "Пайдаланушының жеке кабинеті",
   appDataName: "Деректермен жұмыс істеу қызметі",
-  appCalcName: "Есептеу",
-  appMonitoringName: "Балық аулау резервуарларының мониторингі",
-  appPersonnelName: "Қызметкерлер",
+
+  appCalcName: "Қорды бағалау және рұқсат етілген ең жоғары аулау",
+  appMonitoringName: "Су нысандарын бақылау",
+  appNsiName: "Нормативтік анықтамалық ақпарат",
+  appAnalyseName: "Деректерді талдау",
 
   appMinIO: "Файлды сақтау",
   appCubesName: "Текшелермен жұмыс істеу қызметі",

@@ -12,12 +12,12 @@
       <img
         class="balance"
         alt="TOFI logo"
-        src="~assets/a.png"
+        src="~@/assets/a.png"
         style="width: 100px; height: 100px"
       />
       <img
         alt="TOFI logo"
-        src="~assets/b.png"
+        src="~@/assets/b.png"
         style="width: 170px; height: 50px"
       />
     </q-page>

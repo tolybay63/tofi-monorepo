@@ -32,6 +32,9 @@
         <model name="default" instance="tofi.cube.model"/>
         <model name="adm" instance="tofi.api.adm.model"/>
         <model name="meta" instance="tofi.api.mdl.model"/>
+        <model name="personneldata" instance="tofi.api.dta.model"/>
+        <model name="calcdata" instance="tofi.api.dta.model"/>
+        <model name="monitoringdata" instance="tofi.api.dta.model"/>
 
     </dbm>
 

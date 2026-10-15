@@ -21,8 +21,8 @@
 </template>
 <script>
 import {ref} from 'vue'
-import {api} from 'boot/axios'
-import {notifyError} from 'src/utils/jsutils'
+import {api} from '@/boot/axios'
+import {notifyError} from '@/utils/jsutils'
 
 export default {
   props: ['id', 'fileName'],

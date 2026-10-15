@@ -1,6 +1,6 @@
 import {Notify} from 'quasar';
 import {ref} from 'vue';
-import {useUserStore} from 'stores/user-store';
+import {useUserStore} from '@/stores/user-store';
 import {storeToRefs} from 'pinia';
 
 // Константы для уведомлений
@@ -209,6 +209,27 @@ const hasTarget = (tg) => {
   return getTarget.value?.includes(tg) ?? false;
 };
 
+/**
+ * Поиск записи по id в древовидной структуре...
+ * @param arr
+ * @param id
+ * @returns {*|null}
+ */
+const findRowForId = (arr, id) => {
+  if (!arr || !Array.isArray(arr)) return null;
+  for (let item of arr) {
+    // Сравниваем ID с учетом возможных различий типов (число или строка)
+    if (item.id === id || String(item.id) === String(id)) return item;
+
+    // Рекурсивно ищем в детях, только если массив children существует и не пуст
+    if (item.children && Array.isArray(item.children) && item.children.length > 0) {
+      const found = findRowForId(item.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
 const today = () => {
   let d = new Date()
   let currDate = d.getDate()
@@ -236,5 +257,6 @@ export {
   expandAll,
   collapsAll,
   convertNodeIds,
-  hasTarget
+  hasTarget,
+  findRowForId
 };

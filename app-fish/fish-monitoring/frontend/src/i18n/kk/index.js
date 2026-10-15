@@ -13,6 +13,7 @@ export default {
   logIn: 'Кіру',
   logOut: 'Шығу',
   browserDenied: 'Браузер файлды жүктеп алудан бас тартты...',
+  charts: "Диаграммалар",
 
   invalid_user_passwd: "Пайдаланушы аты немесе құпия сөз дұрыс емес",
   notLoginned: "Жүйеге кіру қажет",
@@ -117,6 +118,9 @@ export default {
   FishFecundity: "Аналық балықтың жұмыртқа саны",
   FishSpawFrequency: "Балықтың уылдырық шашу жиілігі",
 
+  algo: "Алгоритм",
+  goAlgo: "Алгоритмді іске қосу",
+
   typesOfFish: 'Балықтардың түрлері',
   typeOfFish: 'Балықтың түрі',
   reservoirs: 'Су қоймалары',
@@ -129,6 +133,15 @@ export default {
   fishArea: 'Орын',
   enterprise: 'Кәсіпорын',
 
+  fishing: "Балық аулау",
+  fishingType: "Балық аулау түрі",
+  StartDate: "Балық аулаудың басталу күні",
+  FishLocation: "Балық аулау орны",
+  AreaOfTon: "Балық аулау аймағы, га",
+  FishGear: 'Балық аулау құралы',
+  FishManager: "Балық аулау супервайзері",
+  FishParticipants: "Балық аулауға қатысушылар",
+
   region: "Аймақ",
   district: "Аудан",
   addRegion: 'Аймақты қосу',
@@ -137,7 +150,9 @@ export default {
   kato: "Әкімшілік-аумақтық объектілердің жіктеуіші",
   struct_enterprise: "Кәсіпорынның ұйымдық құрылымы",
   kato2: "Аймақ/Аудан",
-  struct_enterprise2: "Филиал",
+  filial: "Филиал",
+  countReservoirs: "Су қоймаларының саны",
+  back: "Артқа",
 
   nameCls: 'Құрал түрі',
   attached_files: 'Тіркелген файлдар',
@@ -169,7 +184,6 @@ export default {
   CurrentSpeed: 'Ағыс жылдамдығы, м/с',
   SplitLife: 'Өмір аралығын бөлу мүмкін емес',
   ExistsValueOnDate: 'Көрсетілген күнде мән бар',
-  AreaOfTon: "Тони ауданы, га",
   AreaOfTonShort: "Ауданы, га",
 
   reservoirDepth_maxGRavg: 'Қателік (Резервуардың тереңдігі): жоғарғы мәні>= орташа мәні',
@@ -196,7 +210,7 @@ export default {
   FishWeight: 'Салмағы',
   FishLength: 'Ұзындығы',
 
-  FishGear: 'Балық аулау құралы',
+  FishGear_: 'Балық аулау құралдары',
   FishGearType: 'Балық аулау құралдарының түрі',
   FishGender: 'Балық жынысы',
 
@@ -207,7 +221,7 @@ export default {
   WaterAreaLittoral: 'Жағалау аймағының ауданы, га',
   ReservoirHydroLevel: 'Су қоймасының гидрологиялық деңгейі (мБС)',
 
-  test: 'Заливка',
+  fill: 'Толтыру',
 
   nameDoc: 'Құжаттың атауы',
   numberDoc: 'Құжат нөмірі',

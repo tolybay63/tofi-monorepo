@@ -1,0 +1,421 @@
+<template>
+  <div class="q-pa-sm row bg-amber-1">
+    <!-- Date -->
+
+
+      <div class="q-mt-md">
+        {{ name }}
+      </div>
+
+      <q-space/>
+
+      <q-input
+        v-model="dt"
+        :label="$t('date')"
+        class="q-mr-lg"
+        dense
+        stack-label
+        style="width: 100px"
+        type="date"
+        @update:model-value="fnDt"
+      />
+
+      <!-- PeriodType -->
+      <q-select
+        v-model="periodType"
+        :label="fnReqLabel('periodType')"
+        :options="optPeriod"
+        class="q-ml-lg"
+        dense
+        map-options
+        option-label="text"
+        option-value="id"
+        options-dense
+        style="width: 100px"
+        @update:model-value="fnSelectPeriodType"
+      />
+
+  </div>
+
+  <div class="q-pa-sm-sm bg-orange-1 sticky-header-table">
+    <table class="q-table q-table--cell-separator q-table--bordered wrap">
+      <thead class="text-bold text-white bg-blue-grey-13">
+      <tr>
+        <th :style="cols[0]?.style">
+          {{ cols[0]?.label }}
+        </th>
+        <th :style="cols[1]?.style">
+          {{ cols[1]?.label }}
+        </th>
+        <th></th>
+      </tr>
+      </thead>
+
+      <tbody style="background: aliceblue">
+      <tr v-for="(item, index) in arrayTreeObj" :key="index">
+        <td :data-th="cols[0]?.name" @click="toggle(item)">
+          <span :style="setPadding(item)" class="q-tree-link q-tree-label">
+            <q-icon :name="iconName(item)" color="secondary" style="cursor: pointer"/>
+            {{ item.name }}
+          </span>
+        </td>
+        <td :data-th="cols[1]?.name" style="text-align: center">
+          {{ numFormat(item.cod, item.numberval) }}
+        </td>
+        <td :data-th="cols[2]?.name" style="text-align: right">
+          <q-btn
+            class="no-padding no-margin" color="blue" dense flat icon="edit" round
+            size="sm" @click="fnEdit(item)"
+          >
+            <q-tooltip transition-hide="rotate" transition-show="rotate">
+              {{ $t("update") }}
+            </q-tooltip>
+          </q-btn>
+
+          <q-btn
+            :disable="!(item.idval > 0)" class="no-padding no-margin" color="red" dense flat icon="delete"
+            round size="sm" @click="fnDelete(item)"
+          >
+            <q-tooltip transition-hide="rotate" transition-show="rotate">
+              {{ $t("deletingRecord") }}
+            </q-tooltip>
+          </q-btn>
+
+          <q-btn
+            v-if="cods.includes(item.cod)"
+            class="no-padding no-margin"
+            color="green" dense flat icon="visibility"
+            round size="sm" @click="fnAlgo(item)"
+          >
+            <q-tooltip>
+              {{ $t('algo') }}
+            </q-tooltip>
+          </q-btn>
+
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<script setup>
+import {computed, getCurrentInstance, onMounted, ref} from 'vue'
+import {date, useQuasar} from 'quasar'
+import {api, tofi_dbeg, tofi_dend} from '@/boot/axios'
+import {findRowForId, notifyError, notifyInfo, pack, today} from '@/utils/jsutils'
+import UpdaterFishingMeters from "@/pages/fishing/UpdaterFishingMeters.vue"
+import FormAlgoFishing from "@/pages/fishing/FormAlgoFishing.vue";
+
+const props = defineProps({
+  reservoir: [Number, String ],
+  name: String,
+})
+
+const $q = useQuasar()
+const {proxy} = getCurrentInstance()
+
+const cods = ref(["Prop_NumberFishCaught"])
+const rows = ref([])
+const cols = ref([])
+const loading = ref(false)
+const isExpanded = ref(true)
+const itemId = ref(null)
+const obj = ref(0)
+
+
+let dt = today()
+const periodType = ref(71)
+const optPeriod = ref([])
+
+
+const fnAlgo = (item) => {
+  const data = {
+    own: obj.value,
+    prop: item.id,
+    name: item.name,
+    dependperiod: item.dependperiod,
+    dte: dt,
+    periodType: periodType.value,
+    reservoir: props.reservoir
+  }
+  console.log(item)
+  $q.dialog({
+    component: FormAlgoFishing,
+    componentProps: {
+      data: data,
+      cod: item.cod,
+    },
+  })
+    .onOk(() => {
+      //loadReservoirsMeter(obj.value)
+    })
+
+}
+
+// Prop_NumberEggs ??????????????????
+const numFormat = (cod, val) => {
+  if (val === null || val === undefined || val === '') return '';
+
+  const cods_1 = "Prop_FishArea,Prop_WorkDuration,Prop_NumberEggs"
+  const cods_0 = "Prop_NumberFishCaught,Prop_NumberNet,Prop_sizePopulationOut1AreaMetho"
+  let decimals = 3
+  if (cods_1.includes(cod))
+    decimals = 1
+  if (cods_0.includes(cod))
+    decimals = 0
+
+  // Простой вариант:
+  // return Number(val).toFixed(decimals);
+
+  // вариант с разделителями разрядов (пробелами):
+  return Number(val).toLocaleString('ru-RU', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+}
+
+const dtFormat = (v) => {
+  return v <= tofi_dbeg || v >= tofi_dend ? '...' : date.formatDate(v, 'DD.MM.YYYY')
+}
+
+const fnSelectPeriodType = (v) => {
+  periodType.value = v.id
+  loadFishingMeters(obj.value)
+}
+
+const fnReqLabel = (label) => {
+  return proxy?.$t(label) + '*'
+}
+
+const fnDt = (val) => {
+  if (val && val.length === 10 && date.formatDate(val)) {
+    dt = val
+    loadFishingMeters(obj.value)
+  }
+}
+
+const fnDelete = (row) => {
+  let nm = row.name
+  $q.dialog({
+    title: proxy?.$t("confirmation"),
+    message: proxy?.$t("deleteRecord") + "</br>(" + nm + ")",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  })
+    .onOk(() => {
+      api.post('', {
+        method: "data/deleteFishingMeters",
+        params: [row.idval],
+      })
+        .then(() => {
+          if (row.level === 0) {
+            rows.value[0].idval = null
+            rows.value[0].numberval = null
+          } else {
+            let childs = rows.value[0].children
+            let index = childs.findIndex((rec) => rec.id === row.id)
+            childs[index].idval = null
+            childs[index].numberval = null
+          }
+        })
+        .catch((error) => {
+          notifyError(error.message)
+        })
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t("canceled"))
+    })
+}
+
+const updateRowValue = (currentRow, targetRec) => {
+  let row = findRowForId(rows.value, currentRow.id)
+  if (row) {
+    row.idval = targetRec.id
+    row.numberval = targetRec.value
+  }
+}
+
+const fnEdit = (row) => {
+  console.log("fnEdit 1", row)
+  let rec = {
+    obj: obj.value,
+    prop: row.id,
+    numberval: row.numberval || "",
+    name: row.name,
+    idval: row.idval,
+    dte: dt,
+    periodType: periodType.value,
+    cod: row.cod,
+    level: row.level,
+  }
+  console.log("fnEdit 2", rec)
+  $q.dialog({
+    component: UpdaterFishingMeters,
+    componentProps: {
+      data: rec,
+    },
+  })
+    .onOk((r) => {
+      updateRowValue(row, r)
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t("canceled"))
+    })
+}
+
+const recursive = (currentObj, newObj, level, targetItemId, isExpend) => {
+  currentObj.forEach(function (o) {
+    if (o.children && o.children.length !== 0) {
+      o.level = level
+      o.leaf = false
+      newObj.push(o)
+      if (o.id === targetItemId) {
+        o.expend = isExpend
+      }
+      if (o.expend) {
+        recursive(o.children, newObj, o.level + 1, targetItemId, isExpend)
+      }
+    } else {
+      o.level = level
+      o.leaf = true
+      newObj.push(o)
+    }
+  })
+}
+
+const iconName = (item) => {
+  if (item.expend) return "remove_circle_outline"
+  if (item.children && item.children.length > 0) return "control_point"
+  return ""
+}
+
+const toggle = (item) => {
+  itemId.value = item.id
+  item.leaf = false
+  if (!item.leaf && item.expend === undefined && item.children !== undefined) {
+    if (item.children.length !== 0) {
+      recursive(item.children, [], item.level + 1, item.id, true)
+    }
+  }
+  if (item.expend && item.children !== undefined) {
+    item.children.forEach(function (o) {
+      o.expend = undefined
+    })
+    item.expend = undefined
+    item.leaf = false
+    itemId.value = null
+  }
+}
+
+const setPadding = (item) => {
+  return `padding-left: ${item.level * 30}px;`
+}
+
+const getColumns = () => [
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    style: "font-size: 1.2em; width: 70%",
+  },
+  {
+    name: "numberval",
+    label: proxy?.$t("val"),
+    field: "numberval",
+    align: "center",
+    style: "font-size: 1.2em; width: 20%",
+  },
+  {
+    name: "cmd",
+    field: "cmd",
+    align: "right",
+    style: "font-size: 1.2em; width: 10%",
+  }
+]
+
+const clearFishingData = () => {
+  rows.value = []
+}
+
+const setDte = (dte) => {
+  console.log("setDte", dte)
+  dt = dte.value
+}
+
+const loadFishingMeters = (targetObj) => {
+
+  //console.log("loadFishingMeters", dt)
+
+  loading.value = true
+  obj.value = targetObj
+  api.post('', {
+    method: 'data/loadFishingMeters',
+    params: [targetObj, 0, dt, periodType.value, props.reservoir],
+  })
+    .then((response) => {
+      rows.value = pack(response.data.result["records"], "id")
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
+
+const arrayTreeObj = computed(() => {
+  let newObj = []
+  recursive(rows.value, newObj, 0, itemId.value, isExpanded.value)
+  return newObj
+})
+
+onMounted(() => {
+  cols.value = getColumns()
+  loading.value = true
+  api
+    .post('', {method: 'data/loadPeriodType', params: []})
+    .then((response) => {
+      optPeriod.value = response.data.result['records']
+    })
+    .finally(() => {
+      loading.value = false
+    })
+})
+
+defineExpose({
+  clearFishingData,
+  loadFishingMeters,
+  setDte
+})
+</script>
+
+<style scoped>
+.sticky-header-table {
+  max-height: 95%;
+  overflow: auto;
+}
+
+.sticky-header-table table {
+  border-collapse: collapse; /* Меняем на collapse, чтобы рамки ячеек сливались в единую сетку */
+  width: 100%;
+}
+
+/* Добавляем рамки для всех заголовков и ячеек */
+.sticky-header-table th,
+.sticky-header-table td {
+  border: 1px solid #c0c0c0; /* Цвет границы (можете поменять на нужный оттенок) */
+  padding: 8px 12px; /* Необязательный внутренний отступ для красоты */
+}
+
+.sticky-header-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #607d8b;
+}
+
+.sticky-header-table .q-table--bordered {
+  border-top: none;
+}
+</style>

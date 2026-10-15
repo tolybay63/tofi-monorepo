@@ -16,6 +16,8 @@ export default {
   logOut: 'Выйти',
   browserDenied: 'Браузер запретил загрузку файла...',
 
+  charts: "Диаграммы",
+
   notLoginned: "Необходимо авторизоваться",
   notAccess: "У вас отсутствуют права для выполнения данной операции",
   notAccessService: "У вас отсутствуют права для входа в данный сервис",
@@ -129,8 +131,23 @@ export default {
   samplingStation: 'Станция отбора проб',
   fishingArea: 'Место (Рыбопромысловый район, участок)',
   fishArea: 'Место',
+  algo: "Алгоритм",
+  goAlgo: "Запустить алгоритм",
+
+  chooseReserVoirs: "Выбор водоемов",
+  dbeg: "Начало",
+  dend: "Конец",
+  fishing: "Вылов рыбы",
+  fishingType: "Тип ловли",
+  StartDate: "Дата начала вылова",
+  FishLocation: "Место вылова",
+  AreaOfTon: "Площадь тони, га",
+  FishGear: 'Орудие лова',
+  FishManager: "Руководитель вылова",
+  FishParticipants: "Участники вылова",
 
   enterprise: 'Предприятия',
+  back: "Назад",
 
   region: "Область",
   district: "Район",
@@ -140,7 +157,8 @@ export default {
   kato: "Классификатор административно-территориальных объектов",
   struct_enterprise: "Организационная структура предприятия",
   kato2: "Област/Район",
-  struct_enterprise2: "Филиал",
+  filial: "Филиал",
+  countReservoirs: "Количество водоемов",
 
   attached_files: 'Прикрепленные файлы',
   attach_file: 'Прикрепить файл',
@@ -174,7 +192,7 @@ export default {
   ReservoirHydroLevel: 'Гидрологический уровень водоема (мБС)',
   SplitLife: 'Невозможно расщеплять интервал жизни',
   ExistsValueOnDate: 'На указанную дату существует значение',
-  AreaOfTon: "Площадь тони, га",
+
   AreaOfTonShort: "Площадь, га",
 
 
@@ -204,14 +222,14 @@ export default {
   FishWeight: 'Масса',
   FishLength: 'Длина',
 
-  FishGear: 'Орудия лова',
+  FishGear_: 'Орудия лова',
   FishGearType: 'Тип орудия лова',
   FishGender: 'Пол рыбы',
 
   research: 'Исследования',
   researchResults: 'Результаты исследования',
 
-  test: 'Заливка',
+  fill: 'Заливка',
 
   nameDoc: 'Название документа',
   numberDoc: 'Номер документа',
@@ -248,3 +266,4 @@ export default {
   nothing_here: 'Упс. Здесь ничего...',
   home: 'Домой',
 }
+

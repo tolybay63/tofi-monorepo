@@ -1,14 +1,11 @@
-import {defineBoot} from '#q-app/wrappers'
+import {defineBoot} from '#q-app'
 import axios from 'axios'
 
-const appAdmURL = process.env.VITE_PRUDUCT_ADM_URL
-const appModelURL = process.env.VITE_PRUDUCT_MODEL_URL
-const appDataUserURL = process.env.VITE_PRUDUCT_DATAUSER_URL
-const appDataURL = process.env.VITE_PRUDUCT_DATA_URL
-const appCubeURL = process.env.VITE_PRUDUCT_CUBE_URL
-const appPersonnelURL = process.env.VITE_PRUDUCT_PERSONNEL_URL
-const appMonitoringURL = process.env.VITE_PRUDUCT_MONITORING_URL
-const appCalcURL = process.env.VITE_PRUDUCT_CALC_URL
+const appAdmURL = import.meta.env.QCLI_PRODUCT_ADM_URL
+const appModelURL = import.meta.env.QCLI_PRODUCT_MODEL_URL
+const appNsiURL = import.meta.env.QCLI_PRODUCT_NSI_URL
+const appMonitoringURL = import.meta.env.QCLI_PRODUCT_MONITORING_URL
+const appCalcURL = import.meta.env.QCLI_PRODUCT_CALC_URL
 
 const url = 'http://127.0.0.1:8080'
 let baseURL = url + "/api"
@@ -19,12 +16,11 @@ if (import.meta.env.PROD) {
 
 const api = axios.create({ baseURL: baseURL })
 
-
 export default defineBoot(({ app }) => {
 
   app.config.globalProperties.$axios = axios
   app.config.globalProperties.$api = api
 })
 
-export { api, appAdmURL, appModelURL, appDataUserURL, appDataURL,
-  appCalcURL, appCubeURL, appMonitoringURL, appPersonnelURL}
+export { api, appAdmURL, appModelURL,
+  appCalcURL, appNsiURL, appMonitoringURL}

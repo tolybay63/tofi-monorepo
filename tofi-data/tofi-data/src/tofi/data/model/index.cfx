@@ -20,6 +20,8 @@
             <item name="flat" method="*" invoker="model:default"
                   class="tofi.data.model.DataFlatDao"/>
 
+            <item name="psw" class="tofi.auth.TofiPasswordResetAction" method="*"/>
+
         </holder>
 
     </dao>

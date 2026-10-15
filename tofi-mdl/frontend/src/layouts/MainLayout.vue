@@ -17,7 +17,6 @@
           </q-tooltip>
         </q-btn>
 
-
         <q-btn dense flat icon="menu" round @click="toggleLeftDrawer">
           <q-tooltip transition-hide="rotate" transition-show="rotate">
             {{ $t("menu") }}
@@ -96,9 +95,10 @@
     <q-drawer
       v-model="leftDrawerOpen"
       :width="270"
-      class="bg-blue-1"
       elevated
       show-if-above
+      bordered
+      class="bg-grey-3"
     >
 
       <h6 v-if="notAccess" class="q-pa-md text-red text-bold">
@@ -108,10 +108,11 @@
         {{ $t("notLoginned") }}
       </h6>
 
-      <q-list v-else>
+      <q-list v-else class="q-list--bordered bg-blue-1">
         <template v-for="item in linksList()" :key="item.label">
           <q-expansion-item v-if="item.children && hasTarget(item.target)"
                             :icon="item.icon" :label="item.label"
+                            class="q-list--bordered"
           >
             <q-item
               v-for="subItem in item.children"
@@ -120,7 +121,7 @@
               :active="isActive(subItem.to)"
               :to="subItem.to"
               active-class="text-bold text-blue bg-blue-2"
-              class="q-pl-xl q-table--bordered"
+              class="q-pl-xl q-table--bordered bg-blue-1"
               clickable
             >
               <q-item-section avatar>
@@ -135,6 +136,7 @@
                   :active="isActive(item.to)"
                   :to="item.to"
                   active-class="text-bold text-blue bg-blue-2"
+                  class="q-table--bordered bg-blue-1"
                   clickable>
             <q-item-section avatar>
               <q-icon :name="item.icon"/>
@@ -162,6 +164,7 @@ import {storeToRefs} from "pinia";
 import {useRouter} from "vue-router";
 import {useQuasar} from "quasar";
 import {hasTarget} from "src/utils/jsutils.js";
+import axios from "axios";
 
 
 export default defineComponent({
@@ -200,7 +203,7 @@ export default defineComponent({
     const userName = computed(() => getUserName.value);
 
     const reqAuth = computed(() => getUserName.value === '')
-    const notAccess = computed(() => !getTarget.value["includes"]("meta") && getUserId.value > 1)
+    const notAccess = computed(() => !getTarget.value["includes"]("mdl") && getUserId.value > 1)
 
 
     return {
@@ -235,9 +238,8 @@ export default defineComponent({
 
 
       loginOnOff() {
-        //console.info("OnOff")
-        if (userName.value === "") {
-          leftDrawerOpen.value = true;
+        if (getUserName.value === '') {
+          leftDrawerOpen.value = true
           $q
             .dialog({
               component: LoginUser,
@@ -248,21 +250,24 @@ export default defineComponent({
             .onOk((res) => {
               setUserStore(res)
               router.push('/')
+
               api
                 .post("", {
                   method: "auth/checkTarget",
-                  params: ["meta"],
+                  params: ["mdl"],
                 })
-            });
-        } else {
-          api
-            .post(authURL + "/logout", {
-              params: [],
             })
+        } else {
+          axios
+            .post(authURL + '/logout', new URLSearchParams()) // <-- Склеиваем динамически со слэшем!
             .then(() => {
               clearUserStore()
             })
-            .finally(()=> {
+            .catch((err) => {
+              console.error("Ошибка при logout на сервере:", err)
+              clearUserStore()
+            })
+            .finally(() => {
               router.push('/')
             })
         }
@@ -274,86 +279,86 @@ export default defineComponent({
             to: '/database',
             label: this.$t('database'),
             icon: 'storage',
-            target: 'meta:db',
+            target: 'mdl:db',
           },
           //Настройка данных
           {
             to: '/dataSetting',
             label: this.$t('dataSetting'),
             icon: 'folder_open',
-            target: 'meta:mn_ds',
+            target: 'mdl:mn_ds',
             children: [
               {
                 to: '/measure',
                 label: this.$t('measures'),
                 icon: 'square_foot',
-                target: 'meta:mn_ds:mea',
+                target: 'mdl:mn_ds:mea',
               },
               {
                 to: '/attrib',
                 label: this.$t('attributs'),
                 icon: 'format_shapes',
-                target: 'meta:mn_ds:attr',
+                target: 'mdl:mn_ds:attr',
               },
               {
                 to: '/factor/0',
                 label: this.$t('factors'),
                 icon: 'account_tree',
-                target: 'meta:mn_ds:fac',
+                target: 'mdl:mn_ds:fac',
               },
               {
                 to: '/meter/0',
                 label: this.$t('meters'),
                 icon: 'scale',
-                target: 'meta:mn_ds:meter',
+                target: 'mdl:mn_ds:meter',
               },
               {
                 to: '/role',
                 label: this.$t('roles'),
                 icon: 'perm_contact_calendar',
-                target: 'meta:mn_ds:role',
+                target: 'mdl:mn_ds:role',
               },
               {
                 to: '/typ/0',
                 label: this.$t('typs'),
                 icon: 'view_quilt',
-                target: 'meta:mn_ds:typ',
+                target: 'mdl:mn_ds:typ',
               },
               {
                 to: '/reltyp/0',
                 label: this.$t('reltyps'),
                 icon: 'view_column',
-                target: 'meta:mn_ds:reltyp',
+                target: 'mdl:mn_ds:reltyp',
               },
               {
                 to: '/props/0/0',
                 label: this.$t('props'),
                 icon: 'app_registration',
-                target: 'meta:mn_ds:prop',
+                target: 'mdl:mn_ds:prop',
               },
               {
                 to: '/dimMultiProp/0/0',
                 label: this.$t('dimMultiProp'),
                 icon: 'type_specimen',
-                target: 'meta:mn_ds:pmdim',
+                target: 'mdl:mn_ds:pmdim',
               },
               {
                 to: '/multiProp/0/0',
                 label: this.$t('multiProp'),
                 icon: 'view_in_ar',
-                target: 'meta:mn_ds:pm',
+                target: 'mdl:mn_ds:pm',
               },
               {
                 to: '/flatTable',
                 label: this.$t('flatTable'),
                 icon: 'table_rows',
-                target: 'meta:mn_ds:ft',
+                target: 'mdl:mn_ds:ft',
               },
               {
                 to: '/chargr/0/typchargr',
                 label: this.$t('charprop'),
                 icon: 'table_chart',
-                target: 'meta:mn_ds:cgp',
+                target: 'mdl:mn_ds:cgp',
               },
             ],
           },
@@ -362,31 +367,31 @@ export default defineComponent({
             to: '/dataProcessing',
             label: this.$t('dataProcessing'),
             icon: 'folder_open',
-            target: 'meta:mn_dp',
+            target: 'mdl:mn_dp',
             children: [
               {
                 to: '/dimsperiod/0',
                 label: this.$t('dimsPeriod'),
                 icon: 'pending_actions',
-                target: 'meta:mn_dp:dmper',
+                target: 'mdl:mn_dp:dmper',
               },
               {
                 to: '/dimsprop/0/0',
                 label: this.$t('dimsProp'),
                 icon: 'credit_score',
-                target: 'meta:mn_dp:dmprop',
+                target: 'mdl:mn_dp:dmprop',
               },
               {
                 to: '/dimsobj/0/0',
                 label: this.$t('dimsObj'),
                 icon: 'pattern',
-                target: 'meta:mn_dp:dmobj',
+                target: 'mdl:mn_dp:dmobj',
               },
               {
                 to: '/cubes/0/0',
                 label: this.$t('cubes'),
                 icon: 'view_in_ar',
-                target: 'meta:mn_dp:cube',
+                target: 'mdl:mn_dp:cube',
               },
             ],
           },
@@ -395,26 +400,26 @@ export default defineComponent({
             to: '/dopEntities',
             label: this.$t('dopEntities'),
             icon: 'folder_open',
-            target: 'meta:mn_dop_entity',
+            target: 'mdl:mn_dop_entity',
             children: [
               {
                 to: '/stocks/0/0',
                 label: this.$t('stocks'),
                 icon: 'devices',
-                target: 'meta:mn_dop:stocks',
+                target: 'mdl:mn_dop:stocks',
               },
 
               {
                 to: '/syscoding',
                 label: this.$t('syscoding'),
                 icon: 'pin',
-                target: 'meta:mn_dop:syscoding',
+                target: 'mdl:mn_dop:syscoding',
               },
               {
                 to: '/scale/0',
                 label: this.$t('scales'),
                 icon: 'device_thermostat',
-                target: 'meta:mn_dop:scale',
+                target: 'mdl:mn_dop:scale',
               },
             ],
           },
@@ -423,7 +428,7 @@ export default defineComponent({
             to: '/toolsAnalitic',
             label: this.$t('toolsAnalitic'),
             icon: 'folder_open',
-            target: 'meta:mn_tool',
+            target: 'mdl:mn_tool',
             children: [],
           },
         ]

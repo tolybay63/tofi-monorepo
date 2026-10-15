@@ -86,9 +86,8 @@
 </template>
 
 <script>
-import {ref} from "vue";
 import {api} from "boot/axios";
-import {expandAll, getParentNode, hasTarget, notifyError, notifyInfo, pack,} from "src/utils/jsutils";
+import {expandAll, getParentNode, hasTarget, notifyInfo, pack,} from "src/utils/jsutils";
 import UpdateMeasure from "pages/measure/UpdateMeasure.vue";
 import QTreeTable from "components/QTreeTable.vue";
 
@@ -98,12 +97,12 @@ export default {
 
   data: function () {
     return {
-      selected: ref([]),
-      FD_AccessLevel: null,
+      selected: [],
+      FD_AccessLevel: new Map(),
       cols: [],
       rows: [],
       currentNode: null,
-      visible: ref(false),
+      visible: false,
     };
   },
 
@@ -119,7 +118,7 @@ export default {
     },
 
     fetchData() {
-      this.visible = ref(true);
+      this.visible = true;
       api
         .post("", {
           method: "measure/load",
@@ -131,16 +130,16 @@ export default {
             expandAll(this.rows);
           },
           (error) => {
-            let msg
+            let msg = error.message;
             if (error.response)
               msg = this.$t(error.response.data.error.message);
-            else msg = error.message;
-            notifyError(msg);
+
+            console.error(msg);
           }
         )
         .finally(() => {
           //setTimeout(() => {
-          this.visible = ref(false);
+          this.visible = false;
           //}, 3000)
         });
     },
@@ -175,7 +174,7 @@ export default {
           sortable: true,
           classes: "bg-blue-grey-1",
           headerStyle:
-            "font-size: 1.3em; color: #1976d2; background: antiquewhite; width:25%;",
+            "font-size: 1.3em; width:25%;",
           headerClass: "text-bold text-white bg-blue-grey-13",
           style: "text-align: left; width:25%",
         },
@@ -185,7 +184,7 @@ export default {
           label: this.$t("kfcMeasure"),
           field: "kFromBase",
           headerStyle:
-            "font-size: 1.3em; color: #1976d2; background: antiquewhite; width:10%;",
+            "font-size: 1.3em; width:10%;",
           headerClass: "text-bold text-white bg-blue-grey-13",
           style: "text-align: right; width:10%;",
         },
@@ -195,7 +194,7 @@ export default {
           field: "accessLevel",
           classes: "bg-blue-grey-1",
           headerStyle:
-            "font-size: 1.3em; color: #1976d2; background: antiquewhite; width:10%;",
+            "font-size: 1.3em; width:10%;",
           headerClass: "text-bold text-white bg-blue-grey-13",
           style: "text-align: left; width:10%;",
         },
@@ -205,7 +204,7 @@ export default {
           field: "cmt",
           classes: "bg-blue-grey-1",
           headerStyle:
-            "font-size: 1.3em; color: #1976d2; background: antiquewhite; width:30%",
+            "font-size: 1.3em; width:30%",
           headerClass: "text-bold text-white bg-blue-grey-13",
           style: "text-align: left; width:30%",
         },
@@ -324,7 +323,6 @@ export default {
         params: [{dict: "FD_AccessLevel"}],
       })
       .then((response) => {
-        this.FD_AccessLevel = new Map();
         response.data.result.records.forEach((it) => {
           this.FD_AccessLevel.set(it["id"], it["text"]);
         });

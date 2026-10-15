@@ -1,11 +1,10 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-down"
-      transition-hide="slide-down"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    transition-show="slide-down"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar class="text-white bg-primary">
@@ -14,156 +13,170 @@
 
       <q-card-section>
         <q-input
-            dense
-            v-model="form.passwdold"
-            :model-value="form.passwdold"
-            label="Старый пароль *"
-            autofocus
-            :type="isPwd ? 'password' : 'text'"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+          v-if="!force"
+          dense
+          v-model="form.passwdold"
+          label="Старый пароль *"
+          autofocus
+          :type="isPwd ? 'password' : 'text'"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         >
           <template v-slot:append>
             <q-icon
-                dense
-                :name="isPwd ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="isPwd = !isPwd"
+              dense
+              :name="isPwd ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="isPwd = !isPwd"
             />
           </template>
         </q-input>
 
         <q-input
-            dense
-            v-model="form.passwd"
-            :model-value="form.passwd"
-            label="Новый пароль *"
-            :type="isPwd ? 'password' : 'text'"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        ></q-input>
+          dense
+          v-model="form.passwd"
+          label="Новый пароль *"
+          :type="isPwd ? 'password' : 'text'"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        >
+          <template v-slot:append>
+            <q-icon
+              dense
+              :name="isPwd ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="isPwd = !isPwd"
+            />
+          </template>
+        </q-input>
 
-        <!-- psw2 -->
         <q-input
-            dense
-            v-model="form.passwd2"
-            :model-value="form.passwd2"
-            label="Подтверждение *"
-            :type="isPwd ? 'password' : 'text'"
-            :rules="[(val) => pswTest(val) || $t('errorPassword')]"
-        ></q-input>
+          dense
+          v-model="form.passwd2"
+          label="Подтверждение *"
+          :type="isPwd ? 'password' : 'text'"
+          :rules="[(val) => pswTest(val) || $t('errorPassword')]"
+        >
+        </q-input>
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            :loading="loading"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :loading="loading"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
             <q-spinner-hourglass color="white"/>
           </template>
         </q-btn>
         <q-btn
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onCancelClick"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
-<script>
-import {api,} from "boot/axios.js";
-import {ref} from "vue";
-import {notifyError} from "src/utils/jsutils.js";
 
-export default {
-  props: ["lg", "id"],
+<script setup>
+import {reactive, ref} from "vue";
+import {useQuasar} from "quasar";
+import {api} from "@/boot/axios.js";
 
-  data() {
-    return {
-      form: {
-        passwdold: "",
-        passwd: "",
-        passwd2: "",
-      },
-      lang: this.lg,
-      loading: ref(false),
+const props = defineProps({
+  login: String,
+  force: Boolean
+});
 
-      isPwd: ref(true),
-    };
-  },
+const emit = defineEmits(["ok", "hide"]);
+const $q = useQuasar();
 
-  emits: ["ok", "hide"],
+const dialogRef = ref(null);
+const loading = ref(false);
+const isPwd = ref(true);
 
-  methods: {
-    validSave() {
-      return (
-          this.form.passwdold === "" ||
-          this.form.passwd.trim() === "" ||
-          (this.form.passwd.trim() !== "" &&
-              this.form.passwd.trim() !== this.form.passwd2.trim())
-      );
-    },
+const form = reactive({
+  passwdold: "",
+  passwd: "",
+  passwd2: "",
+});
 
-    pswTest(val) {
-      return val === this.form.passwd;
-    },
-
-    show() {
-      this.$refs.dialog.show();
-    },
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      this.form.id = this.id;
-      //console.log("new Form", this.newForm);
-
-      let err = false;
-      this.loading = ref(true);
-      api
-          .post("", {
-            method: "auth/savePsw",
-            params: [this.form],
-          })
-          .then(
-              (response) => {
-                //console.log("response saveInfo", response.data)
-                this.$emit("ok", {res: true});
-                this.hide();
-              },
-              (error) => {
-                err = true;
-                let msg = error.response.data.error.message
-                    ? error.response.data.error.message
-                    : error.message;
-                msg = this.$t(msg);
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            this.loading = ref(false);
-            if (!err) location.reload();
-          });
-    },
-
-    mounted() {
-    },
-
-    onCancelClick() {
-      this.hide();
-    },
-  },
-  created() {
-  },
+const validSave = () => {
+  const oldPswValid = props.force ? false : (form.passwdold === "");
+  return (
+    oldPswValid ||
+    form.passwd.trim() === "" ||
+    (form.passwd.trim() !== "" &&
+      form.passwd.trim() !== form.passwd2.trim())
+  );
 };
+
+const pswTest = (val) => {
+  return val === form.passwd;
+};
+
+const show = () => {
+  dialogRef.value?.show();
+};
+
+const hide = () => {
+  dialogRef.value?.hide();
+};
+
+const onDialogHide = () => {
+  emit("hide");
+};
+
+const onOKClick = () => {
+  loading.value = true;
+  let err = false;
+
+  const requestPromise = props.force
+    ? api.post('?method=auth/forceChangePsw', {
+      method: "auth/forceChangePsw",
+      params: [props.login, form.passwd]
+    })
+    : api.post('', { method: "auth/savePsw", params: [form] });
+
+  requestPromise
+    .then(() => {
+      $q.notify({
+        type: 'positive',
+        message: 'Пароль успешно изменен! Вход в систему...',
+        position: 'top',
+        timeout: 2000
+      });
+
+      emit("ok", { res: true });
+    })
+    .catch((error) => {
+      err = true;
+      console.error(error);
+    })
+    .finally(() => {
+      loading.value = false;
+
+      if (!err)
+        emit("hide");
+
+      if (!props.force) {
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      }
+    });
+};
+
+const onCancelClick = () => {
+  hide();
+};
+
+defineExpose({
+  show,
+  hide
+});
 </script>

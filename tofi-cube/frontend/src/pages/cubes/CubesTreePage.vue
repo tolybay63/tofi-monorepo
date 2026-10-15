@@ -229,8 +229,9 @@ export default {
         .catch((error) => {
           let msg = error.message;
           if (error.response) msg = error.response.data.error.message;
+          console.error(msg)
 
-          notifyError(msg);
+          //notifyError(msg);
         })
         .finally(() => {
           this.loading = false
@@ -255,7 +256,8 @@ export default {
           this.errorCube = true
           let msg = error.message;
           if (error.response) msg = error.response.data.error.message;
-          notifyError(msg);
+          console.error(msg)
+          //notifyError(msg);
         })
         .finally(() => {
           this.loading = false
@@ -276,8 +278,8 @@ export default {
           this.errorCube = true
           let msg = error.message;
           if (error.response) msg = error.response.data.error.message;
-
-          notifyError(msg);
+          console.error(msg)
+          //notifyError(msg);
         })
         .finally(() => {
           this.loading = false
@@ -573,21 +575,24 @@ export default {
                   this.loaderHide()
                   let msg = error.message;
                   if (error.response) msg = error.response.data.error.message;
-                  notifyError(msg);
+                  console.error(msg)
+                  //notifyError(msg);
                 }))
             })
             .catch((error)=> {
               this.loaderHide()
               let msg = error.message;
               if (error.response) msg = error.response.data.error.message;
-              notifyError(msg);
+              console.error(msg)
+              //notifyError(msg);
             })
         })
         .catch((error) => {
           this.loaderHide()
           let msg = error.message;
           if (error.response) msg = error.response.data.error.message;
-          notifyError(msg);
+          console.error(msg)
+          //notifyError(msg);
         })
         .finally(() => {
             //this.loaderHide()

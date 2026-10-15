@@ -3,13 +3,13 @@
     <q-header elevated>
       <q-toolbar>
         <!--Main App -->
-        <q-btn class="q-mr-md" rounded color="primary" dense icon="grid_view" @click="mainApp()">
+        <q-btn class="q-mr-md" rounded color="primary" dense icon="grid_view" @click="mainApp">
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t('appName') }}
           </q-tooltip>
         </q-btn>
 
-        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer()">
+        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer">
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t('menu') }}
           </q-tooltip>
@@ -26,7 +26,7 @@
           color="primary"
           dense
           icon="home"
-          @click="this.$router['push']('/')"
+          @click="router.push('/')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t('mainPage') }}
@@ -41,14 +41,14 @@
             color="primary"
             dense
             icon="account_circle"
-            @click="loginOnOff()"
+            @click="loginOnOff"
             no-caps
           >
-            <q-tooltip transition-show="rotate" transition-hide="rotate" v-if="getUserName === ''"
-              >{{ $t('logIn') }}
+            <q-tooltip transition-show="rotate" transition-hide="rotate" v-if="getUserName === ''">
+              {{ $t('logIn') }}
             </q-tooltip>
-            <q-tooltip v-else transition-show="rotate" transition-hide="rotate"
-              >{{ $t('logOut') }}
+            <q-tooltip v-else transition-show="rotate" transition-hide="rotate">
+              {{ $t('logOut') }}
             </q-tooltip>
 
             {{ getUserName }}
@@ -60,7 +60,7 @@
         </div>
 
         <!-- Текущий язык-->
-        <SetLocale></SetLocale>
+        <SetLocale />
       </q-toolbar>
     </q-header>
 
@@ -73,9 +73,10 @@
           {{ $t('company') }}
 
           <span class="absolute-right q-pt-sm">
-          <a :href="site_url()" target="_blank" style="font-size: 12px" class="q-pr-md text-white"> {{$t("fish_model")}} </a>
+            <a :href="siteUrl" target="_blank" style="font-size: 12px" class="q-pr-md text-white">
+              {{ $t("fish_model") }}
+            </a>
           </span>
-
         </q-toolbar-title>
       </q-toolbar>
     </q-footer>
@@ -88,24 +89,46 @@
         {{ $t('notAccess') }}
       </h6>
 
-      <q-list v-for="link in essentialLinks" :key="link.title">
-        <q-item
-          class="q-table--bordered bg-blue-1"
-          v-if="hasTarget(link.target)"
-          clickable
-          tag="a"
-          :to="link.link"
-          active-class="text-bold text-blue"
-        >
-          <q-item-section v-if="link.icon" avatar>
-            <q-icon :name="link.icon" size="32px" />
-          </q-item-section>
+      <q-list v-else>
+        <template v-for="item in essentialLinks" :key="item.label">
+          <q-expansion-item
+            v-if="item.children && hasTarget(item.target)"
+            :icon="item.icon"
+            :label="$t(item.label)"
+            class="q-table--bordered"
+          >
+            <q-item
+              v-for="subItem in item.children"
+              :key="$t(subItem.label)"
+              v-ripple
+              :active="isActive(subItem.to)"
+              :to="subItem.to"
+              active-class="text-bold text-blue bg-blue-2"
+              class="q-table--bordered bg-blue-1"
+              clickable
+            >
+              <q-item-section avatar>
+                <q-icon :name="subItem.icon" />
+              </q-item-section>
+              <q-item-section>{{ $t(subItem.label) }}</q-item-section>
+            </q-item>
+          </q-expansion-item>
 
-          <q-item-section>
-            <q-item-label>{{ $t(link.title) }}</q-item-label>
-            <q-item-label caption>{{ link.info }}</q-item-label>
-          </q-item-section>
-        </q-item>
+          <q-item
+            v-else-if="hasTarget(item.target)"
+            v-ripple
+            :active="isActive(item.to)"
+            :to="item.to"
+            class="q-table--bordered bg-blue-1"
+            active-class="text-bold text-blue bg-blue-2"
+            clickable
+          >
+            <q-item-section avatar>
+              <q-icon :name="item.icon" />
+            </q-item-section>
+            <q-item-section>{{ $t(item.label) }}</q-item-section>
+          </q-item>
+        </template>
       </q-list>
     </q-drawer>
 
@@ -115,177 +138,100 @@
   </q-layout>
 </template>
 
-<script>
-import {defineComponent, ref} from 'vue'
-import LoginUser from 'components/LoginUser.vue'
-import SetLocale from 'components/SetLocale.vue'
-import {api, authURL, urlMainApp} from 'boot/axios'
+<script setup>
+import { ref } from 'vue'
+import { useQuasar } from 'quasar'
+import { useRouter, useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import LoginUser from '@/components/LoginUser.vue'
+import SetLocale from '@/components/SetLocale.vue'
+import {api, authURL, urlMainApp} from '@/boot/axios'
+import { useUserStore } from '@/stores/user-store'
+import axios from "axios";
 
-import {useUserStore} from 'stores/user-store'
-import {storeToRefs} from 'pinia'
-import {useRouter} from "vue-router";
+const $q = useQuasar()
+const router = useRouter()
+const route = useRoute()
 
-export default defineComponent({
-  name: 'MainLayout',
-  components: { SetLocale },
+const leftDrawerOpen = ref(true)
+const store = useUserStore()
+const { isSysAdmin, getUserName, getTarget, getUserId } = storeToRefs(store)
+const { setUserStore, clearUserStore } = store
 
-  data() {
-    return {}
-  },
+// Проверка сессии при инициализации[cite: 15]
+if (getUserId.value === 0) {
+  clearUserStore()
+  router["push"]('/')
+}
 
-  methods: {
-    mainApp() {
-      open(urlMainApp, '_self')
-    },
+const essentialLinks = [
+  { label: 'reservoirs', icon: 'sailing', to: '/reservoirs', target: 'mon:vod' },
+  { label: 'samplingStations', icon: 'houseboat', to: '/samplingstations', target: 'mon:st' },
+  { label: 'typesOfFish', icon: 'set_meal', to: '/typesfish', target: 'mon:tf' },
+  { label: 'piscesInReservoirs', icon: 'tsunami', to: '/piscesreservoirs', target: 'mon:rpv' },
+  { label: 'fishing', icon: 'location_on', to: '/chosefishing', target: 'mon:fish' },
+  { label: 'fill', icon: 'download', to: '/fill', target: 'mon:fill' },
+]
 
-    site_url() {
-      return process.env.SITE_URL
-    },
-  },
+const mainApp = () => {
+  open(urlMainApp, '_self')
+}
 
-  created() {
-    console.info('Created!')
-    const store = useUserStore()
-    const { clearUserStore } = store
-    const { getUserId } = storeToRefs(store)
-    const router = useRouter()
+const siteUrl = import.meta.env.QCLI_SITE_URL || 'https://tofishstocks-model.kz'
 
-    if (getUserId.value === 0) {
-      clearUserStore()
-      router.push('/')
-    }
-  },
+const isActive = (menuTo) => {
+  if (!menuTo || !route.path) return false
+  const menuBase = menuTo.split('/')[1]
+  const currentBase = route.path.split('/')[1]
+  return menuBase === currentBase
+}
 
-  setup() {
-    console.info('Setup!')
+const reqAuth = () => getUserName.value === ''
 
-    const leftDrawerOpen = ref(true)
-    const store = useUserStore()
-    const { isSysAdmin, getUserName, getTarget } = storeToRefs(store)
-    const { setUserStore, clearUserStore } = store
-    const router = useRouter()
+const notAccess = () => !getTarget.value["includes"]("mon") && !isSysAdmin.value
 
-    let getLinks = () => {
-      return [
-        {
-          title: "kato",
-          info: "",
-          icon: "home_work",
-          link: "/kato",
-          target: "nsi:kato",
-        },
-        {
-          title: 'reservoirs',
-          info: '',
-          icon: 'sailing',
-          link: '/reservoirs',
-          target: 'mon:vod',
-        },
+const nameIcon = () => (getUserName.value === '' ? 'login' : 'logout')
 
-        {
-          title: 'samplingStations',
-          info: '',
-          icon: 'houseboat',
-          link: '/samplingstations',
-          target: 'mon:st',
-        },
-        {
-          title: 'typesOfFish',
-          info: '',
-          icon: 'set_meal',
-          link: '/typesfish',
-          target: 'mon:tf',
-        },
+const hasTarget = (tg) => {
+  if (isSysAdmin.value) return true
+  if (getTarget.value["length"] === 0) return false
+  return getTarget.value["includes"](tg)
+}
 
-        {
-          title: 'FishGear',
-          info: '',
-          icon: 'phishing',
-          link: '/fishGear',
-          target: 'mon:fg',
-        },
+const loginOnOff = () => {
+  if (getUserName.value === '') {
+    leftDrawerOpen.value = true
+    $q.dialog({
+      component: LoginUser,
+      componentProps: {},
+    }).onOk((res) => {
+      setUserStore(res)
+      router["push"]('/')
 
-        {
-          title: 'piscesInReservoirs',
-          info: '',
-          icon: 'tsunami',
-          link: '/piscesreservoirs',
-          target: 'mon:rpv',
-        },
+      api.post('', {
+        method: "auth/checkTarget",
+        params: ["mon"],
+      })
+    })
+  } else {
+    // Исправленный вызов выхода через шлюз api.post вместо прямого axios 404
+    axios.post(authURL, { method: '/logout' })
+      .then(() => {
+        clearUserStore()
+      })
+      .catch((err) => {
+        console.error("Ошибка при logout на сервере:", err)
+        clearUserStore()
+      })
+      .finally(() => {
+        router["push"]('/')
+      })
+  }
+}
 
-/*
-        {
-          title: 'test',
-          info: '',
-          icon: 'download',
-          link: '/test',
-          target: 'mon:fill',
-        },
-*/
-      ]
-    }
-
-    let essentialLinks = getLinks()
-
-    return {
-      getUserName,
-      essentialLinks,
-
-      reqAuth() {
-        return getUserName.value === ''
-      },
-
-      notAccess() {
-        return getTarget.value.length === 0 && !isSysAdmin.value
-      },
-
-      nameIcon() {
-        if (getUserName.value === '') return 'login'
-        else return 'logout'
-      },
-
-      hasTarget(tg) {
-        if (isSysAdmin.value) return true
-        if (getTarget.value.length === 0) return false
-        return getTarget.value.includes(tg)
-      },
-
-      loginOnOff() {
-        //console.info("OnOff")
-        if (getUserName.value === '') {
-          leftDrawerOpen.value = true
-          this.$q
-            .dialog({
-              component: LoginUser,
-              componentProps: {
-                // ...
-              },
-            })
-            .onOk((res) => {
-              setUserStore(res)
-              router.push('/')
-            })
-        } else {
-          api
-            .post(authURL + '/logout', {
-              params: {},
-            })
-            .then(() => {
-              clearUserStore()
-            })
-            .finally(() => {
-              router.push('/')
-            })
-        }
-      },
-
-      leftDrawerOpen,
-      toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      },
-    }
-  },
-})
+const toggleLeftDrawer = () => {
+  leftDrawerOpen.value = !leftDrawerOpen.value
+}
 </script>
 
 <style></style>

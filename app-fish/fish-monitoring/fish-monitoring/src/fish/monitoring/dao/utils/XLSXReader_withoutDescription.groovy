@@ -17,6 +17,11 @@ class XLSXReader_withoutDescription {
     protected File file
     private Domain domain
     private Store store
+    private List<String> fields = new ArrayList<>()
+
+    List<String> getFields() {
+        return fields
+    }
 
     Domain getDomain() {
         return domain
@@ -51,6 +56,8 @@ class XLSXReader_withoutDescription {
         setDomain(d)
         setStore(s)
         createDomain()
+
+
     }
 
     void eachRow(Object eachFN){
@@ -60,7 +67,6 @@ class XLSXReader_withoutDescription {
             XSSFSheet sheet = workbook.getSheetAt(0)
             Iterator < Row > rowIterator = sheet.iterator()
             Row row = rowIterator.next()
-
             Iterator < Cell > cellIterator = row.iterator()
             Map fields = [:]
             while ( cellIterator.hasNext() ) {
@@ -104,7 +110,6 @@ class XLSXReader_withoutDescription {
     }
 
     private void createDomain() {
-
         InputStream xls_file = new FileInputStream( getFile() )
         try {
 
@@ -116,6 +121,7 @@ class XLSXReader_withoutDescription {
                 Cell cell = cellIterator.next()
                 if ( cell.getCellType() == CellType.STRING ) {
                     store.addField(cell.getStringCellValue(), "string")
+                    fields.add(cell.getStringCellValue())
                 }
                 else
                     throw new XError( "Error in header" )

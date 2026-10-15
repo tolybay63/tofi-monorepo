@@ -11,6 +11,13 @@
         <action name="auth"
                 class="tofi.auth.TofiAuthAction"/>
 
+        <action name="calc/upload"
+                class = "fish.calc.action.UploadCalcAction"
+        />
+
+        <action name="calc/save-all-results"
+                class = "fish.calc.action.SaveDataAction"
+        />
 
         <filter name="jc-auth-engine"
                 class="jandcode.core.apx.auth.AuthFilter"
@@ -24,7 +31,8 @@
         <model name="meta" instance="tofi.api.mdl.model"/>
         <model name="adm" instance="tofi.api.adm.model"/>
         <model name="monitoringdata" instance="tofi.api.dta.model"/>
-        <model name="userdata" instance="tofi.api.dta.model"/>
+        <model name="nsidata" instance="tofi.api.dta.model"/>
+        <model name="calcdata" instance="tofi.api.dta.model"/>
 
     </dbm>
 

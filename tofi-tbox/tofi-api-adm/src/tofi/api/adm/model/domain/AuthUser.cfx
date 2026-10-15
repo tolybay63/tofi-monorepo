@@ -3,26 +3,41 @@
 
     <domain name="AuthUser" parent="id" tag.db="true"
             genid.start="1000" genid.step="1" title="Пользователи">
+        <!-- Пользователи -->
         <field name="authUserGr" parent="long"/>
-        <field name="accessLevel" parent="long"/>
-        <field name="login" parent="string" size="32" title="Логин"/>
-        <field name="passwd" parent="string" size="64" title="Пароль"/>
-        <field name="email" parent="string" size="32" title="Электронная почта"/>
+        <field name="accessLevel" parent="long" title="Уровень доступа"/>
+        <field name="login" parent="string" size="32" title="Логин">
+            <!--@
+            Уникальное поле
+            -->
+        </field>
+
+        <field name="passwd_algo" parent="string" size="12"/>
+        <field name="passwd" parent="string" size="256" title="Пароль"/>
+        <field name="email" parent="string" size="32" title="Электронная почта">
+            <!--@
+            Уникальное поле
+            -->
+        </field>
         <field name="phone" parent="string" size="32" title="Телефон"/>
         <field name="name" parent="string" size="50" title="Наименование"/>
         <field name="fullName" parent="string" size="100" title="Полное наименование"/>
         <field name="locked" parent="boolean" title="Заблокирован" />
-        <field name="cmt" parent="string" />
-    </domain>
 
-    <!-- ??? -->
-    <domain name="AuthUser.cust" parent="id">
-        <field name="userGroup" parent="string"/>
-        <field name="name" parent="string"/>
-        <field name="fullName" parent="string"/>
-        <field name="login" parent="string"/>
-        <field name="email" parent="string"/>
-        <field name="phone" parent="string"/>
+        <field name="failed_attempts" parent="int"/>
+        <field name="locked_until" parent="datetime"/>
+        <field name="lockout_count" parent="int"/>
+        <field name="force_change" parent="boolean" title="Флаг принудительной смены пароля: 1 - требуется, 0 - не требуется" />
+
+        <field name="temp_passwd" parent="string" size="256" title="Пароль"/>
+        <field name="temp_passwd_expired" parent="datetime"/>
+
+        <field name="cmt" parent="memo" />
+
+        <!-- ============================================== -->
+        <dbindex name="i_login" fields="login" unique="true"/>
+        <dbindex name="i_email" fields="email" unique="true"/>
+
     </domain>
 
 
