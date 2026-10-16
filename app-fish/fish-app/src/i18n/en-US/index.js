@@ -14,6 +14,13 @@ export default {
   appMonitoringName: "Water body monitoring",
   appNsiName: "Normative reference information",
   appAnalyseName: "Data analysis",
+
+  tit1: "System for",
+  tit2: "assessing reserves",
+  tit3: "and calculating",
+  tit4: "maximum allowable",
+  tit5: "extraction levels",
+
   appMinIO: "File storage",
   appCubesName: "Cube management service",
   appAlgSrvName: "Algorithmic server",

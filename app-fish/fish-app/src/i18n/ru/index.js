@@ -16,6 +16,12 @@ export default {
   appCalcName: "Оценка запасов и ПДУ",
   appAnalyseName: "Анализ данных",
 
+  tit1: "Система",
+  tit2: "оценки",
+  tit3: "запасов и",
+  tit4: "расчета ПДУ",
+  tit5: "",
+
   appMinIO: "Файловое хранилище",
   appCubesName: "Сервис работы с кубами",
   appAlgSrvName: "Алгоритмический сервер",

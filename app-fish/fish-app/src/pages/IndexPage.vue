@@ -16,9 +16,11 @@
     <q-page class="relative-position flex no-wrap overflow-hidden" style="height: 100%;">
 
       <!-- ЛЕВАЯ ЧАСТЬ: Крупный заголовок -->
+      <!--  Система<br>оценки<br>запасов и<br>расчета ПДУ    -->
+
       <div class="col-4 flex items-center q-pl-xl" style="min-width: 400px; z-index: 2;">
         <h1 class="text-weight-bolder text-blue q-ma-none" style="font-size: clamp(2.5rem, 3.5vw, 4rem); line-height: 1.2; letter-spacing: -0.5px;">
-          Система<br>оценки<br>запасов и<br>расчета ПДУ
+          {{$t("tit1")}}<br>{{$t("tit2")}}<br>{{$t("tit3")}}<br>{{$t("tit4")}}<br>{{$t("tit5")}}
         </h1>
       </div>
 
