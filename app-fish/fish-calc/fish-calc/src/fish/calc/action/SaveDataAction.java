@@ -42,7 +42,7 @@ public class SaveDataAction extends BaseAction {
 
         dao.saveDataFromCalcFastApi(fle, fnOrg);
 
-        getReq().render("filename: " + fnOrg);
+        getReq().render(java.util.Map.of("filename", fnOrg));
 
     }
 

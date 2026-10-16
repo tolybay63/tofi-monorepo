@@ -1584,5 +1584,7 @@ class DataDao extends BaseMdbUtils {
         fle.eachLine { line ->
             file << line + "\r\n"
         }
+
+        //return [status: "success", message: "Данные успешно получены"]
     }
 }
