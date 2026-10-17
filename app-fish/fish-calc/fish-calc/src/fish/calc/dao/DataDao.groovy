@@ -1574,15 +1574,22 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     static void saveDataFromCalcFastApi(File fle, String filename) {
+        //Для отладки. После SaveDB убрать
         //monoblock
-        def file = new File("C:\\Users\\Envy\\Documents\\rashet.txt")
-        //laptop
-        //def file = new File("C:\\Users\\tolybay\\Documents\\rashet.txt")
+        //def filePath = "C:\\Users\\Envy\\Documents\\rashet.txt"
         //work
-        //def file = new File("C:\\Users\\Professional\\Documents\\rashet.txt")
-        file << filename + "\r\n\r\n"
-        fle.eachLine { line ->
-            file << line + "\r\n"
+        //def filePath = "C:\\Users\\Professional\\Documents\\rashet.txt"
+        //laptop
+        def filePath = 'C:\\Users\\tolybay\\Documents\\rashet.txt'
+        def file = new File(filePath)
+
+        file.withWriter('UTF-8') { writer ->
+            writer.writeLine(filename)
+            writer.writeLine('') // пустая строка
+
+            file.eachLine { line ->
+                writer.writeLine(line)
+            }
         }
 
     }
