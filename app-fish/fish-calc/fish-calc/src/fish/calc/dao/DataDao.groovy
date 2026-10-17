@@ -1583,7 +1583,7 @@ class DataDao extends BaseMdbUtils {
         def filePath = 'C:\\Users\\tolybay\\Documents\\rashet.txt'
         def file = new File(filePath)
 
-        file.text = '' // Это полностью очищает файл, если он существовал
+        file.text = ''
 
         file << filename + "\r\n\r\n"
         fle.eachLine { line ->
