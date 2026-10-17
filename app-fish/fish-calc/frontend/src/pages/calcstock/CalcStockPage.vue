@@ -350,24 +350,11 @@ const fnEdit = async (rec, isMain, isChild, mode) => {
     });
 }
 
-async function handleCalculate(calcId) {
-  try {
-    const response = await fastApi.post('/api/stock/recalculate', null, {
-      params: { calc_id: calcId }
-    });
-    //const response = await fastApi.post('/api/stock/recalculate', { calc_id: calcId });
-    console.log('Результат от FastAPI:', response.data);
-
-    // СОХРАНЯЕМ ДАННЫЕ В РЕАКТИВНУЮ ПЕРЕМЕННУЮ СТРАНИЦЫ
-    // (замените `calculationResult` на название вашей переменной, отвечающей за данные таблицы/формы)
-    calculationResult.value = response.data;
-
-    // Или если данные сохраняются в Pinia-хранилище:
-    // store.setCalculationData(response.data);
-
-  } catch (error) {
-    console.error('Ошибка запроса к расчету:', error);
-  }
+const checkTarget = async () => {
+  await api.post('', {
+    method: 'auth/checkTarget',
+    params: ['calc'],
+  })
 }
 
 const fnCalc = async (rec) => {
@@ -380,23 +367,13 @@ const fnCalc = async (rec) => {
       }
     })
   } else if (props.codCls === "Cls_CalcBayes") {
-    // Определяем префикс для FastAPI приложения в зависимости от окружения (PROD / Dev)
+    //Проверяем права доступа для входа...
+    await checkTarget()
 
-    //await handleCalculate(rec.id)
+    // Определяем префикс для FastAPI приложения в зависимости от окружения (PROD / Dev)
     let baseUrl = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8000/';
     let url = `${baseUrl}bayes?calc_id=${rec.id}`;
     window.open(url, '_blank');
-
-
-
-/*    router["push"]({
-      name: 'CalculationBayes',
-      params: {
-        id: rec.id,
-        title: rec.name,
-      }
-    })*/
-
   }
 
 };
@@ -531,6 +508,31 @@ const arrayTreeObj = computed(() => {
 });
 
 onMounted(() => {
+  window.addEventListener('message', async (event) => {
+    if (event.data && event.data.type === 'REQUEST_TOKEN') {
+      console.log("[ТОФИ] Окно FastAPI запросило токен. Проверяем валидность...");
+
+      try {
+        // Делаем легкий запрос-пинг (замените на любой безопасный эндпоинт вашего Java API)
+        // Если токен жив - запрос пролетит. Если протух - axios.js сам его обновит!
+        await checkTarget()
+      } catch (e) {
+        console.warn("[ТОФИ] Ошибка при пинге API:", e);
+      }
+
+      // После завершения запроса (и возможного рефреша) берем гарантированно свежий токен
+      const guaranteedToken = sessionStorage.getItem('fish_token');
+
+      if (guaranteedToken && guaranteedToken !== 'null') {
+        event.source.postMessage({
+          type: 'NEW_TOKEN',
+          token: guaranteedToken
+        }, event.origin);
+      }
+    }
+  });
+
+  //
   loading.value = true;
   columns.value = getColumns();
   api
