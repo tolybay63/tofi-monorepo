@@ -1583,14 +1583,14 @@ class DataDao extends BaseMdbUtils {
         def filePath = 'C:\\Users\\tolybay\\Documents\\rashet.txt'
         def file = new File(filePath)
 
-        file.withWriter('UTF-8') { writer ->
-            writer.writeLine(filename)
-            writer.writeLine('') // пустая строка
+        file.text = '' // Это полностью очищает файл, если он существовал
 
-            file.eachLine { line ->
-                writer.writeLine(line)
-            }
+        file << filename + "\r\n\r\n"
+        fle.eachLine { line ->
+            file << line + "\r\n"
         }
+
+
 
     }
 }
