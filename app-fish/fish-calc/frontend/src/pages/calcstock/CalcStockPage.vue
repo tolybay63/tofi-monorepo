@@ -367,12 +367,13 @@ const fnCalc = async (rec) => {
       }
     })
   } else if (props.codCls === "Cls_CalcBayes") {
-    //Проверяем права доступа для входа...
-    await checkTarget()
+    await checkTarget();
+    const token = sessionStorage.getItem('fish_token') || '';
 
-    // Определяем префикс для FastAPI приложения в зависимости от окружения (PROD / Dev)
+    // Для window.open на продакшене нам нужен полный путь от корня сайта с учетом префикса Nginx
     let baseUrl = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8000/';
-    let url = `${baseUrl}bayes?calc_id=${rec.id}`;
+
+    let url = `${baseUrl}bayes?calc_id=${rec.id}&token=${encodeURIComponent(token)}`;
     window.open(url, '_blank');
   }
 
