@@ -159,8 +159,6 @@ const checkYear2P = () => {
 }
 
 const validName = () => {
-  console.info(form)
-
   if ( !form["name"])
     return true
 
@@ -248,7 +246,6 @@ const onCancelClick = () => {
 };
 
 onMounted(async () => {
-  console.info("onMounted upd", props.isChild, props.parentName);
   if (!props.isChild) {
     if (props.mode === "ins") {
       const resp1 = await api.post('', {method: 'data/loadReservoirs', params: ['Prop_ReservoirShore']})
