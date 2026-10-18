@@ -21,16 +21,24 @@
           {{ $t("parent") }}: {{ parentName }}
         </q-item-section>
 
-        <!-- Добавлен ref="inputNameRef" -->
-        <q-input
-          ref="inputNameRef"
-          v-model="form['name']"
-          :label="$t('nameCalc')"
-          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-          autofocus
-          class="q-mx-sm"
-          dense
-        />
+        <div v-if="!isChild">
+          <!-- Prop_ReservoirShore -->
+          <q-select
+            ref="inputNameRef"
+            v-model="form.objReservoirShore"
+            :label="fmReqLabel('reservoir', true)"
+            :options="optReservoir"
+            class="q-mx-sm"
+            dense
+            map-options
+            option-label="name"
+            option-value="id"
+            use-input
+            @filter="filterReservoir"
+            @update:model-value="fnSelectReservoir"
+          />
+
+        </div>
 
         <div v-if="mode==='ins'">
 
@@ -56,42 +64,19 @@
                 () => isChild ? checkYear2() || 'Y1 > Y2 || Y2 > YP2' : checkYear2P() || 'Y1 > Y2'
               ]"
               class="q-ml-lg" dense mask="####"
+              @blur="onBlurName"
             />
           </div>
 
-          <div v-if="!isChild">
-            <!-- Prop_ReservoirShore -->
-            <q-select
-              v-model="form.objReservoirShore"
-              :label="fmReqLabel('reservoir', true)"
-              :options="optReservoir"
-              class="q-mx-sm"
-              dense
-              map-options
-              option-label="name"
-              option-value="id"
-              use-input
-              @filter="filterReservoir"
-              @update:model-value="fnSelectReservoir"
-            />
-            <!-- Prop_CalcFishSpec -->
+          <!-- Добавлен ref="inputNameRef" -->
+          <q-input
+            v-model="form['name']"
+            :label="$t('nameCalc')"
+            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+            class="q-mx-sm"
+            dense
+          />
 
-<!--
-            <q-select
-              v-model="form['objCalcFishSpec']"
-              :label="fmReqLabel('CalcFishSpec', true)"
-              :options="optCalcFishSpec"
-              class="q-ma-sm"
-              dense
-              map-options
-              option-label="name"
-              option-value="id"
-              options-dense
-              @filter="filterCalcFishSpec"
-              @update:model-value="fnSelectCalcFishSpec"
-            />
--->
-          </div>
         </div>
       </q-card-section>
 
@@ -141,7 +126,7 @@ const inputNameRef = ref(null);
 const y1P = props.data["CalcStartYear"];
 const y2P = props.data["CalcEndYear"];
 const form = reactive({...props.data});
-
+const nameReservoir = ref("");
 const optReservoir = ref([])
 const optReservoirOrg = ref([])
 //
@@ -153,7 +138,9 @@ const fmReqLabel = (label, req) => {
     return proxy?.$t(label)
 }
 
-
+const onBlurName = () => {
+  form['name'] = nameReservoir.value + " (" + form['CalcStartYear'] + " - " +   form['CalcEndYear'] + ")";
+}
 
 const checkYear1 = () => {
   return (form["CalcStartYear"] && form["CalcStartYear"].length === 4 && form['CalcStartYear'] <= form['CalcEndYear'] && form['CalcStartYear'] >= y1P )
@@ -170,7 +157,6 @@ const checkYear1P = () => {
 const checkYear2P = () => {
   return (form["CalcEndYear"] && form["CalcEndYear"].length === 4 && form['CalcStartYear'] <= form['CalcEndYear'])
 }
-
 
 const validName = () => {
   console.info(form)
@@ -189,23 +175,14 @@ const validName = () => {
   }
 }
 
-/*
-const fnSelectCalcFishSpec = (v) => {
-  if (v) {
-    form.objCalcFishSpec = v.id
-    form.pvCalcFishSpec = v["pv"]
-  }
-}
-*/
-
 const fnSelectReservoir = (v) => {
   if (v) {
+    nameReservoir.value = v.name;
     form.objReservoirShore = v.id
     form.pvReservoirShore = v["pv"]
     //
     form.objCalcFishSpec = null
     form.pvCalcFishSpec = null
-    loadObjCalcFishSpec(v.id)
   }
 }
 
