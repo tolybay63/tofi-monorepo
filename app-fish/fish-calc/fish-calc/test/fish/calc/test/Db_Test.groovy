@@ -21,7 +21,7 @@ class Db_Test extends Apx_Test {
 
     @Test
     void test1() {
-        Store st = getPropsOfCalc(1039)
+        Store st = getPropsOfCalc(1047)
         mdb.outTable(st)
     }
 
@@ -30,28 +30,43 @@ class Db_Test extends Apx_Test {
 
      //Запрос на Мета
         Store stTmp = loadSqlMeta("""
-            select id, cod from Prop where cod in ('Prop_ReservoirShore','Prop_CalcStartYear','Prop_CalcEndYear') 
+            select id, cod from Prop where cod in ('Prop_ReservoirShore','Prop_CalcStartYear','Prop_CalcEndYear','Prop_WaterArea') 
         """, "")
         Map<String, Long> mapProp = new HashMap<>()
         for (StoreRecord r in stTmp) {
             mapProp.put(r.getString("cod"), r.getLong("id"))
         }
-        // Здесь запрос на базу сервиса calc
+        //!!! Здесь запрос на базу сервиса calc
         Store st = mdb.loadQuery("""
             select o.id as idCalc,
                 v1.strVal::integer as start_year,
                 v2.strVal::integer as end_year,    
-                v3.obj as waterbody_id
+                v3.obj as waterbody_id,
+                null as water_area
             from Obj o
-                join ObjVer v on o.id=v.ownerVer and v.lastVer=1
                 join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStartYear
                 join DataPropVal v1 on v1.dataprop=d1.id
                 join DataProp d2 on d2.isObj=1 and d2.objOrRelObj=o.id and d2.prop=:Prop_CalcEndYear
                 join DataPropVal v2 on v2.dataprop=d2.id
                 join DataProp d3 on d3.isObj=1 and d3.objOrRelObj=o.id and d3.prop=:Prop_ReservoirShore
-                join DataPropVal v3 on v3.dataprop=d3.id    
+                join DataPropVal v3 on v3.dataprop=d3.id 
             where o.id=${idCalc}
         """, mapProp)
+        //
+        long waterbody_id = st.get(0).getLong("waterbody_id")
+        //!!! Запрос на базу сервиса monitoring
+        Store stArea = loadSqlService("""
+            select     
+                o.id as waterbody_id,
+                v4.numberVal as water_area
+            from Obj o
+                left join DataProp d4 on d4.isObj=1 and d4.objOrRelObj=o.id and d4.prop=${mapProp.get("Prop_WaterArea")}
+                left join DataPropVal v4 on v4.dataprop=d4.id     
+            where o.id=${waterbody_id}
+        """, "", "monitoringdata")
+        //
+        st.get(0).set("water_area", stArea.get(0).getDouble("water_area"))
+        //
         return st
     }
 

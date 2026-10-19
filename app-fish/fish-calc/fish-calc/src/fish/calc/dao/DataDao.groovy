@@ -1576,7 +1576,7 @@ class DataDao extends BaseMdbUtils {
     static void saveDataFromCalcFastApi(File fle, String filename) {
         //Для отладки. После SaveDB убрать
         //server 1.20
-        def filePath = "C:\\Users\\Tolybay.Kuanov\\My Documents\\rashet.txt"
+        //def filePath = "C:\\Users\\Tolybay.Kuanov\\My Documents\\rashet.txt"
 
         //monoblock
         //def filePath = "C:\\Users\\Envy\\Documents\\rashet.txt"
@@ -1585,7 +1585,7 @@ class DataDao extends BaseMdbUtils {
         //def filePath = "C:\\Users\\Professional\\Documents\\rashet.txt"
 
         //laptop
-        //def filePath = 'C:\\Users\\tolybay\\Documents\\rashet.txt'
+        def filePath = 'C:\\Users\\tolybay\\Documents\\rashet.txt'
         def file = new File(filePath)
 
         file.text = ''
