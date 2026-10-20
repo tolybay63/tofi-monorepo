@@ -1,11 +1,16 @@
 package tofi.api.dta.impl
 
+import jandcode.commons.UtCnv
 import jandcode.commons.error.XError
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import tofi.api.dta.ApiNSIData
+import tofi.api.mdl.ApiMeta
+import tofi.apinator.ApinatorApi
+import tofi.apinator.ApinatorService
 
 class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
+    ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
 
     @Override
     Store loadSql(String sql, String domain) {
@@ -95,5 +100,35 @@ class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
             return mdb.loadQueryNative("""
                 select id from RelObj where relcls=${clsORrelcls} limit 1
             """).size() > 0
+    }
+
+    @Override
+    boolean userFromPersonnel(long user) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
+        Store st = mdb.loadQuery("""
+            select NULLIF(v.strval, '')::decimal as au 
+            from DataProp d, DataPropVal v
+            where d.id=v.dataprop and d.prop=${map.get("Prop_UserId")}
+        """)
+        Set<Object> ids = st.getUniqueValues("au")
+        Set<Object> idsInt = new HashSet<>()
+        ids.forEach {it-> {
+            idsInt.add(UtCnv.toLong(it))
+        }}
+
+        return idsInt.contains(user)
+    }
+
+    @Override
+    long userOfPersonnel(long user) {
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
+        Store st = mdb.loadQuery("""
+            select d.objorrelobj as user 
+            from DataProp d, DataPropVal v
+            where d.id=v.dataprop and d.prop=${map.get("Prop_UserId")}
+                and d.isObj=1 and d.objOrRelObj=${user}
+        """)
+
+        return st.get(0).getLong("user")
     }
 }

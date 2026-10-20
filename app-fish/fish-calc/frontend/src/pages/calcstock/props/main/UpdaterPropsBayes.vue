@@ -35,6 +35,7 @@
         <q-input
           v-model="form['CalcStartYear']"
           :model-value="form['CalcStartYear']"
+          :disable="true"
           :label="fmReqLabel('CalcStartYear', true)"
           :rules="[(val) => (!!val && val.trim().length===4) || $t('req')]"
           class="q-ma-md" dense mask="####"
@@ -44,25 +45,13 @@
         <q-input
           v-model="form['CalcEndYear']"
           :label="fmReqLabel('CalcEndYear', true)"
+          :disable="true"
           :rules="[
             (val) => (!!val && val.trim().length===4) || $t('req'),
             () => checkYear() || 'Y1 > Y2'
             ]"
           class="q-ma-md" dense mask="####"
         />
-
-        <!-- Prop_CalcFishSpec -->
-<!--        <q-select
-          class="q-ma-md"
-          v-model="form['fvCalcFishSpec']"
-          dense
-          options-dense
-          :options="optCalcFishSpec"
-          :label="fmReqLabel('CalcFishSpec', true)"
-          option-value="id" option-label="name" map-options
-          :disable="true"
-          @update:model-value="fnSelectCalcFishSpec"
-        />-->
 
         <!-- Prop_CalcStatus -->
         <q-select
@@ -185,13 +174,6 @@ const checkYear = () => {
   if (!form['CalcStartYear'] || !form['CalcEndYear']) return true
   return form['CalcStartYear'] <= form['CalcEndYear']
 }
-
-/*const fnSelectCalcFishSpec = (v) => {
-  if (v) {
-    form.fvCalcFishSpec = v.id
-    form.pvCalcFishSpec = v["pv"]
-  }
-}*/
 
 const fnSelectCalcStatus = (v) => {
   if (v) {

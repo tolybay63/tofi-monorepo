@@ -2,6 +2,7 @@ package fish.calc.dao
 
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
+import jandcode.commons.UtJson
 import jandcode.commons.datetime.XDate
 import jandcode.commons.datetime.XDateTime
 import jandcode.commons.datetime.XDateTimeFormatter
@@ -452,7 +453,7 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_CalcEndYear", params)
         }
         //5
-        if (params.getLong("idCalcFishSpec") == 0) {
+/*        if (params.getLong("idCalcFishSpec") == 0) {
             if (params.getLong("fvCalcFishSpec") > 0)
                 fillProperties(true, "Prop_CalcFishSpec", params)
             else
@@ -462,7 +463,7 @@ class DataDao extends BaseMdbUtils {
                 updateProperties("Prop_CalcFishSpec", params)
             else
                 throw new XError("CalcFishSpec is required")
-        }
+        }*/
         //6
         if (params.getLong("idCalcStatus") == 0) {
             if (params.getLong("fvCalcStatus") > 0)
@@ -1198,6 +1199,8 @@ class DataDao extends BaseMdbUtils {
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
         long au = getUser()
+        if (params.containsKey("au"))
+            au = UtCnv.toLong(params.get("au"))
         String keyValue = cod.split("_")[1]
         long objRef = UtCnv.toLong(params.get("obj" + keyValue))
         long propVal = UtCnv.toLong(params.get("pv" + keyValue))
@@ -1359,6 +1362,9 @@ class DataDao extends BaseMdbUtils {
     void updateProperties(String cod, Map<String, Object> params) {
         VariantMap mapProp = new VariantMap(params)
         long au = getUser()
+        if (params.containsKey("au"))
+            au = UtCnv.toLong(params.get("au"))
+
         String keyValue = cod.split("_")[1]
         long idVal = mapProp.getLong("id" + keyValue)
         //
@@ -1571,9 +1577,48 @@ class DataDao extends BaseMdbUtils {
         return au
     }
 
+    void savePropsOfCalc(Map<String, Object> params) {
+        long au = UtCnv.toLong(params.get("user_id"))
+
+        if (!apiNSIData().get(ApiNSIData).userFromPersonnel(au)) {
+            throw new XError("Пользователь не зарегистрирован в БД Персонал")
+        }
+
+        long user = apiNSIData().get(ApiNSIData).userOfPersonnel(au)
+        long calc_id = UtCnv.toLong(params.get("calc_id"))
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
+        Map<String, Object> map = new HashMap<>()
+        map.put("own", calc_id)
+        map.put("objUserId", user)
+
+
+        map.put("pvUserId", 0) //todo
+
+        //user
+        Store stTmp = mdb.loadQuery("""
+            select v.id
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.prop=${mapProp.get("Prop_UserId")}
+                and d.isObj=1 and d.objOrRelObj=${calc_id}
+        """)
+
+/*
+        if (stTmp.size() > 0) { //upd
+            updateProperties("Prop_UserId", map)
+        } else { //ins
+            fillProperties(true, "Prop_UserId", map)
+        }
+*/
+
+        int o=0
+
+    }
 
     @DaoMethod
-    static void saveDataFromCalcFastApi(File fle, String filename) {
+    void saveDataFromCalcFastApi(File fle, String filename) {
+        Map<String, Object> map = UtCnv.toMap(UtJson.fromJson(fle.text))
+        savePropsOfCalc(map)
+
         //Для отладки. После SaveDB убрать
         //server 1.20
         //def filePath = "C:\\Users\\Tolybay.Kuanov\\My Documents\\rashet.txt"
@@ -1594,8 +1639,11 @@ class DataDao extends BaseMdbUtils {
         fle.eachLine { line ->
             file << line + "\r\n"
         }
+    }
 
-
-
+    @DaoMethod
+    Map<String, Boolean> userFromPersonnel(long user) {
+        boolean b = apiNSIData().get(ApiNSIData).userFromPersonnel(user)
+        return [res: b]
     }
 }

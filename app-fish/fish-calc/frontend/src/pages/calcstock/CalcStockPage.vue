@@ -188,9 +188,11 @@ import {computed, getCurrentInstance, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import {extend, useQuasar} from "quasar";
 import {collapsAll, expandAll, findRowForId, hasTarget, notifyError, notifyInfo, pack} from '@/utils/jsutils'
-import {api, fastApi} from "@/boot/axios";
+import {api} from "@/boot/axios";
 import UpdaterCalcStock from "./UpdaterCalcStock.vue";
 import PropsMainPage from "@/pages/calcstock/PropsMainPage.vue";
+import {useUserStore} from "@/stores/user-store.js";
+import {storeToRefs} from "pinia";
 
 const props = defineProps({
   codCls: String
@@ -199,6 +201,9 @@ const props = defineProps({
 const $q = useQuasar()
 const {proxy} = getCurrentInstance()
 const router = useRouter();
+
+const store = useUserStore()
+const { getUserId} = storeToRefs(store)
 
 const cls = ref(0)
 const splitterModel = ref(50)
@@ -357,6 +362,14 @@ const checkTarget = async () => {
   })
 }
 
+const userFromPersonnel = async (user) => {
+  return await api.post('', {
+    method: 'data/userFromPersonnel',
+    params: [user],
+  })
+}
+
+
 const fnCalc = async (rec) => {
   if (props.codCls === "Cls_CalcDeterm") {
     router["push"]({
@@ -367,6 +380,15 @@ const fnCalc = async (rec) => {
       }
     })
   } else if (props.codCls === "Cls_CalcBayes") {
+
+
+    const resp =  await userFromPersonnel(getUserId.value)
+    console.info("usrOfPersonnel", resp.data.result)
+
+    if (!resp.data.result.res) {
+      notifyInfo("Пользователь не зарегистрирован!")
+    }
+
     await checkTarget();
     const token = sessionStorage.getItem('fish_token') || '';
 

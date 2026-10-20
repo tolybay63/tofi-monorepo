@@ -5,8 +5,13 @@ import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
 import tofi.api.dta.ApiCalcData
 import tofi.api.dta.ApiNSIData
+import tofi.api.mdl.ApiMeta
+import tofi.apinator.ApinatorApi
+import tofi.apinator.ApinatorService
 
 class ApiCalcDataImpl extends BaseMdbUtils implements ApiCalcData {
+
+    ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
 
     @Override
     Store loadSql(String sql, String domain) {
