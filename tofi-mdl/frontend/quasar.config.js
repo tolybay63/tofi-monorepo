@@ -97,6 +97,13 @@ export default defineConfig((ctx) => {
           target: url,
           changeOrigin: true,
         },
+        // Добавляем эти две настройки для куки:
+        cookieDomainRewrite: {
+          "*": "" // Убирает жесткую привязку к домену, браузер привяжет куку к localhost:8181
+        },
+        cookiePathRewrite: {
+          "*": "/" // Принудительно ставит путь '/', чтобы кука всегда была доступна
+        },
         "/logout": {
           target: url,
           changeOrigin: true,

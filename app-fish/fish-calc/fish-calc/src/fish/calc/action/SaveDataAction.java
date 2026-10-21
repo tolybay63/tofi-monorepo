@@ -40,7 +40,7 @@ public class SaveDataAction extends BaseAction {
         Mdb mdb = modelSvc.getModel().createMdb();
         DataDao dao = mdb.createDao(DataDao.class);
 
-        dao.saveDataFromCalcFastApi(fle, fnOrg);
+        dao.saveDataFromCalcFastApi(fle);
 
         getReq().render(java.util.Map.of("filename", fnOrg));
 
