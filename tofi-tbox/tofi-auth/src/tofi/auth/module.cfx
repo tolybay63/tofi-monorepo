@@ -18,6 +18,7 @@
         <model name="meta" instance="tofi.mdl.model"/>
         <model name="nsidata" instance="tofi.data.model"/>
         <model name="monitoringdata" instance="tofi.data.model"/>
+        <model name="calcdata" instance="tofi.data.model"/>
     </dbm>
 
     <dbm>
