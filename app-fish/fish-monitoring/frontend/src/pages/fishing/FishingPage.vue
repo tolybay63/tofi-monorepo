@@ -108,7 +108,7 @@
                   dense
                   color="green"
                   class="q-ml-lg"
-                  @click="goAlgoStok()"
+                  @click="goAlgoStock()"
                 >
                   <q-tooltip transition-show="rotate" transition-hide="rotate">
                     {{ $t('deletingRecord') }}
