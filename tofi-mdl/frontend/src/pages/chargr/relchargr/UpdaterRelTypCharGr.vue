@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -16,41 +16,37 @@
         <div>{{ $t("editRecord") }}</div>
       </q-bar>
       <q-card-section>
-
         <!-- cod -->
         <q-input
           :dense="dense"
           v-model="form.cod"
-          :model-value="form.cod"
           :label="$t('code')"
           :placeholder="$t('msgCodeGen')"
         />
 
         <!-- name -->
         <q-input
-            :dense="dense"
-            :model-value="form.name"
-            v-model="form.name"
-            autofocus
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+          :dense="dense"
+          v-model="form.name"
+          autofocus
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         />
 
         <!-- fullName-->
         <q-input
-            :dense="dense"
-            :model-value="form.fullName"
-            v-model="form.fullName"
-            :label="$t('fldFullName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+          :dense="dense"
+          v-model="form.fullName"
+          :label="$t('fldFullName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         />
 
         <!--reltyp-->
         <q-select
-          dense options-dense
+          dense
+          options-dense
           v-model="form.relTyp"
-          :model-value="form.relTyp"
           :options="optRelTyp"
           :label="$t('reltyp')"
           option-value="id"
@@ -61,256 +57,206 @@
 
         <!--relcls-->
         <q-select
-          dense options-dense
+          dense
+          options-dense
           v-model="form.relCls"
-          :model-value="form.relCls"
           :options="optRelCls"
           :label="$t('relcls')"
           option-value="id"
           option-label="name"
-          map-options clearable @clear="fnClearRelCls"
+          map-options
+          clearable
+          @clear="fnClearRelCls"
           @update:model-value="fnSelectRelCls"
         />
 
-
         <!--accessLevel-->
         <q-select
-            :dense="dense"
-            :options-dense="dense"
-            v-model="al"
-            :options="optionsAL"
-            :label="$t('accessLevel')"
-            option-value="id"
-            option-label="text"
-            map-options
-            :model-value="al"
-            @update:model-value="fnSelect"
+          :dense="dense"
+          :options-dense="dense"
+          v-model="al"
+          :options="optionsAL"
+          :label="$t('accessLevel')"
+          option-value="id"
+          option-label="text"
+          map-options
+          @update:model-value="fnSelect"
         />
 
         <!-- cmt -->
         <q-input
-            :dense="dense"
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            type="textarea"
-            :label="$t('fldCmt')"
+          :dense="dense"
+          v-model="form.cmt"
+          type="textarea"
+          :label="$t('fldCmt')"
         />
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import {ref} from "vue";
-
-export default {
-
-  props: ["data", "mode", "lg", "dense"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-      optRelTyp: [],
-      optRelCls: [{id: null, name: "Все классы"}],
-
-      al: this.data.accessLevel,
-      optionsAL: [],
-      loading: ref(false)
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: String,
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-/*    normalizerRelCls(node) {
-      return {
-        id: node.relcls,
-        label: node.name,
-      };
-    },*/
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
+const optRelTyp = ref([]);
+const optRelCls = ref([{ id: null, name: "Все классы" }]);
+const al = ref(props.data.accessLevel);
+const optionsAL = ref([]);
+const loading = ref(false);
 
-    fnSelectRelTyp(val) {
-      this.form.relTyp = val.id;
-      this.loadRelCls(val.id)
-    },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
+};
 
-    loadRelCls(relTyp) {
-      this.loading = ref(true);
-      api
-        .post("", {
-          method: "reltyp/loadRelClsForSelect",
-          params: [relTyp],
-        })
-        .then((response) => {
-          this.optRelCls = response.data.result.records
-        })
-        .then(()=> {
-          this.optRelCls.push({id: null, name: "Все классы"})
-        })
-        .then(()=> {
-          console.info("optRelCls", this.optRelCls)
-        })
-        .catch(error=> {
-          notifyError(error.response.data.error.message)
-        })
-        .finally(() => {
-          this.loading = ref(false);
-        })
-    },
-
-    fnClearRelCls() {
-      this.form.relCls = null;
-    },
-
-    fnSelectRelCls(val) {
-      if (val)
-        this.form.relCls = val.id;
-      else
-        this.form.relCls = null
-    },
-
-
-    fnSelect() {
-      //console.log("select", this.form.accessLevel, this.al)
-      this.form.accessLevel = this.al.id;
-    },
-
-    validSave() {
-      return !(
-          this.form.name !== null &&
-          this.form.name !== undefined &&
-          this.form.fullName !== null &&
-          this.form.fullName !== undefined
-      );
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method =
-          this.mode === "ins" ? "insertRelTypCharGr" : "updateRelTypCharGr";
-
-      api
-          .post("", {
-            method: "reltyp/" + method,
-            params: [this.form],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    this.loading = ref(true);
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_AccessLevel"}],
-        })
-        .then((response) => {
-          //console.log("FD_AccessLevel", response.data.result.records)
-          this.optionsAL = response.data.result.records;
-        })
-        .finally(() => {
-          this.loading = ref(false);
-        });
-
-
-    this.loading = ref(true);
-    api
+const loadRelCls = (relTyp) => {
+  loading.value = true;
+  api
     .post("", {
-      method: "reltyp/loadRelTypForSelect",//"dimMultiProp/loadRelClsForSelect",
+      method: "reltyp/loadRelClsForSelect",
+      params: [relTyp],
+    })
+    .then((response) => {
+      optRelCls.value = response.data.result.records;
+      optRelCls.value.push({ id: null, name: "Все классы" });
+    })
+    .catch((error) => {
+      notifyError(error.response?.data?.error?.message || error.message);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const fnSelectRelTyp = (val) => {
+  form.relTyp = val ? val.id : null;
+  if (val) {
+    loadRelCls(val.id);
+  } else {
+    optRelCls.value = [{ id: null, name: "Все классы" }];
+    form.relCls = null;
+  }
+};
+
+const fnClearRelCls = () => {
+  form.relCls = null;
+};
+
+const fnSelectRelCls = (val) => {
+  form.relCls = val ? val.id : null;
+};
+
+const fnSelect = (val) => {
+  form.accessLevel = val ? val.id : null;
+};
+
+const validSave = () => {
+  return !(
+    form.name !== null &&
+    form.name !== undefined &&
+    form.name.trim() !== "" &&
+    form.fullName !== null &&
+    form.fullName !== undefined &&
+    form.fullName.trim() !== ""
+  );
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insertRelTypCharGr" : "updateRelTypCharGr";
+
+  // При сохранении приводим al/relTyp/relCls к значениям id, если в модели остались объекты
+  form.accessLevel = typeof al.value === 'object' && al.value !== null ? al.value.id : al.value;
+  if (typeof form.relTyp === 'object' && form.relTyp !== null) form.relTyp = form.relTyp.id;
+  if (typeof form.relCls === 'object' && form.relCls !== null) form.relCls = form.relCls.id;
+
+  api
+    .post("", {
+      method: "reltyp/" + method,
+      params: [form],
+    })
+    .then((response) => {
+      onDialogOK(response.data.result.records[0]);
+      notifySuccess(proxy?.$t("success"));
+    })
+    .catch((error) => {
+      notifyError(error.response?.data?.error?.message || error.message);
+    });
+};
+
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      optionsAL.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "reltyp/loadRelTypForSelect",
       params: [],
     })
     .then((response) => {
-          this.optRelTyp = response.data.result.records
-        })
-      .catch(error=> {
-        notifyError(error.response.data.error.message)
-      })
-    .finally(() => {
-      this.loading = ref(false);
+      optRelTyp.value = response.data.result.records;
     })
+    .catch((error) => {
+      notifyError(error.response?.data?.error?.message || error.message);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 
-    if (this.mode === "upd") {
-      this.loadRelCls(this.data.relTyp)
-    }
-
-
-  },
-};
+  if (props.mode === "upd" && props.data.relTyp) {
+    loadRelCls(props.data.relTyp);
+  }
+});
 </script>

@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary" dense>
@@ -18,219 +18,167 @@
 
       <q-card-section>
         <q-input
-            v-model="form.cod"
-            :model-value="form.cod"
-            :label="$t('code')"
-            :placeholder="$t('msgCodeGen')"
-            dense
+          v-model="form.cod"
+          :label="$t('code')"
+          :placeholder="$t('msgCodeGen')"
+          dense
         />
         <!-- name -->
         <q-input
-            :model-value="form.name"
-            v-model="form.name"
-            dense
-            autofocus
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.name"
+          dense
+          autofocus
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
         <!-- fullName-->
         <q-input
-            :model-value="form.fullName"
-            v-model="form.fullName"
-            dense
-            :label="$t('fldFullName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.fullName"
+          dense
+          :label="$t('fldFullName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
         <!-- AccessLevel -->
         <q-select
-            v-model="al"
-            :options="optionsLevel"
-            :label="$t('accessLevel')"
-            option-value="id"
-            option-label="text"
-            map-options
-            dense options-dense
-            :model-value="al"
-            @update:model-value="fnSelect()"
+          v-model="al"
+          :options="optionsLevel"
+          :label="$t('accessLevel')"
+          option-value="id"
+          option-label="text"
+          map-options
+          dense
+          options-dense
+          @update:model-value="fnSelect"
         />
         <!-- AttribValType -->
         <q-select
-            v-model="valType"
-            :options="optionsValType"
-            :label="$t('attribValType')"
-            option-value="id"
-            option-label="text"
-            map-options
-            dense options-dense
-            :model-value="valType"
-            @update:model-value="fnSelectValType()"
-            :rules="[(val) => !!val || $t('req')]"
+          v-model="valType"
+          :options="optionsValType"
+          :label="$t('attribValType')"
+          option-value="id"
+          option-label="text"
+          map-options
+          dense
+          options-dense
+          @update:model-value="fnSelectValType"
+          :rules="[(val) => !!val || $t('req')]"
         />
 
         <q-toggle
-            style="margin-left: 10px; margin-top: 10px"
-            dense
-            v-model="form.isMultiLang"
-            :model-value="form.isMultiLang"
-            :label="$t('multiLang').replaceAll('-', '')"
+          style="margin-left: 10px; margin-top: 10px"
+          dense
+          v-model="form.isMultiLang"
+          :label="$t('multiLang').replaceAll('-', '')"
         />
 
         <!-- cmt -->
         <q-input
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            dense
-            type="textarea"
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          v-model="form.cmt"
+          dense
+          type="textarea"
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            dense
-            :disable="validSave()"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          dense
+          :disable="validSave()"
         />
         <q-btn
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
-            dense
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
+          dense
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode"],
-
-  data() {
-    return {
-      form: this.data,
-      optionsLevel: [],
-      optionsValType: [],
-      al: this.data.accessLevel === 0 ? 1 : this.data.accessLevel,
-      valType: this.data.attribValType === 0 ? 1 : this.data.attribValType,
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
-  //al: this.form.accessLevel===0 ? 1 : this.form.accessLevel
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+  mode: String,
+});
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+defineEmits([...useDialogPluginComponent.emits]);
 
-    fnSelect() {
-      this.form.accessLevel = this.al.id;
-    },
-    fnSelectValType() {
-      //console.log("select", this.al)
-      this.form.attribValType = this.valType.id;
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    validSave() {
-      return this.form.name === "" || this.form.fullName === "" || !this.form.attribValType;
-    },
+const form = reactive({ ...props.data });
+const optionsLevel = ref([]);
+const optionsValType = ref([]);
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
+const al = ref(props.data?.accessLevel === 0 ? 1 : props.data?.accessLevel);
+const valType = ref(props.data?.attribValType === 0 ? 1 : props.data?.attribValType);
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insert" : "update";
-      this.form.accessLevel =
-          typeof this.al === "object" ? this.al.id : this.al;
-      api
-          .post("", {
-            id: this.form.id,
-            method: "attrib/" + method,
-            params: [{rec: this.form}],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_AccessLevel"}],
-        })
-        .then((response) => {
-          this.optionsLevel = response.data.result.records;
-        });
-
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_AttribValType"}],
-        })
-        .then((response) => {
-          //console.log("FD_AttribValType", response.data.result.records)
-          this.optionsValType = response.data.result.records;
-        });
-
-  },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const fnSelect = () => {
+  form.accessLevel = al.value?.id || al.value;
+};
+
+const fnSelectValType = () => {
+  form.attribValType = valType.value?.id || valType.value;
+};
+
+const validSave = () => {
+  return !form.name || !form.fullName || !form.attribValType;
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insert" : "update";
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+
+  api
+    .post("", {
+      id: form.id,
+      method: "attrib/" + method,
+      params: [{ rec: form }],
+    })
+    .then((response) => {
+      onDialogOK(response.data.result.records[0]);
+      notifySuccess(proxy?.$t("success"));
+    })
+    .catch((error) => {
+      notifyError(error.response?.data?.error?.message || error.message);
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", { method: "dict/load", params: [{ dict: "FD_AccessLevel" }] })
+    .then((response) => {
+      optionsLevel.value = response.data.result.records;
+    });
+
+  api
+    .post("", { method: "dict/load", params: [{ dict: "FD_AttribValType" }] })
+    .then((response) => {
+      optionsValType.value = response.data.result.records;
+    });
+});
 </script>

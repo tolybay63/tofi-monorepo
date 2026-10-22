@@ -1,11 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar class="text-white bg-primary">
@@ -14,35 +14,34 @@
 
       <q-card-section>
         <q-table
-            color="primary"
-            card-class="bg-amber-1"
-            table-class="text-grey-8"
-            row-key="id"
-            :columns="cols"
-            :rows="rows"
-            :wrap-cells="true"
-            :table-colspan="4"
-            table-header-class="text-bold text-white bg-blue-grey-13"
-            separator="cell"
-            :dense="dense"
-            :rows-per-page-options="[0]"
-            :loading="loading"
+          color="primary"
+          card-class="bg-amber-1"
+          table-class="text-grey-8"
+          row-key="id"
+          :columns="cols"
+          :rows="rows"
+          :wrap-cells="true"
+          :table-colspan="4"
+          table-header-class="text-bold text-white bg-blue-grey-13"
+          separator="cell"
+          :dense="dense"
+          :rows-per-page-options="[0]"
+          :loading="loading"
         >
           <template v-slot:body="props">
             <q-tr :props="props">
               <td style="width: 5px">
                 <q-btn
-                    :dense="dense"
-                    flat
-                    color="blue"
-                    :icon="
+                  :dense="dense"
+                  flat
+                  color="blue"
+                  :icon="
                     props.row.checked
                       ? 'check_box'
                       : 'check_box_outline_blank'
                   "
-                    @click="selectedRow(props.row)"
-                >
-                </q-btn>
+                  @click="selectedRow(props.row)"
+                />
               </td>
 
               <q-td key="cod" :props="props">
@@ -55,31 +54,29 @@
 
               <q-td key="isFilled" :props="props">
                 <q-btn
-                    :dense="dense"
-                    flat
-                    color="blue"
-                    :icon="
+                  :dense="dense"
+                  flat
+                  color="blue"
+                  :icon="
                     props.row.isFilled
                       ? 'check_box'
                       : 'check_box_outline_blank'
                   "
-                    @click="checkFilled(props.row)"
-                >
-                </q-btn>
+                  @click="checkFilled(props.row)"
+                />
               </q-td>
 
               <q-td key="dimNumber" :props="props">
                 <q-input
                   :disable="!props.row.isFilled"
-                  :dense="dense" flat color="blue"
+                  :dense="dense"
+                  flat
+                  color="blue"
                   type="number"
-                  v-model="props.row.dimNumber"
-                  :model-value="props.row.dimNumber"
+                  v-model.number="props.row.dimNumber"
                   @update:model-value="updDimNumber(props.row)"
-                >
-                </q-input>
+                />
               </q-td>
-
             </q-tr>
           </template>
         </q-table>
@@ -87,191 +84,151 @@
 
       <q-card-actions align="right">
         <q-btn
-            :loading="loading"
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :loading="loading"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
-            <q-spinner-hourglass color="white"/>
+            <q-spinner-hourglass color="white" />
           </template>
         </q-btn>
 
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError} from "src/utils/jsutils";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError } from "@/utils/jsutils";
 
-export default {
-  props: ["multiPropId", "dense"],
+const props = defineProps({
+  multiPropId: [Number, String],
+  dense: Boolean,
+});
 
-  data() {
-    return {
-      cols: [],
-      rows: [],
-      loading: false,
-    };
-  },
+defineEmits([...useDialogPluginComponent.emits]);
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-  methods: {
+const cols = ref([]);
+const rows = ref([]);
+const loading = ref(false);
 
-    updDimNumber(r) {
-
-      console.info("updDimNumber", r)
-      if (!r.checked) {
-        console.info("updDimNumber No", r)
-        r.dimNumber = null
-        console.info("updDimNumber 2", r.dimNumber)
-      } else {
-        console.info("updDimNumber", r)
-        if (r.dimNumber < 1) r.dimNumber = 1
-        console.info("updDimNumber Yes", r.dimNumber)
-      }
-
-    },
-
-    selectedRow(row) {
-      row.checked = !row.checked;
-    },
-
-    checkFilled(row) {
-      console.info("checkFilled", row);
-      if (!row.checked) return;
-      row.isFilled = !row.isFilled;
-      if (!row.isFilled)
-        row.dimNumber = null;
-    },
-
-    validSave() {
-      return false;
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "checked",
-          field: "checked",
-        },
-
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 60%",
-        },
-        {
-          name: "isFilled",
-          label: this.$t("isFilled"),
-          field: "isFilled",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 10%",
-        },
-        {
-          name: "dimNumber",
-          label: "Номер измерения",
-          field: "dimNumber",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 10%",
-        },
-
-      ];
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    onOKClick() {
-      this.loading = true;
-      let dta = [];
-
-      this.rows.forEach((r) => {
-        if (r.checked) {
-          dta.push({
-            id: r.id,
-            dimMultiProp: r["dimId"],
-            isFilled: r.isFilled === undefined ? false : r.isFilled,
-            dimNumber: r.dimNumber
-          });
-        }
-      });
-      //console.info("saveMultiPropDim", this.multiPropId, dta)
-
-      api
-          .post("", {
-            method: "multiProp/saveMultiPropDim",
-            params: [this.multiPropId, dta],
-          })
-          .then(
-              () => {
-                this.$emit("ok", {res: true});
-              },
-              (error) => {
-                let msg = error.message;
-                if (error.response.data.error.message)
-                  msg = error.response.data.error.message;
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            this.loading = false;
-            this.hide();
-          });
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    this.cols = this.getColumns();
-    api
-        .post("", {
-          method: "multiProp/loadMultiPropDimForUpd",
-          params: [this.multiPropId],
-        })
-        .then((response) => {
-          this.rows = response.data.result.records;
-        })
-  },
+const updDimNumber = (r) => {
+  if (!r.checked) {
+    r.dimNumber = null;
+  } else {
+    if (r.dimNumber < 1) r.dimNumber = 1;
+  }
 };
+
+const selectedRow = (row) => {
+  row.checked = !row.checked;
+};
+
+const checkFilled = (row) => {
+  if (!row.checked) return;
+  row.isFilled = !row.isFilled;
+  if (!row.isFilled) row.dimNumber = null;
+};
+
+const validSave = () => {
+  return false;
+};
+
+const getColumns = () => [
+  {
+    name: "checked",
+    field: "checked",
+  },
+  {
+    name: "name",
+    label: proxy?.$t("fldName") || "fldName",
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 60%",
+  },
+  {
+    name: "isFilled",
+    label: proxy?.$t("isFilled") || "isFilled",
+    field: "isFilled",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 10%",
+  },
+  {
+    name: "dimNumber",
+    label: "Номер измерения",
+    field: "dimNumber",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 10%",
+  },
+];
+
+const onOKClick = () => {
+  loading.value = true;
+  let dta = [];
+
+  rows.value.forEach((r) => {
+    if (r.checked) {
+      dta.push({
+        id: r.id,
+        dimMultiProp: r["dimId"],
+        isFilled: r.isFilled === undefined ? false : r.isFilled,
+        dimNumber: r.dimNumber,
+      });
+    }
+  });
+
+  api
+    .post("", {
+      method: "multiProp/saveMultiPropDim",
+      params: [props.multiPropId, dta],
+    })
+    .then(
+      () => {
+        onDialogOK({ res: true });
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response?.data?.error?.message)
+          msg = error.response.data.error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+onMounted(() => {
+  cols.value = getColumns();
+  api
+    .post("", {
+      method: "multiProp/loadMultiPropDimForUpd",
+      params: [props.multiPropId],
+    })
+    .then((response) => {
+      rows.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

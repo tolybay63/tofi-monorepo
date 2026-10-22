@@ -1,11 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar class="text-white bg-primary">
@@ -16,11 +16,20 @@
         <q-card-section>
           <!-- cls -->
           <q-select
-              v-model="cls" :model-value="cls" use-input map-options
-              input-debounce="0" :label="$t('cls')" option-value="id" option-label="name"
-              dense options-dense :options="optCls" clearable
-              @update:model-value="inputValueCls" @filter="filterFnCls"
-              @clear="fnClearCls"
+            v-model="cls"
+            use-input
+            map-options
+            input-debounce="0"
+            :label="$t('cls')"
+            option-value="id"
+            option-label="name"
+            dense
+            options-dense
+            :options="optCls"
+            clearable
+            @update:model-value="inputValueCls"
+            @filter="filterFnCls"
+            @clear="fnClearCls"
           >
             <template v-slot:no-option>
               <q-item>
@@ -33,11 +42,21 @@
 
           <!-- obj -->
           <q-select
-              v-model="obj" :model-value="obj" use-input map-options
-              input-debounce="0" :label="$t('obj')" option-value="id" option-label="name"
-              dense options-dense :options="optObj" clearable
-              @update:model-value="inputValueObj" @filter="filterFnObj"
-              @clear="fnClearObj" :disable="!form.cls"
+            v-model="obj"
+            use-input
+            map-options
+            input-debounce="0"
+            :label="$t('obj')"
+            option-value="id"
+            option-label="name"
+            dense
+            options-dense
+            :options="optObj"
+            clearable
+            @update:model-value="inputValueObj"
+            @filter="filterFnObj"
+            @clear="fnClearObj"
+            :disable="!form.cls"
           >
             <template v-slot:no-option>
               <q-item>
@@ -50,216 +69,192 @@
 
           <!-- isDefault -->
           <q-toggle
-              style="margin-left: 5px; margin-top: 15px"
-              dense
-              v-model="form.isDefault"
-              :model-value="form.isDefault"
-              :label="$t('isDefault')"
+            style="margin-left: 5px; margin-top: 15px"
+            dense
+            v-model="form.isDefault"
+            :label="$t('isDefault')"
           />
-
-
         </q-card-section>
       </q-card>
 
       <q-card-actions align="right">
         <q-btn
-            :loading="loading" dense color="primary" icon="save" :label="$t('save')"
-            @click="onOKClick" :disable="validSave()"
+          :loading="loading"
+          dense
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
-            <q-spinner-hourglass color="white"/>
+            <q-spinner-hourglass color="white" />
           </template>
         </q-btn>
 
         <q-btn
-            dense color="primary" icon="cancel" :label="$t('cancel')" @click="onCancelClick"
+          dense
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {ref} from "vue";
-import {notifyError} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError } from "@/utils/jsutils";
 
-
-export default {
-  props: ["data", "act", "prop", "typ", "mode"],
-  //components: {QTreeTable},
-
-  data() {
-
-    return {
-      form: this.data,
-      lang: this.lg,
-      cls: this.data.cls,
-      optCls: [],
-      optClsOrg: [],
-
-      obj: this.data.obj,
-      optObj: [],
-      optObjOrg: [],
-      loading: ref(false),
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  act: String,
+  prop: [Number, String],
+  typ: [Number, String],
+  mode: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    //todo
-    validSave() {
-      return false;
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
+const cls = ref(props.data.cls);
+const optCls = ref([]);
+const optClsOrg = ref([]);
 
-    loadObj(cls) {
-      this.loading = ref(true);
-      api
-        .post("", {
-          method: this.act + "/loadProviderObjForSelect",
-          params: [cls],
-        })
-        .then((response) => {
-          this.optObj = response.data.result.records;
-          this.optObjOrg = response.data.result.records;
-        })
-        .finally(() => {
-          this.loading = ref(false);
-        })
-    },
+const obj = ref(props.data.obj);
+const optObj = ref([]);
+const optObjOrg = ref([]);
+const loading = ref(false);
 
-    fnClearCls() {
-      this.form.cls = null;
-    },
-
-    inputValueCls(val) {
-      if (val) {
-        this.form.cls = val.id;
-        this.loadObj(val.id)
-      }
-    },
-
-    filterFnCls(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optCls = this.optClsOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optClsOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optCls = this.optClsOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-    fnClearObj() {
-      this.form.obj = null;
-    },
-
-    inputValueObj(val) {
-      if (val) {
-        this.form.obj = val.id;
-      }
-    },
-
-    filterFnObj(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optObj = this.optObjOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optObjOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optObj = this.optObjOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    onOKClick() {
-      this.loading = ref(true);
-      api
-          .post("", {
-            method: this.act + "/saveProvider",
-            params: [this.form, this.mode],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-              },
-              (error) => {
-                let msg = error.message;
-                if (error.response.data.error.message)
-                  msg = error.response.data.error.message;
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            this.loading = ref(false);
-            this.hide();
-          });
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-
-  },
-
-  created() {
-
-    this.loading = ref(true);
-    api
-        .post("", {
-          method: this.act + "/loadProviderClsForSelect",
-          params: [this.prop, this.typ, this.mode],
-        })
-        .then((response) => {
-          this.optCls = response.data.result.records;
-          this.optClsOrg = response.data.result.records;
-        })
-        .finally(() => {
-          this.loading = ref(false);
-        })
-
-    if (this.mode==="upd") {
-      this.loadObj(this.cls)
-    }
-  },
-
-
+const validSave = () => {
+  return false;
 };
+
+const loadObj = (clsVal) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: props.act + "/loadProviderObjForSelect",
+      params: [clsVal],
+    })
+    .then((response) => {
+      optObj.value = response.data.result.records;
+      optObjOrg.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const fnClearCls = () => {
+  form.cls = null;
+};
+
+const inputValueCls = (val) => {
+  if (val) {
+    form.cls = val.id;
+    loadObj(val.id);
+  }
+};
+
+const filterFnCls = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optCls.value = optClsOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optClsOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optCls.value = optClsOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const fnClearObj = () => {
+  form.obj = null;
+};
+
+const inputValueObj = (val) => {
+  if (val) {
+    form.obj = val.id;
+  }
+};
+
+const filterFnObj = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optObj.value = optObjOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optObjOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optObj.value = optObjOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const onOKClick = () => {
+  loading.value = true;
+  api
+    .post("", {
+      method: props.act + "/saveProvider",
+      params: [form, props.mode],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response?.data?.error?.message)
+          msg = error.response.data.error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      method: props.act + "/loadProviderClsForSelect",
+      params: [props.prop, props.typ, props.mode],
+    })
+    .then((response) => {
+      optCls.value = response.data.result.records;
+      optClsOrg.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+
+  if (props.mode === "upd") {
+    loadObj(cls.value);
+  }
+});
 </script>
+
+<style scoped></style>

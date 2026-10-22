@@ -1,13 +1,13 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      full-width
-      full-height
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    full-width
+    full-height
   >
     <q-card class="q-dialog-plugin">
       <q-bar class="text-white bg-primary">
@@ -16,29 +16,29 @@
 
       <q-bar class="bg-orange-1" style="height: 48px">
         <q-btn
-            dense
-            icon="expand_more"
-            color="secondary"
-            @click="fnExpand()"
-            style="margin-bottom: 5px"
+          dense
+          icon="expand_more"
+          color="secondary"
+          @click="fnExpand"
+          style="margin-bottom: 5px"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("expandAll") }}
           </q-tooltip>
         </q-btn>
         <q-btn
-            dense
-            icon="expand_less"
-            color="secondary"
-            class="q-ml-sm"
-            @click="fnCollapse()"
-            style="margin-bottom: 5px; margin-left: 5px"
+          dense
+          icon="expand_less"
+          color="secondary"
+          class="q-ml-sm"
+          @click="fnCollapse"
+          style="margin-bottom: 5px; margin-left: 5px"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("collapseAll") }}
           </q-tooltip>
         </q-btn>
-        <q-space/>
+        <q-space />
 
         <q-select
           autofocus
@@ -50,34 +50,31 @@
           map-options
           dense
           options-dense
-          :model-value="dbType"
-          @update:model-value="fnSelectDB()"
+          @update:model-value="fnSelectDB"
         />
 
-
-
-        <q-space/>
+        <q-space />
         <q-card-actions align="right">
           <q-btn
-              :loading="loading"
-              dense
-              color="secondary"
-              icon="save"
-              :label="$t('save')"
-              :disable="validSave()"
-              @click="onOKClick"
+            :loading="loading"
+            dense
+            color="secondary"
+            icon="save"
+            :label="$t('save')"
+            :disable="validSave()"
+            @click="onOKClick"
           >
             <template #loading>
-              <q-spinner-hourglass color="white"/>
+              <q-spinner-hourglass color="white" />
             </template>
           </q-btn>
 
           <q-btn
-              dense
-              color="secondary"
-              icon="cancel"
-              :label="$t('cancel')"
-              @click="onCancelClick"
+            dense
+            color="secondary"
+            icon="cancel"
+            :label="$t('cancel')"
+            @click="onDialogCancel"
           />
         </q-card-actions>
       </q-bar>
@@ -88,10 +85,10 @@
             <thead class="text-bold text-white bg-blue-grey-13">
             <tr class style="text-align: left">
               <th
-                  v-for="(col, index) in cols"
-                  :key="index"
-                  :class="col.headerClass"
-                  :style="col.headerStyle"
+                v-for="(col, index) in cols"
+                :key="index"
+                :class="col.headerClass"
+                :style="col.headerStyle"
               >
                 {{ col.label }}
               </th>
@@ -101,27 +98,27 @@
             <tbody style="background: aliceblue">
             <tr v-for="(item, index) in arrayTreeObj" :key="index">
               <td :data-th="cols0[0].name" @click="toggle(item, index)">
-                  <span class="q-tree__node" v-bind:style="setPadding(item)">
+                  <span class="q-tree__node" :style="setPadding(item)">
                     <q-icon
-                        style="cursor: pointer"
-                        :name="iconName(item)"
-                        color="secondary"
-                    ></q-icon>
+                      style="cursor: pointer"
+                      :name="iconName(item)"
+                      color="secondary"
+                    />
                     <q-btn
-                        dense
-                        flat
-                        :color="!item.parent ? 'gray' : 'blue'"
-                        :icon="
+                      dense
+                      flat
+                      :color="!item.parent ? 'gray' : 'blue'"
+                      :icon="
                         item.checked ? 'check_box' : 'check_box_outline_blank'
                       "
-                        @click.stop="updateCheck(item)"
-                    >
-                    </q-btn>
+                      @click.stop="updateCheck(item)"
+                    />
 
-                    <q-icon v-if="item.isOwn !== -1"
-                            :name= "getIconName(item)"
-                            :color="getIconColor(item)"
-                    ></q-icon>
+                    <q-icon
+                      v-if="item.isOwn !== -1"
+                      :name="getIconName(item)"
+                      :color="getIconColor(item)"
+                    />
 
                     {{ item[cols0[0].field] }}
                   </span>
@@ -136,313 +133,249 @@
         </q-card-section>
       </div>
       <div>
-        <q-bar style="height: 16px"/>
+        <q-bar style="height: 16px" />
       </div>
-
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {ref} from "vue";
-import {checkChilds, collapsAll, expandAll, notifyError, notifySuccess, pack, uncheckChilds} from "src/utils/jsutils";
+<script setup>
+import { ref, computed, onMounted, getCurrentInstance, reactive } from 'vue'
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import {
+  checkChilds,
+  collapsAll,
+  expandAll,
+  notifyError,
+  notifySuccess,
+  pack,
+  uncheckChilds,
+} from "@/utils/jsutils";
 
-/////////////////////////////////////////////////////////////
-let checkedMembers = []
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+defineEmits([...useDialogPluginComponent.emits]);
+
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
+
+let checkedMembers = [];
 const getCheckets = (node) => {
   if (node.parent && node.checked && !checkedMembers.includes(node.ent))
-    checkedMembers.push({memType: node.memberType, card: node.card, ent: node.ent});
-  const children = node.children;
-  children.forEach(getCheckets)
+    checkedMembers.push({ memType: node.memberType, card: node.card, ent: node.ent });
+  const children = node.children || [];
+  children.forEach(getCheckets);
 };
 
+const form = reactive({ ...props.data });
+const loading = ref(false);
+const cols = ref([]);
+const rows = ref([]);
+const isExpanded = ref(false);
+const itemId = ref(null);
+const sizeRTM = ref(0);
 
-/////////////////////////////////////////////////////////////
+const dbType = ref(null);
+const optionsDB = ref([]);
 
-const expand = (item) => {
-  item.expend = ref(true);
-  const {children} = item;
-  if (children.length > 0) item.leaf = ref(false);
-  else item.leaf = ref(true);
+const fnSelectDB = (val) => {
+  console.info("dbType, val", dbType.value, val);
 };
 
-const collaps = (item) => {
-  item.expend = ref(false);
-  const {children} = item;
-  if (children.length > 0) {
-    item.leaf = ref(false);
+const updateCheck = (item) => {
+  if (item.level === 0) {
+    if (item.children && item.children.length > 0) {
+      if (!item.checked) checkChilds(item);
+      else uncheckChilds(item);
+    }
   } else {
-    item.leaf = ref(true);
-    item.expend = undefined;
+    item.checked = !item.checked;
   }
 };
 
-export default {
-  props: ["data"],
-
-  data() {
-    return {
-      form: this.data,
-      loading: false,
-      cols: [],
-      rows: [],
-      isExpanded: false,
-      currentNode: null,
-      itemId: null,
-      sizeRTM: 0,
-      //
-      dbType: null,
-      optionsDB: [],
-
-      //
-    };
-  },
-
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
-
-  methods: {
-
-    fnSelectDB(val) {
-    console.info("dbType, val", this.dbType, val)
-
-    },
-
-    updateCheck(item) {
-      if (item.level===0) {
-        if (item.children.length > 0) {
-          if (!item.checked) checkChilds(item);
-          else uncheckChilds(item);
-        }
-      } else {
-        item.checked = !item.checked;
-      }
-    },
-
-
-    getIconName(row) {
-      if (row.isOwn === 1)
-        return "brightness_1";
-      else if (row.isOwn === -2)
-        return "brightness_7"
-    },
-
-
-    getIconColor(row) {
-      if (row.isOwn === 1)
-        return "green";
-      else if (row.isOwn === 0)
-        return "dark-gray";
-      else
-        return 'orange'
-    },
-
-    fnExpand() {
-      expandAll(this.rows);
-    },
-
-    fnCollapse() {
-      collapsAll(this.rows);
-    },
-    recursive(obj, newObj, level, itemId, isExpend) {
-      let vm = this;
-      obj.forEach(function (o) {
-        if (o.children && o.children.length !== 0) {
-          o.level = level;
-          o.leaf = false;
-          newObj.push(o);
-          if (o.id === itemId) {
-            o.expend = isExpend;
-          }
-          if (o.expend === true) {
-            vm.recursive(o.children, newObj, o.level + 1, itemId, isExpend);
-          }
-        } else {
-          o.level = level;
-          o.leaf = true;
-          newObj.push(o);
-          return false;
-        }
-      });
-    },
-    iconName(item) {
-      if (item.expend === true) {
-        return "remove_circle_outline";
-      }
-      if (item.children && item.children.length > 0) {
-        return "control_point";
-      }
-      return "";
-    },
-    toggle(item) {
-      if (item.children && item.children.length > 0) {
-        if (item.expend) collaps(item);
-        else expand(item);
-      }
-    },
-    setPadding(item) {
-      return `padding-left: ${item.level * 30}px;`;
-    },
-
-    validSave() {
-      if (this.sizeRTM < 2)
-        return true
-      let rez = []
-      for (let i = 0; i < this.sizeRTM; i++) {
-        checkedMembers = [];
-        getCheckets(this.rows[i])
-        rez.push(checkedMembers)
-      }
-      let b = false
-      rez.forEach(it => {
-        if (it.length === 0)
-          b = true
-      })
-      return b && this.dbType.id !== null;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      this.loading = true;
-      let err = false
-      let rez = []
-      for (let i = 0; i < this.sizeRTM; i++) {
-        checkedMembers = [];
-        getCheckets(this.rows[i])
-        rez.push(checkedMembers)
-      }
-      //console.info("rez", rez)
-      //console.info("rows", this.rows)
-
-      api
-          .post("", {
-            method: "relcls/createGroupRelCls",
-            params: [this.form.relTyp, rez, this.dbType.id],
-          })
-          .then(
-              () => {
-                err = false;
-                this.$emit("ok", {res: true});
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                err = true;
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.loading = false;
-            if (!err) this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          headerStyle: "font-size: 1.2em; width:35%;",
-        },
-        {
-          name: "fullName",
-          label: this.$t("fldFullName"),
-          field: "fullName",
-          align: "left",
-          headerStyle: "font-size: 1.2em;width:50%;",
-        },
-        {
-          name: "cod",
-          label: this.$t("code"),
-          field: "cod",
-          align: "left",
-          headerStyle: "font-size: 1.2em; width:15%;",
-        },
-      ];
-    },
-  },
-
-  created() {
-    this.cols = this.getColumns();
-
-    this.loading = true;
-    api
-        .post("", {
-          method: "relcls/loadAllMembers",
-          params: [this.form],
-        })
-        .then((response) => {
-          this.rows = pack(response.data.result.records, "ord");
-          this.sizeRTM = this.rows.length
-          //console.log("rows", this.rows)
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-
-    this.loading = true;
-    api
-      .post("", {
-        method: "database/loadDbForSelect",
-        params: [],
-      })
-      .then((response) => {
-        this.optionsDB = response.data.result.records
-        this.dbType = this.optionsDB[0]
-        //console.log("rows", this.rows)
-      })
-      .finally(() => {
-        this.loading = false;
-      });
-
-  },
-
-  computed: {
-    cols0() {
-      return this.cols.slice(0, 1);
-    },
-
-    cols_() {
-      return this.cols.slice(1);
-    },
-    arrayTreeObj() {
-      let vm = this;
-      let newObj = [];
-      vm.recursive(vm.rows, newObj, 0, vm.itemId, vm.isExpanded);
-      return newObj;
-    },
-  },
+const getIconName = (row) => {
+  if (row.isOwn === 1) return "brightness_1";
+  else if (row.isOwn === -2) return "brightness_7";
 };
+
+const getIconColor = (row) => {
+  if (row.isOwn === 1) return "green";
+  else if (row.isOwn === 0) return "dark-gray";
+  else return "orange";
+};
+
+const fnExpand = () => {
+  expandAll(rows.value);
+};
+
+const fnCollapse = () => {
+  collapsAll(rows.value);
+};
+
+const recursive = (obj, newObj, level, targetItemId, isExpend) => {
+  obj.forEach((o) => {
+    if (o.children && o.children.length !== 0) {
+      o.level = level;
+      o.leaf = false;
+      newObj.push(o);
+      if (o.id === targetItemId) {
+        o.expend = isExpend;
+      }
+      if (o.expend === true) {
+        recursive(o.children, newObj, o.level + 1, targetItemId, isExpend);
+      }
+    } else {
+      o.level = level;
+      o.leaf = true;
+      newObj.push(o);
+    }
+  });
+};
+
+const iconName = (item) => {
+  if (item.expend === true) {
+    return "remove_circle_outline";
+  }
+  if (item.children && item.children.length > 0) {
+    return "control_point";
+  }
+  return "";
+};
+
+const toggle = (item) => {
+  if (item.children && item.children.length > 0) {
+    if (item.expend) {
+      item.expend = false;
+      item.leaf = true;
+    } else {
+      item.expend = true;
+      item.leaf = false;
+    }
+  }
+};
+
+const setPadding = (item) => {
+  return `padding-left: ${item.level * 30}px;`;
+};
+
+const validSave = () => {
+  if (sizeRTM.value < 2) return true;
+  let rez = [];
+  for (let i = 0; i < sizeRTM.value; i++) {
+    checkedMembers = [];
+    getCheckets(rows.value[i]);
+    rez.push(checkedMembers);
+  }
+  let b = false;
+  rez.forEach((it) => {
+    if (it.length === 0) b = true;
+  });
+  return b && dbType.value?.id !== null;
+};
+
+const onOKClick = () => {
+  loading.value = true;
+  let err = false;
+  let rez = [];
+  for (let i = 0; i < sizeRTM.value; i++) {
+    checkedMembers = [];
+    getCheckets(rows.value[i]);
+    rez.push(checkedMembers);
+  }
+
+  api
+    .post("", {
+      method: "relcls/createGroupRelCls",
+      params: [form.relTyp, rez, dbType.value.id],
+    })
+    .then(
+      () => {
+        err = false;
+        onDialogOK({ res: true });
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        err = true;
+        let errMsg = error.response?.data?.error?.message || error.message;
+        notifyError(errMsg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+const getColumns = () => [
+  {
+    name: "name",
+    label: proxy?.$t("fldName") || "fldName",
+    field: "name",
+    align: "left",
+    headerStyle: "font-size: 1.2em; width:35%;",
+  },
+  {
+    name: "fullName",
+    label: proxy?.$t("fldFullName") || "fldFullName",
+    field: "fullName",
+    align: "left",
+    headerStyle: "font-size: 1.2em;width:50%;",
+  },
+  {
+    name: "cod",
+    label: proxy?.$t("code") || "code",
+    field: "cod",
+    align: "left",
+    headerStyle: "font-size: 1.2em; width:15%;",
+  },
+];
+
+const cols0 = computed(() => cols.value.slice(0, 1));
+const cols_ = computed(() => cols.value.slice(1));
+
+const arrayTreeObj = computed(() => {
+  let newObj = [];
+  recursive(rows.value, newObj, 0, itemId.value, isExpanded.value);
+  return newObj;
+});
+
+onMounted(() => {
+  cols.value = getColumns();
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "relcls/loadAllMembers",
+      params: [form],
+    })
+    .then((response) => {
+      rows.value = pack(response.data.result.records, "ord");
+      sizeRTM.value = rows.value.length;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "database/loadDbForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optionsDB.value = response.data.result.records;
+      dbType.value = optionsDB.value[0];
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+});
 </script>
+
+<style scoped></style>

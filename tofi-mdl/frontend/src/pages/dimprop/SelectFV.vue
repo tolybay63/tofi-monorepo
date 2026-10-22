@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -19,7 +19,7 @@
               dense
               icon="expand_more"
               color="secondary"
-              @click="fnExpand()"
+              @click="fnExpand"
             >
               <q-tooltip transition-show="rotate" transition-hide="rotate">
                 {{ $t("expandAll") }}
@@ -31,7 +31,7 @@
               icon="expand_less"
               color="secondary"
               class="q-ml-sm"
-              @click="fnCollapse()"
+              @click="fnCollapse"
             >
               <q-tooltip transition-show="rotate" transition-hide="rotate">
                 {{ $t("collapseAll") }}
@@ -49,19 +49,19 @@
               class="q-table q-table--cell-separator q-table--bordered wrap"
             >
               <thead class="text-bold text-white bg-blue-grey-13">
-                <tr class style="text-align: left">
-                  <th style="font-size: 1.3em; width: 80%">
-                    {{ cols[0].label }}
-                  </th>
-                </tr>
+              <tr style="text-align: left">
+                <th style="font-size: 1.3em; width: 80%">
+                  {{ cols[0]?.label }}
+                </th>
+              </tr>
               </thead>
 
               <tbody style="background: aliceblue">
-                <tr v-for="(item, index) in arrayTreeObj" :key="index">
-                  <td :data-th="cols[0].name" @click="toggle(item)">
+              <tr v-for="(item, index) in arrayTreeObj" :key="index">
+                <td :data-th="cols[0]?.name" @click="toggle(item)">
                     <span
                       class="q-tree-link q-tree-label"
-                      v-bind:style="setPadding(item)"
+                      :style="setPadding(item)"
                     >
                       <q-icon
                         style="cursor: pointer"
@@ -76,17 +76,16 @@
                           item.checked ? 'check_box' : 'check_box_outline_blank'
                         "
                         @click.stop="selectedRow(item)"
-                      >
-                      </q-btn>
+                      />
 
                       <q-icon
                         :name="getIcon(item)"
                         :color="getIconColor(item)"
-                      ></q-icon>
+                      />
                       {{ item.name }}
                     </span>
-                  </td>
-                </tr>
+                </td>
+              </tr>
               </tbody>
             </table>
           </div>
@@ -107,229 +106,195 @@
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {collapsAll, expandAll, pack} from "src/utils/jsutils";
-import {ref} from "vue";
+<script setup>
+import { ref, computed, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { collapsAll, expandAll, pack } from "@/utils/jsutils";
 
-export default {
-  props: ["dimPropItem", "lg", "dense"],
+const props = defineProps({
+  dimPropItem: [Number, String],
+  lg: String,
+  dense: Boolean,
+});
 
-  data() {
-    return {
-      cols: [],
-      rows: [],
-      separator: ref("cell"),
-      isExpanded: true,
-      itemId: null,
-    };
-  },
+defineEmits([...useDialogPluginComponent.emits]);
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-  methods: {
-    getIconColor(row) {
-      if (row.isOwn === 1) return "green";
-      else return "gray";
-    },
+const cols = ref([]);
+const rows = ref([]);
+const separator = ref("cell");
+const isExpanded = ref(true);
+const itemId = ref(null);
 
-    getIcon(row) {
-      if (row.parent) return "brightness_1";
-      else return "square";
-    },
-
-    selectedRow(item) {
-      let v = this;
-      if (!item.parent) return;
-      let parent = v.rows.filter((row) => {
-        return row.id === item.parent;
-      });
-      if (item.checked === 1) {
-        item.checked = 0;
-        parent[0].checked = 0;
-      } else {
-        let { children } = parent[0];
-        children.map((row) => {
-          row.checked = 0;
-        });
-        parent[0].checked = 1;
-        item.checked = 1;
-      }
-    },
-
-    fnExpand() {
-      expandAll(this.rows);
-    },
-    fnCollapse() {
-      collapsAll(this.rows);
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          style: "font-size: 1.3em; width: 80%",
-        },
-      ];
-    },
-
-    validFV() {
-      let i = 0;
-      let flt = [];
-      while (i < this.rows.length) {
-        let { children } = this.rows[i];
-        flt = children.filter((ch) => ch.checked === 1);
-        if (flt.length > 0) {
-          return false;
-        }
-        i = i + 1;
-      }
-      return true;
-    },
-
-    /////////////////////////////////
-    recursive(obj, newObj, level, itemId, isExpend) {
-      let vm = this;
-      obj.forEach(function (o) {
-        if (o.children && o.children.length !== 0) {
-          o.level = level;
-          o.leaf = false;
-          newObj.push(o);
-          if (o.id === itemId) {
-            o.expend = isExpend;
-          }
-          if (o.expend) {
-            vm.recursive(o.children, newObj, o.level + 1, itemId, isExpend);
-          }
-        } else {
-          o.level = level;
-          o.leaf = true;
-          newObj.push(o);
-          return false;
-        }
-      });
-    },
-    iconName(item) {
-      if (item.expend) {
-        return "remove_circle_outline";
-      }
-      if (item.children && item.children.length > 0) {
-        return "control_point";
-      }
-      return "";
-    },
-    toggle(item) {
-      let vm = this;
-      vm.itemId = item.id;
-
-      item.leaf = false;
-      //show  sub items after click on + (more)
-      if (
-        !item.leaf &&
-        item.expend === undefined &&
-        item.children !== undefined
-      ) {
-        if (item.children.length !== 0) {
-          vm.recursive(item.children, [], item.level + 1, item.id, true);
-        }
-      }
-
-      if (item.expend && item.children !== undefined) {
-        item.children.forEach(function (o) {
-          o.expend = undefined;
-        });
-
-        item["expend"] = ref(undefined);
-        item["leaf"] = ref(false);
-        vm.itemId = null;
-      }
-    },
-    setPadding(item) {
-      return `padding-left: ${item.level * 30}px;`;
-    },
-
-    fetchData() {
-      api
-        .post("", {
-          method: "dimprop/loadForFvSelect",
-          params: [this.dimPropItem],
-        })
-        .then((response) => {
-          this.rows = pack(response.data.result.records, "ord");
-        });
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      let ids = [];
-      let names = [];
-      this.rows.forEach((row) => {
-        const { children } = row;
-        children.forEach((it) => {
-          if (it.checked === 1) {
-            ids.push(it.id.toString());
-            names.push(it.name.toString());
-          }
-        });
-      });
-      this.$emit("ok", { fvs: ids.join(","), nms: names.join("; ") });
-      this.hide();
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-
-  computed: {
-    arrayTreeObj() {
-      let vm = this;
-      let newObj = [];
-      vm.recursive(vm.rows, newObj, 0, vm.itemId, vm.isExpanded);
-      return newObj;
-    },
-  },
-
-  created() {
-    this.cols = this.getColumns();
-
-    this.fetchData();
-  },
+const getIconColor = (row) => {
+  if (row.isOwn === 1) return "green";
+  return "gray";
 };
+
+const getIcon = (row) => {
+  if (row.parent) return "brightness_1";
+  return "square";
+};
+
+const selectedRow = (item) => {
+  if (!item.parent) return;
+  let parent = rows.value.filter((row) => {
+    return row.id === item.parent;
+  });
+  if (parent.length === 0) return;
+
+  if (item.checked === 1) {
+    item.checked = 0;
+    parent[0].checked = 0;
+  } else {
+    let { children } = parent[0];
+    if (children) {
+      children.map((row) => {
+        row.checked = 0;
+      });
+    }
+    parent[0].checked = 1;
+    item.checked = 1;
+  }
+};
+
+const fnExpand = () => {
+  expandAll(rows.value);
+};
+
+const fnCollapse = () => {
+  collapsAll(rows.value);
+};
+
+const getColumns = () => [
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    style: "font-size: 1.3em; width: 80%",
+  },
+];
+
+const validFV = () => {
+  let i = 0;
+  let flt = [];
+  while (i < rows.value.length) {
+    let { children } = rows.value[i];
+    if (children) {
+      flt = children.filter((ch) => ch.checked === 1);
+      if (flt.length > 0) {
+        return false;
+      }
+    }
+    i = i + 1;
+  }
+  return true;
+};
+
+const recursive = (obj, newObj, level, targetItemId, isExpend) => {
+  if (!obj) return;
+  obj.forEach((o) => {
+    if (o.children && o.children.length !== 0) {
+      o.level = level;
+      o.leaf = false;
+      newObj.push(o);
+      if (o.id === targetItemId) {
+        o.expend = isExpend;
+      }
+      if (o.expend) {
+        recursive(o.children, newObj, o.level + 1, targetItemId, isExpend);
+      }
+    } else {
+      o.level = level;
+      o.leaf = true;
+      newObj.push(o);
+    }
+  });
+};
+
+const iconName = (item) => {
+  if (item.expend) {
+    return "remove_circle_outline";
+  }
+  if (item.children && item.children.length > 0) {
+    return "control_point";
+  }
+  return "";
+};
+
+const toggle = (item) => {
+  itemId.value = item.id;
+  item.leaf = false;
+  if (!item.leaf && item.expend === undefined && item.children !== undefined) {
+    if (item.children.length !== 0) {
+      recursive(item.children, [], item.level + 1, item.id, true);
+    }
+  }
+
+  if (item.expend && item.children !== undefined) {
+    item.children.forEach((o) => {
+      o.expend = undefined;
+    });
+
+    item.expend = ref(undefined);
+    item.leaf = ref(false);
+    itemId.value = null;
+  }
+};
+
+const setPadding = (item) => {
+  return `padding-left: ${(item.level || 0) * 30}px;`;
+};
+
+const fetchData = () => {
+  api
+    .post("", {
+      method: "dimprop/loadForFvSelect",
+      params: [props.dimPropItem],
+    })
+    .then((response) => {
+      rows.value = pack(response.data.result.records, "ord");
+    });
+};
+
+const onOKClick = () => {
+  let ids = [];
+  let names = [];
+  rows.value.forEach((row) => {
+    const { children } = row;
+    if (children) {
+      children.forEach((it) => {
+        if (it.checked === 1) {
+          ids.push(it.id.toString());
+          names.push(it.name.toString());
+        }
+      });
+    }
+  });
+  onDialogOK({ fvs: ids.join(","), nms: names.join("; ") });
+};
+
+const arrayTreeObj = computed(() => {
+  const newObj = [];
+  recursive(rows.value, newObj, 0, itemId.value, isExpanded.value);
+  return newObj;
+});
+
+onMounted(() => {
+  cols.value = getColumns();
+  fetchData();
+});
 </script>
+
+<style scoped></style>

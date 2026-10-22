@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="isIns.isIns" class="text-white bg-primary">
@@ -18,196 +18,154 @@
 
       <q-card-section>
         <q-input
-            :dense="dense"
-            v-model="myData.cod"
-            :model-value="myData.cod"
-            :label="$t('code')"
-            :placeholder="$t('msgCodeGen')"
+          :dense="dense"
+          v-model="myData.cod"
+          :label="$t('code')"
+          :placeholder="$t('msgCodeGen')"
         />
 
         <q-select
-            :dense="dense"
-            :options-dense="dense"
-            v-model="al"
-            :options="options"
-            :label="$t('accessLevel')"
-            option-value="id"
-            option-label="text"
-            map-options
-            :model-value="al"
-            @update:model-value="fnSelect()"
+          :dense="dense"
+          :options-dense="dense"
+          v-model="al"
+          :options="options"
+          :label="$t('accessLevel')"
+          option-value="id"
+          option-label="text"
+          map-options
+          @update:model-value="fnSelect"
         />
 
         <!-- name -->
         <q-input
-            :dense="dense"
-            :model-value="myData.name"
-            v-model="myData.name"
-            autofocus
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          :dense="dense"
+          v-model="myData.name"
+          autofocus
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
         <!-- fullName-->
         <q-input
-            :dense="dense"
-            :model-value="myData.fullName"
-            v-model="myData.fullName"
-            :label="$t('fldFullName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          :dense="dense"
+          v-model="myData.fullName"
+          :label="$t('fldFullName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
         <!-- cmt -->
         <q-input
-            :dense="dense"
-            :model-value="myData.cmt"
-            v-model="myData.cmt"
-            type="textarea"
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          :dense="dense"
+          v-model="myData.cmt"
+          type="textarea"
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validName()"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validName()"
         />
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["form", "upd", "lg", "action", "dense"],
-
-  data() {
-    return {
-      myData: this.form,
-      isIns: this.upd,
-      lang: this.lg,
-      act: this.action,
-      options: [],
-      al: this.form.accessLevel === undefined ? 1 : this.form.accessLevel,
-    };
+const props = defineProps({
+  form: {
+    type: Object,
+    default: () => ({}),
   },
+  upd: Object,
+  lg: Object,
+  action: String,
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    onBlurName() {
-      if (this.myData.name) {
-        this.myData.name = this.myData.name.trim();
-        if (
-            !this.myData.fullName ||
-            (this.myData.fullName && this.myData.fullName.trim() === "")
-        ) {
-          this.myData.fullName = this.myData.name;
-        }
-      }
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelect() {
-      //console.log("select", this.al)
-      this.myData.accessLevel = this.al.id;
-    },
+const myData = reactive({ ...props.form });
+const isIns = props.upd;
+const lang = ref(props.lg);
+const act = props.action;
 
-    validName() {
-      if (!this.myData.name) return true;
-      else if (this.myData.name.trim().length === 0) return true;
-      return false;
-    },
+const options = ref([]);
+const al = ref(props.form.accessLevel === undefined ? 1 : props.form.accessLevel);
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      //delete this.myData.accessLevel_text
-      //console.log("al:", this.al)
-      //console.log("this.myData:", this.myData)
-
-      const method = this.isIns.isIns ? "insert" : "update";
-      this.myData.accessLevel =
-          typeof this.al === "object" ? this.al.id : this.al;
-      api
-          .post("", {
-            id: this.myData.id,
-            method: this.act + "/" + method,
-            params: [{rec: this.myData}],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_AccessLevel"}],
-        })
-        .then((response) => {
-          //console.log("FD_AccessLevel", response.data.result.records)
-          this.options = response.data.result.records;
-        });
-
-    return {};
-  },
+const onBlurName = () => {
+  if (myData.name) {
+    myData.name = myData.name.trim();
+    if (!myData.fullName || myData.fullName.trim() === "") {
+      myData.fullName = myData.name;
+    }
+  }
 };
+
+const fnSelect = () => {
+  myData.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+};
+
+const validName = () => {
+  if (!myData.name) return true;
+  if (myData.name.trim().length === 0) return true;
+  return false;
+};
+
+const onOKClick = () => {
+  const method = isIns.isIns ? "insert" : "update";
+  myData.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+
+  api
+    .post("", {
+      id: myData.id,
+      method: act + "/" + method,
+      params: [{ rec: myData }],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success"));
+      },
+      (error) => {
+        notifyError(error.response?.data?.error?.message || error.message);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      options.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

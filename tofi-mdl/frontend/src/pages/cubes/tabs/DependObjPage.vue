@@ -4,12 +4,8 @@
   </h5>
 </template>
 
-<script>
-export default {
-  name: "DependObjPage"
-}
+<script setup>
+// Компонент переведен на Composition API
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

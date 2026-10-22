@@ -1,7 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
-
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     transition-show="slide-up"
@@ -25,8 +24,7 @@
           @blur="onBlurName"
           :label="$t('fldName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
 
         <!-- fullName-->
         <q-input
@@ -34,8 +32,7 @@
           :dense="dense"
           :label="$t('fldFullName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
 
         <!-- typ -->
         <q-select
@@ -43,7 +40,6 @@
           :dense="dense"
           :options-dense="dense"
           v-model="typ"
-          :model-value="typ"
           :options="optTyp"
           :label="$t('typ')"
           option-value="id"
@@ -53,23 +49,40 @@
         />
 
         <!-- Cluster FV-->
+
+        <TreeSelect
+          v-model="form.factorVal"
+          :label="$t('factorVal')"
+          :disabled="mode === 'upd'"
+          :options="optionsCFV"
+          class="q-ma-md"
+          node-key="key"
+          @close="fnSelectCFV"
+        />
+
+<!--
         <q-item-label
-          :class="form.factorVal===0 ? 'text-red-10' : 'text-grey-7'"
-          style="font-size: 0.8em; margin-top: 10px" class="row"
-        >{{ $t("factorVal") }}
-          <q-space/>
-          <q-icon name="error" v-if="form.factorVal===0" color="red-10" size="24px"></q-icon>
-        </q-item-label
+          :class="form.factorVal === 0 ? 'text-red-10' : 'text-grey-7'"
+          style="font-size: 0.8em; margin-top: 10px"
+          class="row"
         >
+          {{ $t("factorVal") }}
+          <q-space />
+          <q-icon
+            name="error"
+            v-if="form.factorVal === 0"
+            color="red-10"
+            size="24px"
+          />
+        </q-item-label>
 
         <div style="width: 100%; min-height: 50px;">
-
           <treeselect
             :disabled="mode === 'upd'"
             :options="optionsCFV"
             v-model="form.factorVal"
             :default-expand-level="1"
-            max-height="600"
+            :max-height="600"
             :normalizer="normalizer"
             :placeholder="$t('select')"
             :noChildrenText="$t('noChilds')"
@@ -79,12 +92,15 @@
           />
         </div>
 
-        <q-item-label v-if="form.factorVal===0"
-                      class="text-red-10" style="font-size: 0.8em"
+
+        <q-item-label
+          v-if="form.factorVal === 0"
+          class="text-red-10"
+          style="font-size: 0.8em"
         >
           {{ $t('chooseFV') }}
         </q-item-label>
-
+-->
 
         <!-- cod -->
         <q-input
@@ -113,9 +129,7 @@
           v-model="form.cmt"
           type="textarea"
           :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+        />
       </q-card-section>
 
       <q-card-actions align="right">
@@ -132,184 +146,136 @@
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {Treeselect} from "vue3-treeselect";
-import "vue3-treeselect/dist/vue3-treeselect.css";
-import {api} from "boot/axios";
-import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess, pack } from "@/utils/jsutils";
+import TreeSelect from '@/components/TreeSelect.vue'
 
-export default {
-  components: {treeselect: Treeselect},
-
-  props: ["data", "mode", "dense"],
-
-  data() {
-    return {
-      form: this.data,
-      al: this.data.accessLevel,
-      optionsAL: [],
-      optionsCFV: [],
-      optTyp: [],
-      typ: this.data.typ,
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    fnSelectTyp(val) {
-      this.form.typ = this.typ.id
-      this.optionsCFV = []
-      this.form.factorVal = null;
-      this.loadclustFactorVal(this.form.typ, this.mode)
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelectCFV(v) {
-      this.form.factorVal = v.key
-    },
+const form = reactive({ ...props.data });
+const al = ref(props.data.accessLevel);
+const typ = ref(props.data.typ);
 
-    normalizer(node) {
-      return {
-        id: node.key,
-        label: node.name,
-      };
-    },
+const optionsAL = ref([]);
+const optionsCFV = ref([]);
+const optTyp = ref([]);
 
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-          !this.form.fullName ||
-          (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
-
-    fnSelectAL() {
-      //console.log("select", this.form.accessLevel, this.al);
-      this.form.accessLevel = this.al.id;
-    },
-
-    validSave() {
-      return !(
-        this.form.name && this.form.fullName && this.form.typ && this.form.factorVal && this.form.factorVal !== 0)
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-/*    onDialogShow() {
-      // Даем Quasar один тик на завершение всех внутренних процессов
-      setTimeout(() => {
-        this.isReady = true;
-      }, 300);
-    },*/
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      this.form.accessLevel =
-        typeof this.al === "object" ? this.al.id : this.al;
-      this.form.typ =
-        typeof this.typ === "object" ? this.typ.id : this.typ;
-
-      const method =
-        this.mode === "ins" ? "insertTypCharGr" : "updateTypCharGr";
-
-      api
-        .post("", {
-          method: "typ/" + method,
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            notifyError(error.response.data.error.message);
-          }
-        )
-        .finally(() => {
-          this.hide();
-        });
-    },
-
-    loadclustFactorVal(typ, mode) {
-      api
-        .post("", {
-          method: "typ/loadTypClustFactorVal",
-          params: [typ, mode],
-        })
-        .then((response) => {
-          this.optionsCFV = pack(response.data.result.records, "ord");
-        });
-
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-
-  created() {
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_AccessLevel"}],
-      })
-      .then((response) => {
-        //console.log("FD_AccessLevel", response.data.result.records)
-        this.optionsAL = response.data.result.records;
-      });
-
-    api
-      .post("", {
-        method: "typ/loadTypForSelect",
-        params: [],
-      })
-      .then((response) => {
-        this.optTyp = response.data.result.records;
-        this.optTyp.unshift({id: 0, name: this.$t("notChosen")});
-      });
-
-
-    if (this.mode === 'upd') {
-      this.loadclustFactorVal(this.form.typ, this.mode)
-    }
-
-  },
+const loadclustFactorVal = (typVal, modeVal) => {
+  api
+    .post("", {
+      method: "typ/loadTypClustFactorVal",
+      params: [typVal, modeVal],
+    })
+    .then((response) => {
+      optionsCFV.value = pack(response.data.result.records, "ord");
+    });
 };
+
+const fnSelectTyp = (val) => {
+  form.typ = typ.value?.id || typ.value;
+  optionsCFV.value = [];
+  form.factorVal = null;
+  loadclustFactorVal(form.typ, props.mode);
+};
+
+const fnSelectCFV = (v) => {
+  form.factorVal = v.key;
+};
+
+const normalizer = (node) => {
+  return {
+    id: node.key,
+    label: node.name,
+  };
+};
+
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
+};
+
+const fnSelectAL = () => {
+  form.accessLevel = al.value?.id || al.value;
+};
+
+const validSave = () => {
+  return !(
+    form.name &&
+    form.fullName &&
+    form.typ &&
+    form.factorVal &&
+    form.factorVal !== 0
+  );
+};
+
+const onOKClick = () => {
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+  form.typ = typeof typ.value === "object" && typ.value !== null ? typ.value.id : typ.value;
+
+  const method = props.mode === "ins" ? "insertTypCharGr" : "updateTypCharGr";
+
+  api
+    .post("", {
+      method: "typ/" + method,
+      params: [form],
+    })
+    .then((response) => {
+      onDialogOK(response.data.result.records[0]);
+      notifySuccess(proxy?.$t("success"));
+    })
+    .catch((error) => {
+      notifyError(error.response?.data?.error?.message || error.message);
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      optionsAL.value = response.data.result.records;
+    });
+
+  api
+    .post("", {
+      method: "typ/loadTypForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optTyp.value = response.data.result.records;
+      optTyp.value.unshift({ id: 0, name: proxy?.$t("notChosen") });
+    });
+
+  if (props.mode === "upd") {
+    loadclustFactorVal(form.typ, props.mode);
+  }
+});
 </script>

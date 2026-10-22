@@ -1,5 +1,4 @@
 <template>
-
   <div class="q-pa-sm-sm">
     <q-splitter
       v-model="splitterModel"
@@ -10,29 +9,38 @@
       separator-class="bg-red"
       class="bg-amber-1"
     >
-
       <template v-slot:before>
         <div style="height: calc(100vh - 310px); width: 100%">
+          <div v-for="(dimProp, index) in dimProps" class="q-ma-sm" :key="dimProp.id || index">
 
-          <div v-for="(dimProp, index) in dimProps" class="q-ma-sm">
+            <TreeSelect
+              :disabled="fixedDim"
+              v-model="dp[index]"
+              :label="$t('dimProp.name')"
+              :options="optDP[index]"
+              class="q-ma-md"
+              node-key="key"
+              @select="fnSelectDP"
+            />
 
-            <q-item-label class="text-grey-7"
-            >{{ dimProp.name }}
+<!--
+            <q-item-label class="text-grey-7">
+              {{ dimProp.name }}
             </q-item-label>
-
             <treeselect
               :options="optDP[index]"
               v-model="dp[index]"
-              :model-value="dp[index]"
               :normalizer="normalizerDP"
               :placeholder="$t('select')"
               :noResultsText="$t('noResult')"
               :noChildrenText="$t('noChilds')"
               :noOptionsText="$t('noResult')"
-              DefaultExpandLevel=1
+              :default-expand-level="1"
               @select="fnSelectDP"
               :disabled="fixedDim"
             />
+-->
+
           </div>
 
           <q-toggle
@@ -46,274 +54,228 @@
           <div class="q-ma-sm">
             {{ fnMapping() }}
           </div>
-
         </div>
       </template>
 
-      <q-inner-loading :showing="loading" color="secondary"></q-inner-loading>
+      <q-inner-loading :showing="loading" color="secondary" />
 
       <template v-slot:after>
         <div v-if="!showGrid">
           <h3> Грани прокуба свойств</h3>
         </div>
         <div v-else>
-          <edjes-prop :cols="cols" :rows="rows" :propField="propField" :cubeS="cubeS" @updateDelete="onUpdateDelete"
-                      @updateBind="onUpdateBind" :showAction="showAction" :showSelect="showSelect"
-                      :mapping="fnMapping()"/>
-
+          <edjes-prop
+            :cols="cols"
+            :rows="rows"
+            :propField="propField"
+            :cubeS="cubeS"
+            @updateDelete="onUpdateDelete"
+            @updateBind="onUpdateBind"
+            :showAction="showAction"
+            :showSelect="showSelect"
+            :mapping="fnMapping()"
+          />
         </div>
-
       </template>
-
-
     </q-splitter>
-
   </div>
-
 </template>
 
-<script>
-import {api} from "boot/axios.js";
-import treeselect from "vue3-treeselect";
-import "vue3-treeselect/dist/vue3-treeselect.css";
-import {notifyError, pack} from "src/utils/jsutils.js";
-import EdjesProp from "pages/cubes/tabs/prop/EdjesProp.vue";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { api } from "@/boot/axios.js";
 
+import { notifyError, pack } from "@/utils/jsutils.js";
+import EdjesProp from "@/pages/cubes/tabs/prop/EdjesProp.vue";
+import TreeSelect from '@/components/TreeSelect.vue'
 
-export default {
-  name: "EdjesPropPage",
-  components: {EdjesProp, treeselect},
-  props: ["cubeS", "dOrg"],
+const props = defineProps({
+  cubeS: [Number, String],
+  dOrg: String,
+});
 
-  data() {
-    return {
-      splitterModel: 30,
-      loading: false,
-      dimProps: [],
-      dp: [],
-      optDP: [],
-      cols: [],
-      rows: [],
-      propField: "prop",
-      showAction: true,
-      showSelect: true,
-      fixedDim: false,
-      showGrid: false,
-    }
-  },
+const { proxy } = getCurrentInstance();
 
-  methods: {
+const splitterModel = ref(30);
+const loading = ref(false);
+const dimProps = ref([]);
+const dp = reactive([]);
+const optDP = reactive([]);
+const cols = ref([]);
+const rows = ref([]);
+const propField = ref("prop");
+const showAction = ref(true);
+const showSelect = ref(true);
+const fixedDim = ref(false);
+const showGrid = ref(false);
 
-    onUpdateDelete(data) {
-      //console.log("onUpdateDelete", data)
-      this.fixedDim = false
-      this.rows = []
+const onUpdateDelete = () => {
+  fixedDim.value = false;
+  rows.value = [];
+  setTimeout(() => {
+    fixedDim.value = true;
+    updValue(fixedDim.value);
+  }, 100);
+};
+
+const onUpdateBind = () => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "cubes/binding",
+      params: [props.cubeS, propField.value, fnMapping()],
+    })
+    .then((response) => {
+      rows.value = [];
+      let rr = response.data.result.store;
+      rows.value = pack(rr.records, "id");
+    })
+    .then(() => {
+      updValue(false);
       setTimeout(() => {
-        this.fixedDim = true
-        this.updValue(this.fixedDim)
-      }, 100)
-    },
+        fixedDim.value = true;
+        updValue(fixedDim.value);
+      }, 100);
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+      notifyError(msg);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
 
-    onUpdateBind() {
-      this.loading = true
-      api
-        .post("", {
-          method: "cubes/binding",
-          params: [this.cubeS, this.propField, this.fnMapping()],
-        })
-        .then((response) => {
-          this.rows = []
-          let rr = response.data.result.store
-          this.rows = pack(rr.records, "id")
-          console.info("rr", rr)
-          console.info("rows", this.rows)
-        })
-        .then(() => {
-          this.updValue(false)
-          setTimeout(() => {
-            this.fixedDim = true
-            this.updValue(this.fixedDim)
-          }, 100)
-        })
-        .catch(error => {
-          let msg = error.message;
-          if (error.response)
-            msg = this.$t(error.response.data.error.message);
-          notifyError(msg);
-          console.error(msg)
-        })
-        .finally(() => {
-          this.loading = false
-        })
-
-    },
-
-
-    updValue(v) {
-      if (v) {
-        this.getGrid(this.fnMapping())
-      } else {
-        this.showGrid = false
-        this.cols = []
-        this.rows = []
-      }
-
-    },
-
-    getGrid(par) {
-      this.loading = true
-      api
-        .post("", {
-          method: "cubes/getGrid",
-          params: [this.cubeS, par],
-        })
-        .then((response) => {
-          this.cols = response.data.result.cols
-          this.propField = response.data.result.propField
-          this.showAction = response.data.result.showAction
-          this.showSelect = response.data.result.showSelect
-          this.rows = pack(response.data.result.rows.records, "id")
-          this.showGrid = true
-          //console.info(`this.propField`, this.propField)
-          console.info(`response`, response.data.result)
-        })
-        .then(()=> {
-          this.showGrid = true
-        })
-        .catch(error => {
-          let msg = error.message;
-          if (error.response)
-            msg = this.$t(error.response.data.error.message);
-          notifyError(msg);
-        })
-        .finally(() => {
-          this.loading = false
-        })
-
-    },
-
-    fnMapping() {
-      let map = new Map
-      this.dimProps.forEach((e, index) => {
-        map.set(e.id, this.dp[index])
-      })
-      //console.info("map", Array.from(map.entries()))
-      return Array.from(map.entries())
-    },
-
-    fnSelectDP(v) {
-      //console.log("index", v);
-    },
-
-
-    normalizerDP(node) {
-      //console.log("normalizerDP", node);
-      return {
-        id: node.id,
-        label: node.name,
-      };
-    },
-
-    validAll() {
-      this.dp.forEach((r, index) => {
-        if (r === undefined || !r) {
-          this.dp[index] = 0
-        }
-      })
-
-      let d1 = this.dp.filter(r => {
-        return r === 1
-      })
-      let d2 = this.dp.filter(r => {
-        return r > 1
-      })
-
-      if (this.dp.length === 1)
-        return !(d1.length === 1)
-      else
-        return !(d1.length === 1 && d2.length > 0)
-
-    },
-
-    loadDimPropItem(dimProp, index) {
-      this.loading = true
-      api
-        .post("", {
-          method: "cubes/loadDimPropItem",
-          params: [dimProp],
-        })
-        .then((response) => {
-          let dta = pack(response.data.result.records, "id")
-          //this.optDP[index] = [{id: 0, parent: null, name: "Нет"}, {id: 1, parent: null, name: "Все"}, ...dta];
-          this.optDP[index] = [{id: 1, parent: null, name: "Все"}, ...dta];
-          //console.info(`this.optDP[${index}]`, this.optDP[index])
-        })
-        .then(() => {
-          this.dp[index] = this.dp[index] ? this.dp[index] : 0;
-        })
-        .finally(() => {
-          this.loading = false
-        })
-    },
-
-    loadDimPropItemFV(dimProp, index) {
-      this.loading = true
-      api
-        .post("", {
-          method: "cubes/loadDimPropItemFV",
-          params: [dimProp],
-        })
-        .then((response) => {
-          this.optDP[index] = pack(response.data.result.records, "id")
-          //let dta = pack(response.data.result.records, "ord")
-          //this.optDP[index] = [ {id: 1, parent: null, name: "Все"}, ...dta];
-        })
-        .then(() => {
-          this.dp[index] = this.dp[index] ? this.dp[index] : 0;
-        })
-        .finally(() => {
-          //console.info(`this.optDP[${index}]`, this.optDP[index])
-          //console.info(`this.dp[${index}]`, this.dp[index])
-          this.loading = false
-        })
-    },
-
-
-  },
-
-  mounted() {
-    console.info("mounted")
-  },
-
-  created() {
-    console.info("created")
-
-    this.loading = true
-    api
-      .post("", {
-        method: "cubes/loadDimProp",
-        params: [this.cubeS],
-      })
-      .then((response) => {
-        this.dimProps = response.data.result.records;
-      })
-      .then(() => {
-        this.dimProps.forEach((dim, index) => {
-          if (dim["dimproptype"] === 2)
-            this.loadDimPropItemFV(dim.id, index)
-          else
-            this.loadDimPropItem(dim.id, index)
-        })
-      })
-      .finally(() => {
-        this.loading = false
-      })
-
+const updValue = (v) => {
+  if (v) {
+    getGrid(fnMapping());
+  } else {
+    showGrid.value = false;
+    cols.value = [];
+    rows.value = [];
   }
+};
 
-}
+const getGrid = (par) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "cubes/getGrid",
+      params: [props.cubeS, par],
+    })
+    .then((response) => {
+      cols.value = response.data.result.cols;
+      propField.value = response.data.result.propField;
+      showAction.value = response.data.result.showAction;
+      showSelect.value = response.data.result.showSelect;
+      rows.value = pack(response.data.result.rows.records, "id");
+      showGrid.value = true;
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+      notifyError(msg);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const fnMapping = () => {
+  let map = new Map();
+  dimProps.value.forEach((e, index) => {
+    map.set(e.id, dp[index]);
+  });
+  return Array.from(map.entries());
+};
+
+const fnSelectDP = () => {};
+
+const normalizerDP = (node) => {
+  return {
+    id: node.id,
+    label: node.name,
+  };
+};
+
+const validAll = () => {
+  dp.forEach((r, index) => {
+    if (r === undefined || !r) {
+      dp[index] = 0;
+    }
+  });
+
+  let d1 = dp.filter((r) => r === 1);
+  let d2 = dp.filter((r) => r > 1);
+
+  if (dp.length === 1) {
+    return !(d1.length === 1);
+  } else {
+    return !(d1.length === 1 && d2.length > 0);
+  }
+};
+
+const loadDimPropItem = (dimProp, index) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "cubes/loadDimPropItem",
+      params: [dimProp],
+    })
+    .then((response) => {
+      let dta = pack(response.data.result.records, "id");
+      optDP[index] = [{ id: 1, parent: null, name: "Все" }, ...dta];
+    })
+    .then(() => {
+      dp[index] = dp[index] ? dp[index] : 0;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const loadDimPropItemFV = (dimProp, index) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "cubes/loadDimPropItemFV",
+      params: [dimProp],
+    })
+    .then((response) => {
+      optDP[index] = pack(response.data.result.records, "id");
+    })
+    .then(() => {
+      dp[index] = dp[index] ? dp[index] : 0;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "cubes/loadDimProp",
+      params: [props.cubeS],
+    })
+    .then((response) => {
+      dimProps.value = response.data.result.records;
+    })
+    .then(() => {
+      dimProps.value.forEach((dim, index) => {
+        if (dim["dimproptype"] === 2) {
+          loadDimPropItemFV(dim.id, index);
+        } else {
+          loadDimPropItem(dim.id, index);
+        }
+      });
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+});
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

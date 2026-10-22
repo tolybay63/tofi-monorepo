@@ -1,12 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -16,154 +15,121 @@
         <div>{{ $t("editRecord") }}</div>
       </q-bar>
 
-      <q-inner-loading :showing="visible" color="secondary"/>
+      <q-inner-loading :showing="visible" color="secondary" />
 
       <q-card-section>
-
         <!-- AttribValType -->
         <q-select
           v-model="avt"
-          :model-value="avt"
           :options="optAVT"
           :label="$t('attribValType')"
           option-value="id"
           option-label="text"
           map-options
-          dense options-dense
+          dense
+          options-dense
           @update:model-value="fnSelectValType"
           :rules="[(val) => !!val || $t('req')]"
         />
 
         <!-- format -->
         <q-input
-            dense
-            :model-value="form.format"
-            v-model="form.format"
-            :label="$t('formatValue')"
+          dense
+          v-model="form.format"
+          :label="$t('formatValue')"
         />
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            dense
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          dense
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            dense
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          dense
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import {ref} from "vue";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "lg"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-      visible: ref(false),
-      avt: this.data.attribValType === 0 ? 1 : this.data.attribValType,
-      optAVT: [],
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelectValType() {
-      this.form.attribValType = this.avt.id
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
+const visible = ref(false);
+const avt = ref(props.data.attribValType === 0 ? 1 : props.data.attribValType);
+const optAVT = ref([]);
 
-    validSave() {
-      return !this.form.attribValType;
-
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insDimMultiPropItemAttrib" : "updDimMultiPropItemAttrib";
-
-      this.form.attribValType =
-        typeof this.avt === "object" ? this.avt.id : this.avt;
-      api
-          .post("", {
-            method: "dimMultiProp/" + method,
-            params: [this.form],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_AttribValType"}],
-      })
-      .then((response) => {
-        //console.log("FD_AttribValType", response.data.result.records)
-        this.optAVT = response.data.result.records;
-      });
-
-  },
+const fnSelectValType = () => {
+  form.attribValType = typeof avt.value === "object" && avt.value !== null ? avt.value.id : avt.value;
 };
+
+const validSave = () => {
+  return !form.attribValType;
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insDimMultiPropItemAttrib" : "updDimMultiPropItemAttrib";
+
+  form.attribValType = typeof avt.value === "object" && avt.value !== null ? avt.value.id : avt.value;
+
+  api
+    .post("", {
+      method: "dimMultiProp/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AttribValType" }],
+    })
+    .then((response) => {
+      optAVT.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

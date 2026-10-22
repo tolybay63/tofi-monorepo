@@ -1,38 +1,38 @@
 <template>
   <div style="height: calc(100vh - 400px); width: 100%">
     <q-splitter
-        v-model="splitterModel"
-        :model-value="splitterModel"
-        :limits="[40, 60]"
-        horizontal
+      v-model="splitterModel"
+      :limits="[40, 60]"
+      horizontal
     >
       <template v-slot:before>
         <q-table
-            color="primary"
-            card-class="bg-amber-1 text-brown"
-            row-key="cod"
-            :dense="value"
-            :columns="cols"
-            :rows="factorrels"
-            :wrap-cells="true"
-            :table-colspan="4"
-            table-header-class="text-bold text-white bg-blue-grey-13"
-            separator="cell"
-            :filter="filter"
-            :loading="loading"
-            selection="single"
-            @selection="fnSelection"
-            v-model:selected="selected"
-            :rows-per-page-options="[0]"
+          color="primary"
+          card-class="bg-amber-1 text-brown"
+          row-key="cod"
+          :dense="value"
+          :columns="cols"
+          :rows="factorrels"
+          :wrap-cells="true"
+          :table-colspan="4"
+          table-header-class="text-bold text-white bg-blue-grey-13"
+          separator="cell"
+          :filter="filter"
+          :loading="loading"
+          selection="single"
+          @selection="fnSelection"
+          v-model:selected="selected"
+          :rows-per-page-options="[0]"
         >
           <template #bottom-row>
             <q-td colspan="100%" v-if="selected.length > 0">
               <span class="text-blue"> {{ $t("selectedRow") }}: </span>
-              <span class="text-bold"> {{ this.infoSelected(selected[0]) }} </span>
+              <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
             </q-td>
             <q-td
-                colspan="100%"
-                v-else-if="this.factorrels.length > 0" class="text-bold"
+              colspan="100%"
+              v-else-if="factorrels.length > 0"
+              class="text-bold"
             >
               {{ $t("infoFactorValRel") }}
             </q-td>
@@ -43,14 +43,14 @@
               {{ $t("relFactors") }}
             </div>
 
-            <q-space/>
+            <q-space />
             <q-btn
-                v-if="hasTarget('mdl:mn_ds:fac:sel:rel:ins')"
-                icon="post_add"
-                color="secondary"
-                :dense="value"
-                :disable="loading"
-                @click="editVals('ins')"
+              v-if="hasTarget('mdl:mn_ds:fac:sel:rel:ins')"
+              icon="post_add"
+              color="secondary"
+              :dense="value"
+              :disable="loading"
+              @click="editVals('ins')"
             >
               <q-tooltip transition-show="rotate" transition-hide="rotate">
                 {{ $t("newRecord") }}
@@ -58,12 +58,12 @@
             </q-btn>
 
             <q-btn
-                :dense="value"
-                icon="edit"
-                color="secondary"
-                class="q-ml-sm"
-                @click="editVals('upd')"
-                :disable="loading || selected.length === 0"
+              :dense="value"
+              icon="edit"
+              color="secondary"
+              class="q-ml-sm"
+              @click="editVals('upd')"
+              :disable="loading || selected.length === 0"
             >
               <q-tooltip transition-show="rotate" transition-hide="rotate">
                 {{ $t("editRecord") }}
@@ -71,76 +71,73 @@
             </q-btn>
 
             <q-toggle
-                style="margin-left: 10px"
-                v-model="value"
-                :model-value="value"
-                :label="$t('isDense')"
+              style="margin-left: 10px"
+              v-model="value"
+              :label="$t('isDense')"
             />
 
-            <q-space/>
+            <q-space />
             <q-input
-                :dense="value"
-                debounce="300"
-                color="primary"
-                :model-value="filter"
-                v-model="filter"
-                :label="$t('txt_filter')"
+              :dense="value"
+              debounce="300"
+              color="primary"
+              v-model="filter"
+              :label="$t('txt_filter')"
             >
               <template v-slot:append>
-                <q-icon name="search"/>
+                <q-icon name="search" />
               </template>
             </q-input>
           </template>
 
           <template #loading>
-            <q-inner-loading showing color="secondary"></q-inner-loading>
+            <q-inner-loading showing color="secondary" />
           </template>
         </q-table>
       </template>
 
       <template v-slot:after>
         <div v-if="factor2() > 0">
-
           <div style="font-size: 1.2em; font-weight: bold;" class="bg-green-1">
             {{ $t("compatibility") }}
           </div>
 
           <div>
             <q-table
-                style="height: 100%; width: 100%"
-                color="primary"
-                card-class="bg-amber-1 text-brown"
-                table-class="text-grey-8"
-                row-key="id"
-                :dense="value"
-                :columns="propFactors.cols"
-                :rows="propFactors.rows"
-                table-header-class="text-bold text-white bg-blue-grey-13"
-                separator="cell"
-                :loading="loading2"
-                :rows-per-page-options="[0]"
+              style="height: 100%; width: 100%"
+              color="primary"
+              card-class="bg-amber-1 text-brown"
+              table-class="text-grey-8"
+              row-key="id"
+              :dense="value"
+              :columns="propFactors.cols"
+              :rows="propFactors.rows"
+              table-header-class="text-bold text-white bg-blue-grey-13"
+              separator="cell"
+              :loading="loading2"
+              :rows-per-page-options="[0]"
             >
               <template #body-cell="props">
                 <q-td :props="props">
                   <div v-if="isFV(props.value)">
                     <q-btn
-                        round
-                        :class="
+                      round
+                      :class="
                         props.value !== '0'
                           ? 'bg-white text-red'
                           : 'bg-white text-green'
                       "
-                        size="sx"
-                        :icon="props.value !== '0' ? 'close' : 'done'"
-                        flat
-                        :dense="value"
-                        label=""
+                      size="xs"
+                      :icon="props.value !== '0' ? 'close' : 'done'"
+                      flat
+                      :dense="value"
+                      label=""
                     >
                       <q-tooltip
-                          class="bg-amber-2 text-black shadow-4"
-                          :offset="[10, 10]"
-                          max-width="300px"
-                          v-if="props.value !== '0'"
+                        class="bg-amber-2 text-black shadow-4"
+                        :offset="[10, 10]"
+                        max-width="300px"
+                        v-if="props.value !== '0'"
                       >
                         {{ fnCmt(props) }}
                       </q-tooltip>
@@ -153,7 +150,7 @@
               </template>
 
               <template #loading>
-                <q-inner-loading showing color="secondary"></q-inner-loading>
+                <q-inner-loading showing color="secondary" />
               </template>
 
               <template #bottom-row>
@@ -170,11 +167,17 @@
   </div>
 </template>
 
-<script>
-import {defineComponent, ref} from "vue";
-import {api} from "boot/axios";
-import {hasTarget, notifyError} from "src/utils/jsutils";
-import UpdateFactorValRel from "pages/factor/UpdateFactorValRel.vue";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useRoute } from "vue-router";
+import { useQuasar } from "quasar";
+import { api } from "@/boot/axios";
+import { hasTarget, notifyError } from "@/utils/jsutils";
+import UpdateFactorValRel from "@/pages/factor/UpdateFactorValRel.vue";
+
+const route = useRoute();
+const $q = useQuasar();
+const { proxy } = getCurrentInstance();
 
 const requestParam = {
   factor: 0,
@@ -183,262 +186,217 @@ const requestParam = {
   sortBy: null,
 };
 
-export default defineComponent({
-  methods: {
-    hasTarget,
-    fnCmt(props) {
-      let key = props.row.id + "_" + props.row[props.col.name];
-      if (this.propFactors.cmt[key]) {
-        return this.propFactors.cmt[key];
-      } else {
-        return this.$t("notComment");
+const splitterModel = ref(40);
+const cols = ref([]);
+const factorrels = ref([]);
+const filter = ref("");
+const loading = ref(false);
+const selected = ref([]);
+const factor1_id = ref(null);
+const factor = ref({});
+
+const loading2 = ref(false);
+const propFactors = reactive({
+  rows: [],
+  cols: [],
+  cmt: {},
+  cnt_s: 0,
+  cnt_ns: 0,
+});
+const value = ref(true);
+const lang = ref("");
+
+const fnCmt = (props) => {
+  let key = props.row.id + "_" + props.row[props.col.name];
+  if (propFactors.cmt[key]) {
+    return propFactors.cmt[key];
+  } else {
+    return proxy?.$t("notComment") || "notComment";
+  }
+};
+
+const factor2 = () => {
+  if (!selected.value[0]) return 0;
+  return selected.value[0].id;
+};
+
+const isFV = (val) => {
+  return /^[0-9]+$/.test(val);
+};
+
+const fnSelection = (par) => {
+  const factor1 = factor1_id.value;
+  const factor2Val = par.rows[0].id;
+
+  loading2.value = true;
+  api
+    .post("", {
+      method: "factorrel/factorValRel",
+      params: [{ factor1: factor1, factor2: factor2Val }],
+    })
+    .then((response) => {
+      propFactors.rows = response.data.result.rows.records;
+      let s = 0,
+        ns = 0;
+      propFactors.rows.forEach((el) => {
+        for (let key in el) {
+          if (key.startsWith("fv")) {
+            if (el[key] === "0") s = s + 1;
+            else ns = ns + 1;
+          }
+        }
+      });
+      propFactors.cnt_s = s;
+      propFactors.cnt_ns = ns;
+
+      propFactors.cols = response.data.result.cols;
+      if (propFactors.cols[0]) {
+        propFactors.cols[0].label =
+          (proxy?.$t("factor1") || "factor1") + "/" + (proxy?.$t("factor2") || "factor2");
       }
+      propFactors.cmt = response.data.result.cmt;
+    })
+    .catch((error) => {
+      console.log(error);
+      notifyError(error.message);
+    })
+    .finally(() => {
+      loading2.value = false;
+    });
+};
+
+const editVals = (mode) => {
+  let factor1 = factor1_id.value;
+  let factor2Val = 0;
+  if (mode === "upd") factor2Val = selected.value[0].id;
+
+  let params = {
+    factor1: factor1,
+    factor2: factor2Val,
+    mode: mode,
+  };
+  const lg = { name: lang.value };
+
+  $q.dialog({
+    component: UpdateFactorValRel,
+    componentProps: {
+      params: params,
+      lg: lg,
+      action: "factorrel",
+      data: propFactors,
     },
-
-    factor2() {
-      if (!this.selected[0]) return 0;
-      return this.selected[0].id;
-    },
-
-    isFV(val) {
-      return /^[0-9]+$/.test(val);
-    },
-
-    fnSelection(par) {
-      const factor1 = this.factor1_id;
-      const factor2 = par.rows[0].id;
-      //
-      this.loading2 = true;
-      api
-          .post("", {
-            method: "factorrel/factorValRel",
-            params: [{factor1: factor1, factor2: factor2}],
-          })
-          .then((response) => {
-            //console.log("fvs", response.data.result);
-            this.propFactors.rows = response.data.result.rows.records;
-            let s = 0,
-                ns = 0;
-            this.propFactors.rows.forEach(function (el) {
-              for (let key in el) {
-                if (key.startsWith("fv")) {
-                  if (el[key] === '0') s = s + 1;
-                  else ns = ns + 1;
-                }
-              }
-            });
-            this.propFactors.cnt_s = s;
-            this.propFactors.cnt_ns = ns;
-            //
-            this.propFactors.cols = response.data.result.cols;
-            this.propFactors.cols[0]["label"] =
-                this.$t("factor1") + "/" + this.$t("factor2");
-            this.propFactors.cmt = response.data.result.cmt;
-          })
-          .catch((error) => {
-            console.log(error);
-            notifyError(error.message);
-          })
-          .finally(() => {
-            this.loading2 = false;
-          });
-    },
-
-    editVals(mode) {
-      let factor1 = this.factor1_id;
-      let factor2 = 0;
-      if (mode === "upd") factor2 = this.selected[0].id;
-
-      let params = {
-        factor1: factor1,
-        factor2: factor2,
-        mode: mode,
-      };
-      const lg = {name: this.lang};
-      //console.log("data",data)
-      this.$q
-          .dialog({
-            component: UpdateFactorValRel,
-            componentProps: {
-              params: params,
-              lg: lg,
-              action: "factorrel",
-              data: this.propFactors,
-              // ...
-            },
-          })
-          .onOk((rec) => {
-            //rec - Factor2
-            //console.log("Ok! updated", rec );
-            if (mode === "ins") {
-              if (rec !== undefined) {
-                this.factorrels.push(rec);
-                this.selected = [];
-                this.selected.push(rec);
-                let par = {rows: [{id: this.selected[0].id}]};
-                this.fnSelection(par);
-              }
-            } else {
-              let par = {rows: [{id: this.selected[0].id}]};
-
-              if (rec && Object.keys(rec).length > 0) {
-                //upd rels
-                let tmp = this.selected[0];
-                this.selected = [];
-                //setTimeout(() => {
-                this.selected.push(tmp);
-                this.fnSelection(par);
-                //}, 200)
-              } else {
-                // del rels
-                let index = this.factorrels.findIndex(
-                    (row) => row.id === this.selected[0].id
-                );
-                this.factorrels.splice(index, 1);
-                this.selected = [];
-              }
-            }
-          });
-    },
-
-    fetchData(requestProps) {
-      this.loading = true;
-      //console.log("<<<<<    fetchData")
-      //console.log("requestProps", requestProps)
-      const orderBy = requestProps.sortBy;
-      const filter = requestProps.filter;
-      const factor = requestProps.factor;
-
-      api
-          .post("", {
-            method: "factorrel/load",
-            params: [
-              {
-                factor: factor,
-                orderBy: orderBy,
-                filter: filter,
-              },
-            ],
-          })
-          .then((response) => {
-            //console.log("fvs", response.data.result.records);
-            this.factorrels = response.data.result.records;
-            this.selected = [];
-          })
-          .catch((error) => {
-            console.log(error);
-            notifyError(error.message);
-          })
-          .finally(() => {
-            //setTimeout(() => {
-            this.loading = false;
-            //}, 500)
-          });
-    },
-
-    requestData(requestProps) {
-      if (requestProps.sortBy === null) {
-        requestParam.sortBy = null;
-      } else {
-        if (requestProps.descending)
-          requestParam.sortBy = requestParam.sortBy + " desc";
-        else
-          requestParam.sortBy = requestParam.sortBy + " asc";
+  }).onOk((rec) => {
+    if (mode === "ins") {
+      if (rec !== undefined) {
+        factorrels.value.push(rec);
+        selected.value = [];
+        selected.value.push(rec);
+        let par = { rows: [{ id: selected.value[0].id }] };
+        fnSelection(par);
       }
-      this.fetchData(requestParam);
-    },
+    } else {
+      let par = { rows: [{ id: selected.value[0].id }] };
 
-    getColumns() {
-      return [
+      if (rec && Object.keys(rec).length > 0) {
+        let tmp = selected.value[0];
+        selected.value = [];
+        selected.value.push(tmp);
+        fnSelection(par);
+      } else {
+        let index = factorrels.value.findIndex(
+          (row) => row.id === selected.value[0].id
+        );
+        factorrels.value.splice(index, 1);
+        selected.value = [];
+      }
+    }
+  });
+};
+
+const fetchData = (requestProps) => {
+  loading.value = true;
+  const orderBy = requestProps.sortBy;
+  const reqFilter = requestProps.filter;
+  const reqFactor = requestProps.factor;
+
+  api
+    .post("", {
+      method: "factorrel/load",
+      params: [
         {
-          name: "cod",
-          label: this.$t("code"),
-          field: "cod",
-          align: "left",
-          sortable: true,
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 10%",
+          factor: reqFactor,
+          orderBy: orderBy,
+          filter: reqFilter,
         },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          sortable: true,
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 30%",
-        },
-        {
-          name: "fullName",
-          label: this.$t("fldFullName"),
-          field: "fullName",
-          align: "left",
-          sortable: true,
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 30%",
-        },
-        {
-          name: "cmt",
-          label: this.$t("fldCmt"),
-          field: "cmt",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 40%",
-        },
-      ];
-    },
+      ],
+    })
+    .then((response) => {
+      factorrels.value = response.data.result.records;
+      selected.value = [];
+    })
+    .catch((error) => {
+      console.log(error);
+      notifyError(error.message);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
 
-    infoSelected(row) {
-      return " " + row.cod + " - " + row.name;
-    },
+const getColumns = () => [
+  {
+    name: "cod",
+    label: proxy?.$t("code") || "code",
+    field: "cod",
+    align: "left",
+    sortable: true,
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 10%",
   },
-
-  data: function () {
-    //console.log("<<<<<    data: lg", SetLocale.curLang)
-
-    return {
-      splitterModel: ref(40),
-      cols: [],
-      factorrels: [],
-      filter: "",
-      loading: false,
-      selected: [],
-      factor1_id: null,
-      factor: {},
-      //
-      loading2: false,
-      propFactors: {
-        rows: [],
-        cols: [],
-        cmt: ref({}),
-        cnt_s: 0,
-        cnt_n: 0,
-      },
-      value: true,
-    };
+  {
+    name: "name",
+    label: proxy?.$t("fldName") || "fldName",
+    field: "name",
+    align: "left",
+    sortable: true,
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 30%",
   },
-
-  mounted() {
-    //console.log("mounted!");
-    this.factor1_id = parseInt(this.$route["params"].factor, 10);
-    //
-    requestParam.factor = this.factor1_id;
-    this.fetchData(requestParam);
+  {
+    name: "fullName",
+    label: proxy?.$t("fldFullName") || "fldFullName",
+    field: "fullName",
+    align: "left",
+    sortable: true,
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 30%",
   },
-
-  created() {
-    //console.log("<<<<<  created")
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
-    this.cols = this.getColumns();
+  {
+    name: "cmt",
+    label: proxy?.$t("fldCmt") || "fldCmt",
+    field: "cmt",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 40%",
   },
+];
 
-  setup() {}
+const infoSelected = (row) => {
+  return " " + row.cod + " - " + row.name;
+};
 
+onMounted(() => {
+  lang.value = localStorage.getItem("curLang");
+  lang.value = lang.value === "en-US" ? "en" : lang.value;
+  cols.value = getColumns();
+
+  factor1_id.value = parseInt(route.params.factor, 10) || 0;
+  requestParam.factor = factor1_id.value;
+  fetchData(requestParam);
 });
 </script>
 

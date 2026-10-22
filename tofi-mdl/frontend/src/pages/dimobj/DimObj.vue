@@ -13,7 +13,7 @@
         <div class="q-pa-sm-sm">
           <q-banner dense inline-actions class="bg-orange-1 q-mb-sm">
             <div style="font-size: 1.2em; font-weight: bold;">
-              <q-avatar color="black" text-color="white" icon="folder"></q-avatar>
+              <q-avatar color="black" text-color="white" icon="folder" />
               {{ $t("dimObjGr") }}
             </div>
             <template v-slot:action>
@@ -90,7 +90,7 @@
       <template v-slot:after>
         <q-banner dense inline-actions class="bg-orange-1 q-mb-sm">
           <div style="font-size: 1.2em; font-weight: bold;">
-            <q-avatar color="black" text-color="white" icon="pattern"></q-avatar>
+            <q-avatar color="black" text-color="white" icon="pattern" />
             {{ $t("dimsObj") }}
           </div>
           <template v-slot:action>
@@ -136,7 +136,7 @@
               </q-tooltip>
             </q-btn>
 
-            <q-space></q-space>
+            <q-space />
 
             <q-btn
               v-if="hasTarget('mdl:mn_dp:dmprop:sel')"
@@ -145,7 +145,7 @@
               color="secondary"
               class="q-ml-lg"
               :disable="loading2 || selected2.length === 0"
-              @click="dimObjSelect()"
+              @click="dimObjSelect"
             >
               <q-tooltip transition-show="rotate" transition-hide="rotate">
                 {{ $t("chooseRecord") }}
@@ -171,18 +171,15 @@
             selection="single"
             :rows-per-page-options="[0]"
           >
-
             <template #bottom-row>
               <q-td colspan="100%" v-if="selected2.length > 0">
                 <span class="text-blue"> {{ $t("selectedRow") }}: </span>
-                <span class="text-bold"> {{ this.infoSelected(selected2[0]) }} </span>
+                <span class="text-bold"> {{ infoSelected(selected2[0]) }} </span>
               </q-td>
-              <q-td
-                  v-else-if="this.rows2.length > 0" colspan="100%" class="text-bold">
+              <q-td v-else-if="rows2.length > 0" colspan="100%" class="text-bold">
                 {{ $t("infoRow") }}
               </q-td>
             </template>
-
           </q-table>
         </div>
       </template>
@@ -190,9 +187,12 @@
   </div>
 </template>
 
-<script>
-import QTreeTable from "components/QTreeTable.vue";
-import {api} from "boot/axios";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useQuasar } from "quasar";
+import QTreeTable from "@/components/QTreeTable.vue";
+import { api } from "@/boot/axios";
 import {
   collapsAll,
   expandAll,
@@ -202,403 +202,350 @@ import {
   notifyError,
   notifyInfo,
   pack,
-} from "src/utils/jsutils";
-import UpdateGroup from "pages/group/UpdateGroup.vue";
-import UpdaterDimObj from "pages/dimobj/UpdaterDimObj.vue";
+} from "@/utils/jsutils";
+import UpdateGroup from "@/pages/group/UpdateGroup.vue";
+import UpdaterDimObj from "@/pages/dimobj/UpdaterDimObj.vue";
 
-export default {
-  name: "DimObjPage",
+const router = useRouter();
+const route = useRoute();
+const $q = useQuasar();
+const { proxy } = getCurrentInstance();
 
-  components: { QTreeTable },
+const splitterModel = ref(30);
+const cols = ref([]);
+const rows = ref([]);
+const currentNode = ref(null);
+const visible = ref(false);
 
-  data() {
-    return {
-      splitterModel: 30,
-      cols: [],
-      rows: [],
-      currentNode: null,
-      visible: false,
-      //
-      cols2: [],
-      rows2: [],
-      loading2: false,
-      //
-      selected2: [],
-      dimObjGr: 0,
-      dimObj: 0
-    };
-  },
+const cols2 = ref([]);
+const rows2 = ref([]);
+const loading2 = ref(false);
 
-  methods: {
-    hasTarget,
-    dimObjSelect() {
-      this.$router["push"]({
-        name: "DimObjItem",
-        params: {
-          dimObjGr: this.currentNode.id,
-          dimObj: this.selected2[0].id,
-          name: this.selected2[0].name,
-        },
+const selected2 = ref([]);
+const dimObjGr = ref(0);
+const dimObj = ref(0);
+const childComp = ref(null);
+
+const lang = ref(
+  localStorage.getItem("curLang") === "en-US" ? "en" : localStorage.getItem("curLang")
+);
+
+const dimObjSelect = () => {
+  router.push({
+    name: "DimObjItem",
+    params: {
+      dimObjGr: currentNode.value.id,
+      dimObj: selected2.value[0].id,
+      name: selected2.value[0].name,
+    },
+  });
+};
+
+const onUpdateSelect = (item) => {
+  currentNode.value = item.selected !== undefined ? item.selected : null;
+  if (currentNode.value) {
+    api
+      .post("", {
+        method: "group/loadRec",
+        params: [{ id: currentNode.value.id, tableName: "DimObjGr" }],
+      })
+      .then((response) => {
+        currentNode.value = response.data.result.records[0];
+        fetchData(currentNode.value.id);
       });
+  } else {
+    selected2.value = [];
+    fetchData(0);
+  }
+};
 
-    },
+const fnExpand = () => expandAll(rows.value);
+const fnCollapse = () => collapsAll(rows.value);
 
-    onUpdateSelect(item) {
-      this.currentNode = item.selected !== undefined ? item.selected : null;
-      if (this.currentNode) {
-        api
-          .post("", {
-            method: "group/loadRec",
-            params: [{ id: this.currentNode.id, tableName: "DimObjGr" }],
-          })
-          .then((response) => {
-            this.currentNode = response.data.result.records[0];
-
-            this.fetchData(this.currentNode.id);
-          });
-      } else {
-        this.selected2 = [];
-        this.fetchData(0);
+const fetchData = (targetDimObjGr) => {
+  visible.value = true;
+  selected2.value = [];
+  api
+    .post("", {
+      method: "dimobj/loadDimObj",
+      params: [targetDimObjGr],
+    })
+    .then(
+      (response) => {
+        rows2.value = response.data.result.records;
+      },
+      (error) => {
+        router.push("/");
+        let msg = error.message;
+        if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+        notifyError(msg);
       }
-    },
-
-    fetchDataGr() {
-      this.visible = true;
-      this.currentNode = null
-      api
-        .post("", {
-          method: "group/loadGroup",
-          params: [{ tableName: "DimObjGr" }],
-        })
-        .then(
-          (response) => {
-            this.rows = pack(response.data.result.records, "id");
-            this.fnExpand();
-          },
-          (error) => {
-            this.$router["push"]("/");
-            let msg = error.message;
-            if (error.response)
-              msg = this.$t(error.response.data.error.message);
-
-            notifyError(msg);
-          }
-        )
-        .then(()=> {
-          if (this.dimObjGr > 0) {
-            let res = []
-            findNode(this.rows, "id", this.dimObjGr, res)
-            this.currentNode = res[0]
-            this.$refs.childComp.restoreSelect(this.currentNode)
-            this.fetchData(this.currentNode.id)
-          }
-        })
-        .finally(() => {
-          //setTimeout(()=> {
-            this.visible = false;
-          //}, 5000)
-
-        });
-    },
-
-    fnInsGr(mode, isChild) {
-      let data = {
-        id: 0,
-        cod: "",
-        name: "",
-        fullName: "",
-        accessLevel: 1,
-        cmt: null,
-      };
-      const lg = this.lang;
-      let parent = null;
-      let parentName = null;
-      if (isChild) {
-        parent = this.currentNode.id;
-        parentName = this.currentNode.name;
-      }
-      if (mode === "ins") {
-        data.parent = parent;
-      } else if (mode === "upd") {
-        data = {
-          id: this.currentNode.id,
-          cod: this.currentNode.cod,
-          name: this.currentNode.name,
-          fullName: this.currentNode.fullName,
-          accessLevel: this.currentNode.accessLevel,
-          parent: this.currentNode.parent,
-          cmt: this.currentNode.cmt,
-        };
-        if (this.currentNode.parent > 0) {
-          let parentNode = [];
-          getParentNode(this.rows, this.currentNode.parent, parentNode);
-          parentName = parentNode[0].fullName;
-          isChild = true;
+    )
+    .then(() => {
+      if (dimObj.value > 0) {
+        const cur = rows2.value.filter((it) => it.id === dimObj.value);
+        if (cur.length > 0) {
+          selected2.value.push(cur[0]);
         }
       }
-      //
-      this.$q
-        .dialog({
-          component: UpdateGroup,
-          componentProps: {
-            data: data,
-            mode: mode,
-            isChild: isChild,
-            tableName: "DimObjGr",
-            parentName: parentName,
-            lg: lg,
-          },
-        })
-        .onOk((r) => {
-          this.fetchDataGr();
-          this.currentNode = r
-          this.$refs.childComp.restoreSelect(this.currentNode)
-          this.onUpdateSelect({selected: r})
-        });
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+const fetchDataGr = () => {
+  visible.value = true;
+  currentNode.value = null;
+  api
+    .post("", {
+      method: "group/loadGroup",
+      params: [{ tableName: "DimObjGr" }],
+    })
+    .then(
+      (response) => {
+        rows.value = pack(response.data.result.records, "id");
+        fnExpand();
+      },
+      (error) => {
+        router.push("/");
+        let msg = error.message;
+        if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+        notifyError(msg);
+      }
+    )
+    .then(() => {
+      if (dimObjGr.value > 0 && childComp.value) {
+        let res = [];
+        findNode(rows.value, "id", dimObjGr.value, res);
+        currentNode.value = res[0] || null;
+        if (currentNode.value) {
+          childComp.value.restoreSelect(currentNode.value);
+          fetchData(currentNode.value.id);
+        }
+      }
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+const fnInsGr = (mode, isChild) => {
+  let data = {
+    id: 0,
+    cod: "",
+    name: "",
+    fullName: "",
+    accessLevel: 1,
+    cmt: null,
+  };
+  let parent = null;
+  let parentName = null;
+  if (isChild) {
+    parent = currentNode.value.id;
+    parentName = currentNode.value.name;
+  }
+  if (mode === "ins") {
+    data.parent = parent;
+  } else if (mode === "upd") {
+    data = { ...currentNode.value };
+    if (currentNode.value.parent > 0) {
+      let parentNode = [];
+      getParentNode(rows.value, currentNode.value.parent, parentNode);
+      parentName = parentNode[0]?.fullName;
+      isChild = true;
+    }
+  }
+
+  $q.dialog({
+    component: UpdateGroup,
+    componentProps: {
+      data: data,
+      mode: mode,
+      isChild: isChild,
+      tableName: "DimObjGr",
+      parentName: parentName,
+      lg: lang.value,
     },
+  }).onOk((r) => {
+    fetchDataGr();
+    currentNode.value = r;
+    childComp.value?.restoreSelect(r);
+    onUpdateSelect({ selected: r });
+  });
+};
 
-    fnDelGr(rec) {
-      rec.tableName = "DimObjGr";
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' +
-            rec.cod +
-            ": " +
-            rec.name +
-            ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          //let index = this.rows.findIndex((row) => row.id === rec.id);
-          api
-            .post("", {
-              method: "group/delete",
-              params: [rec],
-            })
-            .then(
-              () => {
-                this.fetchDataGr();
-              },
-              (error) => {
-
-                this.$router["push"]("/");
-                let msg = error.message;
-                if (error.response) msg = error.response.data.error.message;
-                notifyError(msg);
-              }
-            );
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t("canceled"));
-        });
-    },
-
-    fnExpand() {
-      expandAll(this.rows);
-    },
-
-    fnCollapse() {
-      collapsAll(this.rows);
-    },
-
-    ////////////////////////
-
-    fetchData(dimObjGr) {
-      this.visible = true;
-      this.selected2 = []
+const fnDelGr = (rec) => {
+  rec.tableName = "DimObjGr";
+  $q.dialog({
+    title: proxy?.$t("confirmation"),
+    message:
+      proxy?.$t("deleteRecord") +
+      '<div style="color: plum">(' +
+      rec.cod +
+      ": " +
+      rec.name +
+      ")</div>",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  })
+    .onOk(() => {
       api
         .post("", {
-          method: "dimobj/loadDimObj",
-          params: [dimObjGr],
+          method: "group/delete",
+          params: [rec],
         })
         .then(
-          (response) => {
-            this.rows2 = response.data.result.records;
+          () => {
+            fetchDataGr();
           },
           (error) => {
-
-            this.$router["push"]("/");
-
+            router.push("/");
             let msg = error.message;
-            if (error.response)
-              msg = this.$t(error.response.data.error.message);
-
+            if (error.response) msg = error.response.data.error.message;
             notifyError(msg);
           }
-        )
-        .then(()=> {
-          if (this.dimObj > 0) {
-            const cur = this.rows2.filter((it) => {
-              return it.id === this.dimObj
-            })
-            if (cur.length > 0) {
-              this.selected2.push(cur[0])
-            }
-          }
-        })
-        .finally(() => {
-          this.visible = false;
-        });
-    },
-
-    edit(data, mode) {
-      const lg = this.lang;
-      this.$q
-        .dialog({
-          component: UpdaterDimObj,
-          componentProps: {
-            data: data,
-            mode: mode,
-            lg: lg,
-          },
-        })
-        .onOk((r) => {
-          this.dimObj = 0
-          this.fetchData(this.currentNode.id);
-          this.selected2 = []
-          this.selected2.push(r)
-        });
-    },
-
-    fnIns(mode) {
-      if (mode === "ins") {
-        api
-          .post("", {
-            method: "dimobj/newRec",
-            params: [this.currentNode.id],
-          })
-          .then((response) => {
-            this.edit(response.data.result.records[0], mode);
-          });
-      } else {
-        this.edit(this.selected2[0], mode);
-      }
-    },
-
-    fnDel(rec) {
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' +
-            rec.cod +
-            ": " +
-            rec.name +
-            ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          api
-            .post("", {
-              method: "dimobj/delete",
-              params: [rec],
-            })
-            .then(
-              () => {
-                this.fetchData(this.currentNode.id);
-              },
-              (error) => {
-                this.$router["push"]("/");
-                let msg = error.message;
-                if (error.response) msg = error.response.data.error.message;
-
-                notifyError(msg);
-              }
-            );
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t("canceled"));
-        });
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "cod",
-          label: this.$t("code"),
-          field: "cod",
-          align: "left",
-          headerStyle: "font-size: 1.2em; width: 30%",
-        },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          headerStyle: "font-size: 1.2em; width: 70%",
-        },
-      ];
-    },
-
-    getColumns2() {
-      return [
-        {
-          name: "cod",
-          label: this.$t("code"),
-          field: "cod",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 20%",
-        },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 40%",
-        },
-        {
-          name: "fullName",
-          label: this.$t("fldFullName"),
-          field: "fullName",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 40%",
-        },
-        {
-          name: "cmt",
-          label: this.$t("fldCmt"),
-          field: "cmt",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 20%",
-        },
-      ];
-    },
-
-    infoSelected(row) {
-      return " " + row.cod + " - " + row.name;
-    },
-  },
-
-  created() {
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
-
-    this.cols = this.getColumns();
-    this.cols2 = this.getColumns2();
-  },
-
-  mounted() {
-    //console.info("Mounted")
-    this.dimObjGr = parseInt(this.$route["params"].dimObjGr, 10);
-    this.dimObj = parseInt(this.$route["params"].dimObj, 10);
-    this.fetchDataGr()
-  },
-
-  setup() {},
+        );
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t("canceled"));
+    });
 };
+
+const edit = (data, mode) => {
+  $q.dialog({
+    component: UpdaterDimObj,
+    componentProps: {
+      data: data,
+      mode: mode,
+      lg: lang.value,
+    },
+  }).onOk((r) => {
+    dimObj.value = 0;
+    fetchData(currentNode.value.id);
+    selected2.value = [r];
+  });
+};
+
+const fnIns = (mode) => {
+  if (mode === "ins") {
+    api
+      .post("", {
+        method: "dimobj/newRec",
+        params: [currentNode.value.id],
+      })
+      .then((response) => {
+        edit(response.data.result.records[0], mode);
+      });
+  } else {
+    edit(selected2.value[0], mode);
+  }
+};
+
+const fnDel = (rec) => {
+  $q.dialog({
+    title: proxy?.$t("confirmation"),
+    message:
+      proxy?.$t("deleteRecord") +
+      '<div style="color: plum">(' +
+      rec.cod +
+      ": " +
+      rec.name +
+      ")</div>",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  })
+    .onOk(() => {
+      api
+        .post("", {
+          method: "dimobj/delete",
+          params: [rec],
+        })
+        .then(
+          () => {
+            fetchData(currentNode.value.id);
+          },
+          (error) => {
+            router.push("/");
+            let msg = error.message;
+            if (error.response) msg = error.response.data.error.message;
+            notifyError(msg);
+          }
+        );
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t("canceled"));
+    });
+};
+
+const getColumns = () => [
+  {
+    name: "cod",
+    label: proxy?.$t("code"),
+    field: "cod",
+    align: "left",
+    headerStyle: "font-size: 1.2em; width: 30%",
+  },
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    headerStyle: "font-size: 1.2em; width: 70%",
+  },
+];
+
+const getColumns2 = () => [
+  {
+    name: "cod",
+    label: proxy?.$t("code"),
+    field: "cod",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 20%",
+  },
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 40%",
+  },
+  {
+    name: "fullName",
+    label: proxy?.$t("fldFullName"),
+    field: "fullName",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 40%",
+  },
+  {
+    name: "cmt",
+    label: proxy?.$t("fldCmt"),
+    field: "cmt",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 20%",
+  },
+];
+
+const infoSelected = (row) => {
+  return " " + row.cod + " - " + row.name;
+};
+
+onMounted(() => {
+  cols.value = getColumns();
+  cols2.value = getColumns2();
+
+  dimObjGr.value = parseInt(route.params.dimObjGr, 10);
+  dimObj.value = parseInt(route.params.dimObj, 10);
+  fetchDataGr();
+});
 </script>
 
 <style scoped></style>

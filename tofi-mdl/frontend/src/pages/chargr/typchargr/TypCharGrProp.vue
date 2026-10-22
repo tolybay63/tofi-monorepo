@@ -57,56 +57,50 @@
     <div class="q-table-container q-table--dense scroll" style="height: 100%">
       <table class="q-table q-table--cell-separator q-table--bordered wrap q-table-middle">
         <thead class="text-bold text-white bg-blue-grey-13">
-        <tr class style="text-align: left">
-          <th :style="cols[0].headerStyle">{{ cols[0].label }}</th>
-          <th :style="cols[1].headerStyle">{{ cols[1].label }}</th>
-          <th :style="cols[2].headerStyle">{{ cols[2].label }}</th>
-          <th :style="cols[3].headerStyle">{{ cols[3].label }}</th>
-          <th :style="cols[4].headerStyle">{{ cols[4].label }}</th>
-          <th :style="cols[5].headerStyle">{{ cols[5].label }}</th>
+        <tr style="text-align: left">
+          <th :style="cols[0]?.headerStyle">{{ cols[0]?.label }}</th>
+          <th :style="cols[1]?.headerStyle">{{ cols[1]?.label }}</th>
+          <th :style="cols[2]?.headerStyle">{{ cols[2]?.label }}</th>
+          <th :style="cols[3]?.headerStyle">{{ cols[3]?.label }}</th>
+          <th :style="cols[4]?.headerStyle">{{ cols[4]?.label }}</th>
+          <th :style="cols[5]?.headerStyle">{{ cols[5]?.label }}</th>
         </tr>
         </thead>
 
         <tbody style="background: aliceblue">
         <tr v-for="(item, index) in arrayTreeObj" :key="index">
-          <td :data-th="cols[0].name" @click="toggle(item)">
-              <span
-                class="q-tree-link q-tree-label"
-                v-bind:style="setPadding(item)"
-              >
+          <td :data-th="cols[0]?.name" @click="toggle(item)">
+              <span class="q-tree-link q-tree-label" :style="setPadding(item)">
                 <q-icon
                   style="cursor: pointer"
                   :name="iconName(item)"
                   color="secondary"
-                ></q-icon>
+                />
 
                 <q-btn
                   :dense="dense"
                   flat
                   :color="item.propType === undefined ? 'gray' : 'blue'"
-                  :disable="item['isItem']"
+                  :disable="item.isItem"
                   :icon="
-                    item['isItem']
+                    item.isItem
                       ? 'adjust'
                       : selected.length > 0 && item.id === selected[0].id
                       ? 'check_box'
                       : 'check_box_outline_blank'
                   "
                   @click.stop="selectedCheck(item)"
-                >
-                </q-btn>
+                />
 
-                <q-icon :name="getIcon(item)"></q-icon>
+                <q-icon :name="getIcon(item)" />
                 {{ item.cod }}
               </span>
           </td>
-          <td :data-th="cols[1].name">{{ item.name }}</td>
-          <td :data-th="cols[2].name">
-            {{ getVal(item.storageType) }}
-          </td>
-          <td :data-th="cols[3].name">{{ getTable(item.flatTable) }}</td>
-          <td :data-th="cols[4].name">{{ item.p_measure }}</td>
-          <td :data-th="cols[5].name">{{ item.pv_measure }}</td>
+          <td :data-th="cols[1]?.name">{{ item.name }}</td>
+          <td :data-th="cols[2]?.name">{{ getVal(item.storageType) }}</td>
+          <td :data-th="cols[3]?.name">{{ getTable(item.flatTable) }}</td>
+          <td :data-th="cols[4]?.name">{{ item.p_measure }}</td>
+          <td :data-th="cols[5]?.name">{{ item.pv_measure }}</td>
         </tr>
         </tbody>
       </table>
@@ -114,319 +108,273 @@
   </div>
 </template>
 
-<script>
-import {ref} from "vue";
-import {collapsAll, expandAll, hasTarget, notifyError, pack} from "src/utils/jsutils";
-import {api} from "boot/axios";
-import allConsts from "pages/all-consts";
+<script setup>
+import { ref, reactive, computed, onMounted, getCurrentInstance, watch } from "vue";
+import { useQuasar } from "quasar";
+import { collapsAll, expandAll, hasTarget, notifyError, pack } from "@/utils/jsutils";
+import { api } from "@/boot/axios";
+import allConsts from "@/pages/all-consts";
 
-import UpdateTypCharGrPropUpd from "pages/chargr/typchargr/UpdateTypCharGrPropUpd.vue";
-import UpdateTypCharGrProp from "pages/chargr/typchargr/UpdateTypCharGrProp.vue";
+import UpdateTypCharGrPropUpd from "@/pages/chargr/typchargr/UpdateTypCharGrPropUpd.vue";
+import UpdateTypCharGrProp from "@/pages/chargr/typchargr/UpdateTypCharGrProp.vue";
 
-export default {
-  name: "TypCharGrProp",
+const props = defineProps({
+  typ: [String, Number],
+  typCharGr: [String, Number],
+  dense: Boolean,
+});
 
-  props: ["typ", "typCharGr", "dense"],
+const $q = useQuasar();
+const { proxy } = getCurrentInstance();
 
-  data() {
-    return {
-      cols: [],
-      rows: [],
-      FD_StorageType: null,
-      FD_NameTable: null,
-      //disableEditProp: true,
-      loading: ref(false),
-      //
-      isExpanded: true,
-      itemId: null,
-      selected: ref([]),
-    };
+const cols = ref([]);
+const rows = ref([]);
+const loading = ref(false);
+
+const FD_StorageType = reactive(new Map());
+const FD_NameTable = reactive(new Map());
+
+const isExpanded = ref(true);
+const itemId = ref(null);
+const selected = ref([]);
+
+const lang = ref(localStorage.getItem("curLang") === "en-US" ? "en" : localStorage.getItem("curLang"));
+
+const getColumns = () => [
+  {
+    name: "cod",
+    label: proxy?.$t("code"),
+    field: "cod",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 30%",
   },
-
-  methods: {
-    hasTarget,
-    editRow(rec) {
-      this.$q
-        .dialog({
-          component: UpdateTypCharGrProp,
-          componentProps: {
-            dta: rec,
-            typCharGr: this.typCharGr,
-            lg: this.lang,
-            dense: true,
-          },
-        })
-        .onOk((data) => {
-          if (data.res) {
-            this.loadData(this.typCharGr);
-          }
-        });
-    },
-
-    getVal(val) {
-      if (val === undefined) return null;
-      return this.FD_StorageType.get(val);
-    },
-
-    getTable(val) {
-      if (val === undefined) return null;
-      return this.FD_NameTable.get(val);
-    },
-
-    editData() {
-      this.$q
-        .dialog({
-          component: UpdateTypCharGrPropUpd,
-          componentProps: {
-            typCharGr: this.typCharGr,
-            lg: this.lang,
-            dense: true,
-          },
-        })
-        .onOk((data) => {
-          if (data.res) {
-            this.loadData(this.typCharGr);
-          }
-        });
-    },
-
-    selectedCheck(item) {
-      if (item.propType === undefined) return;
-      let vm = this;
-      if (vm.selected.length > 0 && item.id === vm.selected[0].id)
-        vm.selected = [];
-      else {
-        vm.selected = [];
-        vm.selected.push(item);
-      }
-    },
-
-    loadData(typCharGr) {
-      this.loading = ref(true);
-      //
-      api
-        .post("", {
-          method: "typ/loadTypCharGrProp",
-          params: [{typCharGr: typCharGr}],
-        })
-        .then((response) => {
-          //console.info("TypCharGrProp", response.data.result.records)
-          this.rows = pack(response.data.result.records, "id");
-          this.fnExpand();
-        })
-        .then(() => {
-
-        })
-        .catch((error) => {
-
-          let msg = error.message;
-          if (error.response) msg = error.response.data.error.message;
-
-          notifyError(msg);
-          //
-        })
-        .finally(() => {
-          this.loading = ref(false);
-        });
-    },
-
-    getIcon(row) {
-      if (row.propType === undefined) return "folder";
-      if (allConsts.FD_PropType.factor === row.propType) {
-        return "account_tree";
-      } else if (allConsts.FD_PropType.attr === row.propType) {
-        return "format_shapes";
-      } else if (allConsts.FD_PropType.meter === row.propType) {
-        return "scale";
-      } else if (allConsts.FD_PropType.rate === row.propType) {
-        return "speed";
-      } else if (allConsts.FD_PropType.typ === row.propType) {
-        return "view_quilt";
-      } else if (allConsts.FD_PropType.reltyp === row.propType) {
-        return "view_column";
-      } else if (allConsts.FD_PropType.measure === row.propType) {
-        return "square_foot";
-      } else if (allConsts.FD_PropType.complex === row.propType) {
-        return "category";
-      }
-    },
-
-    fnExpand() {
-      expandAll(this.rows);
-    },
-
-    fnCollapse() {
-      collapsAll(this.rows);
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "cod",
-          label: this.$t("code"),
-          field: "cod",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 30%",
-        },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 18%",
-        },
-        {
-          name: "storageType",
-          label: this.$t("fldStorageType"),
-          field: "storageType",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 18%",
-        },
-        {
-          name: "flatTable",
-          label: this.$t("tableName"),
-          field: "flatTable",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 6%",
-        },
-        {
-          name: "p_measure",
-          label: this.$t("propMeasure"),
-          field: "p_measure",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 18%",
-        },
-        {
-          name: "pv_measure",
-          label: this.$t("measure"),
-          field: "pv_measure",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 10%",
-        },
-      ];
-    },
-
-    recursive(obj, newObj, level, itemId, isExpend) {
-      let vm = this;
-      obj.forEach(function (o) {
-        if (o.children && o.children.length !== 0) {
-          o.level = level;
-          o.leaf = false;
-          newObj.push(o);
-          if (o.id === itemId) {
-            o.expend = isExpend;
-          }
-          if (o.expend) {
-            vm.recursive(o.children, newObj, o.level + 1, itemId, isExpend);
-          }
-        } else {
-          o.level = level;
-          o.leaf = true;
-          newObj.push(o);
-          return false;
-        }
-      });
-    },
-
-    iconName(item) {
-      if (item.expend) {
-        return "remove_circle_outline";
-      }
-
-      if (item.children && item.children.length > 0) {
-        return "control_point";
-      }
-
-      return "";
-    },
-
-    toggle(item) {
-      let vm = this;
-      vm.itemId = item.id;
-
-      item.leaf = false;
-      //show  sub items after click on + (more)
-      if (
-        item.leaf === false &&
-        item.expend === undefined &&
-        item.children !== undefined
-      ) {
-        if (item.children.length !== 0) {
-          vm.recursive(item.children, [], item.level + 1, item.id, true);
-        }
-      }
-      if (item.expend && item.children !== undefined) {
-        item.children.forEach(function (o) {
-          o.expend = undefined;
-        });
-
-        item["expend"] = ref(undefined);
-        item["leaf"] = ref(false);
-        vm.itemId = null;
-      }
-    },
-
-    setPadding(item) {
-      return `padding-left: ${item.level * 30}px;`;
-    },
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 18%",
   },
-
-  created() {
-    console.log("create")
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
-    this.loading = ref(true);
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_StorageType"}],
-      })
-      .then((response) => {
-        this.FD_StorageType = new Map();
-        response.data.result.records.forEach((it) => {
-          this.FD_StorageType.set(it["id"], it["text"]);
-        });
-      });
-
-    api
-      .post("", {
-        method: "flatTable/loadTables",
-        params: [{}],
-      })
-      .then((response) => {
-        this.FD_NameTable = new Map();
-        response.data.result.records.forEach((it) => {
-          this.FD_NameTable.set(it["id"], it["nameTable"]);
-        });
-      });
-    //
-    this.cols = this.getColumns();
-
+  {
+    name: "storageType",
+    label: proxy?.$t("fldStorageType"),
+    field: "storageType",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 18%",
   },
-
-  mounted() {
-
+  {
+    name: "flatTable",
+    label: proxy?.$t("tableName"),
+    field: "flatTable",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 6%",
   },
+  {
+    name: "p_measure",
+    label: proxy?.$t("propMeasure"),
+    field: "p_measure",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 18%",
+  },
+  {
+    name: "pv_measure",
+    label: proxy?.$t("measure"),
+    field: "pv_measure",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 10%",
+  },
+];
 
-  computed: {
-    arrayTreeObj() {
-      let vm = this;
-      let newObj = [];
-      vm.recursive(vm.rows, newObj, 0, vm.itemId, vm.isExpanded);
-      return newObj;
+const getVal = (val) => {
+  if (val === undefined || val === null) return null;
+  return FD_StorageType.get(val);
+};
+
+const getTable = (val) => {
+  if (val === undefined || val === null) return null;
+  return FD_NameTable.get(val);
+};
+
+const getIcon = (row) => {
+  if (row.propType === undefined) return "folder";
+  if (allConsts.FD_PropType.factor === row.propType) return "account_tree";
+  if (allConsts.FD_PropType.attr === row.propType) return "format_shapes";
+  if (allConsts.FD_PropType.meter === row.propType) return "scale";
+  if (allConsts.FD_PropType.rate === row.propType) return "speed";
+  if (allConsts.FD_PropType.typ === row.propType) return "view_quilt";
+  if (allConsts.FD_PropType.reltyp === row.propType) return "view_column";
+  if (allConsts.FD_PropType.measure === row.propType) return "square_foot";
+  if (allConsts.FD_PropType.complex === row.propType) return "category";
+  return "";
+};
+
+const fnExpand = () => {
+  expandAll(rows.value);
+};
+
+const fnCollapse = () => {
+  collapsAll(rows.value);
+};
+
+const selectedCheck = (item) => {
+  if (item.propType === undefined) return;
+  if (selected.value.length > 0 && item.id === selected.value[0].id) {
+    selected.value = [];
+  } else {
+    selected.value = [item];
+  }
+};
+
+const loadData = (typCharGrVal) => {
+  if (!typCharGrVal) return;
+  loading.value = true;
+
+  api
+    .post("", {
+      method: "typ/loadTypCharGrProp",
+      params: [{ typCharGr: typCharGrVal }],
+    })
+    .then((response) => {
+      rows.value = pack(response.data.result.records, "id");
+      fnExpand();
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+      notifyError(msg);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const editRow = (rec) => {
+  $q.dialog({
+    component: UpdateTypCharGrProp,
+    componentProps: {
+      dta: rec,
+      typCharGr: props.typCharGr,
+      lg: lang.value,
+      dense: true,
     },
-  },
+  }).onOk((data) => {
+    if (data.res) {
+      loadData(props.typCharGr);
+    }
+  });
+};
 
-  setup() {
+const editData = () => {
+  $q.dialog({
+    component: UpdateTypCharGrPropUpd,
+    componentProps: {
+      typCharGr: props.typCharGr,
+      lg: lang.value,
+      dense: true,
+    },
+  }).onOk((data) => {
+    if (data.res) {
+      loadData(props.typCharGr);
+    }
+  });
+};
+
+const recursive = (obj, newObj, level, currentItemId, isExpend) => {
+  if (!obj) return;
+  obj.forEach((o) => {
+    if (o.children && o.children.length !== 0) {
+      o.level = level;
+      o.leaf = false;
+      newObj.push(o);
+      if (o.id === currentItemId) {
+        o.expend = isExpend;
+      }
+      if (o.expend) {
+        recursive(o.children, newObj, o.level + 1, currentItemId, isExpend);
+      }
+    } else {
+      o.level = level;
+      o.leaf = true;
+      newObj.push(o);
+    }
+  });
+};
+
+const arrayTreeObj = computed(() => {
+  const newObj = [];
+  recursive(rows.value, newObj, 0, itemId.value, isExpanded.value);
+  return newObj;
+});
+
+const iconName = (item) => {
+  if (item.expend) return "remove_circle_outline";
+  if (item.children && item.children.length > 0) return "control_point";
+  return "";
+};
+
+const toggle = (item) => {
+  itemId.value = item.id;
+  item.leaf = false;
+
+  if (!item.leaf && item.expend === undefined && item.children !== undefined) {
+    if (item.children.length !== 0) {
+      recursive(item.children, [], item.level + 1, item.id, true);
+    }
   }
 
+  if (item.expend && item.children !== undefined) {
+    item.children.forEach((o) => {
+      o.expend = undefined;
+    });
+    item.expend = undefined;
+    item.leaf = false;
+    itemId.value = null;
+  }
 };
+
+const setPadding = (item) => {
+  return `padding-left: ${(item.level || 0) * 30}px;`;
+};
+
+watch(() => props.typCharGr, (newVal) => {
+  if (newVal) loadData(newVal);
+}, { immediate: true });
+
+onMounted(() => {
+  cols.value = getColumns();
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_StorageType" }],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        FD_StorageType.set(it.id, it.text);
+      });
+    });
+
+  api
+    .post("", {
+      method: "flatTable/loadTables",
+      params: [{}],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        FD_NameTable.set(it.id, it.nameTable);
+      });
+    });
+});
+
+defineExpose({
+  loadData,
+});
 </script>
 
 <style scoped></style>

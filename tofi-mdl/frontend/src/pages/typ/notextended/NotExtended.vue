@@ -1,29 +1,29 @@
 <template>
   <div class="no-padding no-margin">
     <q-table
-        style="height: calc(100vh - 220px); width: 100%"
-        color="primary"
-        card-class="bg-amber-1"
-        table-class="text-grey-8"
-        row-key="id"
-        :columns="cols"
-        :rows="rows"
-        :wrap-cells="true"
-        :table-colspan="2"
-        table-header-class="text-bold text-white bg-blue-grey-13"
-        separator="cell"
-        :filter="filter"
-        :loading="loading"
-        :dense="dense"
-        :rows-per-page-options="[0]"
-        selection="single"
-        v-model:selected="selected"
+      style="height: calc(100vh - 220px); width: 100%"
+      color="primary"
+      card-class="bg-amber-1"
+      table-class="text-grey-8"
+      row-key="id"
+      :columns="cols"
+      :rows="rows"
+      :wrap-cells="true"
+      :table-colspan="2"
+      table-header-class="text-bold text-white bg-blue-grey-13"
+      separator="cell"
+      :filter="filter"
+      :loading="loading"
+      :dense="dense"
+      :rows-per-page-options="[0]"
+      selection="single"
+      v-model:selected="selected"
     >
       <template #bottom-row>
         <q-td colspan="100%" v-if="selected.length > 0" class="text-bold">
-          {{ this.infoSelected(selected[0]) }}
+          {{ infoSelected(selected[0]) }}
         </q-td>
-        <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+        <q-td colspan="100%" v-else-if="rows.length > 0" class="text-bold">
           {{ $t("infoRow") }}
         </q-td>
       </template>
@@ -31,251 +31,229 @@
       <template v-slot:top>
         <div style="font-size: 1.2em; font-weight: bold;">{{ $t("notextended") }}</div>
 
-        <q-space/>
+        <q-space />
         <q-btn
-            v-if="hasTarget('mdl:mn_ds:typ:sel:notext:ins')"
-            :dense="dense"
-            icon="post_add"
-            color="secondary"
-            :disable="loading"
-            @click="editRow(null, 'ins')"
+          v-if="hasTarget('mdl:mn_ds:typ:sel:notext:ins')"
+          :dense="dense"
+          icon="post_add"
+          color="secondary"
+          :disable="loading"
+          @click="editRow(null, 'ins')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("newRecord") }}
           </q-tooltip>
         </q-btn>
         <q-btn
-            v-if="hasTarget('mdl:mn_ds:typ:sel:notext:upd')"
-            :dense="dense"
-            icon="edit"
-            color="secondary"
-            class="q-ml-sm"
-            :disable="loading || selected.length === 0"
-            @click="editRow(selected[0], 'upd')"
+          v-if="hasTarget('mdl:mn_ds:typ:sel:notext:upd')"
+          :dense="dense"
+          icon="edit"
+          color="secondary"
+          class="q-ml-sm"
+          :disable="loading || selected.length === 0"
+          @click="editRow(selected[0], 'upd')"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("editRecord") }}
           </q-tooltip>
         </q-btn>
         <q-btn
-            v-if="hasTarget('mdl:mn_ds:typ:sel:notext:del')"
-            :dense="dense"
-            icon="delete"
-            color="red"
-            class="q-ml-sm"
-            :disable="loading || selected.length === 0"
-            @click="removeRow(selected[0])"
+          v-if="hasTarget('mdl:mn_ds:typ:sel:notext:del')"
+          :dense="dense"
+          icon="delete"
+          color="red"
+          class="q-ml-sm"
+          :disable="loading || selected.length === 0"
+          @click="removeRow(selected[0])"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("deletingRecord") }}
           </q-tooltip>
         </q-btn>
 
-        <q-space/>
+        <q-space />
         <q-input
-            :dense="dense"
-            debounce="300"
-            color="primary"
-            :model-value="filter.value"
-            v-model="filter"
-            :label="$t('txt_filter')"
+          :dense="dense"
+          debounce="300"
+          color="primary"
+          v-model="filter"
+          :label="$t('txt_filter')"
         >
           <template v-slot:append>
-            <q-icon name="search"/>
+            <q-icon name="search" />
           </template>
         </q-input>
       </template>
 
       <template #loading>
-        <q-inner-loading :showing="loading" color="secondary"></q-inner-loading>
+        <q-inner-loading :showing="loading" color="secondary" />
       </template>
     </q-table>
   </div>
 </template>
 
-<script>
-import {ref} from "vue";
-import {api} from "boot/axios";
-import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
-import UpdateNotExtended from "pages/typ/notextended/UpdateNotExtended.vue";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from "vue";
+import { useRoute } from "vue-router";
+import { useQuasar } from "quasar";
+import { api } from "@/boot/axios";
+import { hasTarget, notifyError, notifyInfo, notifySuccess } from "@/utils/jsutils";
+import UpdateNotExtended from "@/pages/typ/notextended/UpdateNotExtended.vue";
 
-export default {
-  name: "NotExtended",
-  props: ["typParent"],
+const props = defineProps({
+  typParent: [Number, String],
+});
 
-  data: function () {
-    return {
-      cols: [],
-      rows: [],
-      filter: ref(""),
-      loading: ref(false),
-      separator: ref("cell"),
-      selected: ref([]),
-      dense: true,
+const route = useRoute();
+const $q = useQuasar();
+const { proxy } = getCurrentInstance();
 
-      typ: this.typParent,
+const cols = ref([]);
+const rows = ref([]);
+const filter = ref("");
+const loading = ref(false);
+const separator = ref("cell");
+const selected = ref([]);
+const dense = ref(true);
+const typ = ref(props.typParent);
+const lang = ref("");
+
+const infoSelected = (row) => {
+  let o =
+    row["nameObj"] !== undefined
+      ? " - " + (proxy?.$t("obj") || "obj") + ": " + row["nameObj"]
+      : "";
+  return (proxy?.$t("cls") || "cls") + ": " + (row["nameClass"] || "") + o;
+};
+
+const editRow = (rec, mode) => {
+  let data = {
+    id: 0,
+    typ: props.typParent,
+    clsOrObjCls: null,
+    obj: null,
+  };
+
+  if (mode === "upd") {
+    data = {
+      id: rec.id,
+      typ: rec.typ,
+      clsOrObjCls: rec.clsOrObjCls,
+      obj: rec.obj,
     };
-  },
-  methods: {
-    hasTarget,
-    infoSelected(row) {
-      let o =
-          row["nameObj"] !== undefined
-              ? " - " + this.$t("obj") + ": " + row["nameObj"]
-              : "";
-      return this.$t("cls") + ": " + row["nameObj"] + o;
-    },
-
-    editRow(rec, mode) {
-      let data = {
-        id: 0,
-        typ: this.typParent,
-        clsOrObjCls: null,
-        obj: null,
-      };
-
-      if (mode === "upd") {
-        data = {
-          id: rec.id,
-          typ: rec.typ,
-          clsOrObjCls: rec.clsOrObjCls,
-          obj: rec.obj,
-        };
-      }
-      this.$q
-          .dialog({
-            component: UpdateNotExtended,
-            componentProps: {
-              mode: mode,
-              data: data,
-              typ: this.typParent,
-              // ...
-            },
-          })
-          .onOk((r) => {
-            if (mode === "ins") {
-              this.rows.push(r);
-              this.selected = [];
-              this.selected.push(r);
-            } else {
-              for (let key in r) {
-                if (r.hasOwnProperty(key)) {
-                  rec[key] = r[key];
-                }
-              }
-            }
-          });
-    },
-
-    removeRow(rec) {
-      this.$q
-          .dialog({
-            title: this.$t("confirmation"),
-            message:
-                this.$t("deleteRecord") +
-                '<div style="color: plum">(' +
-                rec["nameClass"] +
-                rec["nameObj"]
-                    ? "; " + rec["nameObj"]
-                    : "" + ")</div>",
-            html: true,
-            cancel: true,
-            persistent: true,
-            focus: "cancel",
-          })
-          .onOk(() => {
-            let index = this.rows.findIndex((row) => row.id === rec.id);
-            api
-                .post("", {
-                  method: "typ/deleteNotExtended",
-                  params: [rec],
-                })
-                .then(
-                    () => {
-                      this.rows.splice(index, 1);
-                      this.selected = ref([]);
-                      notifySuccess(this.$t("success"));
-                    },
-                    (error) => {
-                      let msg
-                      if (error.response) msg = error.response.data.error.message;
-                      else msg = error.message;
-                      notifyError(msg);
-                    }
-                );
-          })
-          .onCancel(() => {
-            notifyInfo(this.$t("canceled"));
-          });
-    },
-
-    fetchData(typ) {
-      this.loading = ref(true);
-      api
-          .post("", {
-            method: "typ/loadNotExtended",
-            params: [typ],
-          })
-          .then((response) => {
-            this.rows = response.data.result.records;
-          })
-          .catch((error) => {
-
-            let msg = error.message;
-            if (error.response) msg = error.response.data.error.message;
-
-            notifyError(msg);
-            //
-          })
-          .finally(() => {
-            //setTimeout(() => {
-            this.loading = ref(false);
-            //}, 1000)
-          });
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "nameClass",
-          label: this.$t("cls"),
-          field: "nameClass",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "text-align: left; width:50%",
-        },
-        {
-          name: "nameObj",
-          label: this.$t("obj"),
-          field: "nameObj",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "text-align: left; width:50%",
-        },
-      ];
-    },
-  },
-
-  mounted() {
-    this.typ = parseInt(this.$route["params"].typ, 10);
-    //console.log("typ", this.typ)
-    //console.log("typParent", this.typParent)
-    this.fetchData(this.typParent);
-  },
-
-  created() {
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
-    this.cols = this.getColumns();
-    //
-  },
-
-  setup() {
   }
 
+  $q.dialog({
+    component: UpdateNotExtended,
+    componentProps: {
+      mode: mode,
+      data: data,
+      typ: props.typParent,
+    },
+  }).onOk((r) => {
+    if (mode === "ins") {
+      rows.value.push(r);
+      selected.value = [];
+      selected.value.push(r);
+    } else {
+      for (let key in r) {
+        if (Object.prototype.hasOwnProperty.call(r, key)) {
+          rec[key] = r[key];
+        }
+      }
+    }
+  });
 };
+
+const removeRow = (rec) => {
+  $q.dialog({
+    title: proxy?.$t("confirmation") || "confirmation",
+    message:
+      (proxy?.$t("deleteRecord") || "deleteRecord") +
+      '<div style="color: plum">(' +
+      (rec["nameClass"] || "") +
+      (rec["nameObj"] ? "; " + rec["nameObj"] : "") +
+      ")</div>",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  })
+    .onOk(() => {
+      let index = rows.value.findIndex((row) => row.id === rec.id);
+      api
+        .post("", {
+          method: "typ/deleteNotExtended",
+          params: [rec],
+        })
+        .then(
+          () => {
+            rows.value.splice(index, 1);
+            selected.value = [];
+            notifySuccess(proxy?.$t("success") || "success");
+          },
+          (error) => {
+            let msg;
+            if (error.response?.data?.error?.message) msg = error.response.data.error.message;
+            else msg = error.message;
+            notifyError(msg);
+          }
+        );
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t("canceled") || "canceled");
+    });
+};
+
+const fetchData = (targetTyp) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "typ/loadNotExtended",
+      params: [targetTyp],
+    })
+    .then((response) => {
+      rows.value = response.data.result.records;
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response?.data?.error?.message) msg = error.response.data.error.message;
+      notifyError(msg);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const getColumns = () => [
+  {
+    name: "nameClass",
+    label: proxy?.$t("cls") || "cls",
+    field: "nameClass",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "text-align: left; width:50%",
+  },
+  {
+    name: "nameObj",
+    label: proxy?.$t("obj") || "obj",
+    field: "nameObj",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "text-align: left; width:50%",
+  },
+];
+
+onMounted(() => {
+  lang.value = localStorage.getItem("curLang");
+  lang.value = lang.value === "en-US" ? "en" : lang.value;
+  cols.value = getColumns();
+
+  typ.value = parseInt(route.params.typ, 10);
+  fetchData(props.typParent);
+});
 </script>
 
 <style scoped></style>

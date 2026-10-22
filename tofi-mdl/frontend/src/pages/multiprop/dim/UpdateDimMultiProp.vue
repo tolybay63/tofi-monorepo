@@ -1,12 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -18,42 +17,40 @@
 
       <q-card-section>
         <q-input
-            v-model="form.cod"
-            :model-value="form.cod"
-            :label="$t('code')" dense
-            :placeholder="$t('msgCodeGen')"
+          v-model="form.cod"
+          :label="$t('code')"
+          dense
+          :placeholder="$t('msgCodeGen')"
         />
 
         <q-select
-            v-model="al"
-            :options="options"
-            options-dense dense
-            :label="$t('accessLevel')"
-            option-value="id"
-            option-label="text"
-            map-options
-            :model-value="al"
-            @update:model-value="fnSelect()"
+          v-model="al"
+          :options="options"
+          options-dense
+          dense
+          :label="$t('accessLevel')"
+          option-value="id"
+          option-label="text"
+          map-options
+          @update:model-value="fnSelect"
         />
 
         <!-- name -->
         <q-input
-            :model-value="form.name"
-            v-model="form.name"
-            autofocus dense
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.name"
+          autofocus
+          dense
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
         <!-- fullName-->
         <q-input
-            :model-value="form.fullName"
-            v-model="form.fullName"
-            :label="$t('fldFullName')" dense
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.fullName"
+          :label="$t('fldFullName')"
+          dense
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
         <q-select
           v-model="dmpt"
@@ -61,178 +58,153 @@
           :label="$t('dimMultiPropType')"
           option-value="id"
           option-label="text"
-          dense options-dense
+          dense
+          options-dense
           map-options
-          :model-value="dmpt"
-          @update:model-value="fnSelectDMPT()"
+          @update:model-value="fnSelectDMPT"
         />
 
         <!-- cmt -->
         <q-input
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            type="textarea" dense
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          v-model="form.cmt"
+          type="textarea"
+          dense
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            color="primary"
-            icon="save"
-            :label="$t('save')" dense
-            @click="onOKClick"
-            :disable="validName()"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          dense
+          @click="onOKClick"
+          :disable="validName()"
         />
         <q-btn
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')" dense
-            @click="onCancelClick"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          dense
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import {extend} from "quasar";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent, extend } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "lg"],
-
-  data() {
-    return {
-      form: extend({}, this.data),
-      lang: this.lg,
-      options: [],
-      al: this.data.accessLevel === 0 ? 1 : this.data.accessLevel,
-      dmpt: this.data.dimMultiPropType === 0 ? 1 : this.data.dimMultiPropType,
-      optDMPT: [],
-      optProp: [],
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelect() {
-      this.form.accessLevel = this.al.id;
-    },
+const form = reactive(extend({}, props.data));
+const lang = ref(props.lg);
+const options = ref([]);
+const al = ref(props.data.accessLevel === 0 ? 1 : props.data.accessLevel);
+const dmpt = ref(props.data.dimMultiPropType === 0 ? 1 : props.data.dimMultiPropType);
+const optDMPT = ref([]);
+const optProp = ref([]);
 
-    fnSelectDMPT() {
-      this.form.dimMultiPropType = this.dmpt.id;
-    },
-
-    validName() {
-      if (!this.form.name || !this.form.fullName ||
-      !this.form.accessLevel || !this.form.dimMultiPropType) return true;
-
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insert" : "update";
-      this.form.accessLevel =
-          typeof this.al === "object" ? this.al.id : this.al;
-
-      this.form.dimMultiPropType =
-        typeof this.dmpt === "object" ? this.dmpt.id : this.dmpt;
-
-      api
-          .post("", {
-            id: this.form.id,
-            method: "dimMultiProp/" + method,
-            params: [{rec: this.form}],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_AccessLevel"}],
-        })
-        .then((response) => {
-          this.options = response.data.result.records;
-        });
-
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_DimMultiPropType"}],
-      })
-      .then((response) => {
-        this.optDMPT = response.data.result.records;
-      });
-
-    api
-        .post("", {
-          method: "dimMultiProp/loadPropForMultiPropItem",
-          params: [],
-        })
-        .then((response) => {
-          this.optProp = response.data.result.records
-        })
-  },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const fnSelect = () => {
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+};
+
+const fnSelectDMPT = () => {
+  form.dimMultiPropType = typeof dmpt.value === "object" && dmpt.value !== null ? dmpt.value.id : dmpt.value;
+};
+
+const validName = () => {
+  if (
+    !form.name ||
+    !form.fullName ||
+    !form.accessLevel ||
+    !form.dimMultiPropType
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insert" : "update";
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+  form.dimMultiPropType = typeof dmpt.value === "object" && dmpt.value !== null ? dmpt.value.id : dmpt.value;
+
+  api
+    .post("", {
+      id: form.id,
+      method: "dimMultiProp/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      options.value = response.data.result.records;
+    });
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_DimMultiPropType" }],
+    })
+    .then((response) => {
+      optDMPT.value = response.data.result.records;
+    });
+
+  api
+    .post("", {
+      method: "dimMultiProp/loadPropForMultiPropItem",
+      params: [],
+    })
+    .then((response) => {
+      optProp.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

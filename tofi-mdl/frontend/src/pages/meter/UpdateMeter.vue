@@ -1,11 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -17,186 +17,168 @@
 
       <q-card>
         <q-tabs v-model="tab" class="text-teal">
-          <q-tab name="main" :label="$t('mainProp')"/>
-          <q-tab name="dop" :label="$t('dopProp')"/>
+          <q-tab name="main" :label="$t('mainProp')" />
+          <q-tab name="dop" :label="$t('dopProp')" />
         </q-tabs>
 
-        <q-separator/>
+        <q-separator />
 
         <q-tab-panels
-            v-model="tab"
-            animated
-            swipeable
-            vertical
-            transition-prev="jump-up"
-            transition-next="jump-up"
+          v-model="tab"
+          animated
+          swipeable
+          vertical
+          transition-prev="jump-up"
+          transition-next="jump-up"
         >
           <q-tab-panel name="main">
             <!-- name -->
             <q-input
-                autofocus
-                :dense="dense"
-                :model-value="form.name"
-                v-model="form.name"
-                @blur="onBlurName"
-                :label="$t('fldName')"
-                :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-            >
-            </q-input>
+              autofocus
+              :dense="dense"
+              v-model="form.name"
+              @blur="onBlurName"
+              :label="$t('fldName')"
+              :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+            />
             <!-- fullName-->
             <q-input
-                :dense="dense"
-                :model-value="form.fullName"
-                v-model="form.fullName"
-                :label="$t('fldFullName')"
-                :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-            >
-            </q-input>
+              :dense="dense"
+              v-model="form.fullName"
+              :label="$t('fldFullName')"
+              :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+            />
 
             <!-- cod -->
             <q-input
-                :dense="dense"
-                v-model="form.cod"
-                :model-value="form.cod"
-                :label="$t('code')"
-                :placeholder="$t('msgCodeGen')"
+              :dense="dense"
+              v-model="form.cod"
+              :label="$t('code')"
+              :placeholder="$t('msgCodeGen')"
             />
             <!-- meterStruct -->
             <q-select
-                :dense="dense"
-                v-model="meterStruct"
-                :model-value="meterStruct"
-                :options="optionsStruct"
-                :label="$t('meterStruct')"
-                option-value="id"
-                option-label="text"
-                map-options
-                @update:model-value="fnSelectDict('meterStruct')"
+              :dense="dense"
+              v-model="meterStruct"
+              :options="optionsStruct"
+              :label="$t('meterStruct')"
+              option-value="id"
+              option-label="text"
+              map-options
+              @update:model-value="fnSelectDict('meterStruct')"
             />
 
             <!-- Measure -->
             <q-select
-                :dense="dense"
-                v-model="measure"
-                :options="measures"
-                :label="$t('measure')"
-                option-value="id"
-                option-label="name"
-                map-options
-                :model-value="measure"
-                @update:model-value="fnSelMeasure"
+              :dense="dense"
+              v-model="measure"
+              :options="measures"
+              :label="$t('measure')"
+              option-value="id"
+              option-label="name"
+              map-options
+              @update:model-value="fnSelMeasure"
             />
 
             <!-- accessLevel -->
             <q-select
-                :dense="dense"
-                v-model="al"
-                :options="optionsLevel"
-                :label="$t('accessLevel')"
-                option-value="id"
-                option-label="text"
-                map-options
-                :model-value="al"
-                @update:model-value="fnSelectDict('accessLevel')"
+              :dense="dense"
+              v-model="al"
+              :options="optionsLevel"
+              :label="$t('accessLevel')"
+              option-value="id"
+              option-label="text"
+              map-options
+              @update:model-value="fnSelectDict('accessLevel')"
             />
 
             <!-- cmt -->
             <q-input
-                :dense="dense"
-                :model-value="form.cmt"
-                v-model="form.cmt"
-                type="textarea"
-                :label="$t('fldCmt')"
-            >
-            </q-input>
+              :dense="dense"
+              v-model="form.cmt"
+              type="textarea"
+              :label="$t('fldCmt')"
+            />
           </q-tab-panel>
 
           <q-tab-panel name="dop">
             <!-- meterDeterm -->
             <q-select
-                :dense="dense"
-                v-model="meterDeterm"
-                :model-value="meterDeterm"
-                :options="optionsDeterm"
-                :label="$t('meterDeterm')"
-                option-value="id"
-                option-label="text"
-                map-options
-                @update:model-value="fnSelectDict('meterDeterm')"
+              :dense="dense"
+              v-model="meterDeterm"
+              :options="optionsDeterm"
+              :label="$t('meterDeterm')"
+              option-value="id"
+              option-label="text"
+              map-options
+              @update:model-value="fnSelectDict('meterDeterm')"
             />
             <!-- distributionLaw -->
             <q-select
-                :dense="dense"
-                v-model="distributionLaw"
-                :model-value="distributionLaw"
-                :options="optionsDistribution"
-                :label="$t('distributionLaw')"
-                option-value="id"
-                option-label="text"
-                map-options
-                @update:model-value="fnSelectDict('distribution')"
+              :dense="dense"
+              v-model="distributionLaw"
+              :options="optionsDistribution"
+              :label="$t('distributionLaw')"
+              option-value="id"
+              option-label="text"
+              map-options
+              @update:model-value="fnSelectDict('distribution')"
             />
 
             <!-- meterTypeByRate -->
             <q-select
-                :dense="dense"
-                v-model="meterTypeByRate"
-                :model-value="meterTypeByRate"
-                :options="optionsByRate"
-                :label="$t('meterTypeByRate')"
-                option-value="id"
-                option-label="text"
-                map-options
-                @update:model-value="fnSelectDict('meterTypeByRate')"
+              :dense="dense"
+              v-model="meterTypeByRate"
+              :options="optionsByRate"
+              :label="$t('meterTypeByRate')"
+              option-value="id"
+              option-label="text"
+              map-options
+              @update:model-value="fnSelectDict('meterTypeByRate')"
             />
             <!-- meterTypeByPeriod -->
             <q-select
-                :dense="dense"
-                v-model="meterTypeByPeriod"
-                :model-value="meterTypeByPeriod"
-                :options="optionsByPeriod"
-                :label="$t('meterTypeByPeriod')"
-                option-value="id"
-                option-label="text"
-                map-options
-                @update:model-value="fnSelectDict('meterTypeByPeriod')"
+              :dense="dense"
+              v-model="meterTypeByPeriod"
+              :options="optionsByPeriod"
+              :label="$t('meterTypeByPeriod')"
+              option-value="id"
+              option-label="text"
+              map-options
+              @update:model-value="fnSelectDict('meterTypeByPeriod')"
             />
             <!-- meterTypeByMember -->
             <q-select
-                :dense="dense"
-                v-model="meterTypeByMember"
-                :model-value="meterTypeByMember"
-                :options="optionsByMember"
-                :label="$t('meterTypeByMember')"
-                option-value="id"
-                option-label="text"
-                map-options
-                @update:model-value="fnSelectDict('meterTypeByMember')"
+              :dense="dense"
+              v-model="meterTypeByMember"
+              :options="optionsByMember"
+              :label="$t('meterTypeByMember')"
+              option-value="id"
+              option-label="text"
+              map-options
+              @update:model-value="fnSelectDict('meterTypeByMember')"
             />
             <!-- meterBehavior -->
             <q-select
-                :dense="dense"
-                v-model="meterBehavior"
-                :model-value="meterBehavior"
-                :options="optionsBehavior"
-                :label="$t('meterBehavior')"
-                option-value="id"
-                option-label="text"
-                map-options
-                @update:model-value="fnSelectDict('meterBehavior')"
+              :dense="dense"
+              v-model="meterBehavior"
+              :options="optionsBehavior"
+              :label="$t('meterBehavior')"
+              option-value="id"
+              option-label="text"
+              map-options
+              @update:model-value="fnSelectDict('meterBehavior')"
             />
 
             <q-input
-                v-model="form.minVal"
-                :model-value="form.minVal"
-                :dense="dense"
-                :label="$t('minVal')"
+              v-model="form.minVal"
+              :dense="dense"
+              :label="$t('minVal')"
             />
             <q-input
-                v-model="form.maxVal"
-                :model-value="form.maxVal"
-                :dense="dense"
-                :label="$t('maxVal')"
+              v-model="form.maxVal"
+              :dense="dense"
+              :label="$t('maxVal')"
             />
           </q-tab-panel>
         </q-tab-panels>
@@ -204,224 +186,185 @@
 
       <q-card-actions align="right">
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validName()"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validName()"
         />
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import {ref} from "vue";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "dense"],
-
-  data() {
-    //console.log("data 2", this.data)
-
-    return {
-      form: this.data,
-
-      optionsLevel: [],
-      al: this.data.accessLevel,
-
-      optionsStruct: [],
-      meterStruct: this.data.meterStruct,
-
-      optionsDeterm: [],
-      meterDeterm: this.data.meterDeterm,
-
-      optionsDistribution: [],
-      distributionLaw: this.data.distributionLaw,
-
-      optionsByRate: [],
-      meterTypeByRate: this.data.meterTypeByRate,
-
-      optionsByPeriod: [],
-      meterTypeByPeriod: this.data.meterTypeByPeriod,
-
-      optionsByMember: [],
-      meterTypeByMember: this.data.meterTypeByMember,
-
-      optionsBehavior: [],
-      meterBehavior: this.data.meterBehavior,
-
-      measures: [],
-      measure: this.data.measure,
-
-      tab: ref("main"),
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelMeasure() {
-      //console.log("measure", this.measure.id)
-      this.form.measure = this.measure.id;
-    },
+const form = reactive({ ...props.data });
 
-    fnSelectDict(dict) {
-      if (dict === "accessLevel") this.form.accessLevel = this.al.id;
-      else if (dict === "meterStruct")
-        this.form.meterStruct = this.meterStruct.id;
-      else if (dict === "meterDeterm")
-        this.form.meterDeterm = this.meterDeterm.id;
-      else if (dict === "distribution")
-        this.form.distributionLaw = this.distributionLaw.id;
-      else if (dict === "meterTypeByRate")
-        this.form.meterTypeByRate = this.meterTypeByRate.id;
-      else if (dict === "meterTypeByPeriod")
-        this.form.meterTypeByPeriod = this.meterTypeByPeriod.id;
-      else if (dict === "meterTypeByMember")
-        this.form.meterTypeByMember = this.meterTypeByMember.id;
-      else if (dict === "meterBehavior")
-        this.form.meterBehavior = this.meterBehavior.id;
-    },
+const optionsLevel = ref([]);
+const al = ref(props.data.accessLevel);
 
-    validName() {
-      return !(
-          this.form.measure !== undefined &&
-          this.form.measure !== null &&
-          this.form.measure > 0 &&
-          this.form.name !== null &&
-          this.form.name !== undefined &&
-          this.form.name.trim().length !== 0
-      );
-    },
+const optionsStruct = ref([]);
+const meterStruct = ref(props.data.meterStruct);
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
+const optionsDeterm = ref([]);
+const meterDeterm = ref(props.data.meterDeterm);
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
+const optionsDistribution = ref([]);
+const distributionLaw = ref(props.data.distributionLaw);
 
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
+const optionsByRate = ref([]);
+const meterTypeByRate = ref(props.data.meterTypeByRate);
 
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
+const optionsByPeriod = ref([]);
+const meterTypeByPeriod = ref(props.data.meterTypeByPeriod);
 
-      //delete this.form.accessLevel_text
-      //delete this.form.attribValType_text
-      const method = this.mode === "ins" ? "insert" : "update";
+const optionsByMember = ref([]);
+const meterTypeByMember = ref(props.data.meterTypeByMember);
 
-      /*
-      this.form.accessLevel =
-        typeof this.al === "object" ? this.al.id : this.al;
-*/
+const optionsBehavior = ref([]);
+const meterBehavior = ref(props.data.meterBehavior);
 
-      api
-          .post("", {
-            method: "meter/" + method,
-            params: [{rec: this.form}],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
+const measures = ref([]);
+const measure = ref(props.data.measure);
 
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
+const tab = ref("main");
 
-    getDict(dictName) {
-      api
-          .post("", {
-            method: "dict/load",
-            params: [{dict: dictName}],
-          })
-          .then((response) => {
-            if (dictName === "FD_AccessLevel")
-              this.optionsLevel = response.data.result.records;
-            else if (dictName === "FD_MeterStruct")
-              this.optionsStruct = response.data.result.records;
-            else if (dictName === "FD_MeterDeterm")
-              this.optionsDeterm = response.data.result.records;
-            else if (dictName === "FD_DistributionLaw")
-              this.optionsDistribution = response.data.result.records;
-            else if (dictName === "FD_MeterBehavior")
-              this.optionsBehavior = response.data.result.records;
-            else if (dictName === "FD_MeterType") {
-              this.optionsByRate = response.data.result.records;
-              this.optionsByPeriod = response.data.result.records;
-              this.optionsByMember = response.data.result.records;
-            }
-          });
-    },
-  },
-  created() {
-    this.getDict("FD_AccessLevel");
-    this.getDict("FD_MeterStruct");
-    this.getDict("FD_MeterDeterm");
-    this.getDict("FD_DistributionLaw");
-    this.getDict("FD_MeterBehavior");
-    this.getDict("FD_MeterType");
-
-    api
-        .post("", {
-          method: "measure/loadBase",
-          params: [{}],
-        })
-        .then((response) => {
-          //this.measures = pack(response.data.result.records)
-          this.measures = response.data.result.records;
-        });
-
-    return {};
-  },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const fnSelMeasure = () => {
+  form.measure = typeof measure.value === "object" && measure.value !== null ? measure.value.id : measure.value;
+};
+
+const fnSelectDict = (dict) => {
+  if (dict === "accessLevel")
+    form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+  else if (dict === "meterStruct")
+    form.meterStruct = typeof meterStruct.value === "object" && meterStruct.value !== null ? meterStruct.value.id : meterStruct.value;
+  else if (dict === "meterDeterm")
+    form.meterDeterm = typeof meterDeterm.value === "object" && meterDeterm.value !== null ? meterDeterm.value.id : meterDeterm.value;
+  else if (dict === "distribution")
+    form.distributionLaw = typeof distributionLaw.value === "object" && distributionLaw.value !== null ? distributionLaw.value.id : distributionLaw.value;
+  else if (dict === "meterTypeByRate")
+    form.meterTypeByRate = typeof meterTypeByRate.value === "object" && meterTypeByRate.value !== null ? meterTypeByRate.value.id : meterTypeByRate.value;
+  else if (dict === "meterTypeByPeriod")
+    form.meterTypeByPeriod = typeof meterTypeByPeriod.value === "object" && meterTypeByPeriod.value !== null ? meterTypeByPeriod.value.id : meterTypeByPeriod.value;
+  else if (dict === "meterTypeByMember")
+    form.meterTypeByMember = typeof meterTypeByMember.value === "object" && meterTypeByMember.value !== null ? meterTypeByMember.value.id : meterTypeByMember.value;
+  else if (dict === "meterBehavior")
+    form.meterBehavior = typeof meterBehavior.value === "object" && meterBehavior.value !== null ? meterBehavior.value.id : meterBehavior.value;
+};
+
+const validName = () => {
+  const currentMeasure = typeof measure.value === "object" && measure.value !== null ? measure.value.id : measure.value;
+  return !(
+    currentMeasure !== undefined &&
+    currentMeasure !== null &&
+    currentMeasure > 0 &&
+    form.name !== null &&
+    form.name !== undefined &&
+    form.name.trim().length !== 0
+  );
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insert" : "update";
+
+  api
+    .post("", {
+      method: "meter/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+const getDict = (dictName) => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: dictName }],
+    })
+    .then((response) => {
+      if (dictName === "FD_AccessLevel")
+        optionsLevel.value = response.data.result.records;
+      else if (dictName === "FD_MeterStruct")
+        optionsStruct.value = response.data.result.records;
+      else if (dictName === "FD_MeterDeterm")
+        optionsDeterm.value = response.data.result.records;
+      else if (dictName === "FD_DistributionLaw")
+        optionsDistribution.value = response.data.result.records;
+      else if (dictName === "FD_MeterBehavior")
+        optionsBehavior.value = response.data.result.records;
+      else if (dictName === "FD_MeterType") {
+        optionsByRate.value = response.data.result.records;
+        optionsByPeriod.value = response.data.result.records;
+        optionsByMember.value = response.data.result.records;
+      }
+    });
+};
+
+onMounted(() => {
+  getDict("FD_AccessLevel");
+  getDict("FD_MeterStruct");
+  getDict("FD_MeterDeterm");
+  getDict("FD_DistributionLaw");
+  getDict("FD_MeterBehavior");
+  getDict("FD_MeterType");
+
+  api
+    .post("", {
+      method: "measure/loadBase",
+      params: [{}],
+    })
+    .then((response) => {
+      measures.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

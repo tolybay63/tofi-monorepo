@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -17,18 +17,19 @@
       </q-bar>
 
       <q-card-section>
-
         <!-- CubeSDimType -->
         <q-select
           autofocus
           v-model="form.cubeSDimType"
-          :model-value="form.cubeSDimType"
           :options="optCDT"
           :label="$t('cubeSDimType')"
           option-value="id"
           option-label="text"
-          map-options dense options-dense
-          class="q-mb-md" :disable="mode==='upd'"
+          map-options
+          dense
+          options-dense
+          class="q-mb-md"
+          :disable="mode === 'upd'"
           @update:model-value="fnSelectCDT"
         />
 
@@ -37,40 +38,61 @@
           <q-select
             autofocus
             v-model="form.dimPeriod"
-            :model-value="form.dimPeriod"
             :options="optDimPeriod"
             :label="$t('dimPeriod')"
             option-value="id"
             option-label="name"
-            map-options dense options-dense
+            map-options
+            dense
+            options-dense
             class="q-mb-md"
             @update:model-value="fnSelectPeriod"
           />
         </div>
 
         <!-- DimPropType -->
-        <div v-if="form.cubeSDimType===2">
+        <div v-if="form.cubeSDimType === 2">
           <q-select
             v-model="dpt"
-            :model-value="dpt"
             :options="optDPT"
             :label="$t('dimPropType')"
             option-value="id"
             option-label="text"
-            map-options dense options-dense
-            class="q-mb-md" :disable="mode==='upd'"
+            map-options
+            dense
+            options-dense
+            class="q-mb-md"
+            :disable="mode === 'upd'"
             @update:model-value="fnSelectDPT"
           />
         </div>
 
-
         <div v-if="form.cubeSDimType === dimTypeProp">
+
+          <TreeSelect
+            :disabled="mode==='upd'"
+            v-model="form['dimProp']"
+            :label="$t('dimProp')"
+            :options="optDimProp"
+            class="q-ma-md"
+            node-key="key"
+            @select="fnSelectDimProp"
+          />
+
+<!--
           <q-item-label
-            :class="form.dimProp===0 ? 'text-red-10' : 'text-grey-7'"
-            style="font-size: 0.8em; margin-top: 10px" class="row"
-          >{{ $t("dimProp") }}
-            <q-space/>
-            <q-icon name="error" v-if="form.dimProp===0" color="red-10" size="24px"></q-icon>
+            :class="form.dimProp === 0 ? 'text-red-10' : 'text-grey-7'"
+            style="font-size: 0.8em; margin-top: 10px"
+            class="row"
+          >
+            {{ $t("dimProp") }}
+            <q-space />
+            <q-icon
+              name="error"
+              v-if="form.dimProp === 0"
+              color="red-10"
+              size="24px"
+            />
           </q-item-label>
 
           <treeselect
@@ -81,23 +103,50 @@
             :noResultsText="$t('noResult')"
             :noChildrenText="$t('noChilds')"
             :noOptionsText="$t('noResult')"
-            defaultExpandLevel="1"
-            autofocus :disabled="mode==='upd'"
+            :default-expand-level="1"
+            autofocus
+            :disabled="mode === 'upd'"
             @select="fnSelectDimProp"
           />
 
-          <q-item-label v-if="form.dimProp===0" class="text-red-10" style="font-size: 0.8em">
+          <q-item-label
+            v-if="form.dimProp === 0"
+            class="text-red-10"
+            style="font-size: 0.8em"
+          >
             {{ $t("chooseDimProp") }}
           </q-item-label>
+-->
+
         </div>
 
         <div v-if="form.cubeSDimType === dimTypeObj">
+
+          <TreeSelect
+            :disabled="mode==='upd'"
+            v-model="form['dimObj']"
+            :label="$t('dimObj')"
+            :options="optDimObj"
+            class="q-ma-md"
+            node-key="key"
+            @select="fnSelectDimObj"
+          />
+
+
+<!--
           <q-item-label
-            :class="form.dimObj===0 ? 'text-red-10' : 'text-grey-7'"
-            style="font-size: 0.8em; margin-top: 10px" class="row"
-          >{{ $t("dimObj") }}
-            <q-space/>
-            <q-icon name="error" v-if="form.dimObj===0" color="red-10" size="24px"></q-icon>
+            :class="form.dimObj === 0 ? 'text-red-10' : 'text-grey-7'"
+            style="font-size: 0.8em; margin-top: 10px"
+            class="row"
+          >
+            {{ $t("dimObj") }}
+            <q-space />
+            <q-icon
+              name="error"
+              v-if="form.dimObj === 0"
+              color="red-10"
+              size="24px"
+            />
           </q-item-label>
 
           <treeselect
@@ -108,34 +157,37 @@
             :noResultsText="$t('noResult')"
             :noChildrenText="$t('noChilds')"
             :noOptionsText="$t('noResult')"
-            defaultExpandLevel="1"
-            autofocus :disabled="mode==='upd'"
+            :default-expand-level="1"
+            autofocus
+            :disabled="mode === 'upd'"
             @select="fnSelectDimObj"
           />
-
-          <q-item-label v-if="form.dimObj===0" class="text-red-10" style="font-size: 0.8em">
+          <q-item-label
+            v-if="form.dimObj === 0"
+            class="text-red-10"
+            style="font-size: 0.8em"
+          >
             {{ $t("chooseDimObj") }}
           </q-item-label>
-        </div>
+-->
 
+
+        </div>
 
         <!-- name -->
         <q-input
-          :model-value="form.name"
           v-model="form.name"
           dense
           :label="$t('fldName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
 
         <q-input
           v-model="form.dOrg"
-          :model-value="form.dOrg"
           :label="$t('dOrg')"
-          dense type="date"
+          dense
+          type="date"
         />
-
       </q-card-section>
 
       <q-card-actions align="right">
@@ -144,13 +196,14 @@
           icon="save"
           :label="$t('save')"
           @click="onOKClick"
-          dense :disable="validSave()"
+          dense
+          :disable="validSave()"
         />
         <q-btn
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
           dense
         />
       </q-card-actions>
@@ -158,236 +211,194 @@
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
-import allConsts from "pages/all-consts.js";
-import treeselect from "vue3-treeselect";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess, pack } from "@/utils/jsutils";
+import allConsts from "@/pages/all-consts.js";
 
-export default {
-  components: {treeselect},
-  props: ["data", "mode", "typeProp"],
+import TreeSelect from '@/components/TreeSelect.vue'
 
-  data() {
-    return {
-      form: this.data,
-      optCDT: [],
-      optDimPeriod: [],
-      optDimProp: [],
-      optDimObj: [],
-      dpt: this.data.dimPropType ? this.data.dimPropType : undefined,
-      optDPT: [],
-      dimTypePeriod: allConsts.FD_CubeSDimType.period,
-      dimTypeProp: allConsts.FD_CubeSDimType.prop,
-      dimTypeObj: allConsts.FD_CubeSDimType.obj,
-      loading: false,
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  typeProp: [Number, String],
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelectDPT() {
-      console.log("fnSelectDPT", this.dpt);
-      this.form.dimPropType = this.dpt.id
-      this.loadDimPropForSelect(this.form.cubeS, this.dpt.id, this.mode)
-    },
+const form = reactive({ ...props.data });
+const optCDT = ref([]);
+const optDimPeriod = ref([]);
+const optDimProp = ref([]);
+const optDimObj = ref([]);
+const dpt = ref(props.data.dimPropType ? props.data.dimPropType : undefined);
+const optDPT = ref([]);
+const loading = ref(false);
 
-    fnSelectCDT(v) {
-      console.log("fnSelectCDT", v);
-      this.form.cubeSDimType = v.id;
-    },
+const dimTypePeriod = allConsts.FD_CubeSDimType.period;
+const dimTypeProp = allConsts.FD_CubeSDimType.prop;
+const dimTypeObj = allConsts.FD_CubeSDimType.obj;
 
-    fnSelectPeriod(v) {
-      console.log("fnSelectPeriod", v);
-      this.form.dimPeriod = v.id;
-      this.form.name = v.name;
-    },
+const loadDimPropForSelect = (cubeS, dimPropType, modeVal) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "cubes/loadDimPropForSelect",
+      params: [cubeS, dimPropType, modeVal],
+    })
+    .then((response) => {
+      optDimProp.value = pack(response.data.result.records, "id");
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
 
-    fnSelectDimProp(v) {
-      this.form.name = v.name;
-    },
+const fnSelectDPT = (v) => {
+  dpt.value = v;
+  form.dimPropType = v?.id || v;
+  loadDimPropForSelect(form.cubeS, form.dimPropType, props.mode);
+};
 
-    normalizerDimProp(node) {
-      return {
-        id: node.dimProp,
-        label: node.name,
-      };
-    },
+const fnSelectCDT = (v) => {
+  form.cubeSDimType = v?.id || v;
+};
 
-    fnSelectDimObj(v) {
-      this.form.name = v.name;
-    },
+const fnSelectPeriod = (v) => {
+  form.dimPeriod = v?.id || v;
+  form.name = v?.name;
+};
 
-    normalizerDimObj(node) {
-      return {
-        id: node.dimObj,
-        label: node.name,
-      };
-    },
+const fnSelectDimProp = (v) => {
+  form.name = v.name;
+};
 
-    validSave() {
-      return this.form.name === "" || !this.form.cubeSDimType
-        || (this.form.cubeSDimType === this.dimTypeProp && !this.form.dimProp)
-        || (this.form.cubeSDimType === this.dimTypeObj && this.form.dimObj);
-    },
+const normalizerDimProp = (node) => {
+  return {
+    id: node.dimProp,
+    label: node.name,
+  };
+};
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
+const fnSelectDimObj = (v) => {
+  form.name = v.name;
+};
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
+const normalizerDimObj = (node) => {
+  return {
+    id: node.dimObj,
+    label: node.name,
+  };
+};
 
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
+const validSave = () => {
+  return (
+    form.name === "" ||
+    !form.cubeSDimType ||
+    (form.cubeSDimType === dimTypeProp && !form.dimProp) ||
+    (form.cubeSDimType === dimTypeObj && form.dimObj)
+  );
+};
 
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
+const onOKClick = () => {
+  let err = false;
+  form.mode = props.mode;
+  api
+    .post("", {
+      method: "cubes/saveCubeDim",
+      params: [form],
+    })
+    .then((response) => {
+      onDialogOK(response.data.result.records[0]);
+      notifySuccess(proxy?.$t("success"));
+    })
+    .catch((error) => {
+      err = true;
+      notifyError(proxy?.$t(error.response.data.error.message));
+    })
+    .finally(() => {
+      // onDialogOK implicitly handles closing, but keeping consistent check if needed
+    });
+};
 
-      let err = false
-      this.form.mode = this.mode
-      //const method = this.mode === "ins" ? "insertCubeDim" : "updateCubeDim";
-      /*      this.form.cubeSDimType =
-              typeof this.cdt === "object" ? this.cdt.id : this.cdt;*/
-      api
-        .post("", {
-          method: "cubes/saveCubeDim",
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-          })
-        .catch((error) => {
-          err = true
-          notifyError(this.$t(error.response.data.error.message))
-        })
-        .finally(() => {
-          if (!err) this.hide();
-        });
-    },
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_CubeSDimType" }],
+    })
+    .then((response) => {
+      optCDT.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-
-    loadDimPropForSelect(cubeS, dimPropType, mode) {
-      this.loading = true
-      api
-        .post("", {
-          method: "cubes/loadDimPropForSelect",
-          params: [cubeS, dimPropType, mode],
-        })
-        .then((response) => {
-          this.optDimProp = pack(response.data.result.records, "id");
-          console.info("this.optDimProp", this.optDimProp)
-        })
-        .finally(() => {
-          this.loading = false
-        })
-      //
-
-    }
-  },
-  created() {
-
-    this.loading = true
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_CubeSDimType"}],
-      })
-      .then((response) => {
-        this.optCDT = response.data.result.records;
-      })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_DimPropType"}],
-      })
-      .then((response) => {
-        let notProp1 = 0
-        let notProp2 = 0
-        if (this.typeProp===1) {
-          notProp1 = 3
-          notProp2 = 4
-        }
-        if (this.typeProp===3) {
-          notProp1 = 1
-          notProp2 = 0
-        }
-        if (this.typeProp===4) {
-          notProp1 = 1
-          notProp2 = 0
-        }
-
-        this.optDPT = response.data.result.records.filter(it=> {
-          return (it["id"] !== notProp1 && it["id"] !== notProp2)
-        });
-        //console.info("this.typeProp", this.typeProp)
-        //console.info("notProp1, notProp2", notProp1, notProp2)
-        //console.info("this.optDPT", this.optDPT)
-      })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-
-    this.loading = true
-    api
-      .post("", {
-        method: "cubes/loadDimPeriod",
-        params: [],
-      })
-      .then((response) => {
-        this.optDimPeriod = response.data.result.records;
-      })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-    this.loading = true
-    api
-      .post("", {
-        method: "cubes/loadDimObj",
-        params: [],
-      })
-      .then((response) => {
-        this.optDimObj = pack(response.data.result.records, "id");
-      })
-      .finally(() => {
-        this.loading = false
-      })
-    //
-
-      //console.log("create form", this.form);
-      if (this.form.dimPropType > 0) {
-        this.loadDimPropForSelect(this.form.cubeS, this.form.dimPropType, this.mode)
+  loading.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_DimPropType" }],
+    })
+    .then((response) => {
+      let notProp1 = 0;
+      let notProp2 = 0;
+      if (props.typeProp === 1) {
+        notProp1 = 3;
+        notProp2 = 4;
+      }
+      if (props.typeProp === 3 || props.typeProp === 4) {
+        notProp1 = 1;
+        notProp2 = 0;
       }
 
-  },
-};
+      optDPT.value = response.data.result.records.filter((it) => {
+        return it["id"] !== notProp1 && it["id"] !== notProp2;
+      });
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "cubes/loadDimPeriod",
+      params: [],
+    })
+    .then((response) => {
+      optDimPeriod.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "cubes/loadDimObj",
+      params: [],
+    })
+    .then((response) => {
+      optDimObj.value = pack(response.data.result.records, "id");
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+
+  if (form.dimPropType > 0) {
+    loadDimPropForSelect(form.cubeS, form.dimPropType, props.mode);
+  }
+});
 </script>
+
+<style scoped></style>

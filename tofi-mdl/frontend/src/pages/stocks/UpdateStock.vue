@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -20,7 +20,6 @@
         <!-- code -->
         <q-input
           v-model="form.cod"
-          :model-value="form.cod"
           :label="$t('code')"
           label-color="blue"
           :placeholder="$t('msgCodeGen')"
@@ -31,7 +30,6 @@
         <q-input
           class="q-mt-md"
           dense autofocus
-          :model-value="form.name"
           v-model="form.name"
           @blur="onBlurName"
           :label="$t('fldName')"
@@ -43,7 +41,6 @@
         <q-input
           class="q-mt-md"
           dense
-          :model-value="form.fullName"
           v-model="form.fullName"
           :label="$t('fldFullName')"
           label-color="blue"
@@ -56,13 +53,12 @@
           dense
           options-dense
           v-model="ssType"
-          :model-value="ssType"
           :options="optSST"
           :label="$t('stockType')"
           option-value="id"
           option-label="text"
           map-options
-          @update:model-value="fnSelectSST()"
+          @update:model-value="fnSelectSST"
           style="margin-bottom: 5px"
         />
 
@@ -70,13 +66,11 @@
         <q-input
           class="q-mt-md"
           dense
-          :model-value="form.cmt"
           v-model="form.cmt"
           type="textarea"
           :label="$t('fldCmt')"
           label-color="blue"
         />
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
@@ -92,7 +86,7 @@
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
           dense
         />
       </q-card-actions>
@@ -100,125 +94,91 @@
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  name: "UpdateStock",
-  props: ["data", "mode"],
-
-  data() {
-    return {
-      form: this.data,
-      ssType: 1,
-      optSST: [],
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-          !this.form.fullName ||
-          (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelectSST() {
-      //console.log("select", this.al)
-      this.form.sourceStockType = this.ssType.id;
-    },
+const form = reactive({ ...props.data });
+const ssType = ref(props.data.sourceStockType || 1);
+const optSST = ref([]);
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog["show"]();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog["hide"]();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      let err = false;
-      const method = this.mode === "ins" ? "insert" : "update";
-      this.form.sourceStockType = typeof this.ssType === "object" ? this.ssType.id : this.ssType;
-
-      api
-        .post('', {
-          id: this.form.id,
-          method: "stock/" + method,
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-            err = false;
-          },
-          (error) => {
-            err = true;
-            let msg = error.response.data.error.message;
-            notifyError(msg);
-          }
-        )
-        .finally(() => {
-          if (!err) this.hide();
-        });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-
-    validOk() {
-      return (
-        this.form.name === undefined ||
-        this.form.name === null ||
-        this.form.name === "" ||
-        this.form.fullName === undefined ||
-        this.form.fullName === null ||
-        this.form.fullName === ""
-      );
-    },
-  },
-
-  created() {
-    api
-      .post('', {
-        method: "dict/load",
-        params: [{dict: "FD_SourceStockType"}],
-      })
-      .then((response) => {
-        this.optSST = response.data.result.records;
-      });
-    //
-  },
-
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const fnSelectSST = () => {
+  form.sourceStockType = typeof ssType.value === "object" && ssType.value !== null ? ssType.value.id : ssType.value;
+};
+
+const onOKClick = () => {
+  let err = false;
+  const method = props.mode === "ins" ? "insert" : "update";
+  form.sourceStockType = typeof ssType.value === "object" && ssType.value !== null ? ssType.value.id : ssType.value;
+
+  api
+    .post("", {
+      id: form.id,
+      method: "stock/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+        err = false;
+      },
+      (error) => {
+        err = true;
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+const validOk = () => {
+  return (
+    form.name === undefined ||
+    form.name === null ||
+    form.name === "" ||
+    form.fullName === undefined ||
+    form.fullName === null ||
+    form.fullName === ""
+  );
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_SourceStockType" }],
+    })
+    .then((response) => {
+      optSST.value = response.data.result.records;
+    });
+});
 </script>
 
 <style scoped></style>

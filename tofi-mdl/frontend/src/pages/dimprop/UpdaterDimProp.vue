@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -19,32 +19,46 @@
         <!-- cod -->
         <q-input
           v-model="form.cod"
-          :model-value="form.cod"
-          :label="$t('code')" dense
+          :label="$t('code')"
+          dense
           :placeholder="$t('msgCodeGen')"
         />
 
         <!-- dimPropType -->
         <q-select
-          :disable="mode==='upd'"
+          :disable="mode === 'upd'"
           v-model="dpt"
-          :model-value="dpt"
           :options="optDPT"
           :label="$t('dimPropType')"
           option-value="id"
           option-label="text"
-          map-options dense options-dense
+          map-options
+          dense
+          options-dense
           @update:model-value="fnSelectDimPropType"
         />
 
         <!-- dimMultiProp -->
-        <div v-if="form.dimPropType===consDimPropTypeDMP">
+        <div v-if="form.dimPropType === consDimPropTypeDMP">
+
+          <TreeSelect
+            v-model="form.dimMultiProp"
+            :label="$t('dimMultiProp')"
+            :options="optDimMP"
+            class="q-ma-md"
+            node-key="key"
+            @select="fnSelectDimMP"
+          />
+
+<!--
           <q-item-label
-            :class="form.dimMultiProp===0 ? 'text-red-10' : 'text-grey-7'"
-            style="font-size: 0.8em; margin-top: 10px" class="row">
+            :class="form.dimMultiProp === 0 ? 'text-red-10' : 'text-grey-7'"
+            style="font-size: 0.8em; margin-top: 10px"
+            class="row"
+          >
             {{ $t("dimMultiProp") }}
-            <q-space></q-space>
-            <q-icon name="error" v-if="form.dimMultiProp===0" color="red-10" size="24px"></q-icon>
+            <q-space />
+            <q-icon name="error" v-if="form.dimMultiProp === 0" color="red-10" size="24px" />
           </q-item-label>
 
           <treeselect
@@ -60,244 +74,205 @@
             @select="fnSelectDimMP"
           />
 
-          <q-item-label v-if="form.dimMultiProp===0"
-                        class="text-red-10" style="font-size: 0.8em"
-          >
-            {{ $t('chooseDimMultiProp') }}
+          <q-item-label v-if="form.dimMultiProp === 0" class="text-red-10" style="font-size: 0.8em">
+            {{ $t("chooseDimMultiProp") }}
           </q-item-label>
+-->
         </div>
 
         <!-- name -->
         <q-input
-          :model-value="form.name"
           v-model="form.name"
-          @blur="onBlurName" dense
+          @blur="onBlurName"
+          dense
           :label="$t('fldName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
         <!-- fullName-->
         <q-input
-          :model-value="form.fullName"
           v-model="form.fullName"
-          :label="$t('fldFullName')" dense
+          :label="$t('fldFullName')"
+          dense
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
 
         <!-- accessLevel -->
         <q-select
           v-model="al"
-          :model-value="al"
           :options="optAL"
           :label="$t('accessLevel')"
           option-value="id"
           option-label="text"
-          map-options dense options-dense
-          @update:model-value="fnSelectAL()"
+          map-options
+          dense
+          options-dense
+          @update:model-value="fnSelectAL"
         />
 
         <!-- cmt -->
         <q-input
-          :model-value="form.cmt"
           v-model="form.cmt"
-          type="textarea" dense
+          type="textarea"
+          dense
           :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
           color="primary"
-          icon="save" dense
+          icon="save"
+          dense
           :label="$t('save')"
           @click="onOKClick"
           :disable="validSave()"
         />
         <q-btn
           color="primary"
-          icon="cancel" dense
+          icon="cancel"
+          dense
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
-import treeselect from "vue3-treeselect";
-import allConsts from "pages/all-consts.js";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess, pack } from "@/utils/jsutils";
+import allConsts from "@/pages/all-consts.js";
+import TreeSelect from '@/components/TreeSelect.vue'
 
-export default {
-  components: {treeselect},
-  props: ["data", "mode", "lg"],
-
-  data() {
-    return {
-      loading: false,
-      form: this.data,
-      lang: this.lg,
-      optAL: [],
-      al: this.data.accessLevel,
-      optDPT: [],
-      dpt: this.data.dimPropType,
-      optDimMP: [],
-      consDimPropTypeDMP: allConsts.FD_DimPropType.dimMultiProp,
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelectDimPropType(v) {
-      console.log("fnSelectDimPropType", v);
-      this.form.dimPropType = v.id
-    },
+const loading = ref(false);
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
 
-    fnSelectDimMP(v) {
-      console.log("fnSelectDimMP", v);
-      this.form.dimMultiProp = v.id
-    },
+const optAL = ref([]);
+const al = ref(props.data.accessLevel);
 
-    normalizerDimMP(node) {
-      return {
-        id: node.dimMultiProp,
-        label: node.name,
-      };
-    },
+const optDPT = ref([]);
+const dpt = ref(props.data.dimPropType);
 
+const optDimMP = ref([]);
+const consDimPropTypeDMP = allConsts.FD_DimPropType.dimMultiProp;
 
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-          !this.form.fullName ||
-          (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
-
-    fnSelectAL() {
-      //console.log("select", this.al)
-      this.form.accessLevel = this.al.id;
-    },
-
-    validSave() {
-      if (!this.form.name) return true;
-      else if (this.form.name.trim().length === 0) return true;
-      return false;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insert" : "update";
-      this.form.accessLevel =
-        typeof this.al === "object" ? this.al.id : this.al;
-
-      this.form.dimPropType =
-        typeof this.dpt === "object" ? this.dpt.id : this.dpt;
-
-      api
-        .post("", {
-          id: this.form.id,
-          method: "dimprop/" + method,
-          params: [{rec: this.form}],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            notifyError(error.response.data.error.message);
-          }
-        )
-        .finally(() => {
-          this.hide();
-        });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-
-  created() {
-    console.info("UpdaterDimProp");
-    this.loading = true;
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_AccessLevel"}],
-      })
-      .then((response) => {
-        this.optAL = response.data.result.records;
-      })
-      .finally(() => {
-        this.loading = false;
-      });
-    //
-    this.loading = true;
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_DimPropType"}],
-      })
-      .then((response) => {
-        this.optDPT = response.data.result.records;
-      })
-      .finally(() => {
-        this.loading = false;
-      });
-    //
-    this.loading = true;
-    api
-      .post("", {
-        method: "dimprop/loadAllDimMultiPropForSelect",
-        params: [],
-      })
-      .then((response) => {
-        console.info("optDimMP", response.data.result.records)
-        this.optDimMP = pack(response.data.result.records, "id");
-      })
-      .finally(() => {
-        this.loading = false;
-      });
-  },
+const fnSelectDimPropType = (v) => {
+  form.dimPropType = typeof v === "object" && v !== null ? v.id : v;
 };
+
+const fnSelectDimMP = (v) => {
+  form.dimMultiProp = typeof v === "object" && v !== null ? v.id : v;
+};
+
+const normalizerDimMP = (node) => {
+  return {
+    id: node.dimMultiProp,
+    label: node.name,
+  };
+};
+
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
+};
+
+const fnSelectAL = () => {
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+};
+
+const validSave = () => {
+  if (!form.name) return true;
+  if (form.name.trim().length === 0) return true;
+  return false;
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insert" : "update";
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+  form.dimPropType = typeof dpt.value === "object" && dpt.value !== null ? dpt.value.id : dpt.value;
+
+  api
+    .post("", {
+      id: form.id,
+      method: "dimprop/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success"));
+      },
+      (error) => {
+        notifyError(error.response?.data?.error?.message || error.message);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      optAL.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_DimPropType" }],
+    })
+    .then((response) => {
+      optDPT.value = response.data.result.records;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "dimprop/loadAllDimMultiPropForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optDimMP.value = pack(response.data.result.records, "id");
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+});
 </script>
+
+<style scoped></style>

@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -33,9 +33,8 @@
           option-value="id"
           option-label="text"
           map-options
-          :model-value="pt"
           :disable="mode === 'upd'"
-          @update:model-value="fnSelectPT()"
+          @update:model-value="fnSelectPT"
         />
 
         <!-- periodNameTml -->
@@ -48,8 +47,7 @@
           option-value="id"
           option-label="text"
           map-options
-          :model-value="tml"
-          @update:model-value="fnSelectPeriodNameTml()"
+          @update:model-value="fnSelectPeriodNameTml"
         />
 
         <!-- periodIncludeTag -->
@@ -63,13 +61,12 @@
           option-value="id"
           option-label="text"
           map-options
-          :model-value="pit"
-          @update:model-value="fnSelectPeriodIncludeTag()"
+          @update:model-value="fnSelectPeriodIncludeTag"
         />
 
         <q-item-label
           style="color: cornflowerblue; text-align: center; padding-top: 30px"
-          >{{ $t("params") }}</q-item-label
+        >{{ $t("params") }}</q-item-label
         >
 
         <!-- dbeg-->
@@ -78,12 +75,10 @@
           type="date"
           stack-label
           clearable
-          :model-value="form.dbeg"
           v-model="form.dbeg"
           :label="$t('fldDbeg')"
           @update:model-value="fnSelectDbeg"
-        >
-        </q-input>
+        />
 
         <!-- countPeriod-->
         <q-input
@@ -93,7 +88,6 @@
           stack-label
           clearable
           v-model="form.countPeriod"
-          :model-value="form.countPeriod"
           :rules="[
             (val) =>
               val == null ||
@@ -102,8 +96,7 @@
           ]"
           :label="$t('countPeriod')"
           @update:model-value="fnUpdPC"
-        >
-        </q-input>
+        />
 
         <!-- dend-->
         <q-input
@@ -112,27 +105,21 @@
           type="date"
           clearable
           stack-label
-          :model-value="form.dend"
           v-model="form.dend"
           :label="$t('fldDend')"
           @update:model-value="fnSelectDend"
-        >
-        </q-input>
+        />
 
         <q-input
           class="q-mt-md"
           :dense="dense"
           type="number"
           stack-label
-          :model-value="form.lagCurrentDate"
           v-model="form.lagCurrentDate"
           clearable
           :label="$t('lagCurrentDate')"
           @update:model-value="fnUpdLCP"
-        >
-        </q-input>
-
-        <!---->
+        />
       </q-card-section>
 
       <q-card-actions align="right">
@@ -149,302 +136,266 @@
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {ref} from "vue";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import allConsts from "pages/all-consts";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
+import allConsts from "@/pages/all-consts";
 
-export default {
-  props: [
-    "data",
-    "mode",
-    "isChild",
-    "parentName",
-    "parentPeriodType",
-    "lg",
-    "dense",
-  ],
-
-  data() {
-    //console.info("data", this.data)
-    return {
-      form: this.data,
-      lang: this.lg,
-      visible: ref(false),
-
-      optPT: [],
-      pt: this.data.periodType,
-
-      optTml: [],
-      tml: this.data.periodNameTml,
-
-      optPIT: [],
-      pit: this.data.periodIncludeTag,
-      //
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  isChild: Boolean,
+  parentName: String,
+  parentPeriodType: [Number, String],
+  lg: String,
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    fnUpdPC() {
-      this.form.dbeg = null;
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnUpdLCP() {
-      this.form.dend = null;
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
+const visible = ref(false);
 
-    fnSelectDbeg(value) {
-      this.visible = ref(true);
-      api
-        .post("", {
-          method: "dimperiod/getPeriodBeg",
-          params: [value, this.form.periodType],
-        })
-        .then(
-          (response) => {
-            this.form.dbeg = response.data.result;
-            if (this.form.dbeg.startsWith("0000")) {
-              this.form.countPeriod = 1;
-              this.form.dbeg = null;
-            } else this.form.countPeriod = null;
-          },
-          (error) => {
-            let msg = error.message;
-            if (error.response.data) msg = error.response.data.error.message;
-            notifyError(msg);
-          }
-        )
-        .finally(() => {
-          this.visible = ref(false);
-        });
-    },
+const optPT = ref([]);
+const pt = ref(props.data.periodType);
 
-    fnSelectDend(value) {
-      this.visible = ref(true);
-      api
-        .post("", {
-          method: "dimperiod/getPeriodEnd",
-          params: [value, this.form.periodType],
-        })
-        .then(
-          (response) => {
-            this.form.dend = response.data.result;
-            if (this.form.dend.startsWith("0000")) {
-              this.form.lagCurrentDate = 0;
-              this.form.dend = null;
-            } else this.form.lagCurrentDate = null;
-          },
-          (error) => {
-            let msg = error.message;
-            if (error.response.data) msg = error.response.data.error.message;
-            notifyError(msg);
-          }
-        )
-        .finally(() => {
-          this.visible = ref(false);
-        });
-    },
+const optTml = ref([]);
+const tml = ref(props.data.periodNameTml);
 
-    fnSelectPT() {
-      this.form.dbeg = null;
-      this.form.dend = null;
-      this.form.periodType = this.pt.id;
-    },
+const optPIT = ref([]);
+const pit = ref(props.data.periodIncludeTag);
 
-    fnSelectPeriodNameTml() {
-      this.form.periodNameTml = this.tml.id;
-    },
-
-    fnSelectPeriodIncludeTag() {
-      this.form.periodIncludeTag = this.pit.id;
-    },
-
-    validSave() {
-      if (!this.isChild)
-        return (
-          (this.form.countPeriod && this.form.countPeriod < 1) ||
-          !(
-            (this.form.dbeg == null && this.form.countPeriod != null) ||
-            (this.form.dbeg != null && this.form.countPeriod == null)
-          ) ||
-          !(
-            (this.form.dend == null && this.form.lagCurrentDate != null) ||
-            (this.form.dend != null && this.form.lagCurrentDate == null)
-          )
-        );
-      else return this.form.countPeriod && this.form.countPeriod < 1;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      this.visible = ref(true);
-      let err = false;
-
-      const method = this.mode === "ins" ? "insertDPI" : "updateDPI";
-      this.form.accessLevel =
-        typeof this.al === "object" ? this.al.id : this.al;
-
-      this.form.periodNameTml =
-        typeof this.tml === "object" ? this.tml.id : this.tml;
-      this.form.periodIncludeTag =
-        typeof this.pit === "object" ? this.pit.id : this.pit;
-
-      api
-        .post("", {
-          method: "dimperiod/" + method,
-          params: [{ rec: this.form }],
-        })
-        .then(
-          (response) => {
-            err = false;
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            err = true;
-            let msg = error.message;
-            if (error.response.data) msg = error.response.data.error.message;
-            notifyError(msg);
-          }
-        )
-        .finally(() => {
-          this.visible = ref(false);
-          if (!err) this.hide();
-        });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    this.visible = ref(true);
-
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{ dict: "FD_PeriodType" }],
-      })
-      .then((response) => {
-        this.optPT = response.data.result.records;
-        if (this.isChild) {
-          if (this.parentPeriodType === allConsts.FD_PeriodType.year) {
-            this.optPT = this.optPT.filter((it) => {
-              return [
-                allConsts.FD_PeriodType.halfyear,
-                allConsts.FD_PeriodType.quarter,
-                allConsts.FD_PeriodType.month,
-                allConsts.FD_PeriodType.decade,
-                allConsts.FD_PeriodType.week,
-                allConsts.FD_PeriodType.day,
-              ].includes(it.id);
-            });
-          } else if (
-            this.parentPeriodType === allConsts.FD_PeriodType.halfyear
-          ) {
-            this.optPT = this.optPT.filter((it) => {
-              return [
-                allConsts.FD_PeriodType.quarter,
-                allConsts.FD_PeriodType.month,
-                allConsts.FD_PeriodType.decade,
-                allConsts.FD_PeriodType.week,
-                allConsts.FD_PeriodType.day,
-              ].includes(it.id);
-            });
-          } else if (
-            this.parentPeriodType === allConsts.FD_PeriodType.quarter
-          ) {
-            this.optPT = this.optPT.filter((it) => {
-              return [
-                allConsts.FD_PeriodType.month,
-                allConsts.FD_PeriodType.decade,
-                allConsts.FD_PeriodType.week,
-                allConsts.FD_PeriodType.day,
-              ].includes(it.id);
-            });
-          } else if (this.parentPeriodType === allConsts.FD_PeriodType.month) {
-            this.optPT = this.optPT.filter((it) => {
-              return [
-                allConsts.FD_PeriodType.decade,
-                allConsts.FD_PeriodType.week,
-                allConsts.FD_PeriodType.day,
-              ].includes(it.id);
-            });
-          } else if (this.parentPeriodType === allConsts.FD_PeriodType.decade) {
-            this.optPT = this.optPT.filter((it) => {
-              return [
-                allConsts.FD_PeriodType.week,
-                allConsts.FD_PeriodType.day,
-              ].includes(it.id);
-            });
-          } else if (this.parentPeriodType === allConsts.FD_PeriodType.week) {
-            this.optPT = this.optPT.filter((it) => {
-              return [allConsts.FD_PeriodType.day].includes(it.id);
-            });
-          }
-        }
-      });
-    //
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{ dict: "FD_PeriodNameTml" }],
-      })
-      .then((response) => {
-        this.optTml = response.data.result.records;
-      });
-    //
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{ dict: "FD_PeriodIncludeTag" }],
-      })
-      .then((response) => {
-        this.optPIT = response.data.result.records;
-        if (this.form.periodType !== allConsts.FD_PeriodType.week)
-          this.optPIT.splice(-1, 1);
-      })
-      .finally(() => {
-        this.visible = ref(false);
-      });
-    //
-  },
+const fnUpdPC = () => {
+  form.dbeg = null;
 };
+
+const fnUpdLCP = () => {
+  form.dend = null;
+};
+
+const fnSelectDbeg = (value) => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "dimperiod/getPeriodBeg",
+      params: [value, form.periodType],
+    })
+    .then(
+      (response) => {
+        form.dbeg = response.data.result;
+        if (form.dbeg.startsWith("0000")) {
+          form.countPeriod = 1;
+          form.dbeg = null;
+        } else {
+          form.countPeriod = null;
+        }
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response?.data) msg = error.response.data.error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+const fnSelectDend = (value) => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "dimperiod/getPeriodEnd",
+      params: [value, form.periodType],
+    })
+    .then(
+      (response) => {
+        form.dend = response.data.result;
+        if (form.dend.startsWith("0000")) {
+          form.lagCurrentDate = 0;
+          form.dend = null;
+        } else {
+          form.lagCurrentDate = null;
+        }
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response?.data) msg = error.response.data.error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+const fnSelectPT = () => {
+  form.dbeg = null;
+  form.dend = null;
+  form.periodType = typeof pt.value === "object" && pt.value !== null ? pt.value.id : pt.value;
+};
+
+const fnSelectPeriodNameTml = () => {
+  form.periodNameTml = typeof tml.value === "object" && tml.value !== null ? tml.value.id : tml.value;
+};
+
+const fnSelectPeriodIncludeTag = () => {
+  form.periodIncludeTag = typeof pit.value === "object" && pit.value !== null ? pit.value.id : pit.value;
+};
+
+const validSave = () => {
+  if (!props.isChild) {
+    return (
+      (form.countPeriod && form.countPeriod < 1) ||
+      !(
+        (form.dbeg == null && form.countPeriod != null) ||
+        (form.dbeg != null && form.countPeriod == null)
+      ) ||
+      !(
+        (form.dend == null && form.lagCurrentDate != null) ||
+        (form.dend != null && form.lagCurrentDate == null)
+      )
+    );
+  } else {
+    return form.countPeriod && form.countPeriod < 1;
+  }
+};
+
+const onOKClick = () => {
+  visible.value = true;
+  let err = false;
+
+  const method = props.mode === "ins" ? "insertDPI" : "updateDPI";
+  form.periodNameTml = typeof tml.value === "object" && tml.value !== null ? tml.value.id : tml.value;
+  form.periodIncludeTag = typeof pit.value === "object" && pit.value !== null ? pit.value.id : pit.value;
+
+  api
+    .post("", {
+      method: "dimperiod/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        err = false;
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success"));
+      },
+      (error) => {
+        err = true;
+        let msg = error.message;
+        if (error.response?.data) msg = error.response.data.error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+onMounted(() => {
+  visible.value = true;
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_PeriodType" }],
+    })
+    .then((response) => {
+      optPT.value = response.data.result.records;
+      if (props.isChild) {
+        if (props.parentPeriodType === allConsts.FD_PeriodType.year) {
+          optPT.value = optPT.value.filter((it) => {
+            return [
+              allConsts.FD_PeriodType.halfyear,
+              allConsts.FD_PeriodType.quarter,
+              allConsts.FD_PeriodType.month,
+              allConsts.FD_PeriodType.decade,
+              allConsts.FD_PeriodType.week,
+              allConsts.FD_PeriodType.day,
+            ].includes(it.id);
+          });
+        } else if (props.parentPeriodType === allConsts.FD_PeriodType.halfyear) {
+          optPT.value = optPT.value.filter((it) => {
+            return [
+              allConsts.FD_PeriodType.quarter,
+              allConsts.FD_PeriodType.month,
+              allConsts.FD_PeriodType.decade,
+              allConsts.FD_PeriodType.week,
+              allConsts.FD_PeriodType.day,
+            ].includes(it.id);
+          });
+        } else if (props.parentPeriodType === allConsts.FD_PeriodType.quarter) {
+          optPT.value = optPT.value.filter((it) => {
+            return [
+              allConsts.FD_PeriodType.month,
+              allConsts.FD_PeriodType.decade,
+              allConsts.FD_PeriodType.week,
+              allConsts.FD_PeriodType.day,
+            ].includes(it.id);
+          });
+        } else if (props.parentPeriodType === allConsts.FD_PeriodType.month) {
+          optPT.value = optPT.value.filter((it) => {
+            return [
+              allConsts.FD_PeriodType.decade,
+              allConsts.FD_PeriodType.week,
+              allConsts.FD_PeriodType.day,
+            ].includes(it.id);
+          });
+        } else if (props.parentPeriodType === allConsts.FD_PeriodType.decade) {
+          optPT.value = optPT.value.filter((it) => {
+            return [
+              allConsts.FD_PeriodType.week,
+              allConsts.FD_PeriodType.day,
+            ].includes(it.id);
+          });
+        } else if (props.parentPeriodType === allConsts.FD_PeriodType.week) {
+          optPT.value = optPT.value.filter((it) => {
+            return [allConsts.FD_PeriodType.day].includes(it.id);
+          });
+        }
+      }
+    });
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_PeriodNameTml" }],
+    })
+    .then((response) => {
+      optTml.value = response.data.result.records;
+    });
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_PeriodIncludeTag" }],
+    })
+    .then((response) => {
+      optPIT.value = response.data.result.records;
+      if (form.periodType !== allConsts.FD_PeriodType.week) {
+        optPIT.value.splice(-1, 1);
+      }
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+});
 </script>
+
+<style scoped></style>

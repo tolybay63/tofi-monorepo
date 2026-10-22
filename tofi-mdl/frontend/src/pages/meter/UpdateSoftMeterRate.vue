@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar class="text-white bg-primary">
@@ -20,184 +20,142 @@
 
         <!-- name -->
         <q-input
-            :model-value="form.name"
-            v-model="form.name"
-            autofocus
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.name"
+          autofocus
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
         <!-- fullName-->
         <q-input
-            :model-value="form.fullName"
-            v-model="form.fullName"
-            :label="$t('fldFullName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.fullName"
+          :label="$t('fldFullName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
         <!-- cod -->
         <q-input
-            v-model="form.cod"
-            :model-value="form.cod"
-            :label="$t('code')"
-            :placeholder="$t('msgCodeGen')"
+          v-model="form.cod"
+          :label="$t('code')"
+          :placeholder="$t('msgCodeGen')"
         />
         <!-- accessLevel -->
         <q-select
-            v-model="al"
-            :options="options"
-            :label="$t('accessLevel')"
-            option-value="id"
-            option-label="text"
-            map-options
-            :model-value="al"
-            @update:model-value="fnSelect()"
+          v-model="al"
+          :options="options"
+          :label="$t('accessLevel')"
+          option-value="id"
+          option-label="text"
+          map-options
+          @update:model-value="fnSelect"
         />
 
         <!-- cmt -->
         <q-input
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            type="textarea"
-            label="Комментарий"
-        >
-        </q-input>
-        <!---->
+          v-model="form.cmt"
+          type="textarea"
+          label="Комментарий"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validName()"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validName()"
         />
         <q-btn
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["isChild", "parentName", "data"],
-
-  data() {
-    return {
-      form: this.data,
-      options: [],
-      al: this.data.accessLevel === 0 ? 1 : this.data.accessLevel,
-    };
+const props = defineProps({
+  isChild: Boolean,
+  parentName: String,
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelect() {
-      //console.log("select", this.al)
-      this.form.accessLevel = this.al.id;
-    },
+const form = reactive({ ...props.data });
+const options = ref([]);
+const al = ref(props.data.accessLevel === 0 ? 1 : props.data.accessLevel);
 
-    validName() {
-      if (!this.form.name) return true;
-      else if (this.form.name.trim().length === 0) return true;
-      return false;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      //delete this.form.accessLevel_text
-      const method = "updateSoftMR";
-      this.form.accessLevel =
-          typeof this.al === "object" ? this.al.id : this.al;
-
-      api
-          .post("", {
-            method: "meterrate/" + method,
-            params: [{rec: this.form}],
-          })
-          .then(
-              () => {
-                this.$emit("ok", {res: true});
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                let msg = error.response.data.error.message
-                    ? error.response.data.error.message
-                    : error.message;
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_AccessLevel"}],
-        })
-        .then((response) => {
-          this.options = response.data.result.records;
-        });
-
-    return {};
-  },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const fnSelect = () => {
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+};
+
+const validName = () => {
+  if (!form.name) return true;
+  if (form.name.trim().length === 0) return true;
+  return false;
+};
+
+const onOKClick = () => {
+  const method = "updateSoftMR";
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+
+  api
+    .post("", {
+      method: "meterrate/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      () => {
+        onDialogOK({ res: true });
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message
+          ? error.response.data.error.message
+          : error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      options.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

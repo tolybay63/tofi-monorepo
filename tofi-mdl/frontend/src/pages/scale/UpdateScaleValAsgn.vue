@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar class="text-white bg-primary" dense>
@@ -16,145 +16,103 @@
       <q-card-section>
         <!-- name -->
         <q-input
-            :model-value="form.name" v-model="form.name"
-            dense autofocus @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.name"
+          dense autofocus @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
         <!-- fullName-->
         <q-input
-            :model-value="form.fullName" v-model="form.fullName"
-            dense :label="$t('fldFullName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.fullName"
+          dense :label="$t('fldFullName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
-
-        <div class="row full-width" >
+        <div class="row full-width">
           <q-avatar :style="fnStyle()" size="28px" class="q-mr-md q-mt-md" />
           <q-input
-              :label="$t('scaleColor')"
-              v-model="form['scaleValColor']"
-              :model-value="form['scaleValColor']"
+            :label="$t('scaleColor')"
+            v-model="form['scaleValColor']"
           >
             <template v-slot:append>
               <q-icon name="colorize" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-color v-model="form['scaleValColor']"  :model-value="form['scaleValColor']"/>
+                  <q-color v-model="form['scaleValColor']" />
                 </q-popup-proxy>
               </q-icon>
             </template>
           </q-input>
         </div>
-
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            color="primary"
-            icon="save" dense
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          color="primary"
+          icon="save" dense
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
-            <q-spinner-hourglass color="white"/>
+            <q-spinner-hourglass color="white" />
           </template>
         </q-btn>
         <q-btn
-            color="primary"
-            icon="cancel" dense
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          color="primary"
+          icon="cancel" dense
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {ref} from "vue";
-import {extend} from "quasar";
+<script setup>
+import { ref, reactive } from "vue";
+import { useDialogPluginComponent, extend } from "quasar";
 
-export default {
-  props: ["data"],
-
-  data() {
-    let dta= {}
-    extend(true, dta, this.data)
-
-    return {
-      form: dta,
-      loading: ref(false),
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    fnStyle() {
-      return "background: " + this.form["scaleValColor"]
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    },
+let dta = {};
+extend(true, dta, props.data);
 
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const form = reactive(dta);
+const loading = ref(false);
 
+const fnStyle = () => {
+  return "background: " + form["scaleValColor"];
+};
 
-    validSave() {
-      return this.form.name === "" || this.form.fullName === "";
-    },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
+};
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
+const validSave = () => {
+  return form.name === "" || form.fullName === "";
+};
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      try {
-        this.$emit("ok", this.form);
-      } finally {
-        this.hide();
-      }
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-  },
-
+const onOKClick = () => {
+  try {
+    onDialogOK(form);
+  } finally {
+    // dialogRef handles closing via onDialogOK/onDialogCancel
+  }
 };
 </script>
+
+<style scoped></style>

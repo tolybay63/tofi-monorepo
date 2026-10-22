@@ -12,7 +12,7 @@
         label="На главную страницу"
         class="q-mt-xl q-px-xl text-weight-bold"
         size="lg"
-        @click="mainApp()"
+        @click="mainApp"
       />
     </div>
 
@@ -27,7 +27,7 @@
         color="grey-7"
         label="На главную страницу"
         class="q-mt-xl q-px-xl"
-        @click="mainApp()"
+        @click="mainApp"
       />
     </div>
 
@@ -39,50 +39,43 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import axios from 'axios'
-import {api, urlMainApp} from 'boot/axios'
+import { api, urlMainApp } from '@/boot/axios'
 
+const route = useRoute()
 
-export default {
-  name: 'ConfirmPassword',
-  data () {
-    return {
-      success: false,
-      error: false,
-      errorMessage: ''
-    }
-  },
+const success = ref(false)
+const error = ref(false)
+const errorMessage = ref('')
 
-  methods: {
-
-    mainApp() {
-      window.open(urlMainApp, '_self')
-    }
-
-  },
-
-
-  mounted () {
-    const loginParam = this.$route.query.login
-
-    if (!loginParam) {
-      this.error = true
-      this.errorMessage = 'Некорректная ссылка: отсутствует логин.'
-      return
-    }
-
-    axios.post(api.defaults.baseURL, {
-      method: 'psw/confirmPasswd',
-      params: [{ login: loginParam }]
-    })
-      .then(() => {
-        this.success = true
-      })
-      .catch((err) => {
-        this.error = true
-        this.errorMessage = err.response?.data?.error?.message || 'Запрос на сброс пароля не создавался или уже активирован.'
-      })
-  }
+const mainApp = () => {
+  window.open(urlMainApp, '_self')
 }
+
+onMounted(() => {
+  const loginParam = route.query.login
+
+  if (!loginParam) {
+    error.value = true
+    errorMessage.value = 'Некорректная ссылка: отсутствует логин.'
+    return
+  }
+
+  axios.post(api.defaults.baseURL, {
+    method: 'psw/confirmPasswd',
+    params: [{ login: loginParam }]
+  })
+    .then(() => {
+      success.value = true
+    })
+    .catch((err) => {
+      error.value = true
+      errorMessage.value = err.response?.data?.error?.message || 'Запрос на сброс пароля не создавался или уже активирован.'
+    })
+})
 </script>
+
+<style scoped></style>

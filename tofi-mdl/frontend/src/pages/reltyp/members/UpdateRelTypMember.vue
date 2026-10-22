@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -19,312 +19,269 @@
       <q-card-section>
         <!-- name -->
         <q-input
-            :dense="dense"
-            :model-value="form.name"
-            v-model="form.name"
-            autofocus
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          :dense="dense"
+          v-model="form.name"
+          autofocus
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
         <!-- fullName-->
         <q-input
-            :dense="dense"
-            :model-value="form.fullName"
-            v-model="form.fullName"
-            :label="$t('fldFullName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          :dense="dense"
+          v-model="form.fullName"
+          :label="$t('fldFullName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
         <!-- card-->
         <q-input
-            :dense="dense"
-            type="number"
-            :model-value="form.card"
-            v-model="form.card"
-            :label="$t('fldCard')"
-            :rules="[(val) => val >= 0 || $t('msgCard')]"
-        >
-        </q-input>
+          :dense="dense"
+          type="number"
+          v-model="form.card"
+          :label="$t('fldCard')"
+          :rules="[(val) => val >= 0 || $t('msgCard')]"
+        />
 
         <!-- memberTyp -->
         <q-select
-            :dense="dense"
-            :options-dense="dense"
-            v-model="mt"
-            :options="optMT"
-            :label="$t('memberType')"
-            option-value="id"
-            option-label="text"
-            map-options
-            :model-value="form.memberType"
-            :disable="mode === 'upd'"
-            @update:model-value="fnSelectMT()"
+          :dense="dense"
+          :options-dense="dense"
+          v-model="mt"
+          :options="optMT"
+          :label="$t('memberType')"
+          option-value="id"
+          option-label="text"
+          map-options
+          :disable="mode === 'upd'"
+          @update:model-value="fnSelectMT"
         />
 
         <!-- typ -->
         <q-select
-            :dense="dense"
-            :options-dense="dense"
-            v-model="typ"
-            :options="optTyp"
-            :label="$t('typ')"
-            option-value="id"
-            option-label="name"
-            map-options
-            :model-value="typ"
-            @update:model-value="fnSelectTyp()"
-            :disable="typ_disabled"
+          :dense="dense"
+          :options-dense="dense"
+          v-model="typ"
+          :options="optTyp"
+          :label="$t('typ')"
+          option-value="id"
+          option-label="name"
+          map-options
+          @update:model-value="fnSelectTyp"
+          :disable="typ_disabled"
         />
 
         <!-- relTypMemb -->
         <q-select
-            :dense="dense"
-            :options-dense="dense"
-            v-model="relTypMemb"
-            :options="optRT"
-            :label="$t('reltyp')"
-            option-value="id"
-            option-label="name"
-            map-options
-            :model-value="relTypMemb"
-            @update:model-value="fnSelectRT()"
-            :disable="!typ_disabled"
+          :dense="dense"
+          :options-dense="dense"
+          v-model="relTypMemb"
+          :options="optRT"
+          :label="$t('reltyp')"
+          option-value="id"
+          option-label="name"
+          map-options
+          @update:model-value="fnSelectRT"
+          :disable="!typ_disabled"
         />
 
         <!-- role -->
         <q-select
-            :dense="dense"
-            v-model="relrole"
-            :options="relroles"
-            :label="$t('role2')"
-            option-value="id"
-            option-label="name"
-            map-options
-            :model-value="relrole"
-            @update:model-value="fnSelRole"
+          :dense="dense"
+          v-model="relrole"
+          :options="relroles"
+          :label="$t('role2')"
+          option-value="id"
+          option-label="name"
+          map-options
+          @update:model-value="fnSelRole"
         />
 
         <!-- cmt -->
         <q-input
-            :dense="dense"
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            type="textarea"
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          :dense="dense"
+          v-model="form.cmt"
+          type="textarea"
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import allConsts from "pages/all-consts.js";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import allConsts from "@/pages/all-consts.js";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "dense"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-      optMT: [],
-      mt: this.data.memberType,
-      relroles: [],
-      relrole: this.data.role,
-      optTyp: [],
-      typ: this.data.typ,
-      optRT: [],
-      relTypMemb: this.data.relTypMemb,
-      //
-      typ_disabled: false
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelectMT() {
-      this.form.memberType = this.mt.id;
-      if (this.mt.id===allConsts.FD_MemberType.typ) {
-        this.relTypMemb = null
-        this.form.relTypMemb = null
-        this.typ_disabled = false
-      } else {
-        this.typ = null
-        this.form.typ = null
-        this.typ_disabled = true
-      }
-    },
+const form = reactive({ ...props.data });
+const optMT = ref([]);
+const mt = ref(props.data.memberType);
+const relroles = ref([]);
+const relrole = ref(props.data.role);
+const optTyp = ref([]);
+const typ = ref(props.data.typ);
+const optRT = ref([]);
+const relTypMemb = ref(props.data.relTypMemb);
 
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const typ_disabled = ref(false);
 
-    fnSelRole() {
-      this.form.role = this.relrole.id;
-    },
-
-    fnSelectTyp() {
-      this.form.typ = this.typ.id;
-      this.form.relTypMemb = null;
-    },
-
-    fnSelectRT() {
-      this.form.typ = null;
-      this.form.relTypMemb = this.relTypMemb.id;
-    },
-
-    validSave() {
-      return !this.form.name ||
-          !this.form.fullName ||
-          this.form.card < 0 ||
-          (this.form.memberType === 1 && this.form.typ === 0) ||
-          (this.form.memberType === 2 && this.form.relTypMemb === 0);
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      let err = false;
-      const method =
-          this.mode === "ins" ? "insertRelTypMember" : "updateRelTypMember";
-
-      api
-          .post("", {
-            id: this.form.id,
-            method: "reltypmember/" + method,
-            params: [{rec: this.form}],
-          })
-          .then(
-              (response) => {
-                err = false;
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                err = true;
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            if (!err) this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-
-  created() {
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_MemberType"}],
-        })
-        .then((response) => {
-          this.optMT = response.data.result.records;
-          this.optMT.splice(2, 2);
-        });
-    //
-    api
-        .post("", {
-          method: "role/loadRoles",
-          params: [{}],
-        })
-        .then((response) => {
-          //this.measures = pack(response.data.result.records)
-          this.relroles = response.data.result.records;
-          this.relroles.unshift({id: 0, name: this.$t("notChosen")});
-        });
-
-    api
-        .post("", {
-          method: "typ/loadTypForSelect",
-          params: [],
-        })
-        .then((response) => {
-          this.optTyp = response.data.result.records;
-          this.optTyp.unshift({id: 0, name: this.$t("notChosen")});
-        });
-
-    api
-        .post("", {
-          method: "reltyp/loadRelTypForSelect",
-          params: [],
-        })
-        .then((response) => {
-          this.optRT = response.data.result.records;
-          this.optRT.unshift({id: 0, name: this.$t("notChosen")});
-        });
-
-    if (this.mode === "ins") {
-      this.typ_disabled = false
-    } else {
-      this.typ_disabled = this.form.memberType !== allConsts.FD_MemberType.typ;
-    }
-
-  },
+const fnSelectMT = () => {
+  form.memberType = mt.value?.id !== undefined ? mt.value.id : mt.value;
+  if (form.memberType === allConsts.FD_MemberType.typ) {
+    relTypMemb.value = null;
+    form.relTypMemb = null;
+    typ_disabled.value = false;
+  } else {
+    typ.value = null;
+    form.typ = null;
+    typ_disabled.value = true;
+  }
 };
+
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
+};
+
+const fnSelRole = () => {
+  form.role = relrole.value?.id !== undefined ? relrole.value.id : relrole.value;
+};
+
+const fnSelectTyp = () => {
+  form.typ = typ.value?.id !== undefined ? typ.value.id : typ.value;
+  form.relTypMemb = null;
+};
+
+const fnSelectRT = () => {
+  form.typ = null;
+  form.relTypMemb = relTypMemb.value?.id !== undefined ? relTypMemb.value.id : relTypMemb.value;
+};
+
+const validSave = () => {
+  return (
+    !form.name ||
+    !form.fullName ||
+    form.card < 0 ||
+    (form.memberType === 1 && form.typ === 0) ||
+    (form.memberType === 2 && form.relTypMemb === 0)
+  );
+};
+
+const onOKClick = () => {
+  let err = false;
+  const method =
+    props.mode === "ins" ? "insertRelTypMember" : "updateRelTypMember";
+
+  api
+    .post("", {
+      id: form.id,
+      method: "reltypmember/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        err = false;
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        err = true;
+        let errMsg = error.response?.data?.error?.message || error.message;
+        notifyError(errMsg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_MemberType" }],
+    })
+    .then((response) => {
+      optMT.value = response.data.result.records;
+      optMT.value.splice(2, 2);
+    });
+
+  api
+    .post("", {
+      method: "role/loadRoles",
+      params: [{}],
+    })
+    .then((response) => {
+      relroles.value = response.data.result.records;
+      relroles.value.unshift({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+    });
+
+  api
+    .post("", {
+      method: "typ/loadTypForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optTyp.value = response.data.result.records;
+      optTyp.value.unshift({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+    });
+
+  api
+    .post("", {
+      method: "reltyp/loadRelTypForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optRT.value = response.data.result.records;
+      optRT.value.unshift({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+    });
+
+  if (props.mode === "ins") {
+    typ_disabled.value = false;
+  } else {
+    typ_disabled.value = form.memberType !== allConsts.FD_MemberType.typ;
+  }
+});
 </script>
+
+<style scoped></style>

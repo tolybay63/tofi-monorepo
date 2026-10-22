@@ -3,21 +3,21 @@
     <div style="font-size: 1.2em">{{ $t("itemsMultiPropCharGr") }}</div>
     <template v-slot:action>
       <q-btn
-          :dense="dense"
-          icon="expand_more"
-          color="secondary"
-          @click="fnExpand()"
+        :dense="dense"
+        icon="expand_more"
+        color="secondary"
+        @click="fnExpand()"
       >
         <q-tooltip transition-show="rotate" transition-hide="rotate">
           {{ $t("expandAll") }}
         </q-tooltip>
       </q-btn>
       <q-btn
-          :dense="dense"
-          icon="expand_less"
-          color="secondary"
-          class="q-ml-sm"
-          @click="fnCollapse()"
+        :dense="dense"
+        icon="expand_less"
+        color="secondary"
+        class="q-ml-sm"
+        @click="fnCollapse()"
       >
         <q-tooltip transition-show="rotate" transition-hide="rotate">
           {{ $t("collapseAll") }}
@@ -25,12 +25,12 @@
       </q-btn>
 
       <q-btn
-          v-if="hasTarget('mdl:mn_ds:reltyp:sel:char:matrix:edit')"
-          :dense="dense"
-          icon="edit_note"
-          color="secondary"
-          class="q-ml-sm"
-          @click="editData()"
+        v-if="hasTarget('mdl:mn_ds:reltyp:sel:char:matrix:edit')"
+        :dense="dense"
+        icon="edit_note"
+        color="secondary"
+        class="q-ml-sm"
+        @click="editData()"
       >
         <q-tooltip transition-show="rotate" transition-hide="rotate">
           {{ $t("update") }}
@@ -38,13 +38,13 @@
       </q-btn>
 
       <q-btn
-          v-if="hasTarget('mdl:mn_ds:reltyp:sel:char:matrix:upd')"
-          :dense="dense"
-          icon="edit"
-          color="secondary"
-          class="q-ml-sm"
-          :disable="!!(this.loading || this.selected.length === 0)"
-          @click="editRow(selected[0])"
+        v-if="hasTarget('mdl:mn_ds:reltyp:sel:char:matrix:upd')"
+        :dense="dense"
+        icon="edit"
+        color="secondary"
+        class="q-ml-sm"
+        :disable="loading || selected.length === 0"
+        @click="editRow(selected[0])"
       >
         <q-tooltip transition-show="rotate" transition-hide="rotate">
           {{ $t("editRecord") }}
@@ -58,45 +58,41 @@
       <div class="q-table-middle scroll">
         <table class="q-table q-table--cell-separator q-table--bordered wrap">
           <thead class="text-bold text-white bg-blue-grey-13">
-          <tr class style="text-align: left">
-            <th :style="cols[0].headerStyle">{{ cols[0].label }}</th>
-            <th :style="cols[1].headerStyle">{{ cols[1].label }}</th>
-            <th :style="cols[2].headerStyle">{{ cols[2].label }}</th>
+          <tr style="text-align: left">
+            <th :style="cols[0]?.headerStyle">{{ cols[0]?.label }}</th>
+            <th :style="cols[1]?.headerStyle">{{ cols[1]?.label }}</th>
+            <th :style="cols[2]?.headerStyle">{{ cols[2]?.label }}</th>
           </tr>
           </thead>
 
           <tbody style="background: aliceblue">
           <tr v-for="(item, index) in arrayTreeObj" :key="index">
-            <td :data-th="cols[0].name" @click="toggle(item)">
-                <span
-                    class="q-tree-link q-tree-label"
-                    v-bind:style="setPadding(item)"
-                >
+            <td :data-th="cols[0]?.name" @click="toggle(item)">
+                <span class="q-tree-link q-tree-label" :style="setPadding(item)">
                   <q-icon
-                      style="cursor: pointer"
-                      :name="iconName(item)"
-                      color="secondary"
-                  ></q-icon>
+                    style="cursor: pointer"
+                    :name="iconName(item)"
+                    color="secondary"
+                  />
 
                   <q-btn
-                      :dense="dense"
-                      flat
-                      :color="item.children.length > 0 ? 'gray' : 'blue'"
-                      :icon="
+                    :dense="dense"
+                    flat
+                    :color="item.children?.length > 0 ? 'gray' : 'blue'"
+                    :icon="
                       selected.length > 0 && item.id === selected[0].id
                         ? 'check_box'
                         : 'check_box_outline_blank'
                     "
-                      @click.stop="selectedCheck(item)"
-                  >
-                  </q-btn>
+                    @click.stop="selectedCheck(item)"
+                  />
 
-                  <q-icon :name="getIcon(item)"></q-icon>
+                  <q-icon :name="getIcon(item)" />
                   {{ item.cod }}
                 </span>
             </td>
-            <td :data-th="cols[1].name">{{ item.name }}</td>
-            <td :data-th="cols[2].name">{{ getVal(item.storageType) }}</td>
+            <td :data-th="cols[1]?.name">{{ item.name }}</td>
+            <td :data-th="cols[2]?.name">{{ getVal(item.storageType) }}</td>
           </tr>
           </tbody>
         </table>
@@ -105,246 +101,218 @@
   </div>
 </template>
 
-<script>
-import {ref} from "vue";
-import {collapsAll, expandAll, hasTarget, notifyError, pack} from "src/utils/jsutils";
-import {api} from "boot/axios";
-import UpdaterRelTypCharGrMultiProp from "pages/chargr/relchargr/UpdaterRelTypCharGrMultiProp.vue";
-import UpdaterRelTypCharGrMultiPropUpd from "pages/chargr/relchargr/UpdaterRelTypCharGrMultiPropUpd.vue";
+<script setup>
+import { ref, reactive, computed, onMounted, getCurrentInstance, watch } from "vue";
+import { useQuasar } from "quasar";
+import { collapsAll, expandAll, hasTarget, notifyError, pack } from "@/utils/jsutils";
+import { api } from "@/boot/axios";
+import UpdaterRelTypCharGrMultiProp from "@/pages/chargr/relchargr/UpdaterRelTypCharGrMultiProp.vue";
+import UpdaterRelTypCharGrMultiPropUpd from "@/pages/chargr/relchargr/UpdaterRelTypCharGrMultiPropUpd.vue";
 
-export default {
-  name: "RelTypCharGrMultiProp",
+const props = defineProps({
+  relTypCharGr: [String, Number],
+  dense: Boolean,
+});
 
-  props: ["relTypCharGr", "dense"],
+const $q = useQuasar();
+const { proxy } = getCurrentInstance();
 
-  data() {
-    return {
-      cols: [],
-      rows: [],
-      loading: ref(false),
-      //
-      FD_StorageType: null,
-      isExpanded: true,
-      selectedRowID: {},
-      itemId: null,
-      selected: ref([]),
-    };
+const cols = ref([]);
+const rows = ref([]);
+const loading = ref(false);
+const FD_StorageType = reactive(new Map());
+const isExpanded = ref(true);
+const itemId = ref(null);
+const selected = ref([]);
+
+const lang = ref(localStorage.getItem("curLang") === "en-US" ? "en" : localStorage.getItem("curLang"));
+
+const getColumns = () => [
+  {
+    name: "cod",
+    label: proxy?.$t("code"),
+    field: "cod",
+    align: "left",
+    sortable: true,
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 30%",
   },
-
-  methods: {
-    hasTarget,
-    getVal(val) {
-      if (val===undefined) return null;
-      return this.FD_StorageType.get(val);
-    },
-
-    editRow(rec) {
-      this.$q
-          .dialog({
-            component: UpdaterRelTypCharGrMultiProp,
-            componentProps: {
-              data: rec,
-              lg: this.lang,
-              dense: true,
-            },
-          })
-          .onOk((data) => {
-            if (data.res) {
-              this.loadData(this.relTypCharGr);
-            }
-          });
-    },
-
-    editData() {
-      this.$q
-          .dialog({
-            component: UpdaterRelTypCharGrMultiPropUpd,
-            componentProps: {
-              relTypCharGr: this.relTypCharGr,
-              lg: this.lang,
-              dense: true,
-            },
-          })
-          .onOk((data) => {
-            if (data.res) {
-              this.loadData(this.relTypCharGr);
-            }
-          });
-    },
-
-    selectedCheck(item) {
-      if (!item.id.includes("p_")) return;
-      let vm = this;
-      if (vm.selected.length > 0 && item.id === vm.selected[0].id)
-        vm.selected = [];
-      else {
-        vm.selected = [];
-        vm.selected.push(item);
-      }
-    },
-
-    loadData(relTypCharGr) {
-      this.loading = ref(true);
-      api
-          .post("", {
-            method: "reltyp/loadRelTypCharGrMultiProp",
-            params: [{relTypCharGr: relTypCharGr}],
-          })
-          .then((response) => {
-            this.rows = pack(response.data.result.records, "ord");
-            this.fnExpand();
-          })
-          .catch((error) => {
-
-            let msg = error.message;
-            if (error.response) msg = error.response.data.error.message;
-
-            notifyError(msg);
-          })
-          .finally(() => {
-            this.loading = ref(false);
-          });
-    },
-
-    getIcon(row) {
-      if (row.multiProp === undefined) return "folder";
-      return "view_in_ar";
-    },
-
-    fnExpand() {
-      expandAll(this.rows);
-    },
-
-    fnCollapse() {
-      collapsAll(this.rows);
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "cod",
-          label: this.$t("code"),
-          field: "cod",
-          align: "left",
-          sortable: true,
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 30%",
-        },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 40%",
-        },
-        {
-          name: "storageType",
-          label: this.$t("fldStorageType"),
-          field: "storageType",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 30%",
-        },
-      ];
-    },
-
-    recursive(obj, newObj, level, itemId, isExpend) {
-      let vm = this;
-      obj.forEach(function (o) {
-        if (o.children && o.children.length !== 0) {
-          o.level = level;
-          o.leaf = false;
-          newObj.push(o);
-          if (o.id === itemId) {
-            o.expend = isExpend;
-          }
-          if (o.expend) {
-            vm.recursive(o.children, newObj, o.level + 1, itemId, isExpend);
-          }
-        } else {
-          o.level = level;
-          o.leaf = true;
-          newObj.push(o);
-          return false;
-        }
-      });
-    },
-
-    iconName(item) {
-      if (item.expend) {
-        return "remove_circle_outline";
-      }
-      if (item.children && item.children.length > 0) {
-        return "control_point";
-      }
-      return "";
-    },
-
-    toggle(item) {
-      let vm = this;
-      vm.itemId = item.id;
-
-      item.leaf = false;
-      //show  sub items after click on + (more)
-      if (
-          !item.leaf &&
-          item.expend === undefined &&
-          item.children !== undefined
-      ) {
-        if (item.children.length !== 0) {
-          vm.recursive(item.children, [], item.level + 1, item.id, true);
-        }
-      }
-      if (item.expend && item.children !== undefined) {
-        item.children.forEach(function (o) {
-          o.expend = undefined;
-        });
-
-        item["expend"] = ref(undefined);
-        item["leaf"] = ref(false);
-        vm.itemId = null;
-      }
-    },
-
-    setPadding(item) {
-      return `padding-left: ${item.level * 30}px;`;
-    },
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 40%",
   },
-
-  created() {
-    //console.log("create")
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
-
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_StorageType"}],
-        })
-        .then((response) => {
-          this.FD_StorageType = new Map();
-          response.data.result.records.forEach((it) => {
-            this.FD_StorageType.set(it["id"], it["text"]);
-          });
-        });
-
-    this.cols = this.getColumns();
+  {
+    name: "storageType",
+    label: proxy?.$t("fldStorageType"),
+    field: "storageType",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 30%",
   },
+];
 
-  computed: {
-    arrayTreeObj() {
-      let vm = this;
-      let newObj = [];
-      vm.recursive(vm.rows, newObj, 0, vm.itemId, vm.isExpanded);
-      return newObj;
+const getVal = (val) => {
+  if (val === undefined || val === null) return null;
+  return FD_StorageType.get(val);
+};
+
+const getIcon = (row) => {
+  if (row.multiProp === undefined) return "folder";
+  return "view_in_ar";
+};
+
+const fnExpand = () => {
+  expandAll(rows.value);
+};
+
+const fnCollapse = () => {
+  collapsAll(rows.value);
+};
+
+const selectedCheck = (item) => {
+  if (!String(item.id).includes("p_")) return;
+  if (selected.value.length > 0 && item.id === selected.value[0].id) {
+    selected.value = [];
+  } else {
+    selected.value = [item];
+  }
+};
+
+const loadData = (relTypCharGrVal) => {
+  if (!relTypCharGrVal) return;
+
+  loading.value = true;
+  api
+    .post("", {
+      method: "reltyp/loadRelTypCharGrMultiProp",
+      params: [{ relTypCharGr: relTypCharGrVal }],
+    })
+    .then((response) => {
+      rows.value = pack(response.data.result.records, "ord");
+      fnExpand();
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+      notifyError(msg);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const editRow = (rec) => {
+  $q.dialog({
+    component: UpdaterRelTypCharGrMultiProp,
+    componentProps: {
+      data: rec,
+      lg: lang.value,
+      dense: true,
     },
-  },
+  }).onOk((data) => {
+    if (data.res) {
+      loadData(props.relTypCharGr);
+    }
+  });
+};
 
-  setup() {
+const editData = () => {
+  $q.dialog({
+    component: UpdaterRelTypCharGrMultiPropUpd,
+    componentProps: {
+      relTypCharGr: props.relTypCharGr,
+      lg: lang.value,
+      dense: true,
+    },
+  }).onOk((data) => {
+    if (data.res) {
+      loadData(props.relTypCharGr);
+    }
+  });
+};
+
+const recursive = (obj, newObj, level, currentItemId, isExpend) => {
+  if (!obj) return;
+  obj.forEach((o) => {
+    if (o.children && o.children.length !== 0) {
+      o.level = level;
+      o.leaf = false;
+      newObj.push(o);
+      if (o.id === currentItemId) {
+        o.expend = isExpend;
+      }
+      if (o.expend) {
+        recursive(o.children, newObj, o.level + 1, currentItemId, isExpend);
+      }
+    } else {
+      o.level = level;
+      o.leaf = true;
+      newObj.push(o);
+    }
+  });
+};
+
+const arrayTreeObj = computed(() => {
+  const newObj = [];
+  recursive(rows.value, newObj, 0, itemId.value, isExpanded.value);
+  return newObj;
+});
+
+const iconName = (item) => {
+  if (item.expend) return "remove_circle_outline";
+  if (item.children && item.children.length > 0) return "control_point";
+  return "";
+};
+
+const toggle = (item) => {
+  itemId.value = item.id;
+  item.leaf = false;
+
+  if (!item.leaf && item.expend === undefined && item.children !== undefined) {
+    if (item.children.length !== 0) {
+      recursive(item.children, [], item.level + 1, item.id, true);
+    }
   }
 
+  if (item.expend && item.children !== undefined) {
+    item.children.forEach((o) => {
+      o.expend = undefined;
+    });
+    item.expend = undefined;
+    item.leaf = false;
+    itemId.value = null;
+  }
 };
+
+const setPadding = (item) => {
+  return `padding-left: ${(item.level || 0) * 30}px;`;
+};
+
+// Если `relTypCharGr` может меняться динамически
+watch(() => props.relTypCharGr, (newVal) => {
+  if (newVal) loadData(newVal);
+});
+
+onMounted(() => {
+  cols.value = getColumns();
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_StorageType" }],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        FD_StorageType.set(it.id, it.text);
+      });
+    });
+
+  loadData(props.relTypCharGr);
+});
 </script>
 
 <style scoped></style>

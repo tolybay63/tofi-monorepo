@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -19,208 +19,164 @@
       <q-card-section>
         <!-- name -->
         <q-input
-            dense
-            :model-value="form.name"
-            v-model="form.name"
-            autofocus
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          dense
+          v-model="form.name"
+          autofocus
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
         <!-- fullName-->
         <q-input
-            dense
-            :model-value="form.fullName"
-            v-model="form.fullName"
-            :label="$t('fldFullName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          dense
+          v-model="form.fullName"
+          :label="$t('fldFullName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
         <!-- card-->
         <q-input
-            dense
-            type="number"
-            :model-value="form.card"
-            v-model="form.card"
-            :label="$t('fldCard')"
-            :rules="[(val) => val >= 0 || $t('msgCard')]"
-        >
-        </q-input>
+          dense
+          type="number"
+          v-model="form.card"
+          :label="$t('fldCard')"
+          :rules="[(val) => val >= 0 || $t('msgCard')]"
+        />
 
         <!-- cmt -->
         <q-input
-            dense
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            type="textarea"
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          dense
+          v-model="form.cmt"
+          type="textarea"
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            dense
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          dense
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            dense
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          dense
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "lg"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: [String, Object],
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
 
-    validSave() {
-      return !this.form.name ||
-          !this.form.fullName ||
-          this.form.card < 0
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      let err = false;
-
-      api
-          .post("", {
-            id: this.form.id,
-            method: "relcls/updateRelClsMember",
-            params: [this.form],
-          })
-          .then(
-              (response) => {
-                err = false;
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                err = true;
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            if (!err) this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-
-  created() {
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_MemberType"}],
-        })
-        .then((response) => {
-          this.optMT = response.data.result.records;
-          this.optMT.splice(2, 2);
-        });
-    //
-    api
-        .post("", {
-          method: "role/loadRoles",
-          params: [{}],
-        })
-        .then((response) => {
-          //this.measures = pack(response.data.result.records)
-          this.relroles = response.data.result.records;
-          this.relroles.unshift({id: 0, name: this.$t("notChosen")});
-        });
-
-    api
-        .post("", {
-          method: "typ/loadTypForSelect",
-          params: [],
-        })
-        .then((response) => {
-          this.optTyp = response.data.result.records;
-          this.optTyp.unshift({id: 0, name: this.$t("notChosen")});
-        });
-
-    api
-        .post("", {
-          method: "reltyp/loadRelTypForSelect",
-          params: [],
-        })
-        .then((response) => {
-          this.optRT = response.data.result.records;
-          this.optRT.unshift({id: 0, name: this.$t("notChosen")});
-        });
-
-    return {};
-  },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const validSave = () => {
+  return !form.name || !form.fullName || form.card < 0;
+};
+
+const onOKClick = () => {
+  let err = false;
+
+  api
+    .post("", {
+      id: form.id,
+      method: "relcls/updateRelClsMember",
+      params: [form],
+    })
+    .then(
+      (response) => {
+        err = false;
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        err = true;
+        let errMsg = error.response?.data?.error?.message || error.message;
+        notifyError(errMsg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_MemberType" }],
+    })
+    .then((response) => {
+      let optMT = response.data.result.records;
+      optMT.splice(2, 2);
+    });
+
+  api
+    .post("", {
+      method: "role/loadRoles",
+      params: [{}],
+    })
+    .then((response) => {
+      let relroles = response.data.result.records;
+      relroles.unshift({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+    });
+
+  api
+    .post("", {
+      method: "typ/loadTypForSelect",
+      params: [],
+    })
+    .then((response) => {
+      let optTyp = response.data.result.records;
+      optTyp.unshift({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+    });
+
+  api
+    .post("", {
+      method: "reltyp/loadRelTypForSelect",
+      params: [],
+    })
+    .then((response) => {
+      let optRT = response.data.result.records;
+      optRT.unshift({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+    });
+});
 </script>
+
+<style scoped></style>

@@ -13,7 +13,7 @@
         <div class="q-pa-sm-sm">
           <q-banner dense inline-actions class="bg-orange-1 q-mb-sm">
             <div style="font-size: 1.2em; font-weight: bold;">
-              <q-avatar color="black" text-color="white" icon="folder"></q-avatar>
+              <q-avatar color="black" text-color="white" icon="folder" />
               {{ $t("dimMultiPropGr") }}
             </div>
             <template v-slot:action>
@@ -72,7 +72,7 @@
                 </q-tooltip>
               </q-btn>
 
-              <q-inner-loading :showing="visible" color="secondary"/>
+              <q-inner-loading :showing="visible" color="secondary" />
             </template>
           </q-banner>
 
@@ -84,13 +84,10 @@
             ref="childComp"
             checked_visible="true"
           />
-
         </div>
-
       </template>
 
       <template v-slot:after>
-
         <q-splitter
           horizontal
           v-model="splitterModel2"
@@ -100,13 +97,11 @@
           class="bg-amber-1 no-scroll"
         >
           <template v-slot:before>
-
             <q-banner dense inline-actions class="bg-orange-1 q-mb-sm">
               <div style="font-size: 1.2em; font-weight: bold;">
-                <q-avatar color="black" text-color="white" icon="type_specimen"></q-avatar>
+                <q-avatar color="black" text-color="white" icon="type_specimen" />
                 {{ $t("dimMultiProp") }}
               </div>
-
 
               <template v-slot:action>
                 <q-btn
@@ -150,13 +145,15 @@
                     {{ $t("deletingRecord") }}
                   </q-tooltip>
                 </q-btn>
-                <q-space></q-space>
+                <q-space />
 
                 <q-btn
-                  dense icon="pan_tool_alt"
-                  color="secondary" class="q-ml-lg"
+                  dense
+                  icon="pan_tool_alt"
+                  color="secondary"
+                  class="q-ml-lg"
                   :disable="loading2 || selected2.length === 0"
-                  @click="propSelect()"
+                  @click="propSelect"
                 >
                   <q-tooltip transition-show="rotate" transition-hide="rotate">
                     {{ $t("chooseRecord") }}
@@ -168,7 +165,8 @@
               style="height: calc(100vh - 500px); width: 100%"
               color="primary"
               card-class="bg-amber-1 text-brown"
-              row-key="id" dense
+              row-key="id"
+              dense
               :columns="cols2"
               :rows="rows2"
               table-header-class="text-bold text-white bg-blue-grey-13"
@@ -180,7 +178,6 @@
               :rows-per-page-options="[0]"
               @update:selected="onUpdateSelect2"
             >
-
               <template #bottom-row>
                 <q-td colspan="100%" v-if="selected2.length > 0">
                   <span class="text-blue"> {{ $t("selectedRow") }}: </span>
@@ -190,18 +187,15 @@
                   {{ $t("infoRow") }}
                 </q-td>
               </template>
-
-
             </q-table>
-
           </template>
 
           <template v-slot:after>
-
             <q-table
               color="primary"
               card-class="bg-amber-1 text-brown"
-              row-key="id" dense
+              row-key="id"
+              dense
               :columns="cols3"
               :rows="rows3"
               table-header-class="text-bold text-white bg-blue-grey-13"
@@ -212,14 +206,15 @@
               v-model:selected="selected3"
               :rows-per-page-options="[0]"
             >
-
               <template v-slot:top>
                 <div style="font-size: 1.2em; font-weight: bold;">
                   {{ $t("titleDop") }}
                 </div>
-                <q-space/>
+                <q-space />
                 <q-btn
-                  dense icon="post_add" color="secondary"
+                  dense
+                  icon="post_add"
+                  color="secondary"
                   :disable="loading3 || selected2.length === 0"
                   @click="editRow3('ins')"
                 >
@@ -230,7 +225,9 @@
 
                 <q-btn
                   dense
-                  icon="edit" color="secondary" class="q-ml-sm"
+                  icon="edit"
+                  color="secondary"
+                  class="q-ml-sm"
                   :disable="loading3 || selected3.length === 0"
                   @click="editRow3('upd')"
                 >
@@ -240,17 +237,19 @@
                 </q-btn>
 
                 <q-btn
-                  dense icon="delete" color="red"
+                  dense
+                  icon="delete"
+                  color="red"
                   class="q-ml-sm"
                   :disable="loading3 || selected3.length === 0"
-                  @click="removeRow3()"
+                  @click="removeRow3"
                 >
                   <q-tooltip transition-show="rotate" transition-hide="rotate">
                     {{ $t("deletingRecord") }}
                   </q-tooltip>
                 </q-btn>
 
-                <q-space/>
+                <q-space />
 
                 <q-btn
                   dense
@@ -277,28 +276,24 @@
                     {{ $t("down") }}
                   </q-tooltip>
                 </q-btn>
-
               </template>
 
               <template #loading>
-                <q-inner-loading :showing="loading3" color="secondary"></q-inner-loading>
+                <q-inner-loading :showing="loading3" color="secondary" />
               </template>
-
             </q-table>
-
-
           </template>
-
         </q-splitter>
-
       </template>
     </q-splitter>
   </div>
 </template>
 
-<script>
-import {ref} from "vue";
-import {api} from "boot/axios";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useQuasar } from "quasar";
+import { api } from "@/boot/axios";
 import {
   collapsAll,
   expandAll,
@@ -308,624 +303,567 @@ import {
   notifyError,
   notifyInfo,
   pack,
-} from "src/utils/jsutils";
-import QTreeTable from "components/QTreeTable.vue";
-import UpdateGroup from "pages/group/UpdateGroup.vue";
-import UpdateDimMultiProp from "pages/multiprop/dim/UpdateDimMultiProp.vue";
-import UpdateDimMultiPropMoreCols from "pages/multiprop/dim/UpdateDimMultiPropMoreCols.vue";
+} from "@/utils/jsutils";
+import QTreeTable from "@/components/QTreeTable.vue";
+import UpdateGroup from "@/pages/group/UpdateGroup.vue";
+import UpdateDimMultiProp from "@/pages/multiprop/dim/UpdateDimMultiProp.vue";
+import UpdateDimMultiPropMoreCols from "@/pages/multiprop/dim/UpdateDimMultiPropMoreCols.vue";
 
+const router = useRouter();
+const route = useRoute();
+const $q = useQuasar();
+const { proxy } = getCurrentInstance();
 
-export default {
-  name: "DimMultiProp",
-  components: {QTreeTable},
+const splitterModel = ref(30);
+const splitterModel2 = ref(60);
 
-  data() {
-    return {
-      splitterModel: ref(30),
-      splitterModel2: ref(60),
+const cols = ref([]);
+const rows = ref([]);
+const currentNode = ref(null);
+const visible = ref(false);
 
-      cols: [],
-      rows: [],
-      currentNode: null,
-      visible: ref(false),
-      //
-      cols2: [],
-      rows2: [],
-      FD_AccessLevel: null,
-      FD_DimMultiPropType: null,
-      loading2: false,
-      selected2: [],
-      dmpGr: 0,
-      dmp: 0,
-      //
+const cols2 = ref([]);
+const rows2 = ref([]);
+const FD_AccessLevel = reactive(new Map());
+const FD_DimMultiPropType = reactive(new Map());
+const loading2 = ref(false);
+const selected2 = ref([]);
+const dmpGr = ref(0);
+const dmp = ref(0);
 
-      cols3: [],
-      rows3: [],
-      loading3: false,
-      selected3: [],
-      maxLen: 0,
-    };
-  },
-  methods: {
-    hasTarget,
-    propSelect() {
-      this.$router["push"]({
-        name: "DimMultiPropItem",
-        params: {
-          dimMultiPropGr: this.currentNode.id,
-          dimMultiProp: this.selected2[0].id,
-          dimMultiPropName: this.selected2[0].name,
-          dimMultiPropType: this.selected2[0].dimMultiPropType,
-        },
+const cols3 = ref([]);
+const rows3 = ref([]);
+const loading3 = ref(false);
+const selected3 = ref([]);
+const maxLen = ref(0);
+
+const lang = ref("");
+const childComp = ref(null);
+
+const propSelect = () => {
+  router.push({
+    name: "DimMultiPropItem",
+    params: {
+      dimMultiPropGr: currentNode.value.id,
+      dimMultiProp: selected2.value[0].id,
+      dimMultiPropName: selected2.value[0].name,
+      dimMultiPropType: selected2.value[0].dimMultiPropType,
+    },
+  });
+};
+
+const onUpdateSelect = (item) => {
+  dmp.value = 0;
+  currentNode.value = item.selected !== undefined ? item.selected : null;
+  if (currentNode.value) {
+    api
+      .post("", {
+        method: "group/loadRec",
+        params: [{ id: currentNode.value.id, tableName: "DimMultiPropGr" }],
+      })
+      .then((response) => {
+        currentNode.value = response.data.result.records[0];
+        fetchData(currentNode.value.id);
       });
-    },
+  } else {
+    selected2.value = [];
+    fetchData(0);
+  }
+};
 
-    onUpdateSelect(item) {
-      this.dmp = 0
-      this.currentNode = item.selected !== undefined ? item.selected : null;
-      if (this.currentNode) {
-        api
-          .post("", {
-            method: "group/loadRec",
-            params: [{id: this.currentNode.id, tableName: "DimMultiPropGr"}],
-          })
-          .then((response) => {
-            this.currentNode = response.data.result.records[0];
-
-            this.fetchData(this.currentNode.id);
-          });
-      } else {
-        this.selected2 = [];
-        this.fetchData(0);
+const fetchDataGr = () => {
+  visible.value = true;
+  currentNode.value = null;
+  api
+    .post("", {
+      method: "group/loadGroup",
+      params: [{ tableName: "DimMultiPropGr" }],
+    })
+    .then(
+      (response) => {
+        rows.value = pack(response.data.result.records, "id");
+        fnExpand();
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response)
+          msg = proxy?.$t(error.response.data.error.message) || error.response.data.error.message;
+        notifyError(msg);
       }
-    },
+    )
+    .then(() => {
+      if (dmpGr.value > 0) {
+        let res = [];
+        findNode(rows.value, "id", dmpGr.value, res);
+        currentNode.value = res[0];
+        childComp.value?.restoreSelect(currentNode.value);
+        fetchData(currentNode.value.id);
+      }
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+};
 
-    fetchDataGr() {
-      this.visible = ref(true)
-      this.currentNode = null
+const fnInsGr = (mode, isChild) => {
+  let data = {
+    id: 0,
+    cod: "",
+    name: "",
+    fullName: "",
+    accessLevel: 1,
+    cmt: null,
+  };
+  const lg = lang.value;
+  let parent = null;
+  let parentName = null;
+  if (isChild) {
+    parent = currentNode.value.id;
+    parentName = currentNode.value.name;
+  }
+  if (mode === "ins") {
+    data.parent = parent;
+  } else if (mode === "upd") {
+    data = {
+      id: currentNode.value.id,
+      cod: currentNode.value.cod,
+      name: currentNode.value.name,
+      fullName: currentNode.value.fullName,
+      accessLevel: currentNode.value.accessLevel,
+      parent: currentNode.value.parent,
+      cmt: currentNode.value.cmt,
+    };
+    if (currentNode.value.parent > 0) {
+      let parentNode = [];
+      getParentNode(rows.value, currentNode.value.parent, parentNode);
+      parentName = parentNode[0]?.fullName;
+      isChild = true;
+    }
+  }
+
+  $q.dialog({
+    component: UpdateGroup,
+    componentProps: {
+      data: data,
+      mode: mode,
+      isChild: isChild,
+      tableName: "DimMultiPropGr",
+      parentName: parentName,
+      lg: lg,
+      dense: true,
+    },
+  }).onOk((resData) => {
+    childComp.value?.clrAny();
+    fetchDataGr();
+    currentNode.value = resData;
+    childComp.value?.restoreSelect(currentNode.value);
+    onUpdateSelect({ selected: resData });
+  });
+};
+
+const fnDelGr = (rec) => {
+  rec.tableName = "DimMultiPropGr";
+  $q.dialog({
+    title: proxy?.$t("confirmation") || "confirmation",
+    message:
+      (proxy?.$t("deleteRecord") || "deleteRecord") +
+      '<div style="color: plum">(' +
+      rec.cod +
+      ": " +
+      rec.name +
+      ")</div>",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  })
+    .onOk(() => {
       api
         .post("", {
-          method: "group/loadGroup",
-          params: [{tableName: "DimMultiPropGr"}],
-        })
-        .then(
-          (response) => {
-            this.rows = pack(response.data.result.records, "id");
-            this.fnExpand();
-          },
-          (error) => {
-
-            let msg = error.message;
-            if (error.response)
-              msg = this.$t(error.response.data.error.message);
-            notifyError(msg);
-          }
-        )
-        .then(() => {
-          if (this.dmpGr > 0) {
-            let res = []
-            findNode(this.rows, "id", this.dmpGr, res)
-            this.currentNode = res[0]
-            this.$refs.childComp.restoreSelect(this.currentNode)
-            this.fetchData(this.currentNode.id)
-          }
-        })
-        .finally(() => {
-          this.visible = ref(false);
-        });
-    },
-
-    fnInsGr(mode, isChild) {
-      let data = {
-        id: 0,
-        cod: "",
-        name: "",
-        fullName: "",
-        accessLevel: 1,
-        cmt: null,
-      };
-      const lg = this.lang;
-      let parent = null;
-      let parentName = null;
-      if (isChild) {
-        parent = this.currentNode.id;
-        parentName = this.currentNode.name;
-      }
-      if (mode === "ins") {
-        data.parent = parent;
-      } else if (mode === "upd") {
-        data = {
-          id: this.currentNode.id,
-          cod: this.currentNode.cod,
-          name: this.currentNode.name,
-          fullName: this.currentNode.fullName,
-          accessLevel: this.currentNode.accessLevel,
-          parent: this.currentNode.parent,
-          cmt: this.currentNode.cmt,
-        };
-        if (this.currentNode.parent > 0) {
-          let parentNode = [];
-          getParentNode(this.rows, this.currentNode.parent, parentNode);
-          //console.log("ParentNode-----", parentNode)
-          parentName = parentNode[0].fullName;
-
-          //parentName = findParentNode(this.currentNode, this.rows).name
-          isChild = true;
-        }
-      }
-      //
-      this.$q
-        .dialog({
-          component: UpdateGroup,
-          componentProps: {
-            data: data,
-            mode: mode,
-            isChild: isChild,
-            tableName: "DimMultiPropGr",
-            parentName: parentName,
-            lg: lg,
-            dense: true,
-          },
-        })
-        .onOk((data) => {
-          this.$refs.childComp.clrAny();
-          this.fetchDataGr()
-          this.currentNode = data
-          this.$refs.childComp.restoreSelect(this.currentNode)
-          this.onUpdateSelect({selected: data})
-        });
-    },
-
-    fnDelGr(rec) {
-      rec.tableName = "DimMultiPropGr";
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' +
-            rec.cod +
-            ": " +
-            rec.name +
-            ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          //let index = this.rows.findIndex((row) => row.id === rec.id);
-          api
-            .post("", {
-              method: "group/delete",
-              params: [rec],
-            })
-            .then(
-              () => {
-                this.fetchDataGr();
-              },
-              (error) => {
-                let msg
-                if (error.response) msg = error.response.data.error.message;
-                else msg = error.message;
-                notifyError(msg);
-              }
-            );
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t("canceled"));
-        });
-    },
-
-    /*---------------------------------*/
-
-    edit(data, mode) {
-      const lg = this.lang;
-      this.$q
-        .dialog({
-          component: UpdateDimMultiProp,
-          componentProps: {
-            data: data,
-            mode: mode,
-            lg: lg,
-            dense: true,
-          },
-        })
-        .onOk((r) => {
-          if (mode === "ins") {
-            this.rows2.push(r);
-            this.selected2 = [];
-            this.selected2.push(r);
-          } else {
-            for (let key in r) {
-              if (r.hasOwnProperty(key)) {
-                data[key] = r[key];
-              }
-            }
-          }
-        });
-    },
-
-    fnIns(mode) {
-      if (mode === "ins") {
-        api
-          .post("", {
-            method: "dimMultiProp/newRec",
-            params: [this.currentNode.id],
-          })
-          .then((response) => {
-            this.edit(response.data.result.records[0], mode);
-          });
-      } else {
-        this.edit(this.selected2[0], mode);
-      }
-    },
-
-    fnDel(rec) {
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' +
-            rec.cod +
-            ": " +
-            rec.name +
-            ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          //let index = this.rows.findIndex((row) => row.id === rec.id);
-          api
-            .post("", {
-              method: "dimMultiProp/delete",
-              params: [{rec: rec}],
-            })
-            .then(
-              () => {
-                //this.$refs.childComp2.clrAny()
-                this.selected2 = [];
-                this.fetchData(this.currentNode.id);
-              },
-              (error) => {
-                let msg
-                if (error.response) msg = error.response.data.error.message;
-                else msg = error.message;
-                notifyError(msg);
-              }
-            );
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t("canceled"));
-        });
-    },
-
-    fetchData(propGr) {
-      this.visible = ref(true)
-      this.selected2 = []
-      api
-        .post("", {
-          method: "dimMultiProp/loadDimMultiProp",
-          params: [propGr],
-        })
-        .then((response) => {
-          this.rows2 = response.data.result.records;
-        })
-        .catch((error) => {
-
-          let msg = error.message;
-          if (error.response) msg = this.$t(error.response.data.error.message);
-
-          notifyError(msg);
-        })
-        .then(() => {
-          if (this.dmp > 0) {
-            const cur = this.rows2.filter((it) => {
-              return it.id === this.dmp
-            })
-            if (cur.length > 0) {
-              this.selected2.push(cur[0])
-              this.onUpdateSelect2(this.selected2)
-            }
-          }
-        })
-        .finally(() => {
-          this.visible = ref(false);
-        })
-    },
-
-    /////////////////////////////////
-
-    fnUp(up) {
-      api
-        .post("", {
-          method: "dimMultiProp/changeOrdMoreCols",
-          params: [{rec: this.selected3[0], up: up, dimMultiProp: this.selected2[0].id}],
+          method: "group/delete",
+          params: [rec],
         })
         .then(
           () => {
-            //reload...
-            this.loadDimMultiPropMoreCols(this.selected2[0].id)
+            fetchDataGr();
           },
           (error) => {
-            let msg = error.response.data.error.message
-              ? error.response.data.error.message
-              : error.message;
+            let msg;
+            if (error.response) msg = error.response.data.error.message;
+            else msg = error.message;
             notifyError(msg);
           }
         );
-    },
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t("canceled") || "canceled");
+    });
+};
 
-    indexOf(id) {
-      let rez = -1;
-      this.rows3.forEach((row, index) => {
-        if (row.id === id) {
-          rez = index;
+const edit = (data, mode) => {
+  const lg = lang.value;
+  $q.dialog({
+    component: UpdateDimMultiProp,
+    componentProps: {
+      data: data,
+      mode: mode,
+      lg: lg,
+      dense: true,
+    },
+  }).onOk((r) => {
+    if (mode === "ins") {
+      rows2.value.push(r);
+      selected2.value = [];
+      selected2.value.push(r);
+    } else {
+      for (let key in r) {
+        if (Object.prototype.hasOwnProperty.call(r, key)) {
+          data[key] = r[key];
         }
+      }
+    }
+  });
+};
+
+const fnIns = (mode) => {
+  if (mode === "ins") {
+    api
+      .post("", {
+        method: "dimMultiProp/newRec",
+        params: [currentNode.value.id],
+      })
+      .then((response) => {
+        edit(response.data.result.records[0], mode);
       });
-      return rez;
-    },
+  } else {
+    edit(selected2.value[0], mode);
+  }
+};
 
-    onoffUp() {
-      //console.log("selected[0]", this.selected[0])
-
-      if (this.selected3[0] === undefined) return true;
-      else {
-        return this.indexOf(this.selected3[0].id) <= 0;
-      }
-    },
-
-    onoffDown() {
-      if (this.selected3[0] === undefined) return true;
-      else {
-        return this.indexOf(this.selected3[0].id) >= this.maxLen - 1;
-      }
-    },
-
-    onUpdateSelect2(item) {
-      //console.info(item)
-      const id = item.length===0 ? 0 : item[0].id
-      this.loadDimMultiPropMoreCols(id)
-    },
-
-    loadDimMultiPropMoreCols(dimMultiProp) {
-      this.loading3 = true
-      this.selected3 = []
+const fnDel = (rec) => {
+  $q.dialog({
+    title: proxy?.$t("confirmation") || "confirmation",
+    message:
+      (proxy?.$t("deleteRecord") || "deleteRecord") +
+      '<div style="color: plum">(' +
+      rec.cod +
+      ": " +
+      rec.name +
+      ")</div>",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  })
+    .onOk(() => {
       api
         .post("", {
-          method: "dimMultiProp/loadDimMultiPropMoreCols",
-          params: [dimMultiProp],
+          method: "dimMultiProp/delete",
+          params: [{ rec: rec }],
         })
-        .then((response) => {
-          this.rows3 = response.data.result.records
-          this.maxLen = this.rows3.length;
-        })
-        .catch((error) => {
-
-          let msg = error.message;
-          if (error.response) msg = this.$t(error.response.data.error.message);
-
-          notifyError(msg);
-        })
-        .finally(() => {
-          this.loading3 = false;
-        })
-
-    },
-
-
-    removeRow3() {
-      let rec = this.selected3[0];
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' + rec.title +
-            ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          this.loading3 = true
-          api
-            .post("", {
-              method: "dimMultiProp/deleteMoreCols",
-              params: [rec.id],
-            })
-            .then(
-              () => {
-                this.loadDimMultiPropMoreCols(this.selected2[0].id)
-                this.selected3 = []
-              },
-              (error) => {
-                notifyError(error.response.data.error.message)
-              }
-            )
-            .finally(()=> {
-              this.loading3 = false
-            })
-        })
-
-    },
-
-    editRow3(mode) {
-      let data = {dimMultiProp: this.selected2[0].id};
-      if (mode === "upd") {
-        data = this.selected3[0];
-      }
-
-      this.$q
-        .dialog({
-          component: UpdateDimMultiPropMoreCols,
-          componentProps: {
-            data: data,
-            mode: mode,
+        .then(
+          () => {
+            selected2.value = [];
+            fetchData(currentNode.value.id);
           },
-        })
-        .onOk((data) => {
-          this.selected3 = []
-          this.loadDimMultiPropMoreCols(this.selected2[0].id)
-          this.selected3.push(data)
-        })
-
-    },
-
-
-    getColumns() {
-      return [
-        {
-          name: "cod",
-          label: this.$t("code"),
-          field: "cod",
-          align: "left",
-          headerStyle: "font-size: 1.2em; width: 30%",
-        },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          headerStyle: "font-size: 1.2em; width: 70%",
-        },
-      ];
-    },
-
-    getColumns2() {
-      return [
-        {
-          name: "cod",
-          label: this.$t("code"),
-          field: "cod",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 15%",
-        },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 15%",
-        },
-        {
-          name: "fullName",
-          label: this.$t("fldFullName"),
-          field: "fullName",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 20%",
-        },
-        {
-          name: "accessLevel",
-          label: this.$t("accessLevel"),
-          field: "accessLevel",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 15%",
-          format: (val) =>
-            this.FD_AccessLevel ? this.FD_AccessLevel.get(val) : null,
-        },
-        {
-          name: "dimMultiPropType",
-          label: this.$t("dimMultiPropType"),
-          field: "dimMultiPropType",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 5%",
-          format: (val) =>
-            this.FD_DimMultiPropType ? this.FD_DimMultiPropType.get(val) : null,
-        },
-        {
-          name: "cmt",
-          label: this.$t("fldCmt"),
-          field: "cmt",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 15%",
-        },
-      ];
-    },
-
-    getColumns3() {
-      return [
-        {
-          name: "title",
-          label: this.$t("titleDop"),
-          field: "title",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 100%",
-        }
-      ];
-    },
-
-    fnExpand() {
-      expandAll(this.rows);
-    },
-    fnCollapse() {
-      collapsAll(this.rows);
-    },
-
-    infoSelected(row) {
-      return " " + row.cod + " - " + row.name;
-    },
-
-  },
-
-  created() {
-    console.log("create")
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
-
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_AccessLevel"}],
-      })
-      .then((response) => {
-        this.FD_AccessLevel = new Map();
-        response.data.result.records.forEach((it) => {
-          this.FD_AccessLevel.set(["id"], it["text"]);
-        })
-      })
-
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_DimMultiPropType"}],
-      })
-      .then((response) => {
-        this.FD_DimMultiPropType = new Map();
-        response.data.result.records.forEach((it) => {
-          this.FD_DimMultiPropType.set(["id"], it["text"]);
-        })
-      })
-
-
-    this.cols = this.getColumns()
-    this.cols2 = this.getColumns2()
-    this.cols3 = this.getColumns3()
-  },
-
-  mounted() {
-    this.dmpGr = parseInt(this.$route["params"].dmpGr, 10);
-    this.dmp = parseInt(this.$route["params"].dmp, 10);
-    this.fetchDataGr();
-  },
-
-  setup() {
-  },
+          (error) => {
+            let msg;
+            if (error.response) msg = error.response.data.error.message;
+            else msg = error.message;
+            notifyError(msg);
+          }
+        );
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t("canceled") || "canceled");
+    });
 };
+
+const fetchData = (propGr) => {
+  visible.value = true;
+  selected2.value = [];
+  api
+    .post("", {
+      method: "dimMultiProp/loadDimMultiProp",
+      params: [propGr],
+    })
+    .then((response) => {
+      rows2.value = response.data.result.records;
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+      notifyError(msg);
+    })
+    .then(() => {
+      if (dmp.value > 0) {
+        const cur = rows2.value.filter((it) => {
+          return it.id === dmp.value;
+        });
+        if (cur.length > 0) {
+          selected2.value.push(cur[0]);
+          onUpdateSelect2(selected2.value);
+        }
+      }
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+const fnUp = (up) => {
+  api
+    .post("", {
+      method: "dimMultiProp/changeOrdMoreCols",
+      params: [{ rec: selected3.value[0], up: up, dimMultiProp: selected2.value[0].id }],
+    })
+    .then(
+      () => {
+        loadDimMultiPropMoreCols(selected2.value[0].id);
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message
+          ? error.response.data.error.message
+          : error.message;
+        notifyError(msg);
+      }
+    );
+};
+
+const indexOf = (id) => {
+  let rez = -1;
+  rows3.value.forEach((row, index) => {
+    if (row.id === id) {
+      rez = index;
+    }
+  });
+  return rez;
+};
+
+const onoffUp = () => {
+  if (selected3.value[0] === undefined) return true;
+  else {
+    return indexOf(selected3.value[0].id) <= 0;
+  }
+};
+
+const onoffDown = () => {
+  if (selected3.value[0] === undefined) return true;
+  else {
+    return indexOf(selected3.value[0].id) >= maxLen.value - 1;
+  }
+};
+
+const onUpdateSelect2 = (item) => {
+  const id = item.length === 0 ? 0 : item[0].id;
+  loadDimMultiPropMoreCols(id);
+};
+
+const loadDimMultiPropMoreCols = (dimMultiProp) => {
+  loading3.value = true;
+  selected3.value = [];
+  api
+    .post("", {
+      method: "dimMultiProp/loadDimMultiPropMoreCols",
+      params: [dimMultiProp],
+    })
+    .then((response) => {
+      rows3.value = response.data.result.records;
+      maxLen.value = rows3.value.length;
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+      notifyError(msg);
+    })
+    .finally(() => {
+      loading3.value = false;
+    });
+};
+
+const removeRow3 = () => {
+  let rec = selected3.value[0];
+  $q.dialog({
+    title: proxy?.$t("confirmation") || "confirmation",
+    message:
+      (proxy?.$t("deleteRecord") || "deleteRecord") +
+      '<div style="color: plum">(' +
+      rec.title +
+      ")</div>",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  }).onOk(() => {
+    loading3.value = true;
+    api
+      .post("", {
+        method: "dimMultiProp/deleteMoreCols",
+        params: [rec.id],
+      })
+      .then(
+        () => {
+          loadDimMultiPropMoreCols(selected2.value[0].id);
+          selected3.value = [];
+        },
+        (error) => {
+          notifyError(error.response.data.error.message);
+        }
+      )
+      .finally(() => {
+        loading3.value = false;
+      });
+  });
+};
+
+const editRow3 = (mode) => {
+  let data = { dimMultiProp: selected2.value[0].id };
+  if (mode === "upd") {
+    data = selected3.value[0];
+  }
+
+  $q.dialog({
+    component: UpdateDimMultiPropMoreCols,
+    componentProps: {
+      data: data,
+      mode: mode,
+    },
+  }).onOk((resData) => {
+    selected3.value = [];
+    loadDimMultiPropMoreCols(selected2.value[0].id);
+    selected3.value.push(resData);
+  });
+};
+
+const getColumns = () => [
+  {
+    name: "cod",
+    label: proxy?.$t("code") || "code",
+    field: "cod",
+    align: "left",
+    headerStyle: "font-size: 1.2em; width: 30%",
+  },
+  {
+    name: "name",
+    label: proxy?.$t("fldName") || "fldName",
+    field: "name",
+    align: "left",
+    headerStyle: "font-size: 1.2em; width: 70%",
+  },
+];
+
+const getColumns2 = () => [
+  {
+    name: "cod",
+    label: proxy?.$t("code") || "code",
+    field: "cod",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 15%",
+  },
+  {
+    name: "name",
+    label: proxy?.$t("fldName") || "fldName",
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 15%",
+  },
+  {
+    name: "fullName",
+    label: proxy?.$t("fldFullName") || "fldFullName",
+    field: "fullName",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 20%",
+  },
+  {
+    name: "accessLevel",
+    label: proxy?.$t("accessLevel") || "accessLevel",
+    field: "accessLevel",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 15%",
+    format: (val) => (FD_AccessLevel.size > 0 ? FD_AccessLevel.get(val) : null),
+  },
+  {
+    name: "dimMultiPropType",
+    label: proxy?.$t("dimMultiPropType") || "dimMultiPropType",
+    field: "dimMultiPropType",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 5%",
+    format: (val) => (FD_DimMultiPropType.size > 0 ? FD_DimMultiPropType.get(val) : null),
+  },
+  {
+    name: "cmt",
+    label: proxy?.$t("fldCmt") || "fldCmt",
+    field: "cmt",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 15%",
+  },
+];
+
+const getColumns3 = () => [
+  {
+    name: "title",
+    label: proxy?.$t("titleDop") || "titleDop",
+    field: "title",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 100%",
+  },
+];
+
+const fnExpand = () => {
+  expandAll(rows.value);
+};
+
+const fnCollapse = () => {
+  collapsAll(rows.value);
+};
+
+const infoSelected = (row) => {
+  return " " + row.cod + " - " + row.name;
+};
+
+onMounted(() => {
+  lang.value = localStorage.getItem("curLang");
+  lang.value = lang.value === "en-US" ? "en" : lang.value;
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        FD_AccessLevel.set(it.id, it.text);
+      });
+    });
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_DimMultiPropType" }],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        FD_DimMultiPropType.set(it.id, it.text);
+      });
+    });
+
+  cols.value = getColumns();
+  cols2.value = getColumns2();
+  cols3.value = getColumns3();
+
+  dmpGr.value = parseInt(route.params.dmpGr, 10) || 0;
+  dmp.value = parseInt(route.params.dmp, 10) || 0;
+  fetchDataGr();
+});
 </script>
 
 <style scoped>
-
 .img-vert {
   -moz-transform: scaleY(-1);
   -o-transform: scaleY(-1);
@@ -933,5 +871,4 @@ export default {
   transform: scaleY(-1);
   -ms-filter: "FlipV";
 }
-
 </style>

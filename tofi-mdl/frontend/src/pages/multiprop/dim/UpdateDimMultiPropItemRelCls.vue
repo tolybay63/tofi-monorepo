@@ -1,12 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -16,207 +15,190 @@
         <div>{{ $t("editRecord") }}</div>
       </q-bar>
 
-      <q-inner-loading :showing="visible" color="secondary"/>
+      <q-inner-loading :showing="visible" color="secondary" />
 
       <q-card-section>
-
         <!-- relcls -->
+
+        <TreeSelect
+          v-model="relCls"
+          :label="$t('relCls')"
+          :options="optRelCls"
+          class="q-ma-md"
+          node-key="key"
+          @close="fnCloseRelCls"
+        />
+
+
         <q-item-label
-            :class="form.relCls < 0 ? 'text-red-10' : 'text-grey-7'"
-            style="font-size: 0.8em; margin-top: 10px" class="row q-mt-lg">
+          :class="form.relCls < 0 ? 'text-red-10' : 'text-grey-7'"
+          style="font-size: 0.8em; margin-top: 10px"
+          class="row q-mt-lg"
+        >
           {{ $t("relCls") }}
-          <q-space></q-space>
-          <q-icon name="error" v-if="form.relCls < 0" color="red-10" size="24px"></q-icon>
+          <q-space />
+          <q-icon name="error" v-if="form.relCls < 0" color="red-10" size="24px" />
         </q-item-label>
 
+<!--
         <treeselect
-            class="q-mb-lg"
-            :options="optRelCls"
-            v-model="relCls"
-            :normalizer="normalizer"
-            :placeholder="$t('select')"
-            :noChildrenText="$t('noChilds')"
-            :noResultsText="$t('noResult')"
-            :noOptionsText="$t('noResult')"
-            @close="fnCloseRelCls"
+          class="q-mb-lg"
+          :options="optRelCls"
+          v-model="relCls"
+          :normalizer="normalizer"
+          :placeholder="$t('select')"
+          :noChildrenText="$t('noChilds')"
+          :noResultsText="$t('noResult')"
+          :noOptionsText="$t('noResult')"
+          @close="fnCloseRelCls"
         />
-        <q-item-label v-if="form.relCls < 0"
-                      class="text-red-10" style="font-size: 0.8em"
+        <q-item-label
+          v-if="form.relCls < 0"
+          class="text-red-10"
+          style="font-size: 0.8em"
         >
           {{ $t("chooseRelCls") }}
         </q-item-label>
+-->
 
         <!-- format -->
         <q-select
-            class="q-my-lg"
-            v-model="vf"
-            :model-value="vf"
-            :options="optVF"
-            :label="$t('visualFormat')"
-            option-value="id"
-            option-label="text"
-            map-options
-            dense options-dense
-            @update:model-value="fnSelectVF"
+          class="q-my-lg"
+          v-model="vf"
+          :options="optVF"
+          :label="$t('visualFormat')"
+          option-value="id"
+          option-label="text"
+          map-options
+          dense
+          options-dense
+          @update:model-value="fnSelectVF"
         />
-
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            dense
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          dense
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            dense
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          dense
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
-import {ref} from "vue";
-import treeselect from "vue3-treeselect";
-import "vue3-treeselect/dist/vue3-treeselect.css";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess, pack } from "@/utils/jsutils";
+import TreeSelect from '@/components/TreeSelect.vue'
 
-export default {
-  components: {treeselect},
-  props: ["data", "mode", "lg"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-      visible: ref(false),
-
-      vf: this.data.visualFormat,
-      optVF: [],
-
-      optRelCls: [],
-      relCls: this.data.relCls,
-
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    normalizer(node) {
-      return {
-        id: node.relcls,
-        label: node.name,
-      };
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
+const visible = ref(false);
 
-    fnCloseRelCls(v) {
-      this.form.relCls = v;
-    },
+const vf = ref(props.data.visualFormat);
+const optVF = ref([]);
 
-    fnSelectVF() {
-      this.form.visualFormat = this.vf.id
-    },
+const optRelCls = ref([]);
+const relCls = ref(props.data.relCls);
 
-    validSave: function () {
-      return this.form.relCls < 0;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insDimMultiPropItemRelCls" : "updDimMultiPropItemRelCls";
-
-      this.form.visualFormat =
-          typeof this.vf === "object" ? this.vf.id : this.vf;
-      api
-          .post("", {
-            method: "dimMultiProp/" + method,
-            params: [this.form],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-
-    this.visible = ref(true)
-    api
-        .post("", {
-          method: "dimMultiProp/loadRelClsForSelect",
-          params: [],
-        })
-        .then((response) => {
-          this.optRelCls = pack(response.data.result.records, "id");
-        })
-        .finally(() => {
-          this.visible = ref(false)
-        });
-
-    this.visible = ref(true)
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_VisualFormat"}],
-        })
-        .then((response) => {
-          this.optVF = response.data.result.records;
-        })
-        .finally(() => {
-          this.visible = ref(false)
-        });
-  },
+const normalizer = (node) => {
+  return {
+    id: node.relcls,
+    label: node.name,
+  };
 };
 
+const fnCloseRelCls = (v) => {
+  form.relCls = v;
+};
+
+const fnSelectVF = () => {
+  form.visualFormat = typeof vf.value === "object" && vf.value !== null ? vf.value.id : vf.value;
+};
+
+const validSave = () => {
+  return form.relCls < 0;
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insDimMultiPropItemRelCls" : "updDimMultiPropItemRelCls";
+
+  form.visualFormat = typeof vf.value === "object" && vf.value !== null ? vf.value.id : vf.value;
+
+  api
+    .post("", {
+      method: "dimMultiProp/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "dimMultiProp/loadRelClsForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optRelCls.value = pack(response.data.result.records, "id");
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+
+  visible.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_VisualFormat" }],
+    })
+    .then((response) => {
+      optVF.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+});
 </script>
+
+<style scoped></style>

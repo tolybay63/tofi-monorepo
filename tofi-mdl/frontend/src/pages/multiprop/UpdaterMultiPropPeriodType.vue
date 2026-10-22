@@ -1,11 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar class="text-white bg-primary">
@@ -14,34 +14,33 @@
 
       <q-card-section>
         <q-table
-            color="primary"
-            card-class="bg-amber-1"
-            table-class="text-grey-8"
-            row-key="id"
-            :columns="cols"
-            :rows="rows"
-            :wrap-cells="true"
-            :table-colspan="4"
-            table-header-class="text-bold text-white bg-blue-grey-13"
-            separator="cell"
-            :dense="dense"
-            :rows-per-page-options="[0]"
+          color="primary"
+          card-class="bg-amber-1"
+          table-class="text-grey-8"
+          row-key="id"
+          :columns="cols"
+          :rows="rows"
+          :wrap-cells="true"
+          :table-colspan="4"
+          table-header-class="text-bold text-white bg-blue-grey-13"
+          separator="cell"
+          :dense="dense"
+          :rows-per-page-options="[0]"
         >
           <template v-slot:body="props">
             <q-tr :props="props">
               <td style="width: 5px">
                 <q-btn
-                    :dense="dense"
-                    flat
-                    color="blue"
-                    :icon="
+                  :dense="dense"
+                  flat
+                  color="blue"
+                  :icon="
                     props.row.checked === 1
                       ? 'check_box'
                       : 'check_box_outline_blank'
                   "
-                    @click="selectedRow(props.row)"
-                >
-                </q-btn>
+                  @click="selectedRow(props.row)"
+                />
               </td>
 
               <q-td key="name" :props="props">
@@ -54,162 +53,125 @@
 
       <q-card-actions align="right">
         <q-btn
-            :loading="loading"
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :loading="loading"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
-            <q-spinner-hourglass color="white"/>
+            <q-spinner-hourglass color="white" />
           </template>
         </q-btn>
 
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {ref} from "vue";
-import {notifyError, notifyInfo} from "src/utils/jsutils";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifyInfo } from "@/utils/jsutils";
 
-export default {
-  props: ["multiProp", "dense"],
+const props = defineProps({
+  multiProp: [Number, String],
+  dense: Boolean,
+});
 
-  data() {
-    return {
-      cols: [],
-      rows: [],
-      loading: ref(false),
-    };
-  },
+defineEmits([...useDialogPluginComponent.emits]);
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-  methods: {
-    selectedRow(row) {
-      row.checked = !row.checked;
-    },
+const cols = ref([]);
+const rows = ref([]);
+const loading = ref(false);
 
-    validSave() {
-      return false;
-      /*
-      let i = 0
-      this.rows.forEach(r => {
-        if (r.checked) i++
-      })
-      return !(i > 0)
-*/
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "checked",
-          field: "checked",
-          style: "width: 5%",
-        },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 95%",
-        },
-      ];
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    onOKClick() {
-      this.loading = ref(true);
-      let dta = [];
-
-      this.rows.forEach((r) => {
-        if (r.checked) {
-          dta.push({id: r["idInTable"], periodType: r.id});
-        }
-      });
-
-      api
-          .post("", {
-            method: "multiProp/saveMultiPropPeriodType",
-            params: [this.multiProp, dta],
-          })
-          .then(
-              (response) => {
-                let res = response.data.result;
-                if (res !== "") {
-                  let msg = res + " участвует в данных";
-                  if (res.includes(",")) msg = res + " участвуют в данных";
-                  notifyInfo(msg);
-                }
-                this.$emit("ok", {res: true});
-              },
-              (error) => {
-                let msg = error.message;
-                if (error.response.data.error.message)
-                  msg = error.response.data.error.message;
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            this.loading = ref(false);
-            this.hide();
-          });
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    this.cols = this.getColumns();
-
-    api
-        .post("", {
-          method: "multiProp/loadMultiPropPeriodTypeForUpd",
-          params: [this.multiProp],
-        })
-        .then((response) => {
-          this.rows = response.data.result.records;
-        });
-
-    return {};
-  },
+const selectedRow = (row) => {
+  row.checked = !row.checked;
 };
+
+const validSave = () => {
+  return false;
+};
+
+const getColumns = () => [
+  {
+    name: "checked",
+    field: "checked",
+    style: "width: 5%",
+  },
+  {
+    name: "name",
+    label: proxy?.$t("fldName") || "fldName",
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 95%",
+  },
+];
+
+const onOKClick = () => {
+  loading.value = true;
+  let dta = [];
+
+  rows.value.forEach((r) => {
+    if (r.checked) {
+      dta.push({ id: r["idInTable"], periodType: r.id });
+    }
+  });
+
+  api
+    .post("", {
+      method: "multiProp/saveMultiPropPeriodType",
+      params: [props.multiProp, dta],
+    })
+    .then(
+      (response) => {
+        let res = response.data.result;
+        if (res !== "") {
+          let msg = res + " участвует в данных";
+          if (res.includes(",")) msg = res + " участвуют в данных";
+          notifyInfo(msg);
+        }
+        onDialogOK({ res: true });
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response?.data?.error?.message)
+          msg = error.response.data.error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+onMounted(() => {
+  cols.value = getColumns();
+
+  api
+    .post("", {
+      method: "multiProp/loadMultiPropPeriodTypeForUpd",
+      params: [props.multiProp],
+    })
+    .then((response) => {
+      rows.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

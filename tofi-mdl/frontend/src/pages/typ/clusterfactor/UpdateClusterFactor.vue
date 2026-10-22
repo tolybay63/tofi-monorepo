@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -19,155 +19,128 @@
       <q-card-section>
         <!-- factor -->
         <q-select
-            :dense="dense"
-            v-model="factor"
-            :options="factors"
-            :label="$t('factor')"
-            option-value="id"
-            option-label="name"
-            map-options
-            :model-value="factor"
-            @update:model-value="fnSelFactor"
-            :disable="mode === 'upd'"
+          :dense="dense"
+          v-model="factor"
+          :options="factors"
+          :label="$t('factor')"
+          option-value="id"
+          option-label="name"
+          map-options
+          @update:model-value="fnSelFactor"
+          :disable="mode === 'upd'"
         />
 
         <!-- isReq -->
         <q-toggle
-            style="margin-left: 5px; margin-top: 15px"
-            :dense="dense"
-            v-model="form.isReq"
-            :model-value="form.isReq"
-            :label="$t('isReq')"
+          style="margin-left: 5px; margin-top: 15px"
+          :dense="dense"
+          v-model="form.isReq"
+          :label="$t('isReq')"
         />
-        <!--        <q-space/>-->
         <!-- isUniq -->
         <q-toggle
-            style="margin-left: 15px; margin-top: 15px"
-            :dense="dense"
-            v-model="form.isUniq"
-            :model-value="form.isUniq"
-            :label="$t('isUniq')"
+          style="margin-left: 15px; margin-top: 15px"
+          :dense="dense"
+          v-model="form.isUniq"
+          :label="$t('isUniq')"
         />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "lg", "dense"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-      factors: [],
-      factor: this.data.factor,
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: [String, Object],
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    fnSelFactor() {
-      this.form.factor = this.factor.id;
-    },
-    validSave() {
-      return this.form.factor === 0;
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
+const factors = ref([]);
+const factor = ref(props.data.factor);
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      let err = false
-      const method =
-          this.mode === "ins"
-              ? "insertTypClusterFactor"
-              : "updateTypClusterFactor";
-      api
-          .post("", {
-            method: "cluster/" + method,
-            params: [{rec: this.form}],
-          })
-          .then(
-              (response) => {
-                err = false
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                err = true
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            if (!err) this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    api
-        .post("", {
-          method: "cluster/loadFactors",
-          params: [this.form.typ, this.mode],
-        })
-        .then((response) => {
-          //this.measures = pack(response.data.result.records)
-          this.factors = response.data.result.records;
-          this.factors.unshift({id: 0, name: this.$t("notChosen")});
-        });
-
-    return {};
-  },
+const fnSelFactor = () => {
+  form.factor = typeof factor.value === "object" && factor.value !== null ? factor.value.id : factor.value;
 };
+
+const validSave = () => {
+  return form.factor === 0;
+};
+
+const onOKClick = () => {
+  let err = false;
+  const method =
+    props.mode === "ins"
+      ? "insertTypClusterFactor"
+      : "updateTypClusterFactor";
+
+  api
+    .post("", {
+      method: "cluster/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        err = false;
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        err = true;
+        let errMsg = error.response?.data?.error?.message || error.message;
+        notifyError(errMsg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "cluster/loadFactors",
+      params: [form.typ, props.mode],
+    })
+    .then((response) => {
+      factors.value = response.data.result.records;
+      factors.value.unshift({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+    });
+});
 </script>
+
+<style scoped></style>

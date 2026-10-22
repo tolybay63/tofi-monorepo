@@ -32,12 +32,11 @@
                   : 'check_box_outline_blank'
               "
               @click="selectedRow(props.row)"
-            >
-            </q-btn>
+            />
           </q-td>
 
           <q-td key="name" :props="props">
-            <q-icon name="brightness_1" :color="getIcon(props.row)"></q-icon>
+            <q-icon name="brightness_1" :color="getIcon(props.row)" />
             {{ props.cols[0].value }}
           </q-td>
           <q-td key="fullName" :props="props">
@@ -54,9 +53,9 @@
 
       <template #bottom-row>
         <q-td colspan="100%" v-if="selected.length > 0" class="text-bold">
-          {{ this.infoSelected(selected[0]) }}
+          {{ infoSelected(selected[0]) }}
         </q-td>
-        <q-td colspan="100%" v-else-if="this.rows.length > 0" class="text-bold">
+        <q-td colspan="100%" v-else-if="rows.length > 0" class="text-bold">
           {{ $t("infoClusterFactor") }}
         </q-td>
       </template>
@@ -64,7 +63,7 @@
       <template v-slot:top>
         <div style="font-size: 1.2em; font-weight: bold;">{{ $t("clusterFactors") }}</div>
 
-        <q-space/>
+        <q-space />
         <q-btn
           v-if="hasTarget('mdl:mn_ds:typ:sel:fac:ins')"
           :dense="dense"
@@ -111,253 +110,218 @@
           :label="$t('isDense')"
         />
 
-        <q-space/>
+        <q-space />
         <q-input
           :dense="dense"
           debounce="300"
           color="primary"
-          :model-value="filter.value"
           v-model="filter"
           :label="$t('txt_filter')"
         >
           <template v-slot:append>
-            <q-icon name="search"/>
+            <q-icon name="search" />
           </template>
         </q-input>
       </template>
 
       <template #loading>
-        <q-inner-loading showing color="secondary"></q-inner-loading>
+        <q-inner-loading showing color="secondary" />
       </template>
     </q-table>
   </div>
 </template>
 
-<script>
-import {defineComponent, ref} from "vue";
-import {api} from "boot/axios";
-import {hasTarget, notifyError, notifyInfo, notifySuccess} from "src/utils/jsutils";
-import UpdateClusterFactor from "pages/typ/clusterfactor/UpdateClusterFactor.vue";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from "vue";
+import { useRoute } from "vue-router";
+import { useQuasar } from "quasar";
+import { api } from "@/boot/axios";
+import { hasTarget, notifyError, notifyInfo, notifySuccess } from "@/utils/jsutils";
+import UpdateClusterFactor from "@/pages/typ/clusterfactor/UpdateClusterFactor.vue";
 
-const requestParam = {
-  page: 1,
-  rowsPerPage: 20,
-  rowsNumber: 0,
-  filter: "",
-  descending: false,
-  sortBy: null,
+const route = useRoute();
+const $q = useQuasar();
+const { proxy } = getCurrentInstance();
+
+const cols = ref([]);
+const rows = ref([]);
+const filter = ref("");
+const loading = ref(false);
+const separator = ref("cell");
+const selected = ref([]);
+const typId = ref(0);
+const dense = ref(true);
+const lang = ref("");
+
+const getIcon = (row) => {
+  if (row.isOwn === 1) return "green";
+  else return "gray";
 };
 
-export default defineComponent({
-  methods: {
-    hasTarget,
-    getIcon(row) {
-      if (row.isOwn === 1) return "green";
-      else return "gray";
-    },
+const selectedRow = (row) => {
+  if (selected.value.length > 0) {
+    if (selected.value[0].id !== row.id) {
+      selected.value = [];
+      selected.value.push(row);
+    } else {
+      selected.value = [];
+    }
+  } else {
+    selected.value.push(row);
+  }
+};
 
-    selectedRow(row) {
-      if (this.selected.length > 0) {
-        if (this.selected[0].id !== row.id) {
-          this.selected = [];
-          this.selected.push(row);
-        } else {
-          this.selected = [];
+const editRow = (rec, mode) => {
+  let data = {
+    id: 0,
+    name: "",
+    fullName: "",
+    typ: typId.value,
+    factor: 0,
+    isReq: true,
+    isUniq: true,
+  };
+  if (mode === "upd") {
+    data = {
+      id: rec.id,
+      name: rec.name,
+      fullName: rec.fullName,
+      typ: rec.typ,
+      factor: rec.factor,
+      isReq: rec.isReq,
+      isUniq: rec.isUniq,
+    };
+  }
+  const lg = { name: lang.value };
+
+  $q.dialog({
+    component: UpdateClusterFactor,
+    componentProps: {
+      data: data,
+      mode: mode,
+      lg: lg,
+      dense: dense.value,
+    },
+  }).onOk((r) => {
+    if (mode === "ins") {
+      rows.value.push(r);
+      selected.value = [];
+      selected.value.push(r);
+    } else {
+      for (let key in r) {
+        if (Object.prototype.hasOwnProperty.call(r, key)) {
+          rec[key] = r[key];
         }
-      } else this.selected.push(row);
-    },
-
-    editRow(rec, mode) {
-      let data = {
-        id: 0,
-        name: "",
-        fullName: "",
-        typ: this.typId,
-        factor: 0,
-        isReq: true,
-        isUniq: true,
-      };
-      if (mode === "upd") {
-        data = {
-          id: rec.id,
-          name: rec.name,
-          fullName: rec.fullName,
-          typ: rec.typ,
-          factor: rec.factor,
-          isReq: rec.isReq,
-          isUniq: rec.isUniq,
-        };
       }
-      const lg = {name: this.lang};
+    }
+  });
+};
 
-      this.$q
-        .dialog({
-          component: UpdateClusterFactor,
-          componentProps: {
-            data: data,
-            mode: mode,
-            lg: lg,
-            dense: this.dense,
-            // ...
-          },
-        })
-        .onOk((r) => {
-          //console.log("Ok! updated", r);
-          if (mode === "ins") {
-            this.rows.push(r);
-            this.selected = [];
-            this.selected.push(r);
-          } else {
-            for (let key in r) {
-              if (r.hasOwnProperty(key)) {
-                rec[key] = r[key];
-              }
-            }
-          }
-        })
-        .onCancel(() => {
-          //console.log('Cancel!')
-        });
-    },
+const fetchData = (typ) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "cluster/loadTypClusterFactor",
+      params: [typ],
+    })
+    .then((response) => {
+      rows.value = response.data.result.records;
+      selected.value = [];
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response?.data?.error?.message)
+        msg = error.response.data.error.message;
+      notifyError(msg);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
 
-    fetchData(typ) {
-      this.loading = ref(true);
-      //
+const removeRow = (rec) => {
+  $q.dialog({
+    title: proxy?.$t("confirmation") || "confirmation",
+    message:
+      (proxy?.$t("deleteRecord") || "deleteRecord") +
+      '<div style="color: plum">(' +
+      rec.name +
+      ")</div>",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  })
+    .onOk(() => {
+      let index = rows.value.findIndex((row) => row.id === rec.id);
       api
         .post("", {
-          method: "cluster/loadTypClusterFactor",
-          params: [typ],
+          method: "cluster/deleteTypClusterFactor",
+          params: [rec],
         })
-        .then((response) => {
-          this.rows = response.data.result.records;
-          this.selected = ref([]);
-        })
-        .catch((error) => {
-          let msg = error.message;
-          if (error.response) msg = error.response.data.error.message;
-
-          notifyError(msg);
-          //
-        })
-        .finally(() => {
-          //setTimeout(() => {
-          this.loading = ref(false);
-          //}, 500)
+        .then(() => {
+          rows.value.splice(index, 1);
+          selected.value = [];
+          notifySuccess(proxy?.$t("success") || "success");
         });
-    },
+    })
+    .onCancel(() => {
+      notifyInfo(proxy?.$t("canceled") || "canceled");
+    });
+};
 
-    removeRow(rec) {
-      //console.log("Delete Row:", JSON.stringify(rec))
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' +
-            rec.name +
-            ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          let index = this.rows.findIndex((row) => row.id === rec.id);
-          api
-            .post("", {
-              method: "cluster/deleteTypClusterFactor",
-              params: [rec],
-            })
-            .then(
-              () => {
-                //console.log("response=>>>", response.data)
-                this.rows.splice(index, 1);
-                this.selected = ref([]);
-                notifySuccess(this.$t("success"));
-              }
-            );
-        })
-        .onCancel(() => {
-          notifyInfo(this.$t("canceled"));
-        });
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 30%",
-        },
-        {
-          name: "fullName",
-          label: this.$t("fldFullName"),
-          field: "fullName",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 40%",
-        },
-        {
-          name: "isReq",
-          label: this.$t("isReq"),
-          field: "isReq",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 15%",
-          format: (val) => (val ? this.$t("yes") : this.$t("no")),
-        },
-        {
-          name: "isUniq",
-          label: this.$t("isUniq"),
-          field: "isUniq",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 15%",
-          format: (val) => (val ? this.$t("yes") : this.$t("no")),
-        },
-      ];
-    },
-
-    infoSelected(row) {
-      return this.$t("selectedRow") + ": " + row.name;
-    },
+const getColumns = () => [
+  {
+    name: "name",
+    label: proxy?.$t("fldName") || "fldName",
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 30%",
   },
-
-  data: function () {
-    return {
-      cols: [],
-      rows: [],
-      filter: ref(""),
-      loading: ref(false),
-      separator: ref("cell"),
-      selected: ref([]),
-      typId: 0,
-      dense: true,
-    };
+  {
+    name: "fullName",
+    label: proxy?.$t("fldFullName") || "fldFullName",
+    field: "fullName",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 40%",
   },
-
-  created() {
-    this.lang = localStorage.getItem("curLang");
-    this.lang = this.lang === "en-US" ? "en" : this.lang;
-    this.cols = this.getColumns();
+  {
+    name: "isReq",
+    label: proxy?.$t("isReq") || "isReq",
+    field: "isReq",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 15%",
+    format: (val) => (val ? proxy?.$t("yes") || "yes" : proxy?.$t("no") || "no"),
   },
-
-  mounted() {
-    //console.log("mounted")
-    //console.log("params", this.$route.params.meterStruct)
-    this.typId = parseInt(this.$route["params"].typ, 10);
-    this.fetchData(this.typId);
+  {
+    name: "isUniq",
+    label: proxy?.$t("isUniq") || "isUniq",
+    field: "isUniq",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 15%",
+    format: (val) => (val ? proxy?.$t("yes") || "yes" : proxy?.$t("no") || "no"),
   },
+];
 
-  setup() {
-  },
+const infoSelected = (row) => {
+  return (proxy?.$t("selectedRow") || "selectedRow") + ": " + row.name;
+};
+
+onMounted(() => {
+  lang.value = localStorage.getItem("curLang");
+  lang.value = lang.value === "en-US" ? "en" : lang.value;
+  cols.value = getColumns();
+
+  typId.value = parseInt(route.params.typ, 10);
+  fetchData(typId.value);
 });
 </script>
 

@@ -2,24 +2,18 @@
   <h6> Не определено</h6>
 </template>
 
-<script>
+<script setup>
+const props = defineProps({
+  dimMultiPropItem: [Number, String],
+});
 
-export default {
-  name: 'DimMultiPropItemNone',
-  props: ["dimMultiPropItem"],
+const load = (id) => {
+  console.log(id);
+};
 
-  methods: {
-
-    load(id) {
-      console.log(id)
-    }
-
-  }
-
-}
-
+defineExpose({
+  load,
+});
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

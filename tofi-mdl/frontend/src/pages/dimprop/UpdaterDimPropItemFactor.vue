@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -24,7 +24,7 @@
         </div>
 
         <!-- factor -->
-        <q-btn @click="selectFV()" class="q-mt-md full-width">
+        <q-btn @click="selectFV" class="q-mt-md full-width">
           Значение фасторов
         </q-btn>
 
@@ -32,35 +32,28 @@
         <q-input
           class="q-mt-md"
           :dense="dense"
-          :model-value="form.name"
           v-model="form.name"
           @blur="onBlurName"
           :label="$t('fldName')"
           :disable="fvs === ''"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
         <!-- fullName-->
         <q-input
           :dense="dense"
-          :model-value="form.fullName"
           v-model="form.fullName"
           :label="$t('fldFullName')"
           :disable="fvs === ''"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
 
         <!-- cmt -->
         <q-input
           :dense="dense"
-          :model-value="form.cmt"
           v-model="form.cmt"
           type="textarea"
           :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+        />
       </q-card-section>
 
       <q-card-actions align="right">
@@ -77,143 +70,101 @@
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import SelectFV from "pages/dimprop/SelectFV.vue";
-import {extend} from "quasar";
+<script setup>
+import { ref, reactive, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
+import SelectFV from "@/pages/dimprop/SelectFV.vue";
+import { extend } from "quasar";
 
-export default {
-  props: [
-    "data",
-    "mode",
-    "dimPropName",
-    "parentName",
-    "dimprop",
-    "lg",
-    "dense",
-  ],
-
-  data() {
-    return {
-      form: extend({}, this.data),
-      visible: false,
-      lang: this.lg,
-      fvs: "",
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  dimPropName: String,
+  parentName: String,
+  dimprop: [Number, String],
+  lg: String,
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    selectFV() {
-      let dimPropItem = 0;
-      if (this.mode === "upd") dimPropItem = this.form.id;
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-      this.$q
-        .dialog({
-          component: SelectFV,
-          componentProps: {
-            dimPropItem: dimPropItem,
-            lg: this.lang,
-            dense: true,
-          },
-        })
-        .onOk((data) => {
-          //console.info("fvs", data)
-          //console.info("dimPropName", this.dimPropName)
-          this.fvs = data.fvs;
-          this.form.fvs = data.fvs;
-          this.form.name = this.dimPropName + " (" + data.nms + ")";
-          this.form.fullName = this.dimPropName + " (" + data.nms + ")";
-        });
+const form = reactive(extend({}, props.data));
+const visible = ref(false);
+const lang = ref(props.lg);
+const fvs = ref("");
+
+const selectFV = () => {
+  let dimPropItem = 0;
+  if (props.mode === "upd") dimPropItem = form.id;
+
+  $q.dialog({
+    component: SelectFV,
+    componentProps: {
+      dimPropItem: dimPropItem,
+      lg: lang.value,
+      dense: true,
     },
+  }).onOk((data) => {
+    fvs.value = data.fvs;
+    form.fvs = data.fvs;
+    form.name = props.dimPropName + " (" + data.nms + ")";
+    form.fullName = props.dimPropName + " (" + data.nms + ")";
+  });
+};
 
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
+};
+
+const validSave = () => {
+  if (!form.name) return true;
+  if (form.name.trim().length === 0) return true;
+  return false;
+};
+
+const onOKClick = () => {
+  visible.value = true;
+  const method = props.mode === "ins" ? "insertDPI" : "updateDPI";
+
+  api
+    .post("", {
+      id: form.id,
+      method: "dimprop/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success"));
+      },
+      (error) => {
+        notifyError(error.response?.data?.error?.message || error.message);
       }
-    },
-
-    validSave() {
-      if (!this.form.name) return true;
-      else if (this.form.name.trim().length === 0) return true;
-      return false;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      this.visible = true
-      const method = this.mode === "ins" ? "insertDPI" : "updateDPI";
-
-      api
-        .post("", {
-          id: this.form.id,
-          method: "dimprop/" + method,
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            //this.$emit("ok", { res: true });
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            notifyError(error.response.data.error.message);
-          }
-        )
-        .finally(() => {
-          this.hide()
-          this.visible = false
-        });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    console.info("UpdaterDimPropItemFactor");
-  },
+    )
+    .finally(() => {
+      visible.value = false;
+    });
 };
 </script>
+
+<style scoped></style>

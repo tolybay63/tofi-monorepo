@@ -1,11 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -18,134 +18,98 @@
       <q-card-section>
         <!-- dbeg-->
         <q-input
-            :dense="dense"
-            type="date"
-            stack-label
-            :model-value="form.dbeg"
-            v-model="form.dbeg"
-            :label="$t('fldDbeg')"
-        >
-        </q-input>
+          :dense="dense"
+          type="date"
+          stack-label
+          v-model="form.dbeg"
+          :label="$t('fldDbeg')"
+        />
         <!-- dend-->
         <q-input
-            :dense="dense"
-            type="date"
-            stack-label
-            :model-value="form.dend"
-            v-model="form.dend"
-            :label="$t('fldDend')"
-        >
-        </q-input>
+          :dense="dense"
+          type="date"
+          stack-label
+          v-model="form.dend"
+          :label="$t('fldDend')"
+        />
 
         <!-- cmt -->
         <q-input
-            :dense="dense"
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            type="textarea"
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          :dense="dense"
+          v-model="form.cmt"
+          type="textarea"
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
         />
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "lg", "dense"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: [String, Object],
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
 
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
+const onOKClick = () => {
+  const method =
+    props.mode === "ins" ? "insertRelTypRoleLife" : "updateRelTypRoleLife";
 
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      //delete this.form.accessLevel_text
-      //console.log("al:", this.al)
-      //console.log("this.form:", this.form)
-
-      const method =
-          this.mode === "ins" ? "insertRelTypRoleLife" : "updateRelTypRoleLife";
-      api
-          .post("", {
-            id: this.form.id,
-            method: "reltyprole/" + method,
-            params: [{rec: this.form}],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-  },
+  api
+    .post("", {
+      id: form.id,
+      method: "reltyprole/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
 };
 </script>
+
+<style scoped></style>

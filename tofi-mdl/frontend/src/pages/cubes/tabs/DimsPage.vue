@@ -1,5 +1,4 @@
 <template>
-
   <q-table
     style="height: calc(100vh - 280px); width: 100%"
     color="primary"
@@ -18,7 +17,6 @@
     @update:selected="updSelection"
     v-model:selected="selected"
   >
-
     <template v-slot:top>
       <q-btn
         v-if="hasTarget('mdl:mn_ds:attr:ins')"
@@ -34,7 +32,8 @@
       </q-btn>
       <q-btn
         v-if="hasTarget('mdl:mn_ds:attr:upd')"
-        dense icon="edit"
+        dense
+        icon="edit"
         color="secondary"
         class="q-ml-sm"
         :disable="loading || selected.length === 0"
@@ -46,7 +45,8 @@
       </q-btn>
       <q-btn
         v-if="hasTarget('mdl:mn_ds:attr:del')"
-        dense icon="delete"
+        dense
+        icon="delete"
         color="red"
         class="q-ml-sm"
         :disable="loading || selected.length === 0"
@@ -59,7 +59,9 @@
 
       <q-btn
         v-if="hasTarget('mdl:mn_ds:attr:del')"
-        dense no-caps label="Удалить прокуб свойств"
+        dense
+        no-caps
+        label="Удалить прокуб свойств"
         color="red"
         class="q-ml-xl"
         @click="removeProcubeProp"
@@ -71,7 +73,9 @@
 
       <q-btn
         v-if="hasTarget('mdl:mn_ds:attr:del')"
-        dense no-caps label="Удалить прокуб объектов"
+        dense
+        no-caps
+        label="Удалить прокуб объектов"
         color="red"
         class="q-ml-sm"
         @click="removeProcubeObj"
@@ -80,7 +84,6 @@
           {{ $t("deletingRecord") }}
         </q-tooltip>
       </q-btn>
-
     </template>
 
     <template #bottom-row>
@@ -88,328 +91,274 @@
         <span class="text-blue"> {{ $t("selectedRow") }}: </span>
         <span class="text-bold"> {{ infoSelected(selected[0]) }} </span>
       </q-td>
-      <q-td
-        v-else-if="rows.length > 0" colspan="100%" class="text-bold">
+      <q-td v-else-if="rows.length > 0" colspan="100%" class="text-bold">
         {{ $t("infoRow") }}
       </q-td>
     </template>
-
-
   </q-table>
-
-
 </template>
 
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useQuasar, date } from "quasar";
+import { api, tofi_dbeg, tofi_dend } from "@/boot/axios.js";
+import UpdateDims from "@/pages/cubes/tabs/UpdateDims.vue";
+import { hasTarget, notifyError, notifySuccess } from "@/utils/jsutils.js";
 
-<script>
-import {ref} from "vue";
-import {api, tofi_dbeg, tofi_dend} from "boot/axios.js";
-import {date} from "quasar";
-import UpdateDims from "pages/cubes/tabs/UpdateDims.vue";
-import {notifyError, notifySuccess} from "src/utils/jsutils.js";
+const props = defineProps({
+  cubeS: [Number, String],
+  dOrg: String,
+});
 
-export default {
-  name: "DimsPage",
-  props: ["cubeS", "dOrg"],
+const $q = useQuasar();
+const { proxy } = getCurrentInstance();
 
-  data() {
-    return {
-      splitterModel: ref(30),
-      cols: [],
-      rows: [],
-      selected: [],
-      loading: false,
-      FD_CubeSDimType: new Map(),
-      typeProp: 0,
-      //
-    }
-  },
+const cols = ref([]);
+const rows = ref([]);
+const selected = ref([]);
+const loading = ref(false);
+const FD_CubeSDimType = reactive(new Map());
+const typeProp = ref(0);
 
-  methods: {
-    updSelection() {
+const updSelection = () => {};
 
-    },
-
-    removeProcubeProp() {
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteProcubeProp"),
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          this.loading = true
-          api
-            .post("", {
-              method: "cubes/deleteProCubeProp",
-              params: [this.cubeS],
-            })
-            .then(
-              () => {
-                notifySuccess(this.$t("success"))
-              },
-              (error) => {
-                let msg = error.message;
-                if (error.response)
-                  msg = error.response.data.error.message;
-                notifyError(msg);
-              }
-            )
-            .finally(()=> {
-              this.loading = false
-            });
-        })
-    },
-
-    removeProcubeObj() {
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteProcubeObj"),
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          this.loading = true
-          api
-            .post("", {
-              method: "cubes/deleteProCubeObj",
-              params: [this.cubeS],
-            })
-            .then(
-              () => {
-                notifySuccess(this.$t("success"))
-              },
-              (error) => {
-                let msg = error.message;
-                if (error.response)
-                  msg = error.response.data.error.message;
-                notifyError(msg);
-              }
-            )
-            .finally(()=> {
-              this.loading = false
-            });
-        })
-    },
-
-    calcDimPropType() {
-      this.rows.forEach(r=> {
-        if (r.dimPropType && r.dimPropType !==2) {
-          this.typeProp = r.dimPropType;
-        }
-      })
-    },
-
-    load(cubes) {
-      this.loading = ref(true)
-      api
-        .post("", {
-          method: "cubes/loadDims",
-          params: [cubes, 0],
-        })
-        .then(
-          (response) => {
-            this.rows = response.data.result.records;
-            //console.info("rows", this.rows);
-          })
-        .then(()=> {
-          this.calcDimPropType()
-        })
-        .catch((error=> {
-            let msg = error.message;
-            if (error.response)
-              msg = this.$t(error.response.data.error.message);
-
-            notifyError(msg);
-          })
-        )
-        .finally(() => {
-          this.loading = ref(false);
-        });
-    },
-
-
-    editRow(row, mode) {
-      let data = {
-        id: 0,
-        cubeS: this.cubeS,
-        name: null,
-        dimPropType: null,
-        dimPropTypeName: null,
-        dOrg: this.dOrg,
-      };
-
-      if (mode === "upd") {
-        data = {
-          id: row.id,
-          cubeS: row.cubeS,
-          name: row.name,
-          cubeSDimType: row.cubeSDimType,
-          dimPeriod: row.dimPeriod,
-          dimProp: row.dimProp,
-          dimObj: row.dimObj,
-          dOrg: row.dOrg,
-          dimPropType: row.dimPropType,
-          dimPropTypeName: row.dimPropTypeName,
-        };
-      }
-      //console.log("data",data)
-
-      this.$q
-        .dialog({
-          component: UpdateDims,
-          componentProps: {
-            data: data,
-            mode: mode,
-            typeProp: this.typeProp
-            // ...
-          },
-        })
-        .onOk((r) => {
-          //console.log("Ok! updated", r);
-          if (mode === "ins") {
-            this.rows.push(r);
-            this.selected = [];
-            this.selected.push(r);
-          } else {
-            for (let key in r) {
-              if (r.hasOwnProperty(key)) {
-                row[key] = r[key];
-              }
-            }
-          }
-          //
-          this.calcDimPropType()
-        });
-
-    },
-
-    removeRow(row) {
-      this.$q
-        .dialog({
-          title: this.$t("confirmation"),
-          message:
-            this.$t("deleteRecord") +
-            '<div style="color: plum">(' + row.name + ")</div>",
-          html: true,
-          cancel: true,
-          persistent: true,
-          focus: "cancel",
-        })
-        .onOk(() => {
-          api
-            .post("", {
-              method: "cubes/deleteCubeDim",
-              params: [row.id],
-            })
-            .then(
-              () => {
-                this.selected = [];
-                this.load(row.cubeS);
-              },
-              (error) => {
-                let msg = error.message;
-                if (error.response)
-                  msg = error.response.data.error.message;
-                notifyError(msg);
-              }
-            );
-        })
-    },
-
-    infoSelected(row) {
-      return " " + row.name;
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 40%",
-        },
-        {
-          name: "cubeSDimType",
-          label: this.$t("cubeSDimType"),
-          field: "cubeSDimType",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 25%",
-          format: (val) => this.FD_CubeSDimType.get(val),
-        },
-        {
-          name: "dimPropTypeName",
-          label: this.$t("dimPropType"),
-          field: "dimPropTypeName",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em; width: 25%",
-        },
-
-        {
-          name: "dOrg",
-          label: this.$t("dOrg"),
-          field: "dOrg",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 10%",
-          format: (val) =>
-            val <= tofi_dbeg || val >= tofi_dend ? '...' : date.formatDate(val, 'DD.MM.YYYY'),
-        },
-      ]
-
-    }
-
-  },
-
-  mounted() {
-    //console.info("DimPage mounted", this.cubeS, this.dOrg)
-  },
-
-  created() {
-    //console.info("DimPage", this.cubeS, this.dOrg)
-
-    this.loading = true;
+const removeProcubeProp = () => {
+  $q.dialog({
+    title: proxy?.$t("confirmation"),
+    message: proxy?.$t("deleteProcubeProp"),
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  }).onOk(() => {
+    loading.value = true;
     api
       .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_CubeSDimType"}],
+        method: "cubes/deleteProCubeProp",
+        params: [props.cubeS],
       })
-      .then((response) => {
-        response.data.result.records.forEach((it) => {
-          this.FD_CubeSDimType.set(it["id"], it["text"]);
-        })
-      })
-      .finally(()=> {
-        this.loading = false;
-      })
+      .then(
+        () => {
+          notifySuccess(proxy?.$t("success"));
+        },
+        (error) => {
+          let msg = error.message;
+          if (error.response) msg = error.response.data.error.message;
+          notifyError(msg);
+        }
+      )
+      .finally(() => {
+        loading.value = false;
+      });
+  });
+};
 
-    this.cols = this.getColumns();
-    this.load(this.cubeS, 0)
+const removeProcubeObj = () => {
+  $q.dialog({
+    title: proxy?.$t("confirmation"),
+    message: proxy?.$t("deleteProcubeObj"),
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  }).onOk(() => {
+    loading.value = true;
+    api
+      .post("", {
+        method: "cubes/deleteProCubeObj",
+        params: [props.cubeS],
+      })
+      .then(
+        () => {
+          notifySuccess(proxy?.$t("success"));
+        },
+        (error) => {
+          let msg = error.message;
+          if (error.response) msg = error.response.data.error.message;
+          notifyError(msg);
+        }
+      )
+      .finally(() => {
+        loading.value = false;
+      });
+  });
+};
 
+const calcDimPropType = () => {
+  rows.value.forEach((r) => {
+    if (r.dimPropType && r.dimPropType !== 2) {
+      typeProp.value = r.dimPropType;
+    }
+  });
+};
+
+const load = (cubes) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "cubes/loadDims",
+      params: [cubes, 0],
+    })
+    .then((response) => {
+      rows.value = response.data.result.records;
+      calcDimPropType();
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+      notifyError(msg);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const editRow = (row, mode) => {
+  let data = {
+    id: 0,
+    cubeS: props.cubeS,
+    name: null,
+    dimPropType: null,
+    dimPropTypeName: null,
+    dOrg: props.dOrg,
+  };
+
+  if (mode === "upd") {
+    data = {
+      id: row.id,
+      cubeS: row.cubeS,
+      name: row.name,
+      cubeSDimType: row.cubeSDimType,
+      dimPeriod: row.dimPeriod,
+      dimProp: row.dimProp,
+      dimObj: row.dimObj,
+      dOrg: row.dOrg,
+      dimPropType: row.dimPropType,
+      dimPropTypeName: row.dimPropTypeName,
+    };
+  }
+
+  $q.dialog({
+    component: UpdateDims,
+    componentProps: {
+      data: data,
+      mode: mode,
+      typeProp: typeProp.value,
+    },
+  }).onOk((r) => {
+    if (mode === "ins") {
+      rows.value.push(r);
+      selected.value = [r];
+    } else {
+      for (let key in r) {
+        if (Object.prototype.hasOwnProperty.call(r, key)) {
+          row[key] = r[key];
+        }
+      }
+    }
+    calcDimPropType();
+  });
+};
+
+const removeRow = (row) => {
+  $q.dialog({
+    title: proxy?.$t("confirmation"),
+    message:
+      proxy?.$t("deleteRecord") +
+      '<div style="color: plum">(' +
+      row.name +
+      ")</div>",
+    html: true,
+    cancel: true,
+    persistent: true,
+    focus: "cancel",
+  }).onOk(() => {
+    api
+      .post("", {
+        method: "cubes/deleteCubeDim",
+        params: [row.id],
+      })
+      .then(
+        () => {
+          selected.value = [];
+          load(row.cubeS);
+        },
+        (error) => {
+          let msg = error.message;
+          if (error.response) msg = error.response.data.error.message;
+          notifyError(msg);
+        }
+      );
+  });
+};
+
+const infoSelected = (row) => {
+  return " " + row.name;
+};
+
+const getColumns = () => [
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 40%",
   },
+  {
+    name: "cubeSDimType",
+    label: proxy?.$t("cubeSDimType"),
+    field: "cubeSDimType",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 25%",
+    format: (val) => FD_CubeSDimType.get(val),
+  },
+  {
+    name: "dimPropTypeName",
+    label: proxy?.$t("dimPropType"),
+    field: "dimPropTypeName",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em; width: 25%",
+  },
+  {
+    name: "dOrg",
+    label: proxy?.$t("dOrg"),
+    field: "dOrg",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 10%",
+    format: (val) =>
+      val <= tofi_dbeg || val >= tofi_dend ? "..." : date.formatDate(val, "DD.MM.YYYY"),
+  },
+];
 
-  setup() {}
+onMounted(() => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_CubeSDimType" }],
+    })
+    .then((response) => {
+      response.data.result.records.forEach((it) => {
+        FD_CubeSDimType.set(it.id, it.text);
+      });
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 
-}
+  cols.value = getColumns();
+  load(props.cubeS);
+});
+
+defineExpose({
+  load,
+});
 </script>
 
-<style scoped>
-
-</style>
-<script setup>
-import {hasTarget} from "src/utils/jsutils.js";
-</script>
+<style scoped></style>

@@ -2,7 +2,7 @@
 
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -25,13 +25,12 @@
           :dense="dense"
           :options-dense="dense"
           v-model="prop"
-          :model-value="prop"
           :options="optProp"
           :label="$t('prop')"
           option-value="id"
           option-label="name"
           map-options
-          @update:model-value="fnSelectProp()"
+          @update:model-value="fnSelectProp"
         />
 
         <!-- propStatus -->
@@ -40,13 +39,12 @@
           :dense="dense"
           :options-dense="dense"
           v-model="s"
-          :model-value="s"
           :options="optS"
           :label="$t('statusFactor')"
           option-value="id"
           option-label="text"
           map-options
-          @update:model-value="fnSelectSt()"
+          @update:model-value="fnSelectSt"
         />
         <!-- propStatusMissing -->
         <q-select
@@ -54,13 +52,12 @@
           :dense="dense"
           :options-dense="dense"
           v-model="sMis"
-          :model-value="sMis"
           :options="optSmis"
           :label="$t('statusMissing')"
           option-value="id"
           option-label="text"
           map-options
-          @update:model-value="fnSelectStMis()"
+          @update:model-value="fnSelectStMis"
         />
 
         <!-- propProvider -->
@@ -69,13 +66,12 @@
           :dense="dense"
           :options-dense="dense"
           v-model="q"
-          :model-value="q"
           :options="optQ"
           :label="$t('providerTyp')"
           option-value="id"
           option-label="text"
           map-options
-          @update:model-value="fnSelectQ()"
+          @update:model-value="fnSelectQ"
         />
         <!-- propProviderMissing -->
         <q-select
@@ -83,13 +79,12 @@
           :dense="dense"
           :options-dense="dense"
           v-model="qMis"
-          :model-value="qMis"
           :options="optQmis"
           :label="$t('providerMissing')"
           option-value="id"
           option-label="text"
           map-options
-          @update:model-value="fnSelectQMis()"
+          @update:model-value="fnSelectQMis"
         />
       </q-card-section>
 
@@ -107,237 +102,202 @@
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {ref} from "vue";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "doi", "doiType", "lg", "dense"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-
-      optProp: [],
-      prop: this.data.prop,
-
-      optS: [],
-      s: this.data.propStatus,
-      optSmis: [],
-      sMis: this.data.propStatusMissing,
-
-      optQ: [],
-      q: this.data.propProvider,
-      optQmis: [],
-      qMis: this.data.propProviderMissing,
-
-      visible: ref(false),
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  doi: [Number, String],
+  doiType: [Number, String],
+  lg: String,
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    fnSelectProp() {
-      this.form.prop = this.prop.id;
-      if (this.prop["rtm"] > 0) {
-        this.form.relTypMember = this.prop["rtm"];
-      }
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-      if (this.prop.statusFactor) {
-        this.loadPropStatus(this.form.prop);
-      } else {
-        this.optS = [];
-      }
-      if (this.prop.providerTyp) {
-        this.loadPropProvider(this.form.prop);
-      } else {
-        this.optQ = [];
-      }
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
 
-    fnSelectSt() {
-      this.form.propStatus = this.s.id;
-    },
+const optProp = ref([]);
+const prop = ref(props.data.prop);
 
-    fnSelectStMis() {
-      this.form.propStatusMissing = this.sMis.id;
-    },
+const optS = ref([]);
+const s = ref(props.data.propStatus);
+const optSmis = ref([]);
+const sMis = ref(props.data.propStatusMissing);
 
-    fnSelectQ() {
-      this.form.propProvider = this.q.id;
-    },
+const optQ = ref([]);
+const q = ref(props.data.propProvider);
+const optQmis = ref([]);
+const qMis = ref(props.data.propProviderMissing);
 
-    fnSelectQMis() {
-      this.form.propProviderMissing = this.qMis.id;
-    },
+const visible = ref(false);
 
-    fnSelectAL() {
-      this.form.accessLevel = this.al.id;
-    },
-
-    loadPropStatus(prop) {
-      this.visible = ref(true);
-      //
-      api
-        .post("", {
-          method: "dimobjitem/loadPropStatus",
-          params: [prop],
-        })
-        .then((response) => {
-          this.optS = response.data.result.records;
-        })
-        .catch((error) => {
-          let msg = error.message;
-          if (error.response) msg = error.response.data.error.message;
-
-          notifyError(msg);
-          //
-        })
-        .finally(() => {
-          this.visible = ref(false);
-        });
-    },
-
-    loadPropProvider(prop) {
-      this.visible = ref(true);
-      //
-      api
-        .post("", {
-          method: "dimobjitem/loadPropProvider",
-          params: [prop],
-        })
-        .then((response) => {
-          this.optQ = response.data.result.records;
-        })
-        .catch((error) => {
-          let msg = error.message;
-          if (error.response) msg = error.response.data.error.message;
-
-          notifyError(msg);
-          //
-        })
-        .finally(() => {
-          this.visible = ref(false);
-        });
-    },
-
-    validSave() {
-      return false;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      this.visible = ref(true);
-
-      const method = this.mode === "ins" ? "insertDOIprop" : "updateDOIprop";
-      this.form.propStatusMissing =
-        typeof this.sMis === "object" ? this.sMis.id : this.sMis;
-
-      this.form.propProviderMissing =
-        typeof this.qMis === "object" ? this.qMis.id : this.qMis;
-
-      this.form.dimObjItem = this.doi;
-
-      api
-        .post("", {
-          id: this.form.id,
-          method: "dimobjitem/" + method,
-          params: [this.form],
-        })
-        .then(
-          () => {
-            this.$emit("ok", { res: true });
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            //console.log("error.response.data=>>>", error.response.data.error.message)
-            notifyError(error.response.data.error.message);
-          }
-        )
-        .finally(() => {
-          this.hide();
-          this.visible = ref(false);
-        });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    this.visible = ref(true);
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{ dict: "FD_PropStatusMissing" }],
-      })
-      .then((response) => {
-        this.optSmis = response.data.result.records;
-      })
-      .finally(() => {
-        this.visible = ref(false);
-      });
-    this.visible = ref(true);
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{ dict: "FD_PropProviderMissing" }],
-      })
-      .then((response) => {
-        this.optQmis = response.data.result.records;
-      })
-      .finally(() => {
-        this.visible = ref(false);
-      });
-    //
-
-    this.visible = ref(true);
-    api
-      .post("", {
-        method: "dimobjitem/loadOptProp",
-        params: [this.doi],
-      })
-      .then((response) => {
-        this.optProp = response.data.result.records;
-      })
-      .finally(() => {
-        this.visible = ref(false);
-      });
-  },
+const loadPropStatus = (propVal) => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "dimobjitem/loadPropStatus",
+      params: [propVal],
+    })
+    .then((response) => {
+      optS.value = response.data.result.records;
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+      notifyError(msg);
+    })
+    .finally(() => {
+      visible.value = false;
+    });
 };
+
+const loadPropProvider = (propVal) => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "dimobjitem/loadPropProvider",
+      params: [propVal],
+    })
+    .then((response) => {
+      optQ.value = response.data.result.records;
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response) msg = proxy?.$t(error.response.data.error.message) || msg;
+      notifyError(msg);
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+const fnSelectProp = () => {
+  const selectedProp = prop.value;
+  form.prop = typeof selectedProp === "object" && selectedProp !== null ? selectedProp.id : selectedProp;
+
+  if (selectedProp?.rtm > 0) {
+    form.relTypMember = selectedProp.rtm;
+  }
+
+  if (selectedProp?.statusFactor) {
+    loadPropStatus(form.prop);
+  } else {
+    optS.value = [];
+  }
+  if (selectedProp?.providerTyp) {
+    loadPropProvider(form.prop);
+  } else {
+    optQ.value = [];
+  }
+};
+
+const fnSelectSt = () => {
+  form.propStatus = s.value?.id || s.value;
+};
+
+const fnSelectStMis = () => {
+  form.propStatusMissing = sMis.value?.id || sMis.value;
+};
+
+const fnSelectQ = () => {
+  form.propProvider = q.value?.id || q.value;
+};
+
+const fnSelectQMis = () => {
+  form.propProviderMissing = qMis.value?.id || qMis.value;
+};
+
+const validSave = () => {
+  return false;
+};
+
+const onOKClick = () => {
+  visible.value = true;
+
+  const method = props.mode === "ins" ? "insertDOIprop" : "updateDOIprop";
+  form.propStatusMissing = typeof sMis.value === "object" && sMis.value !== null ? sMis.value.id : sMis.value;
+  form.propProviderMissing = typeof qMis.value === "object" && qMis.value !== null ? qMis.value.id : qMis.value;
+  form.dimObjItem = props.doi;
+
+  api
+    .post("", {
+      id: form.id,
+      method: "dimobjitem/" + method,
+      params: [form],
+    })
+    .then(
+      () => {
+        onDialogOK({ res: true });
+        notifySuccess(proxy?.$t("success"));
+      },
+      (error) => {
+        notifyError(error.response?.data?.error?.message || error.message);
+      }
+    )
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+onMounted(() => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_PropStatusMissing" }],
+    })
+    .then((response) => {
+      optSmis.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+
+  visible.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_PropProviderMissing" }],
+    })
+    .then((response) => {
+      optQmis.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+
+  visible.value = true;
+  api
+    .post("", {
+      method: "dimobjitem/loadOptProp",
+      params: [props.doi],
+    })
+    .then((response) => {
+      optProp.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+});
 </script>
+
+<style scoped></style>

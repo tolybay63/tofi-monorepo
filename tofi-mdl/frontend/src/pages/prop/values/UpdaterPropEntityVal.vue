@@ -1,11 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar class="text-white bg-primary">
@@ -14,34 +14,33 @@
 
       <q-card-section>
         <q-table
-            color="primary"
-            card-class="bg-amber-1"
-            table-class="text-grey-8"
-            row-key="id"
-            :columns="cols"
-            :rows="rows"
-            :wrap-cells="true"
-            :table-colspan="4"
-            table-header-class="text-bold text-white bg-blue-grey-13"
-            separator="cell"
-            :dense="dense"
-            :rows-per-page-options="[0]"
+          color="primary"
+          card-class="bg-amber-1"
+          table-class="text-grey-8"
+          row-key="id"
+          :columns="cols"
+          :rows="rows"
+          :wrap-cells="true"
+          :table-colspan="4"
+          table-header-class="text-bold text-white bg-blue-grey-13"
+          separator="cell"
+          :dense="dense"
+          :rows-per-page-options="[0]"
         >
           <template v-slot:body="props">
             <q-tr :props="props">
               <td style="width: 5px">
                 <q-btn
-                    :dense="dense"
-                    flat
-                    color="blue"
-                    :icon="
+                  :dense="dense"
+                  flat
+                  color="blue"
+                  :icon="
                     props.row.checked === 1
                       ? 'check_box'
                       : 'check_box_outline_blank'
                   "
-                    @click="selectedRow(props.row)"
-                >
-                </q-btn>
+                  @click="selectedRow(props.row)"
+                />
               </td>
 
               <q-td key="cod" :props="props">
@@ -62,175 +61,141 @@
 
       <q-card-actions align="right">
         <q-btn
-            :loading="loading"
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :loading="loading"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
-            <q-spinner-hourglass color="white"/>
+            <q-spinner-hourglass color="white" />
           </template>
         </q-btn>
 
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {ref} from "vue";
-import {notifyError} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError } from "@/utils/jsutils";
 
-export default {
-  props: ["prop", "entityType", "dense"],
+const props = defineProps({
+  prop: [Number, String],
+  entityType: [Number, String],
+  dense: Boolean,
+});
 
-  data() {
-    return {
-      propId: this.prop,
-      cols: [],
-      rows: [],
-      separator: ref("cell"),
-      loading: ref(false),
-    };
-  },
+defineEmits([...useDialogPluginComponent.emits]);
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-  methods: {
-    selectedRow(row) {
-      row.checked = !row.checked;
-    },
+const propId = ref(props.prop);
+const cols = ref([]);
+const rows = ref([]);
+const separator = ref("cell");
+const loading = ref(false);
 
-    validSave() {
-      return false;
-
-      /*
-      let i = 0
-      this.rows.forEach(r => {
-        if (r.checked) i++
-      })
-      return !(i > 0)
-*/
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "checked",
-          field: "checked",
-          style: "width: 5%",
-        },
-        {
-          name: "cod",
-          label: this.$t("code"),
-          field: "cod",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em;",
-          style: "width: 15%",
-        },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 35%",
-        },
-        {
-          name: "fullName",
-          label: this.$t("fldFullName"),
-          field: "fullName",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 45%",
-        },
-      ];
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    onOKClick() {
-      this.loading = ref(true);
-      let dta = [];
-
-      this.rows.forEach((r) => {
-        if (r.checked) {
-          dta.push({id: r["entId"]});
-        }
-      });
-
-      api
-          .post("", {
-            method: "prop/savePropEntityVal",
-            params: [this.prop, dta],
-          })
-          .then(
-              () => {
-                this.$emit("ok", {res: true});
-              },
-              (error) => {
-                let msg = error.message;
-                if (error.response.data.error.message)
-                  msg = error.response.data.error.message;
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            this.loading = ref(false);
-            this.hide();
-          });
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    this.cols = this.getColumns();
-
-    api
-        .post("", {
-          method: "prop/loadPropValEntityForUpd",
-          params: [this.prop, this.entityType],
-        })
-        .then((response) => {
-          this.rows = response.data.result.records;
-        });
-  },
+const selectedRow = (row) => {
+  row.checked = !row.checked;
 };
+
+const validSave = () => {
+  return false;
+};
+
+const getColumns = () => [
+  {
+    name: "checked",
+    field: "checked",
+    style: "width: 5%",
+  },
+  {
+    name: "cod",
+    label: proxy?.$t("code") || "code",
+    field: "cod",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em;",
+    style: "width: 15%",
+  },
+  {
+    name: "name",
+    label: proxy?.$t("fldName") || "fldName",
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 35%",
+  },
+  {
+    name: "fullName",
+    label: proxy?.$t("fldFullName") || "fldFullName",
+    field: "fullName",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 45%",
+  },
+];
+
+const onOKClick = () => {
+  loading.value = true;
+  let dta = [];
+
+  rows.value.forEach((r) => {
+    if (r.checked) {
+      dta.push({ id: r["entId"] });
+    }
+  });
+
+  api
+    .post("", {
+      method: "prop/savePropEntityVal",
+      params: [propId.value, dta],
+    })
+    .then(
+      () => {
+        onDialogOK({ res: true });
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response?.data?.error?.message)
+          msg = error.response.data.error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  cols.value = getColumns();
+
+  api
+    .post("", {
+      method: "prop/loadPropValEntityForUpd",
+      params: [propId.value, props.entityType],
+    })
+    .then((response) => {
+      rows.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

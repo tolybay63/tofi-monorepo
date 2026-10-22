@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -15,15 +15,15 @@
         <div>{{ $t("editRecord") }}</div>
       </q-bar>
 
-      <q-inner-loading :showing="visible" color="secondary"/>
+      <q-inner-loading :showing="visible" color="secondary" />
 
       <q-card>
         <q-tabs v-model="tab" class="text-teal">
-          <q-tab name="main" :label="$t('mainProp')"/>
-          <q-tab name="dop" :label="$t('dopProp')"/>
+          <q-tab name="main" :label="$t('mainProp')" />
+          <q-tab name="dop" :label="$t('dopProp')" />
         </q-tabs>
 
-        <q-separator/>
+        <q-separator />
 
         <q-tab-panels
           v-model="tab"
@@ -46,7 +46,6 @@
               :disable="mode === 'upd'"
               dense
               v-model="propType"
-              :model-value="propType"
               :options="optionsPropType"
               :label="$t('propType')"
               option-value="id"
@@ -58,31 +57,26 @@
             <q-input
               autofocus
               dense
-              :model-value="form.name"
               v-model="form.name"
               @blur="onBlurName"
               :label="$t('fldName')"
               :error-message="$t('min3word')"
               :error="!isValid(form.name)"
-            >
-            </q-input>
+            />
 
             <!-- fullName-->
             <q-input
               dense
-              :model-value="form.fullName"
               v-model="form.fullName"
               :label="$t('fldFullName')"
               :error-message="$t('min3word')"
               :error="!isValid(form.fullName)"
-            >
-            </q-input>
+            />
 
             <!-- Cod -->
             <q-input
               dense
               v-model="form.cod"
-              :model-value="form.cod"
               :label="$t('code')"
               :placeholder="$t('msgCodeGen')"
             />
@@ -96,7 +90,6 @@
               option-value="id"
               option-label="text"
               map-options
-              :model-value="al"
               @update:model-value="fnSelectDict('accessLevel')"
               :disable="
                 (mode === 'upd' && form.parent !== undefined) || isComplexProp
@@ -106,7 +99,6 @@
             <q-select
               v-model="status"
               map-options
-              :model-value="status"
               use-input
               input-debounce="0"
               :label="$t('statusFactor')"
@@ -134,7 +126,6 @@
 
             <q-select
               v-model="provider"
-              :model-value="provider"
               use-input
               map-options
               input-debounce="0"
@@ -142,7 +133,8 @@
               :options="optionsProvider"
               option-value="id"
               option-label="name"
-              dense options-dense
+              dense
+              options-dense
               @update:model-value="inputValueProvider"
               @filter="filterFnProvider"
               clearable
@@ -165,7 +157,6 @@
             <div v-if="isAttr()">
               <q-select
                 v-model="attrib"
-                :model-value="attrib"
                 map-options
                 use-input
                 input-debounce="0"
@@ -173,7 +164,8 @@
                 :options="optionsAttrib"
                 option-value="id"
                 option-label="name"
-                dense options-dense
+                dense
+                options-dense
                 :disable="mode === 'upd'"
                 @update:model-value="inputValueAttrib"
                 @filter="filterFnAttrib"
@@ -192,7 +184,6 @@
             <div v-if="isFactor()">
               <q-select
                 v-model="factor"
-                :model-value="factor"
                 map-options
                 use-input
                 input-debounce="0"
@@ -200,7 +191,8 @@
                 :options="optionsStatus"
                 option-value="id"
                 option-label="name"
-                dense options-dense
+                dense
+                options-dense
                 :disable="mode === 'upd'"
                 @update:model-value="inputValueFactor"
                 @filter="filterFnStatus"
@@ -218,7 +210,6 @@
             <div v-if="isMeter()">
               <q-select
                 v-model="meter"
-                :model-value="meter"
                 map-options
                 use-input
                 input-debounce="0"
@@ -226,7 +217,8 @@
                 :options="optionsMeter"
                 option-value="id"
                 option-label="name"
-                dense options-dense
+                dense
+                options-dense
                 :disable="mode === 'upd'"
                 @update:model-value="inputValueMeter"
                 @filter="filterFnMeter"
@@ -244,7 +236,6 @@
             <div v-if="isRate()">
               <q-select
                 v-model="meter"
-                :model-value="meter"
                 map-options
                 use-input
                 input-debounce="0"
@@ -252,7 +243,8 @@
                 :options="optionsMeter"
                 option-value="id"
                 option-label="name"
-                dense options-dense
+                dense
+                options-dense
                 :disable="mode === 'upd'"
                 @update:model-value="inputValueMeter"
                 @filter="filterFnMeter"
@@ -267,9 +259,21 @@
               </q-select>
 
               <div>
-                <q-item-label class="text-grey-7" style="font-size: 0.8em">{{
-                    $t("rate")
-                  }}
+
+                <TreeSelect
+                  v-model="rate"
+                  :label="$t('rate')"
+                  :options="optRate"
+                  class="q-ma-md"
+                  node-key="key"
+                  @close="fnCloseRate"
+                  :disabled="mode === 'upd' && form.parent !== undefined"
+                />
+
+
+<!--
+                <q-item-label class="text-grey-7" style="font-size: 0.8em">
+                  {{ $t("rate") }}
                 </q-item-label>
                 <treeselect
                   :options="optRate"
@@ -283,13 +287,14 @@
                   @close="fnCloseRate"
                   :disabled="mode === 'upd' && form.parent !== undefined"
                 />
+-->
+
               </div>
             </div>
 
             <div v-if="isTyp()">
               <q-select
                 v-model="typ"
-                :model-value="typ"
                 map-options
                 use-input
                 input-debounce="0"
@@ -297,7 +302,8 @@
                 :options="optionsProvider"
                 option-value="id"
                 option-label="name"
-                dense options-dense
+                dense
+                options-dense
                 :disable="mode === 'upd'"
                 @update:model-value="inputValueTyp"
                 @filter="filterFnTyp"
@@ -310,13 +316,11 @@
                   </q-item>
                 </template>
               </q-select>
-
             </div>
 
             <div v-if="isRel()">
               <q-select
                 v-model="relTyp"
-                :model-value="relTyp"
                 map-options
                 use-input
                 input-debounce="0"
@@ -344,10 +348,9 @@
               <q-toggle
                 style="margin-left: 10px; margin-top: 10px"
                 :dense="dense"
-                :model-value="form['isDependValueOnPeriod']"
                 v-model="form['isDependValueOnPeriod']"
                 :label="$t('dependValueOnPeriod')"
-                @update:model-value="fnPeriodDepend()"
+                @update:model-value="fnPeriodDepend"
                 :disable="
                   (mode === 'upd' && form.parent !== undefined) || isComplexProp
                 "
@@ -358,11 +361,10 @@
               <q-toggle
                 style="margin-left: 10px; margin-top: 10px"
                 :dense="dense"
-                :model-value="form.isDependNameOnPeriod"
                 v-model="form.isDependNameOnPeriod"
                 :label="$t('dependNameOnPeriod')"
                 :disable="
-                  !this.form['isDependValueOnPeriod'] ||
+                  !form['isDependValueOnPeriod'] ||
                   (mode === 'upd' && form.parent !== undefined) ||
                   isComplexProp
                 "
@@ -375,7 +377,6 @@
               <q-toggle
                 style="margin-left: 10px; margin-top: 10px"
                 :dense="dense"
-                model-value="form.isUniq"
                 v-model="form.isUniq"
                 :label="$t('isUniq')"
               />
@@ -384,7 +385,6 @@
               <q-toggle
                 style="margin-left: 10px; margin-top: 10px"
                 :dense="dense"
-                model-value="form.allItem"
                 v-model="form.allItem"
                 :label="$t('allItem')"
               />
@@ -399,7 +399,6 @@
                 option-value="id"
                 option-label="text"
                 map-options
-                :model-value="vf"
                 @update:model-value="fnSelectDict('visualFormat')"
               />
             </div>
@@ -409,7 +408,6 @@
               <q-select
                 :dense="dense"
                 v-model="meterBehavior"
-                :model-value="meterBehavior"
                 :options="optionsBehavior"
                 :label="$t('meterBehavior')"
                 option-value="id"
@@ -420,9 +418,21 @@
               />
 
               <div>
-                <q-item-label class="text-grey-7" style="font-size: 0.8em">{{
-                    $t("measure")
-                  }}
+                <TreeSelect
+                  v-model="measure"
+                  :label="$t('measure')"
+                  :options="measures"
+                  class="q-my-md"
+                  node-key="key"
+                  :disabled="mode === 'upd' && form.parent !== undefined"
+                  @close="fnCloseMeasure"
+                  @select="fnSelMeasure"
+                />
+
+
+<!--
+                <q-item-label class="text-grey-7" style="font-size: 0.8em">
+                  {{ $t("measure") }}
                 </q-item-label>
                 <treeselect
                   :options="measures"
@@ -437,11 +447,12 @@
                   :disabled="mode === 'upd' && form.parent !== undefined"
                   @select="fnSelMeasure"
                 />
+-->
+
               </div>
 
               <q-input
                 v-model="form.minVal"
-                :model-value="form.minVal"
                 type="number"
                 :dense="dense"
                 :label="$t('minVal')"
@@ -449,7 +460,6 @@
               />
               <q-input
                 v-model="form.maxVal"
-                :model-value="form.maxVal"
                 type="number"
                 :dense="dense"
                 :label="$t('maxVal')"
@@ -458,7 +468,6 @@
 
               <q-input
                 v-model="form.digit"
-                :model-value="form.digit"
                 type="number"
                 :dense="dense"
                 :label="$t('digit')"
@@ -469,16 +478,13 @@
             <!-- cmt -->
             <q-input
               :dense="dense"
-              :model-value="form.cmt"
               v-model="form.cmt"
               type="textarea"
               :label="$t('fldCmt')"
-            >
-            </q-input>
+            />
 
             <q-input
               :dense="dense"
-              :model-value="form.propTag"
               v-model="form.propTag"
               :label="$t('propTag')"
             />
@@ -500,708 +506,633 @@
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import treeselect from "vue3-treeselect";
-import "vue3-treeselect/dist/vue3-treeselect.css";
-import {api} from "boot/axios";
-import {notifyError, notifySuccess, pack} from "src/utils/jsutils";
-import {ref} from "vue";
-import allConsts from "pages/all-consts";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess, pack } from "@/utils/jsutils";
+import allConsts from "@/pages/all-consts";
+import TreeSelect from '@/components/TreeSelect.vue'
 
-export default {
-  components: {treeselect},
-  props: ["rec", "mode", "lg", "isComplexProp"],
-
-  data() {
-    //console.info("UpdateProp", this.rec)
-    return {
-      dense: true,  //???????????????????????????
-
-
-      form: this.rec,
-      visible: ref(false),
-      parentName: null,
-
-      optionsLevel: [],
-      al: this.rec.accessLevel,
-
-      optionsFV: [],
-      vf: this.rec.visualFormat,
-
-      optionsPropType: [],
-      propType: this.rec.propType,
-
-      status: this.rec.statusFactor,
-      optionsStatus: [],
-      optionsStatusOrg: [],
-
-      provider: this.rec.providerTyp,
-      optionsProvider: [],
-      optionsProviderOrg: [],
-
-      factor: this.rec.factor,
-
-      meter: this.rec.meter,
-      measureBase: null,
-      optionsMeter: [],
-      optionsMeterOrg: [],
-      meterStruct: 0,
-
-      rate: this.rec.meterRate,
-      optRate: [],
-
-      typ: this.rec.typ,
-
-      relTyp: this.rec.relTyp,
-      optionsRelTyp: [],
-      optionsRelTypOrg: [],
-
-      optionsBehavior: [],
-      meterBehavior: this.rec.meterBehavior,
-
-      attrib: this.rec.attrib,
-      optionsAttrib: [],
-      optionsAttribOrg: [],
-
-      measures: [],
-      measure: this.rec.measure,
-
-      tab: ref("main"),
-    };
+const props = defineProps({
+  rec: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: String,
+  isComplexProp: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    inputValueAttrib(val) {
-      if (val) {
-        this.attrib.id = val.id;
-        this.form.attrib = val.id;
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
+
+const dense = ref(true);
+const form = reactive({ ...props.rec });
+const visible = ref(false);
+const parentName = ref(null);
+
+const optionsLevel = ref([]);
+const al = ref(props.rec.accessLevel);
+
+const optionsFV = ref([]);
+const vf = ref(props.rec.visualFormat);
+
+const optionsPropType = ref([]);
+const propType = ref(props.rec.propType);
+
+const status = ref(props.rec.statusFactor);
+const optionsStatus = ref([]);
+const optionsStatusOrg = ref([]);
+
+const provider = ref(props.rec.providerTyp);
+const optionsProvider = ref([]);
+const optionsProviderOrg = ref([]);
+
+const factor = ref(props.rec.factor);
+
+const meter = ref(props.rec.meter);
+const measureBase = ref(null);
+const optionsMeter = ref([]);
+const optionsMeterOrg = ref([]);
+const meterStruct = ref(0);
+
+const rate = ref(props.rec.meterRate);
+const optRate = ref([]);
+
+const typ = ref(props.rec.typ);
+
+const relTyp = ref(props.rec.relTyp);
+const optionsRelTyp = ref([]);
+const optionsRelTypOrg = ref([]);
+
+const optionsBehavior = ref([]);
+const meterBehavior = ref(props.rec.meterBehavior);
+
+const attrib = ref(props.rec.attrib);
+const optionsAttrib = ref([]);
+const optionsAttribOrg = ref([]);
+
+const measures = ref([]);
+const measure = ref(props.rec.measure);
+
+const tab = ref("main");
+
+const inputValueAttrib = (val) => {
+  if (val) {
+    attrib.value = { ...attrib.value, id: val.id };
+    form.attrib = val.id;
+  }
+};
+
+const fnPeriodDepend = () => {
+  if (!form["isDependValueOnPeriod"]) {
+    form.isDependNameOnPeriod = false;
+  }
+};
+
+const fnCloseMeasure = (v) => {
+  form.measure = v;
+};
+
+const fnCloseRate = (v) => {
+  form.meterRate = v;
+};
+
+const normalizer = (node) => {
+  return {
+    id: node.id,
+    label: node.name,
+  };
+};
+
+const fnClearStatus = () => {
+  form.statusFactor = null;
+};
+
+const fnClearProvider = () => {
+  form.providerTyp = null;
+};
+
+const inputValueFactor = (val) => {
+  if (val) {
+    factor.value = { ...factor.value, id: val.id };
+    form.factor = val.id;
+  }
+};
+
+const loadAttrib = () => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "attrib/loadForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optionsAttribOrg.value = response.data.result.records;
+      optionsAttrib.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+const loadRelTyp = () => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "reltyp/loadRelTypForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optionsRelTypOrg.value = response.data.result.records;
+      optionsRelTyp.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+const loadMeter = () => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "meter/loadForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optionsMeterOrg.value = response.data.result.records;
+      optionsMeter.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+};
+
+const loadMeterRate = (meterVal) => {
+  if (props.rec.propType === allConsts.FD_PropType.rate) {
+    let act = "meterrate/loadHardMR";
+    if (meterStruct.value === allConsts.FD_MeterStruct.soft)
+      act = "meterrate/loadSoftMR";
+    api
+      .post("", {
+        method: act,
+        params: [meterVal],
+      })
+      .then((response) => {
+        optRate.value = pack(response.data.result.records, "ord");
+      });
+  }
+};
+
+const inputValueMeter = (val) => {
+  if (val) {
+    meter.value = { ...meter.value, id: val.id };
+    form.meter = val.id;
+    meterStruct.value = val.meterStruct;
+    measureBase.value = val.measure;
+    let params = {};
+    if (measureBase.value) params.measureBase = measureBase.value;
+
+    loadMeterRate(val.id);
+
+    api
+      .post("", {
+        method: "measure/load",
+        params: [params],
+      })
+      .then((response) => {
+        measures.value = pack(response.data.result.records, "ord");
+        measure.value = measures.value[0];
+      })
+      .finally(() => {
+        form.measure = val.measure;
+      });
+  }
+};
+
+const filterFnMeter = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optionsMeter.value = optionsMeterOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optionsMeterOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optionsMeter.value = optionsMeterOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const filterFnAttrib = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optionsAttrib.value = optionsAttribOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optionsAttribOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optionsAttrib.value = optionsAttribOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const inputValueStatus = (val) => {
+  if (val) {
+    status.value = { ...status.value, id: val.id };
+    form.statusFactor = val.id;
+  }
+};
+
+const filterFnStatus = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optionsStatus.value = optionsStatusOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optionsStatusOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optionsStatus.value = optionsStatusOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const inputValueTyp = (val) => {
+  if (val) {
+    typ.value = { ...typ.value, id: val.id };
+    form.typ = val.id;
+  }
+};
+
+const filterFnTyp = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optionsProvider.value = optionsProviderOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optionsProviderOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optionsProvider.value = optionsProviderOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const inputValueRelTyp = (val) => {
+  if (val) {
+    relTyp.value = { ...relTyp.value, id: val.id };
+    form.relTyp = val.id;
+  }
+};
+
+const filterFnRelTyp = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optionsRelTyp.value = optionsRelTypOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optionsRelTypOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optionsRelTyp.value = optionsRelTypOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const inputValueProvider = (val) => {
+  if (val) {
+    provider.value = { ...provider.value, id: val.id };
+    form.providerTyp = val.id;
+  }
+};
+
+const filterFnProvider = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optionsProvider.value = optionsProviderOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optionsProviderOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optionsProvider.value = optionsProviderOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
+};
+
+const fnSelMeasure = () => {
+  form.measure = measure.value.id;
+};
+
+const fnSelectDict = (dict) => {
+  if (dict === "accessLevel")
+    form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+  else if (dict === "visualFormat")
+    form.visualFormat = typeof vf.value === "object" && vf.value !== null ? vf.value.id : vf.value;
+  else if (dict === "meterBehavior")
+    form.meterBehavior = typeof meterBehavior.value === "object" && meterBehavior.value !== null ? meterBehavior.value.id : meterBehavior.value;
+  else if (dict === "propType") {
+    form.propType = typeof propType.value === "object" && propType.value !== null ? propType.value.id : propType.value;
+    if (form.propType === allConsts.FD_PropType.factor) {
+      form.meter = null;
+      form.meterRate = null;
+      form.attrib = null;
+      form.typ = null;
+      form.relTyp = null;
+      form.measure = null;
+    } else if (form.propType === allConsts.FD_PropType.meter) {
+      form.factor = null;
+      form.meterRate = null;
+      form.attrib = null;
+      form.typ = null;
+      form.relTyp = null;
+      form.measure = null;
+      form.isUniq = null;
+      form.allItem = null;
+      if (props.mode === "ins") {
+        form.meterBehavior = allConsts.FD_MeterBehavior.neutral;
+        meterBehavior.value = allConsts.FD_MeterBehavior.neutral;
       }
-    },
+      loadMeter();
+    } else if (form.propType === allConsts.FD_PropType.rate) {
+      form.factor = null;
+      form.meter = null;
+      form.attrib = null;
+      form.typ = null;
+      form.relTyp = null;
+      form.measure = null;
+      form.isUniq = null;
+      form.allItem = null;
+      visible.value = true;
+      loadMeter();
+    } else if (form.propType === allConsts.FD_PropType.attr) {
+      form.factor = null;
+      form.meter = null;
+      form.meterRate = null;
+      form.typ = null;
+      form.relTyp = null;
+      form.measure = null;
+      loadAttrib();
+    } else if (form.propType === allConsts.FD_PropType.typ) {
+      form.factor = null;
+      form.meter = null;
+      form.meterRate = null;
+      form.attrib = null;
+      form.relTyp = null;
+      form.measure = null;
+    } else if (form.propType === allConsts.FD_PropType.reltyp) {
+      form.factor = null;
+      form.meter = null;
+      form.meterRate = null;
+      form.attrib = null;
+      form.typ = null;
+      form.measure = null;
+      loadRelTyp();
+    } else if (form.propType === allConsts.FD_PropType.measure) {
+      form.factor = null;
+      form.meter = null;
+      form.meterRate = null;
+      form.attrib = null;
+      form.typ = null;
+      form.relTyp = null;
+    } else if (form.propType === allConsts.FD_PropType.complex) {
+      form.factor = null;
+      form.meter = null;
+      form.meterRate = null;
+      form.attrib = null;
+      form.typ = null;
+      form.relTyp = null;
+      form.measure = null;
+    }
+  }
+};
 
-    fnPeriodDepend() {
-      if (!this.form["isDependValueOnPeriod"]) {
-        this.form.isDependNameOnPeriod = false;
+const isValid = (v) => {
+  return v && v.length > 2;
+};
+
+const validSave = () => {
+  return !(
+    form.name !== null &&
+    form.name !== undefined &&
+    form.name.length > 2 &&
+    form.fullName !== null &&
+    form.fullName !== undefined &&
+    form.fullName.length > 2 &&
+    ((form.propType === allConsts.FD_PropType.factor &&
+        form.factor > 0) ||
+      (form.propType === allConsts.FD_PropType.typ &&
+        form.typ > 0) ||
+      (form.propType === allConsts.FD_PropType.reltyp &&
+        form.relTyp > 0) ||
+      (form.propType === allConsts.FD_PropType.meter &&
+        form.meter > 0) ||
+      (form.propType === allConsts.FD_PropType.rate &&
+        form.meterRate > 0) ||
+      (form.propType === allConsts.FD_PropType.attr &&
+        form.attrib > 0) ||
+      form.propType === allConsts.FD_PropType.measure ||
+      form.propType === allConsts.FD_PropType.complex)
+  );
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insert" : "update";
+
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+  form.visualFormat = typeof vf.value === "object" && vf.value !== null ? vf.value.id : vf.value;
+  form.meterBehavior = typeof meterBehavior.value === "object" && meterBehavior.value !== null ? meterBehavior.value.id : meterBehavior.value;
+  form.propType = typeof propType.value === "object" && propType.value !== null ? propType.value.id : propType.value;
+
+  let err = false;
+  api
+    .post("", {
+      method: "prop/" + method,
+      params: [{ rec: form }],
+    })
+    .then((response) => {
+      err = false;
+      onDialogOK(response.data.result.records[0]);
+      notifySuccess(proxy?.$t("success") || "success");
+    })
+    .catch((error) => {
+      err = true;
+      let errMessage = error.response?.data?.error?.message || error.message;
+      if (errMessage.includes("@")) {
+        let msgs = errMessage.split("@");
+        let m1 = proxy?.$t(`${msgs[0]}`) || msgs[0];
+        let m2 = msgs.length > 1 ? " [" + msgs[1] + "]" : "";
+        let msg = m1 + m2;
+        notifyError(msg);
+        if (msgs[0] === "NotChangeStructComplexProp") {
+          onDialogCancel();
+        }
+      } else {
+        notifyError(errMessage);
       }
-    },
-
-    fnCloseMeasure(v) {
-      this.form.measure = v;
-    },
-
-    fnCloseRate(v) {
-      this.form.meterRate = v;
-    },
-
-    normalizer(node) {
-      return {
-        id: node.id,
-        label: node.name,
-      };
-    },
-
-    fnClearStatus() {
-      this.form.statusFactor = null;
-    },
-
-    fnClearProvider() {
-      this.form.providerTyp = null;
-    },
-
-    inputValueFactor(val) {
-      if (val) {
-        this.factor.id = val.id;
-        this.form.factor = val.id;
+    })
+    .finally(() => {
+      if (!err) {
+        // dialogRef handles close via onDialogOK/onDialogCancel
       }
-    },
+    });
+};
 
-    loadAttrib() {
-      this.visible = ref(true);
-      api
-        .post("", {
-          method: "attrib/loadForSelect",
-          params: [],
-        })
-        .then((response) => {
-          this.optionsAttribOrg = response.data.result.records;
-          this.optionsAttrib = response.data.result.records;
-        })
-        .finally(() => {
-          this.visible = ref(false);
-        });
-    },
+const getDict = (dictName) => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: dictName }],
+    })
+    .then((response) => {
+      if (dictName === "FD_AccessLevel")
+        optionsLevel.value = response.data.result.records;
+      else if (dictName === "FD_PropType") {
+        optionsPropType.value = response.data.result.records;
+        if (props.isComplexProp) {
+          optionsPropType.value = optionsPropType.value.filter((r) => {
+            return r.id !== allConsts.FD_PropType.complex;
+          });
+        }
+      } else if (dictName === "FD_MeterBehavior")
+        optionsBehavior.value = response.data.result.records;
+      else if (dictName === "FD_VisualFormat")
+        optionsFV.value = response.data.result.records;
+    })
+    .catch((error) => {
+      let errMsg = error.response?.data?.error?.message || error.message;
+      notifyError(proxy?.$t(errMsg) || errMsg);
+    });
+};
 
-    loadRelTyp() {
-      this.visible = ref(true);
-      api
-        .post("", {
-          method: "reltyp/loadRelTypForSelect",
-          params: [],
-        })
-        .then((response) => {
-          this.optionsRelTypOrg = response.data.result.records;
-          this.optionsRelTyp = response.data.result.records;
-        })
-        .finally(() => {
-          this.visible = ref(false);
-        });
-    },
+const isFactor = () => form.propType === allConsts.FD_PropType.factor;
+const isAttr = () => form.propType === allConsts.FD_PropType.attr;
+const isMeter = () => form.propType === allConsts.FD_PropType.meter;
+const isRate = () => form.propType === allConsts.FD_PropType.rate;
+const isTyp = () => form.propType === allConsts.FD_PropType.typ;
+const isRel = () => form.propType === allConsts.FD_PropType.reltyp;
+const isComplex = () => form.propType === allConsts.FD_PropType.complex;
 
-    loadMeter() {
-      this.visible = ref(true);
+onMounted(() => {
+  getDict("FD_AccessLevel");
+  getDict("FD_PropType");
+  getDict("FD_MeterBehavior");
+  getDict("FD_VisualFormat");
+
+  api
+    .post("", {
+      method: "prop/getParentName",
+      params: [props.rec.propGr, !props.rec.parent ? 0 : props.rec.parent],
+    })
+    .then((response) => {
+      parentName.value = response.data.result;
+    });
+
+  api
+    .post("", {
+      method: "factor/loadForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optionsStatusOrg.value = response.data.result.records;
+      optionsStatus.value = response.data.result.records;
+    });
+
+  visible.value = true;
+  api
+    .post("", {
+      method: "typ/loadTypForSelect",
+      params: [],
+    })
+    .then((response) => {
+      optionsProviderOrg.value = response.data.result.records;
+      optionsProvider.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+
+  if (props.mode === "upd") {
+    if (form.propType === allConsts.FD_PropType.attr) {
+      loadAttrib();
+    }
+    if (form.propType === allConsts.FD_PropType.reltyp) {
+      loadRelTyp();
+    }
+
+    if (
+      form.propType === allConsts.FD_PropType.meter ||
+      form.propType === allConsts.FD_PropType.rate
+    ) {
       api
         .post("", {
           method: "meter/loadForSelect",
           params: [],
         })
         .then((response) => {
-          this.optionsMeterOrg = response.data.result.records;
-          this.optionsMeter = response.data.result.records;
+          optionsMeterOrg.value = response.data.result.records;
+          optionsMeter.value = response.data.result.records;
+
+          let flt = optionsMeterOrg.value.filter(
+            (r) => r.id === props.rec.meter
+          );
+          if (flt.length > 0) meterStruct.value = flt[0].meterStruct;
         })
         .finally(() => {
-          this.visible = ref(false);
-        });
-    },
-
-    loadMeterRate(meter) {
-      //console.log("loadMeterRate", meter, this.propType.id, this.rec.propType, this.meterStruct)
-      if (this.rec.propType === allConsts.FD_PropType.rate) {
-        let act = "meterrate/loadHardMR";
-        if (this.meterStruct === allConsts.FD_MeterStruct.soft)
-          act = "meterrate/loadSoftMR";
-        api
-          .post("", {
-            method: act,
-            params: [meter],
-          })
-          .then((response) => {
-            this.optRate = pack(response.data.result.records, "ord");
-            //console.log("optCls", this.optCls)
-          });
-      }
-    },
-
-    inputValueMeter(val) {
-      if (val) {
-        //console.log("METER", val)
-        //console.log("Val.MEASURE", val.measure)
-        this.meter.id = val.id;
-        this.form.meter = val.id;
-        this.meterStruct = val.meterStruct;
-        this.measureBase = val.measure;
-        let params = {};
-        if (this.measureBase) params.measureBase = this.measureBase;
-        //console.log("MEASURE", this.measure)
-
-        this.loadMeterRate(val.id);
-
-        api
-          .post("", {
-            method: "measure/load",
-            params: [params],
-          })
-          .then((response) => {
-            this.measures = pack(response.data.result.records, "ord");
-            this.measure = this.measures[0];
-          })
-          .finally(() => {
-            this.form.measure = val.measure;
-            //this.measure = val.measure
-            //console.log("MEASURE", this.measure)
-          });
-      }
-    },
-
-    filterFnMeter(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optionsMeter = this.optionsMeterOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optionsMeterOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optionsMeter = this.optionsMeterOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-    filterFnAttrib(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optionsAttrib = this.optionsAttribOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optionsAttribOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optionsAttrib = this.optionsAttribOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-    inputValueStatus(val) {
-      if (val) {
-        this.status.id = val.id;
-        this.form.statusFactor = val.id;
-      }
-    },
-
-    filterFnStatus(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optionsStatus = this.optionsStatusOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optionsStatusOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optionsStatus = this.optionsStatusOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-    inputValueTyp(val) {
-      if (val) {
-        this.typ.id = val.id;
-        this.form.typ = val.id;
-      }
-    },
-
-
-    filterFnTyp(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optionsProvider = this.optionsProviderOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optionsProviderOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optionsProvider = this.optionsProviderOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-    inputValueRelTyp(val) {
-      if (val) {
-        this.relTyp.id = val.id;
-        this.form.relTyp = val.id;
-      }
-    },
-
-    filterFnRelTyp(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optionsRelTyp = this.optionsRelTypOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optionsRelTypOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optionsRelTyp = this.optionsRelTypOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-    inputValueProvider(val) {
-      if (val) {
-        this.provider.id = val.id;
-        this.form.providerTyp = val.id;
-      }
-    },
-
-    filterFnProvider(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optionsProvider = this.optionsProviderOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optionsProviderOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optionsProvider = this.optionsProviderOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-          !this.form.fullName ||
-          (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
-
-    fnSelMeasure() {
-      this.form.measure = this.measure.id;
-    },
-
-    fnSelectDict(dict) {
-      if (dict === "accessLevel") this.form.accessLevel = this.al.id;
-      else if (dict === "visualFormat") this.form.visualFormat = this.vf.id;
-      else if (dict === "meterBehavior")
-        this.form.meterBehavior = this.meterBehavior.id;
-      else if (dict === "propType") {
-        //console.log("dict", this.form)
-        this.form.propType = this.propType.id;
-        if (this.form.propType === allConsts.FD_PropType.factor) {
-          this.form.meter = null;
-          this.form.meterRate = null;
-          this.form.attrib = null;
-          this.form.typ = null;
-          this.form.relTyp = null;
-          this.form.measure = null;
-          //this.form.complex = null
-        } else if (this.form.propType === allConsts.FD_PropType.meter) {
-          this.form.factor = null;
-          this.form.meterRate = null;
-          this.form.attrib = null;
-          this.form.typ = null;
-          this.form.relTyp = null;
-          this.form.measure = null;
-          //this.form.complex = null
-          this.form.isUniq = null;
-          this.form.allItem = null;
-          if (this.mode === "ins") {
-            this.form.meterBehavior = allConsts.FD_MeterBehavior.neutral;
-            this.meterBehavior = allConsts.FD_MeterBehavior.neutral;
+          if (form.propType === allConsts.FD_PropType.rate) {
+            loadMeterRate(props.rec.meter);
           }
-          this.loadMeter();
-        } else if (this.form.propType === allConsts.FD_PropType.rate) {
-          this.form.factor = null;
-          this.form.meter = null;
-          this.form.attrib = null;
-          this.form.typ = null;
-          this.form.relTyp = null;
-          this.form.measure = null;
-          //this.form.complex = null
-          this.form.isUniq = null;
-          this.form.allItem = null;
-          this.visible = ref(true);
-          this.loadMeter();
-        } else if (this.form.propType === allConsts.FD_PropType.attr) {
-          this.form.factor = null;
-          this.form.meter = null;
-          this.form.meterRate = null;
-          this.form.typ = null;
-          this.form.relTyp = null;
-          this.form.measure = null;
-          //this.form.complex = null
-          this.loadAttrib();
-        } else if (this.form.propType === allConsts.FD_PropType.typ) {
-          this.form.factor = null;
-          this.form.meter = null;
-          this.form.meterRate = null;
-          this.form.attrib = null;
-          this.form.relTyp = null;
-          this.form.measure = null;
-          //this.form.complex = null
-        } else if (this.form.propType === allConsts.FD_PropType.reltyp) {
-          this.form.factor = null;
-          this.form.meter = null;
-          this.form.meterRate = null;
-          this.form.attrib = null;
-          this.form.typ = null;
-          this.form.measure = null;
-          //this.form.complex = null
-
-          this.loadRelTyp();
-        } else if (this.form.propType === allConsts.FD_PropType.measure) {
-          this.form.factor = null;
-          this.form.meter = null;
-          this.form.meterRate = null;
-          this.form.attrib = null;
-          this.form.typ = null;
-          this.form.reltyp = null;
-          //this.form.complex = null
-        } else if (this.form.propType === allConsts.FD_PropType.complex) {
-          this.form.factor = null;
-          this.form.meter = null;
-          this.form.meterRate = null;
-          this.form.attrib = null;
-          this.form.typ = null;
-          this.form.reltyp = null;
-          this.form.measure = null;
-        }
-      }
-    },
-
-    isValid(v) {
-      return v && v.length > 2
-    },
-
-    validSave() {
-      return !(
-        this.form.name !== null &&
-        this.form.name !== undefined &&
-        this.form.name.length > 2 &&
-        this.form.fullName !== null &&
-        this.form.fullName !== undefined &&
-        this.form.fullName.length > 2 &&
-        ((this.form.propType === allConsts.FD_PropType.factor &&
-            this.form.factor > 0) ||
-          (this.form.propType === allConsts.FD_PropType.typ &&
-            this.form.typ > 0) ||
-          (this.form.propType === allConsts.FD_PropType.reltyp &&
-            this.form.relTyp > 0) ||
-          (this.form.propType === allConsts.FD_PropType.meter &&
-            this.form.meter > 0) ||
-          (this.form.propType === allConsts.FD_PropType.rate &&
-            this.form.meterRate > 0) ||
-          (this.form.propType === allConsts.FD_PropType.attr &&
-            this.form.attrib > 0) ||
-          this.form.propType === allConsts.FD_PropType.measure ||
-          this.form.propType === allConsts.FD_PropType.complex)
-      );
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insert" : "update";
-
-      let err = false;
-      api
-        .post("", {
-          method: "prop/" + method,
-          params: [{rec: this.form}],
-        })
-        .then(
-          (response) => {
-            err = false;
-            this.$emit("ok", response.data.result.records[0]);
-            //this.$emit("ok", {res: true});
-
-            notifySuccess(this.$t("success"));
-          })
-        .catch(error=> {
-          err = true;
-          console.log(error.message)
-          if (error.response.data.error.message.includes("@")) {
-            let msgs = error.response.data.error.message.split("@")
-            let m1 = this.$t(`${msgs[0]}`)
-            let m2 = (msgs.length > 1) ? " [" + msgs[1] + "]" : ""
-            let msg = m1 + m2
-            notifyError(msg)
-            if (msgs[0] === "NotChangeStructComplexProp") {
-              this.hide();
-            }
-          } else {
-            notifyError(error.response.data.error.message)
-          }
-        })
-        .finally(() => {
-          if (!err) this.hide();
+          api
+            .post("", {
+              method: "measure/load",
+              params: [{ meter: form.meter }],
+            })
+            .then((response) => {
+              measures.value = pack(response.data.result.records, "ord");
+            });
         });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-
-    getDict(dictName) {
-      api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: dictName}],
-        })
-        .then(response => {
-          if (dictName === "FD_AccessLevel")
-            this.optionsLevel = response.data.result.records;
-          else if (dictName === "FD_PropType") {
-            this.optionsPropType = response.data.result.records;
-            if (this.isComplexProp) {
-              this.optionsPropType = this.optionsPropType.filter((r) => {
-                return r.id !== allConsts.FD_PropType.complex;
-              });
-            }
-          } else if (dictName === "FD_MeterBehavior")
-            this.optionsBehavior = response.data.result.records;
-          else if (dictName === "FD_VisualFormat")
-            this.optionsFV = response.data.result.records;
-        })
-        .catch(error=> {
-          notifyError(this.$t(error.response.data.error.message))
-        });
-    },
-
-    isFactor() {
-      return this.form.propType === allConsts.FD_PropType.factor;
-    },
-
-    isAttr() {
-      return this.form.propType === allConsts.FD_PropType.attr;
-    },
-
-    isMeter() {
-      return this.form.propType === allConsts.FD_PropType.meter;
-    },
-
-    isRate() {
-      return this.form.propType === allConsts.FD_PropType.rate;
-    },
-
-    isTyp() {
-      return this.form.propType === allConsts.FD_PropType.typ;
-    },
-
-    isRel() {
-      return this.form.propType === allConsts.FD_PropType.reltyp;
-    },
-
-    isComplex() {
-      return this.form.propType === allConsts.FD_PropType.complex;
-    },
-  },
-
-  created() {
-    console.info("UpdateProp Created")
-    this.getDict("FD_AccessLevel");
-    this.getDict("FD_PropType");
-    this.getDict("FD_MeterBehavior");
-    this.getDict("FD_VisualFormat");
-
-    api
-      .post("", {
-        method: "prop/getParentName",
-        params: [this.rec.propGr, !this.rec.parent ? 0 : this.rec.parent],
-      })
-      .then((response) => {
-        this.parentName = response.data.result;
-      });
-
-    api
-      .post("", {
-        method: "factor/loadForSelect",
-        params: [],
-      })
-      .then((response) => {
-        this.optionsStatusOrg = response.data.result.records;
-        this.optionsStatus = response.data.result.records;
-        //this.optionsStatus.unshift({id: 0, name: this.$t('notChosen')})
-      });
-
-    this.visible = ref(true);
-    api
-      .post("", {
-        method: "typ/loadTypForSelect",
-        params: [],
-      })
-      .then((response) => {
-        this.optionsProviderOrg = response.data.result.records;
-        this.optionsProvider = response.data.result.records;
-        //this.optionsProvider.unshift({id: 0, name: this.$t('notChosen')})
-      })
-      .finally(() => {
-        this.visible = ref(false)
-      });
-    if (this.mode === "upd") {
-      if (this.form.propType === allConsts.FD_PropType.attr) {
-        this.loadAttrib();
-      }
-      if (this.form.propType === allConsts.FD_PropType.reltyp) {
-        this.loadRelTyp();
-      }
-
-      if (
-        this.form.propType === allConsts.FD_PropType.meter ||
-        this.form.propType === allConsts.FD_PropType.rate
-      ) {
-        api
-          .post("", {
-            method: "meter/loadForSelect",
-            params: [],
-          })
-          .then((response) => {
-            this.optionsMeterOrg = response.data.result.records;
-            this.optionsMeter = response.data.result.records;
-            //
-            let flt = this.optionsMeterOrg.filter(
-              (r) => r.id === this.rec.meter
-            );
-            this.meterStruct = flt[0].meterStruct;
-          })
-          .finally(() => {
-            if (this.form.propType === allConsts.FD_PropType.rate) {
-              this.loadMeterRate(this.rec.meter);
-            }
-            api
-              .post("", {
-                method: "measure/load",
-                params: [{meter: this.form.meter}],
-              })
-              .then((response) => {
-                this.measures = pack(response.data.result.records, "ord");
-              });
-          });
-      }
     }
-  },
-
-  computed: {
-    /*
-        isValid() {
-          let vm = this;
-          return vm.form.name && vm.form.name.length > 2
-        },
-    */
   }
-
-};
+});
 </script>
+
+<style scoped></style>

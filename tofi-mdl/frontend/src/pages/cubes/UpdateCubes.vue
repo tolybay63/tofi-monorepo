@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -19,71 +19,69 @@
       <q-card-section>
         <q-input
           v-model="form.cod"
-          :model-value="form.cod"
           :label="$t('code')"
-          :placeholder="$t('msgCodeGen')" dense
+          :placeholder="$t('msgCodeGen')"
+          dense
         />
         <!-- name -->
         <q-input
-          :model-value="form.name"
           v-model="form.name"
-          dense autofocus
+          dense
+          autofocus
           @blur="onBlurName"
           :label="$t('fldName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
         <!-- fullName-->
         <q-input
-          :model-value="form.fullName"
           v-model="form.fullName"
-          dense :label="$t('fldFullName')"
+          dense
+          :label="$t('fldFullName')"
           :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+        />
 
         <!-- AccessLevel -->
         <q-select
           v-model="al"
-          :model-value="al"
           :options="optAL"
           :label="$t('accessLevel')"
           option-value="id"
           option-label="text"
-          map-options dense options-dense
+          map-options
+          dense
+          options-dense
           class="q-mb-md"
-          @update:model-value="fnSelectAL()"
+          @update:model-value="fnSelectAL"
         />
 
         <!-- CubeSType -->
         <q-select
           v-model="ct"
-          :model-value="ct"
           :options="optCT"
           :label="$t('cubesType')"
           option-value="id"
           option-label="text"
-          map-options dense options-dense
+          map-options
+          dense
+          options-dense
           class="q-mb-md"
-          @update:model-value="fnSelectCT()"
+          @update:model-value="fnSelectCT"
         />
 
         <q-input
           v-model="form.dOrg"
-          :model-value="form.dOrg"
           :label="$t('dOrg')"
-          dense type="date"
+          dense
+          type="date"
         />
 
         <!-- cmt -->
         <q-input
-          :model-value="form.cmt"
           v-model="form.cmt"
-          dense type="textarea"
+          dense
+          type="textarea"
           :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+        />
       </q-card-section>
 
       <q-card-actions align="right">
@@ -92,13 +90,14 @@
           icon="save"
           :label="$t('save')"
           @click="onOKClick"
-          dense :disable="validSave()"
+          dense
+          :disable="validSave()"
         />
         <q-btn
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
           dense
         />
       </q-card-actions>
@@ -106,135 +105,104 @@
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode"],
-
-  data() {
-    return {
-      form: this.data,
-      al: this.data.accessLevel === 0 ? 1 : this.data.accessLevel,
-      optAL: [],
-      ct: this.data.cubeSType === 0 ? 1 : this.data.cubeSType,
-      optCT: [],
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-          !this.form.fullName ||
-          (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelectAL() {
-      this.form.accessLevel = this.al.id;
-    },
+const form = reactive({ ...props.data });
+const al = ref(props.data.accessLevel === 0 ? 1 : props.data.accessLevel);
+const optAL = ref([]);
+const ct = ref(props.data.cubeSType === 0 ? 1 : props.data.cubeSType);
+const optCT = ref([]);
 
-    fnSelectCT() {
-      this.form.cubeSType = this.ct.id;
-    },
-
-    validSave() {
-      return this.form.name === "" || this.form.fullName === ""
-        || !this.form.accessLevel || !this.form.cubeSType;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insertCube" : "updateCube";
-      this.form.accessLevel =
-        typeof this.al === "object" ? this.al.id : this.al;
-      this.form.cubeSType =
-        typeof this.ct === "object" ? this.ct.id : this.ct;
-      api
-        .post("", {
-          id: this.form.id,
-          method: "cubes/" + method,
-          params: [this.form],
-        })
-        .then(
-          (response) => {
-            this.$emit("ok", response.data.result.records[0]);
-            notifySuccess(this.$t("success"));
-          },
-          (error) => {
-            notifyError(error.response.data.error.message);
-          }
-        )
-        .finally(() => {
-          this.hide();
-        });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_AccessLevel"}],
-      })
-      .then((response) => {
-        this.optAL = response.data.result.records;
-      });
-
-    api
-      .post("", {
-        method: "dict/load",
-        params: [{dict: "FD_CubeSType"}],
-      })
-      .catch(error => {
-        console.log(error.message);
-        if (error.response && error.response.data && error.response.data.error) {
-          notifyError(this.$t(error.response.data.error.message));
-        } else {
-          notifyError(error.message);
-        }
-      })
-      .then((response) => {
-        this.optCT = response.data.result.records;
-      });
-
-  },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const fnSelectAL = () => {
+  form.accessLevel = al.value?.id || al.value;
+};
+
+const fnSelectCT = () => {
+  form.cubeSType = ct.value?.id || ct.value;
+};
+
+const validSave = () => {
+  return (
+    form.name === "" ||
+    form.fullName === "" ||
+    !form.accessLevel ||
+    !form.cubeSType
+  );
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insertCube" : "updateCube";
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+  form.cubeSType = typeof ct.value === "object" && ct.value !== null ? ct.value.id : ct.value;
+
+  api
+    .post("", {
+      id: form.id,
+      method: "cubes/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success"));
+      },
+      (error) => {
+        notifyError(error.response?.data?.error?.message || error.message);
+      }
+    );
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      optAL.value = response.data.result.records;
+    });
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_CubeSType" }],
+    })
+    .then((response) => {
+      optCT.value = response.data.result.records;
+    })
+    .catch((error) => {
+      console.error(error.message);
+      if (error.response?.data?.error) {
+        notifyError(proxy?.$t(error.response.data.error.message));
+      } else {
+        notifyError(error.message);
+      }
+    });
+});
 </script>

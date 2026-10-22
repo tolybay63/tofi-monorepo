@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary" dense>
@@ -18,219 +18,179 @@
 
       <q-card-section>
         <q-input
-            v-model="form.cod"
-            :model-value="form.cod"
-            :label="$t('code')"
-            :placeholder="$t('msgCodeGen')"
-            dense
+          v-model="form.cod"
+          :label="$t('code')"
+          :placeholder="$t('msgCodeGen')"
+          dense
         />
         <!-- name -->
         <q-input
-            :model-value="form.name"
-            v-model="form.name"
-            dense autofocus
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.name"
+          dense autofocus
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
         <!-- fullName-->
         <q-input
-            :model-value="form.fullName"
-            v-model="form.fullName"
-            dense :label="$t('fldFullName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.fullName"
+          dense :label="$t('fldFullName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
         <!-- ScaleType -->
         <q-select
-            v-model="st"
-            :options="optionsST"
-            :label="$t('scaleType')"
-            option-value="id"
-            option-label="text"
-            map-options
-            dense options-dense
-            :model-value="st"
-            @update:model-value="fnSelectST()"
+          v-model="st"
+          :options="optionsST"
+          :label="$t('scaleType')"
+          option-value="id"
+          option-label="text"
+          map-options
+          dense options-dense
+          @update:model-value="fnSelectST"
         />
 
         <!-- AccessLevel -->
         <q-select
-            v-model="al"
-            :options="optionsAL"
-            :label="$t('accessLevel')"
-            option-value="id"
-            option-label="text"
-            map-options
-            dense options-dense
-            :model-value="al"
-            @update:model-value="fnSelectAL()"
+          v-model="al"
+          :options="optionsAL"
+          :label="$t('accessLevel')"
+          option-value="id"
+          option-label="text"
+          map-options
+          dense options-dense
+          @update:model-value="fnSelectAL"
         />
 
         <!-- cmt -->
         <q-input
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            dense type="textarea"
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          v-model="form.cmt"
+          dense type="textarea"
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            color="primary"
-            icon="save" dense
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          color="primary"
+          icon="save" dense
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
-            <q-spinner-hourglass color="white"/>
+            <q-spinner-hourglass color="white" />
           </template>
         </q-btn>
         <q-btn
-            color="primary"
-            icon="cancel" dense
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          color="primary"
+          icon="cancel" dense
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import {ref} from "vue";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode"],
-
-  data() {
-    return {
-      form: this.data,
-      optionsAL: [],
-      optionsST: [],
-      loading: ref(false),
-      al: this.data.accessLevel,
-      st: this.data.scaleType,
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
-  //al: this.form.accessLevel===0 ? 1 : this.form.accessLevel
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+  mode: String,
+});
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+defineEmits([...useDialogPluginComponent.emits]);
 
-    fnSelectAL() {
-      this.form.accessLevel = this.al.id;
-    },
-    fnSelectST() {
-      this.form.scaleType = this.st.id;
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    validSave() {
-      return this.form.name === "" || this.form.fullName === "";
-    },
+const form = reactive({ ...props.data });
+const optionsAL = ref([]);
+const optionsST = ref([]);
+const loading = ref(false);
+const al = ref(props.data.accessLevel);
+const st = ref(props.data.scaleType);
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      this.loading = ref(true)
-      let err = false
-
-      const method = this.mode === "ins" ? "insert" : "update";
-      this.form.accessLevel =
-          typeof this.al === "object" ? this.al.id : this.al;
-      this.form.scaleType =
-          typeof this.st === "object" ? this.st.id : this.st;
-
-      api
-          .post("", {
-            id: this.form.id,
-            method: "scale/" + method,
-            params: [ this.form ],
-          })
-          .then(
-              (response) => {
-                err = false
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                err = true
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            if (!err) this.hide()
-            this.loading= ref(false)
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_AccessLevel"}],
-        })
-        .then((response) => {
-          this.optionsAL = response.data.result.records;
-        });
-
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_ScaleType"}],
-        })
-        .then((response) => {
-          //console.log("FD_AttribValType", response.data.result.records)
-          this.optionsST = response.data.result.records;
-        });
-  },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const fnSelectAL = () => {
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+};
+
+const fnSelectST = () => {
+  form.scaleType = typeof st.value === "object" && st.value !== null ? st.value.id : st.value;
+};
+
+const validSave = () => {
+  return form.name === "" || form.fullName === "";
+};
+
+const onOKClick = () => {
+  loading.value = true;
+  let err = false;
+
+  const method = props.mode === "ins" ? "insert" : "update";
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+  form.scaleType = typeof st.value === "object" && st.value !== null ? st.value.id : st.value;
+
+  api
+    .post("", {
+      id: form.id,
+      method: "scale/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        err = false;
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        err = true;
+        let errMsg = error.response?.data?.error?.message || error.message;
+        notifyError(errMsg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      optionsAL.value = response.data.result.records;
+    });
+
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_ScaleType" }],
+    })
+    .then((response) => {
+      optionsST.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

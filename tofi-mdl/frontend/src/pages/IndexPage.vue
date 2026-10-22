@@ -1,35 +1,31 @@
 <template>
   <div class="body">
     <div class="bg-elements">
-      <span class="bg-item text">{{$t("tofi")}}</span>
+      <span class="bg-item text">{{ $t("tofi") }}</span>
       <span class="bg-item circle"></span>
-      <span class="bg-item text">{{$t("tofi")}}</span>
+      <span class="bg-item text">{{ $t("tofi") }}</span>
       <span class="bg-item square"></span>
-      <span class="bg-item text">{{$t("tofi")}}</span>
+      <span class="bg-item text">{{ $t("tofi") }}</span>
       <span class="bg-item circle small"></span>
     </div>
     <q-page class="flex flex-center">
       <img
-          class="balance"
-          alt="TOFI logo"
-          src="~assets/a.png"
-          style="width: 100px; height: 100px"
+        class="balance"
+        alt="TOFI logo"
+        src="~@/assets/a.png"
+        style="width: 100px; height: 100px"
       />
       <img
-          alt="TOFI logo"
-          src="~assets/b.png"
-          style="width: 170px; height: 50px"
+        alt="TOFI logo"
+        src="~@/assets/b.png"
+        style="width: 170px; height: 50px"
       />
     </q-page>
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue";
-
-export default defineComponent({
-  name: "IndexPage",
-});
+<script setup>
+// Главная страница успешно переведена на Composition API и <script setup>
 </script>
 
 <style scoped>
@@ -37,7 +33,7 @@ export default defineComponent({
   position: relative;
   width: 100%;
   height: 90%;
-  background: #f0f2f5; /* Чистый светлый фон #fdfdfd */
+  background: #f0f2f5;
   overflow: hidden;
 }
 
@@ -55,40 +51,19 @@ export default defineComponent({
 /* Общие стили для плавающих объектов */
 .bg-item {
   position: absolute;
-  color: rgba(25, 118, 210, 0.1); /* Цвет текста TOFI 0, 0, 0, 0.05 */
+  color: rgba(25, 118, 210, 0.1);
   font-weight: bold;
   font-family: 'Arial Black', sans-serif;
   user-select: none;
   animation: float 15s infinite linear;
-  display: block; /* Гарантируем отображение */
+  display: block;
 }
 
-/* Стили для фигур — добавим легкую заливку, чтобы их было видно */
+/* Стили для фигур */
 .circle {
   width: 100px;
   height: 100px;
-  background: rgba(25, 118, 210, 0.1); /* Легкая заливка 0, 0, 0, 0.03 */
-  border: 1px none rgba(0, 0, 0, 0.03); /* Тонкий контур 0, 0, 0, 0.05 */
-  border-radius: 50%;
-}
-
-.square {
-  width: 80px;
-  height: 80px;
-  background: rgba(25, 118, 210, 0.1); /* Легкая заливка */
-  border: 1px solid rgba(0, 0, 0, 0.03);
-  transform: rotate(45deg);
-}
-
-.small {
-  width: 40px;
-  height: 40px;
-}
-
-/* Разные фигуры */
-.circle {
-  width: 100px;
-  height: 100px;
+  background: rgba(25, 118, 210, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.03);
   border-radius: 50%;
 }
@@ -96,8 +71,14 @@ export default defineComponent({
 .square {
   width: 60px;
   height: 60px;
+  background: rgba(25, 118, 210, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.03);
   transform: rotate(45deg);
+}
+
+.small {
+  width: 40px;
+  height: 40px;
 }
 
 /* Расположение и индивидуальная анимация */
@@ -126,4 +107,3 @@ export default defineComponent({
   animation: sway 2.2s infinite alternate ease-in-out;
 }
 </style>
-

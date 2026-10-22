@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -19,143 +19,116 @@
       <q-card-section>
         <!-- typrole -->
         <q-select
-            :dense="dense"
-            v-model="relrole"
-            :options="relroles"
-            :label="$t('role2')"
-            option-value="id"
-            option-label="name"
-            map-options
-            :model-value="relrole"
-            @update:model-value="fnSelRole"
+          :dense="dense"
+          v-model="relrole"
+          :options="relroles"
+          :label="$t('role2')"
+          option-value="id"
+          option-label="name"
+          map-options
+          @update:model-value="fnSelRole"
         />
 
         <!-- cmt -->
         <q-input
-            :dense="dense"
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            type="textarea"
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          :dense="dense"
+          v-model="form.cmt"
+          type="textarea"
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "reltyp", "mode", "lg", "dense"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-      relroles: [],
-      relrole: this.data.role,
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  reltyp: [Number, String],
+  mode: String,
+  lg: [String, Object],
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    fnSelRole() {
-      this.form.role = this.relrole.id;
-    },
-    validSave() {
-      return this.form.role === 0;
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
+const relroles = ref([]);
+const relrole = ref(props.data.role);
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method =
-          this.mode === "ins" ? "insertRelTypRole" : "updateRelTypRole";
-      api
-          .post("", {
-            method: "reltyprole/" + method,
-            params: [{rec: this.form}],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    api
-        .post("", {
-          method: "reltyprole/selectRelTypRole",
-          params: [this.reltyp],
-        })
-        .then((response) => {
-          //this.measures = pack(response.data.result.records)
-          this.relroles = response.data.result.records;
-          this.relroles.unshift({id: 0, name: this.$t("notChosen")});
-        });
-
-    return {};
-  },
+const fnSelRole = () => {
+  form.role = relrole.value?.id !== undefined ? relrole.value.id : relrole.value;
 };
+
+const validSave = () => {
+  return form.role === 0;
+};
+
+const onOKClick = () => {
+  const method =
+    props.mode === "ins" ? "insertRelTypRole" : "updateRelTypRole";
+
+  api
+    .post("", {
+      method: "reltyprole/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "reltyprole/selectRelTypRole",
+      params: [props.reltyp],
+    })
+    .then((response) => {
+      relroles.value = response.data.result.records;
+      relroles.value.unshift({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+    });
+});
 </script>
+
+<style scoped></style>

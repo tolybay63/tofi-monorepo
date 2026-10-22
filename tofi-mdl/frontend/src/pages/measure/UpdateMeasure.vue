@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -23,202 +23,159 @@
 
         <!-- name -->
         <q-input
-            v-model="form.name"
-            :model-value="form.name"
-            autofocus
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.name"
+          autofocus
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
         <!-- fullName-->
         <q-input
-            v-model="form.fullName"
-            :model-value="form.fullName"
-            :label="$t('fldFullName')"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
-        >
-        </q-input>
+          v-model="form.fullName"
+          :label="$t('fldFullName')"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+        />
 
         <!-- cod -->
         <q-input
-            v-model="form.cod"
-            :model-value="form.cod"
-            :label="$t('code')"
-            :placeholder="$t('msgCodeGen')"
+          v-model="form.cod"
+          :label="$t('code')"
+          :placeholder="$t('msgCodeGen')"
         />
         <!-- accessLevel -->
         <q-select
-            v-model="al"
-            :options="options"
-            :label="$t('accessLevel')"
-            option-value="id"
-            :option-label="dictText()"
-            map-options
-            :model-value="al"
-            @update:model-value="fnSelect()"
+          v-model="al"
+          :options="options"
+          :label="$t('accessLevel')"
+          option-value="id"
+          :option-label="dictText()"
+          map-options
+          @update:model-value="fnSelect"
         />
 
         <!-- kFromBase -->
         <q-input
-            v-if="isChild"
-            :model-value="form.kFromBase"
-            v-model="form.kFromBase"
-            :label="$t('kfcMeasure')"
-            type="number"
-            input-class="text-right"
-        >
-        </q-input>
+          v-if="isChild"
+          v-model="form.kFromBase"
+          :label="$t('kfcMeasure')"
+          type="number"
+          input-class="text-right"
+        />
 
         <!-- cmt -->
         <q-input
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            type="textarea"
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          v-model="form.cmt"
+          type="textarea"
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validName()"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validName()"
         />
         <q-btn
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["mode", "isChild", "parentName", "data"],
-
-  data() {
-    return {
-      form: this.data,
-      options: [],
-      al: this.data.accessLevel === 0 ? 1 : this.data.accessLevel,
-    };
+const props = defineProps({
+  mode: String,
+  isChild: Boolean,
+  parentName: String,
+  data: {
+    type: Object,
+    default: () => ({}),
   },
-  //al: this.form.accessLevel===0 ? 1 : this.form.accessLevel
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+});
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+defineEmits([...useDialogPluginComponent.emits]);
 
-    fnSelect() {
-      //console.log("select", this.al)
-      this.form.accessLevel = this.al.id;
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    dictText() {
-      return "text";
-    },
+const form = reactive({ ...props.data });
+const options = ref([]);
+const al = ref(props.data.accessLevel === 0 ? 1 : props.data.accessLevel);
 
-    validName() {
-      return (
-          !this.form.name ||
-          !this.form.fullName ||
-          parseFloat(this.form.kFromBase) <= 0
-      );
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      delete this.form["accessLevel_text"];
-      const method = this.mode === "ins" ? "insert" : "update";
-      this.form.accessLevel =
-          typeof this.al === "object" ? this.al.id : this.al;
-
-      api
-          .post("", {
-            method: "measure/" + method,
-            params: [{rec: this.form}],
-          })
-          .then(
-              (response) => {
-                //this.$emit("ok", {res: true});
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                let msg = error.response.data.error.message
-                    ? error.response.data.error.message
-                    : error.message;
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_AccessLevel"}],
-        })
-        .then((response) => {
-          this.options = response.data.result.records;
-        });
-
-    return {};
-  },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const fnSelect = () => {
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+};
+
+const dictText = () => {
+  return "text";
+};
+
+const validName = () => {
+  return (
+    !form.name ||
+    !form.fullName ||
+    parseFloat(form.kFromBase) <= 0
+  );
+};
+
+const onOKClick = () => {
+  delete form["accessLevel_text"];
+  const method = props.mode === "ins" ? "insert" : "update";
+  form.accessLevel = typeof al.value === "object" && al.value !== null ? al.value.id : al.value;
+
+  api
+    .post("", {
+      method: "measure/" + method,
+      params: [{ rec: form }],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message
+          ? error.response.data.error.message
+          : error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_AccessLevel" }],
+    })
+    .then((response) => {
+      options.value = response.data.result.records;
+    });
+});
 </script>
+
+<style scoped></style>

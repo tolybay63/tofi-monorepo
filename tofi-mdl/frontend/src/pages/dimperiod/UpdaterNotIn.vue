@@ -1,6 +1,6 @@
 <template>
   <q-dialog
-    ref="dialog"
+    ref="dialogRef"
     @hide="onDialogHide"
     persistent
     autofocus
@@ -32,7 +32,7 @@
           color="primary"
           icon="cancel"
           :label="$t('cancel')"
-          @click="onCancelClick"
+          @click="onDialogCancel"
         />
       </q-card-actions>
 
@@ -64,8 +64,7 @@
                       : 'check_box_outline_blank'
                   "
                   @click="selectedRow(props.row)"
-                >
-                </q-btn>
+                />
               </td>
 
               <q-td key="name" :props="props">
@@ -79,129 +78,102 @@
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {ref} from "vue";
-import {notifyError} from "src/utils/jsutils";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError } from "@/utils/jsutils";
 
-export default {
-  props: ["dimPeriodItem", "dense"],
+const props = defineProps({
+  dimPeriodItem: [Number, String],
+  dense: Boolean,
+});
 
-  data() {
-    return {
-      cols: [],
-      rows: [],
-      loading: ref(false),
-      maxCnt: 0,
-    };
-  },
+defineEmits([...useDialogPluginComponent.emits]);
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-  methods: {
-    selectedRow(row) {
-      row.checked = !row.checked;
-    },
+const cols = ref([]);
+const rows = ref([]);
+const loading = ref(false);
+const maxCnt = ref(0);
 
-    validSave() {
-      let i = 0;
-      this.rows.forEach((r) => {
-        if (r.checked) {
-          i++;
-        }
-      });
-      return i === this.maxCnt;
-    },
-
-    getColumns() {
-      return [
-        {
-          name: "checked",
-          field: "checked",
-        },
-        {
-          name: "name",
-          label: this.$t("fldName"),
-          field: "name",
-          align: "left",
-          classes: "bg-blue-grey-1",
-          headerStyle: "font-size: 1.2em",
-          style: "width: 100%",
-        },
-      ];
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    onOKClick() {
-      this.loading = ref(true);
-      let dta = [];
-
-      this.rows.forEach((r) => {
-        if (r.checked) {
-          dta.push({ id: r.id, numb: r.numb, name: r.name });
-        }
-      });
-
-      api
-        .post("", {
-          method: "dimperiod/updateNotIn",
-          params: [this.dimPeriodItem, dta],
-        })
-        .then(
-          () => {
-            this.$emit("ok", { res: true });
-          },
-          (error) => {
-            let msg = error.message;
-            if (error.response.data.error.message)
-              msg = error.response.data.error.message;
-            notifyError(msg);
-          }
-        )
-        .finally(() => {
-          this.loading = ref(false);
-          this.hide();
-        });
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-    this.cols = this.getColumns();
-
-    api
-      .post("", {
-        method: "dimperiod/loadNotInForUpdate",
-        params: [this.dimPeriodItem],
-      })
-      .then((response) => {
-        this.rows = response.data.result.records;
-        this.maxCnt = this.rows.length;
-      });
-  },
+const selectedRow = (row) => {
+  row.checked = !row.checked;
 };
+
+const validSave = () => {
+  let i = 0;
+  rows.value.forEach((r) => {
+    if (r.checked) {
+      i++;
+    }
+  });
+  return i === maxCnt.value;
+};
+
+const getColumns = () => [
+  {
+    name: "checked",
+    field: "checked",
+  },
+  {
+    name: "name",
+    label: proxy?.$t("fldName"),
+    field: "name",
+    align: "left",
+    classes: "bg-blue-grey-1",
+    headerStyle: "font-size: 1.2em",
+    style: "width: 100%",
+  },
+];
+
+const onOKClick = () => {
+  loading.value = true;
+  let dta = [];
+
+  rows.value.forEach((r) => {
+    if (r.checked) {
+      dta.push({ id: r.id, numb: r.numb, name: r.name });
+    }
+  });
+
+  api
+    .post("", {
+      method: "dimperiod/updateNotIn",
+      params: [props.dimPeriodItem, dta],
+    })
+    .then(
+      () => {
+        onDialogOK({ res: true });
+      },
+      (error) => {
+        let msg = error.message;
+        if (error.response?.data?.error?.message) {
+          msg = error.response.data.error.message;
+        }
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+onMounted(() => {
+  cols.value = getColumns();
+
+  api
+    .post("", {
+      method: "dimperiod/loadNotInForUpdate",
+      params: [props.dimPeriodItem],
+    })
+    .then((response) => {
+      rows.value = response.data.result.records;
+      maxCnt.value = rows.value.length;
+    });
+});
 </script>
+
+<style scoped></style>

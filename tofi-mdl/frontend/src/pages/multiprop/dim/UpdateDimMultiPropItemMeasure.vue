@@ -1,12 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -16,186 +15,151 @@
         <div>{{ $t("editRecord") }}</div>
       </q-bar>
 
-      <q-inner-loading :showing="visible" color="secondary"/>
+      <q-inner-loading :showing="visible" color="secondary" />
 
       <q-card-section>
-
         <!-- measure -->
         <q-select
-            v-model="measure"
-            :model-value="measure"
-            :options="measures"
-            :label="$t('measure')"
-            option-value="id"
-            option-label="name"
-            map-options dense
-            @update:model-value="fnSelMeasure"
+          v-model="measure"
+          :options="measures"
+          :label="$t('measure')"
+          option-value="id"
+          option-label="name"
+          map-options
+          dense
+          @update:model-value="fnSelMeasure"
         />
 
         <!-- format -->
         <q-select
-            class="q-my-lg"
-            v-model="vf"
-            :model-value="vf"
-            :options="optVF"
-            :label="$t('visualFormat')"
-            option-value="id"
-            option-label="text"
-            map-options
-            dense options-dense
-            @update:model-value="fnSelectVF"
+          class="q-my-lg"
+          v-model="vf"
+          :options="optVF"
+          :label="$t('visualFormat')"
+          option-value="id"
+          option-label="text"
+          map-options
+          dense
+          options-dense
+          @update:model-value="fnSelectVF"
         />
-
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            dense
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          dense
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            dense
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          dense
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import {ref} from "vue";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "lg"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-      visible: ref(false),
-
-      vf: this.data.visualFormat,
-      optVF: [],
-      measures: [],
-      measure: this.data.measure,
-
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelMeasure() {
-      this.form.measure = this.measure.id;
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
+const visible = ref(false);
 
-    fnSelectVF() {
-      this.form.visualFormat = this.vf.id
-    },
+const vf = ref(props.data.visualFormat);
+const optVF = ref([]);
+const measures = ref([]);
+const measure = ref(props.data.measure);
 
-    validSave() {
-      return !this.form.measure;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insDimMultiPropItemMeasure" : "updDimMultiPropItemMeasure";
-
-      this.form.visualFormat =
-          typeof this.vf === "object" ? this.vf.id : this.vf;
-      api
-          .post("", {
-            method: "dimMultiProp/" + method,
-            params: [this.form],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-
-    this.visible = ref(true)
-
-    api
-        .post("", {
-          method: "measure/loadBase",
-          params: [{}],
-        })
-        .then((response) => {
-          //this.measures = pack(response.data.result.records)
-          this.measures = response.data.result.records;
-        })
-        .finally(()=> {
-          this.visible = ref(false)
-        });
-
-
-    this.visible = ref(true)
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_VisualFormat"}],
-        })
-        .then((response) => {
-          this.optVF = response.data.result.records;
-        })
-        .finally(() => {
-          this.visible = ref(false)
-        });
-  },
-
-
+const fnSelMeasure = () => {
+  form.measure = typeof measure.value === "object" && measure.value !== null ? measure.value.id : measure.value;
 };
+
+const fnSelectVF = () => {
+  form.visualFormat = typeof vf.value === "object" && vf.value !== null ? vf.value.id : vf.value;
+};
+
+const validSave = () => {
+  return !form.measure;
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insDimMultiPropItemMeasure" : "updDimMultiPropItemMeasure";
+
+  form.visualFormat = typeof vf.value === "object" && vf.value !== null ? vf.value.id : vf.value;
+  form.measure = typeof measure.value === "object" && measure.value !== null ? measure.value.id : measure.value;
+
+  api
+    .post("", {
+      method: "dimMultiProp/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "measure/loadBase",
+      params: [{}],
+    })
+    .then((response) => {
+      measures.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+
+  visible.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_VisualFormat" }],
+    })
+    .then((response) => {
+      optVF.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+});
 </script>
+
+<style scoped></style>

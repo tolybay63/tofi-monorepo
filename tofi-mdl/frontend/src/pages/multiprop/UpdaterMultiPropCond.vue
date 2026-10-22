@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 800px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 800px"
   >
     <q-card class="q-dialog-plugin" style="width: 800px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -16,26 +16,25 @@
         <div>{{ $t("editRecord") }}</div>
       </q-bar>
 
-      <q-inner-loading :showing="visible" color="secondary"/>
+      <q-inner-loading :showing="visible" color="secondary" />
 
       <q-card-section>
         <q-select
-            v-model="factor"
-            map-options
-            :model-value="factor"
-            use-input
-            input-debounce="0"
-            :label="$t('factor')"
-            :options="optionsFactor"
-            option-value="id"
-            option-label="name"
-            :dense="dense"
-            :options-dense="dense"
-            clearable
-            @clear="fnClearFactor"
-            @update:model-value="inputValueFactor"
-            @filter="filterFnFactor"
-            :disable="factorDisable"
+          v-model="factor"
+          map-options
+          use-input
+          input-debounce="0"
+          :label="$t('factor')"
+          :options="optionsFactor"
+          option-value="id"
+          option-label="name"
+          :dense="dense"
+          :options-dense="dense"
+          clearable
+          @clear="fnClearFactor"
+          @update:model-value="inputValueFactor"
+          @filter="filterFnFactor"
+          :disable="factorDisable"
         >
           <template v-slot:no-option>
             <q-item>
@@ -47,22 +46,21 @@
         </q-select>
 
         <q-select
-            v-model="typ"
-            :model-value="typ"
-            use-input
-            map-options
-            input-debounce="0"
-            :label="$t('typ')"
-            :options="optionsTyp"
-            option-value="id"
-            option-label="name"
-            :dense="dense"
-            :options-dense="dense"
-            @update:model-value="inputValueTyp"
-            @filter="filterFnTyp"
-            clearable
-            @clear="fnClearTyp"
-            :disable="typDisable"
+          v-model="typ"
+          use-input
+          map-options
+          input-debounce="0"
+          :label="$t('typ')"
+          :options="optionsTyp"
+          option-value="id"
+          option-label="name"
+          :dense="dense"
+          :options-dense="dense"
+          @update:model-value="inputValueTyp"
+          @filter="filterFnTyp"
+          clearable
+          @clear="fnClearTyp"
+          :disable="typDisable"
         >
           <template v-slot:no-option>
             <q-item>
@@ -74,22 +72,21 @@
         </q-select>
 
         <q-select
-            v-model="relTyp"
-            :model-value="relTyp"
-            map-options
-            use-input
-            input-debounce="0"
-            :label="$t('reltyp')"
-            :options="optionsRelTyp"
-            option-value="id"
-            option-label="name"
-            :dense="dense"
-            :options-dense="dense"
-            :disable="relTypDisable"
-            @update:model-value="inputValueRelTyp"
-            @filter="filterFnRelTyp"
-            clearable
-            @clear="fnClearRelTyp"
+          v-model="relTyp"
+          map-options
+          use-input
+          input-debounce="0"
+          :label="$t('reltyp')"
+          :options="optionsRelTyp"
+          option-value="id"
+          option-label="name"
+          :dense="dense"
+          :options-dense="dense"
+          :disable="relTypDisable"
+          @update:model-value="inputValueRelTyp"
+          @filter="filterFnRelTyp"
+          clearable
+          @clear="fnClearRelTyp"
         >
           <template v-slot:no-option>
             <q-item>
@@ -101,318 +98,291 @@
         </q-select>
 
         <q-toggle
-            style="margin-left: 10px; margin-top: 10px"
-            :dense="dense"
-            model-value="form.isReq"
-            v-model="form.isReq"
-            :label="$t('isReq')"
+          style="margin-left: 10px; margin-top: 10px"
+          :dense="dense"
+          v-model="form.isReq"
+          :label="$t('isReq')"
         />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          :dense="dense"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            :dense="dense"
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          :dense="dense"
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import {ref} from "vue";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "multiProp", "lg", "dense"],
-
-  data() {
-    //console.log("data 2", this.data)
-
-    return {
-      form: this.data,
-      visible: ref(false),
-
-      factor: this.data.factor,
-      optionsFactor: [],
-      optionsFactorOrg: [],
-
-      typ: this.data.typ,
-      optionsTyp: [],
-      optionsTypOrg: [],
-
-      relTyp: this.data.relTyp,
-      optionsRelTyp: [],
-      optionsRelTypOrg: [],
-
-      factorDisable: false,
-      typDisable: false,
-      relTypDisable: false,
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  multiProp: [Number, String],
+  lg: String,
+  dense: Boolean,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    fnClearFactor() {
-      this.form.factor = null;
-      this.typDisable = false;
-      this.relTypDisable = false;
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnClearTyp() {
-      this.form.typ = null;
-      this.factorDisable = false;
-      this.relTypDisable = false;
-    },
+const form = reactive({ ...props.data });
+const visible = ref(false);
 
-    fnClearRelTyp() {
-      this.form.relTyp = null;
-      this.factorDisable = false;
-      this.typDisable = false;
-    },
+const factor = ref(props.data.factor);
+const optionsFactor = ref([]);
+const optionsFactorOrg = ref([]);
 
-    inputValueFactor(val) {
-      if (val) {
-        this.factor.id = val.id;
-        this.form.factor = val.id;
+const typ = ref(props.data.typ);
+const optionsTyp = ref([]);
+const optionsTypOrg = ref([]);
 
-        this.typDisable = true;
-        this.relTypDisable = true;
-      }
-    },
+const relTyp = ref(props.data.relTyp);
+const optionsRelTyp = ref([]);
+const optionsRelTypOrg = ref([]);
 
-    inputValueTyp(val) {
-      if (val) {
-        this.typ.id = val.id;
-        this.form.typ = val.id;
+const factorDisable = ref(false);
+const typDisable = ref(false);
+const relTypDisable = ref(false);
 
-        this.factorDisable = true;
-        this.relTypDisable = true;
-      }
-    },
+const fnClearFactor = () => {
+  form.factor = null;
+  typDisable.value = false;
+  relTypDisable.value = false;
+};
 
-    inputValueRelTyp(val) {
-      if (val) {
-        this.relTyp.id = val.id;
-        this.form.relTyp = val.id;
+const fnClearTyp = () => {
+  form.typ = null;
+  factorDisable.value = false;
+  relTypDisable.value = false;
+};
 
-        this.typDisable = true;
-        this.factorDisable = true;
-      }
-    },
+const fnClearRelTyp = () => {
+  form.relTyp = null;
+  factorDisable.value = false;
+  typDisable.value = false;
+};
 
-    filterFnFactor(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optionsFactor = this.optionsFactorOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optionsFactorOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optionsFactor = this.optionsFactorOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
+const inputValueFactor = (val) => {
+  if (val) {
+    factor.value = { ...factor.value, id: val.id };
+    form.factor = val.id;
 
-    filterFnTyp(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optionsTyp = this.optionsTypOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optionsTypOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optionsTyp = this.optionsTypOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-    filterFnRelTyp(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optionsRelTyp = this.optionsRelTypOrg;
-        });
-        return;
-      }
-      update(() => {
-        if (this.optionsRelTypOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optionsRelTyp = this.optionsRelTypOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
-
-    validSave() {
-      return !(
-          (
-              this.form.factor !== null ||
-              this.form.typ !== null ||
-              this.form.relTyp !== null
-          ) /*&& this.mode !=='upd'*/
-      );
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      this.form.multiProp = this.multiProp;
-      //console.log("form", this.form);
-      const method =
-          this.mode === "ins" ? "insertMultiPropCond" : "updateMultiPropCond";
-
-      let err = false;
-      api
-          .post("", {
-            method: "multiProp/" + method,
-            params: [this.form],
-          })
-          .then(
-              () => {
-                err = false;
-                this.$emit("ok", {res: true});
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                err = true;
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            if (!err) this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-
-    loadFactors() {
-      this.visible = ref(true);
-      api
-          .post("", {
-            method: "multiProp/loadFactorsForSelect",
-            params: [this.multiProp, this.mode],
-          })
-          .then((response) => {
-            this.optionsFactorOrg = response.data.result.records;
-            this.optionsFactor = response.data.result.records;
-          })
-          .finally(() => {
-            if (this.mode === "upd") {
-              this.factorDisable = true;
-              this.typDisable = true;
-              this.relTypDisable = true;
-            }
-            this.visible = ref(false);
-          });
-    },
-
-    loadTyps() {
-      this.visible = ref(true);
-      api
-          .post("", {
-            method: "multiProp/loadTypsForSelect",
-            params: [this.multiProp, this.mode],
-          })
-          .then((response) => {
-            this.optionsTypOrg = response.data.result.records;
-            this.optionsTyp = response.data.result.records;
-          })
-          .finally(() => {
-            if (this.mode === "upd") {
-              this.factorDisable = true;
-              this.typDisable = true;
-              this.relTypDisable = true;
-            }
-            this.visible = ref(false);
-          });
-    },
-
-    loadRelTyps() {
-      this.visible = ref(true);
-      api
-          .post("", {
-            method: "multiProp/loadRelTypsForSelect",
-            params: [this.multiProp, this.mode],
-          })
-          .then((response) => {
-            this.optionsRelTypOrg = response.data.result.records;
-            this.optionsRelTyp = response.data.result.records;
-          })
-          .finally(() => {
-            if (this.mode === "upd") {
-              this.factorDisable = true;
-              this.typDisable = true;
-              this.relTypDisable = true;
-            }
-            this.visible = ref(false);
-          });
-    },
-
-
-  },
-  created() {
-    if (this.mode === "ins") {
-      this.loadFactors();
-      this.loadTyps();
-      this.loadRelTyps();
-    } else if (this.mode === "upd") {
-      if (this.form.factor != null) {
-        this.loadFactors();
-      } else if (this.form.typ != null) {
-        this.loadTyps();
-      } else if (this.form.relTyp != null) {
-        this.loadRelTyps();
-      } else notifyError("Error :-(");
-    }
+    typDisable.value = true;
+    relTypDisable.value = true;
   }
 };
+
+const inputValueTyp = (val) => {
+  if (val) {
+    typ.value = { ...typ.value, id: val.id };
+    form.typ = val.id;
+
+    factorDisable.value = true;
+    relTypDisable.value = true;
+  }
+};
+
+const inputValueRelTyp = (val) => {
+  if (val) {
+    relTyp.value = { ...relTyp.value, id: val.id };
+    form.relTyp = val.id;
+
+    typDisable.value = true;
+    factorDisable.value = true;
+  }
+};
+
+const filterFnFactor = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optionsFactor.value = optionsFactorOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optionsFactorOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optionsFactor.value = optionsFactorOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const filterFnTyp = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optionsTyp.value = optionsTypOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optionsTypOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optionsTyp.value = optionsTypOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const filterFnRelTyp = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optionsRelTyp.value = optionsRelTypOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optionsRelTypOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optionsRelTyp.value = optionsRelTypOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const validSave = () => {
+  return !(
+    form.factor !== null ||
+    form.typ !== null ||
+    form.relTyp !== null
+  );
+};
+
+const onOKClick = () => {
+  form.multiProp = props.multiProp;
+  const method = props.mode === "ins" ? "insertMultiPropCond" : "updateMultiPropCond";
+
+  let err = false;
+  api
+    .post("", {
+      method: "multiProp/" + method,
+      params: [form],
+    })
+    .then(
+      () => {
+        err = false;
+        onDialogOK({ res: true });
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        err = true;
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      if (!err) {
+        // dialogRef handles closing via onDialogOK/onDialogCancel
+      }
+    });
+};
+
+const loadFactors = () => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "multiProp/loadFactorsForSelect",
+      params: [props.multiProp, props.mode],
+    })
+    .then((response) => {
+      optionsFactorOrg.value = response.data.result.records;
+      optionsFactor.value = response.data.result.records;
+    })
+    .finally(() => {
+      if (props.mode === "upd") {
+        factorDisable.value = true;
+        typDisable.value = true;
+        relTypDisable.value = true;
+      }
+      visible.value = false;
+    });
+};
+
+const loadTyps = () => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "multiProp/loadTypsForSelect",
+      params: [props.multiProp, props.mode],
+    })
+    .then((response) => {
+      optionsTypOrg.value = response.data.result.records;
+      optionsTyp.value = response.data.result.records;
+    })
+    .finally(() => {
+      if (props.mode === "upd") {
+        factorDisable.value = true;
+        typDisable.value = true;
+        relTypDisable.value = true;
+      }
+      visible.value = false;
+    });
+};
+
+const loadRelTyps = () => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "multiProp/loadRelTypsForSelect",
+      params: [props.multiProp, props.mode],
+    })
+    .then((response) => {
+      optionsRelTypOrg.value = response.data.result.records;
+      optionsRelTyp.value = response.data.result.records;
+    })
+    .finally(() => {
+      if (props.mode === "upd") {
+        factorDisable.value = true;
+        typDisable.value = true;
+        relTypDisable.value = true;
+      }
+      visible.value = false;
+    });
+};
+
+onMounted(() => {
+  if (props.mode === "ins") {
+    loadFactors();
+    loadTyps();
+    loadRelTyps();
+  } else if (props.mode === "upd") {
+    if (form.factor != null) {
+      loadFactors();
+    } else if (form.typ != null) {
+      loadTyps();
+    } else if (form.relTyp != null) {
+      loadRelTyps();
+    } else {
+      notifyError("Error :-(");
+    }
+  }
+});
 </script>
+
+<style scoped></style>

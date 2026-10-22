@@ -6,112 +6,99 @@
           {{ $t("relcls") }}:
         </div>
         <div style="color: black; margin-left: 10px">
-          {{ this.infoRelCls() }}
+          {{ infoRelCls() }}
         </div>
 
-        <q-space/>
+        <q-space />
 
         <q-btn
-            dense round color="secondary" glossy
-            icon="arrow_back" @click="toBack()"
+          dense round color="secondary" glossy
+          icon="arrow_back" @click="toBack"
         >
           <q-tooltip transition-show="rotate" transition-hide="rotate">
             {{ $t("back") }}
           </q-tooltip>
         </q-btn>
         <q-tab
-            name="vers"
-            no-caps
-            icon="event_note"
-            :label="$t('vers')"
+          name="vers"
+          no-caps
+          icon="event_note"
+          :label="$t('vers')"
         />
       </q-tabs>
 
-      <q-tab-panels v-model="tab" animated >
+      <q-tab-panels v-model="tab" animated>
         <q-tab-panel
-            name="vers"
-            style="height: calc(100vh - 220px); width: 100%"
+          name="vers"
+          style="height: calc(100vh - 220px); width: 100%"
         >
-          <rel-cls-ver @loadRelCls="onLoadRelCls"/>
+          <rel-cls-ver @loadRelCls="onLoadRelCls" />
         </q-tab-panel>
-
       </q-tab-panels>
-
     </div>
   </q-page>
 </template>
 
-<script>
-import {ref} from "vue";
-import {api} from "boot/axios";
-import {notifyError} from "src/utils/jsutils";
-import RelClsVer from "pages/reltyp/relcls/RelClsVer.vue";
+<script setup>
+import { ref, onMounted, getCurrentInstance } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { api } from "@/boot/axios";
+import { notifyError } from "@/utils/jsutils";
+import RelClsVer from "@/pages/reltyp/relcls/RelClsVer.vue";
 
-export default {
-  name: "RelClsSelected",
-  components: {RelClsVer},
-  data() {
-    return {
-      tab: ref("vers"),
-      reltypId: 0,
-      relclsId: 0,
-      relcls: {},
-    };
-  },
-  methods: {
-    toBack() {
-      //$router.push('/reltyp')
-      this.$router["push"]({
-        name: "reltypSelected",
-        params: {
-          reltyp: this.reltypId,
-          relcls: this.relclsId,
-          tab: 'relcls'
-        },
-      });
+const route = useRoute();
+const router = useRouter();
+const { proxy } = getCurrentInstance();
 
+const tab = ref("vers");
+const reltypId = ref(0);
+const relclsId = ref(0);
+const relcls = ref({});
+const loading = ref(false);
+
+const toBack = () => {
+  router.push({
+    name: "reltypSelected",
+    params: {
+      reltyp: reltypId.value,
+      relcls: relclsId.value,
+      tab: "relcls",
     },
-
-    infoRelCls() {
-      return this.relcls.cod + " - " + this.relcls.name;
-    },
-
-    onLoadRelCls(relclsId) {
-      this.loading = ref(true);
-      api
-          .post("", {
-            method: "relcls/loadRec",
-            params: [relclsId],
-          })
-          .then((response) => {
-            //console.log("f", response.data.result.records)
-            this.relcls = response.data.result.records[0];
-          })
-          .catch((error) => {
-            let msg = error.message;
-            if (error.response) msg = this.$t(error.response.data.error.message);
-
-            notifyError(msg);
-          })
-          .finally(() => {
-            this.loading = ref(false);
-          });
-    }
-  },
-
-  mounted() {
-    this.reltypId = parseInt(this.$route["params"].reltyp, 10)
-    this.relclsId = parseInt(this.$route["params"].relcls, 10)
-    this.tab = this.$route["params"].tab
-    // load relcls
-    this.onLoadRelCls(this.relclsId)
-    //
-  },
-
-  setup() {
-  }
-
+  });
 };
+
+const infoRelCls = () => {
+  return (relcls.value.cod || "") + " - " + (relcls.value.name || "");
+};
+
+const onLoadRelCls = (idVal) => {
+  loading.value = true;
+  api
+    .post("", {
+      method: "relcls/loadRec",
+      params: [idVal],
+    })
+    .then((response) => {
+      relcls.value = response.data.result.records[0];
+    })
+    .catch((error) => {
+      let msg = error.message;
+      if (error.response?.data?.error?.message)
+        msg = proxy?.$t(error.response.data.error.message) || error.response.data.error.message;
+
+      notifyError(msg);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+onMounted(() => {
+  reltypId.value = parseInt(route.params.reltyp, 10);
+  relclsId.value = parseInt(route.params.relcls, 10);
+  tab.value = route.params.tab || "vers";
+  onLoadRelCls(relclsId.value);
+});
 </script>
 
 <style scoped></style>

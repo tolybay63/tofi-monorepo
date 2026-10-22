@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary" dense>
@@ -19,162 +19,125 @@
       <q-card-section>
         <!--  minVal  -->
         <q-input
-            v-model="form.minVal"
-            :model-value="form.minVal"
-            :label="$t('minValGr')"
-            type="number"
-            dense autofocus
+          v-model="form.minVal"
+          :label="$t('minValGr')"
+          type="number"
+          dense autofocus
         />
 
         <!-- isMinValOpen -->
         <q-toggle
-            class="q-mt-md"
-            :model-value="form.isMinValOpen"
-            v-model="form.isMinValOpen"
-            :label="$t('isMinValOpen')"
-            dense
+          class="q-mt-md"
+          v-model="form.isMinValOpen"
+          :label="$t('isMinValOpen')"
+          dense
         />
 
         <!--  maxVal  -->
         <q-input
-            class="q-mt-md"
-            v-model="form.maxVal"
-            :model-value="form.maxVal"
-            :label="$t('maxValGr')"
-            type="number"
-            dense
+          class="q-mt-md"
+          v-model="form.maxVal"
+          :label="$t('maxValGr')"
+          type="number"
+          dense
         />
 
         <!-- isMaxValOpen -->
         <q-toggle
-            class="q-mt-md"
-            :model-value="form.isMaxValOpen"
-            v-model="form.isMaxValOpen"
-            :label="$t('isMaxValOpen')"
-            dense
+          class="q-mt-md"
+          v-model="form.isMaxValOpen"
+          :label="$t('isMaxValOpen')"
+          dense
         />
 
         <!-- cmt -->
         <q-input
-            class="q-mt-md"
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            dense type="textarea"
-            :label="$t('fldCmt')"
-        >
-        </q-input>
-        <!---->
+          class="q-mt-md"
+          v-model="form.cmt"
+          dense type="textarea"
+          :label="$t('fldCmt')"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            color="primary"
-            icon="save" dense
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          color="primary"
+          icon="save" dense
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         >
           <template #loading>
-            <q-spinner-hourglass color="white"/>
+            <q-spinner-hourglass color="white" />
           </template>
         </q-btn>
         <q-btn
-            color="primary"
-            icon="cancel" dense
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          color="primary"
+          icon="cancel" dense
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import {ref} from "vue";
+<script setup>
+import { ref, reactive, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode"],
-
-  data() {
-    return {
-      form: this.data,
-      loading: ref(false),
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    validSave() {
-      return (this.form.minVal && this.form.maxVal);
-    },
+const form = reactive({ ...props.data });
+const loading = ref(false);
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
+const validSave = () => {
+  return Boolean(form.minVal && form.maxVal);
+};
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
+const onOKClick = () => {
+  loading.value = true;
+  let err = false;
+  const method = props.mode === "ins" ? "insertScaleVal" : "updateScaleVal";
 
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      this.loading = ref(true)
-      let err = false
-      const method = this.mode === "ins" ? "insertScaleVal" : "updateScaleVal";
-
-      api
-          .post("", {
-            id: this.form.id,
-            method: "scale/" + method,
-            params: [ this.form ],
-          })
-          .then(
-              (response) => {
-                err = false
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                err = true
-                let msg = error.message;
-                if (error.response)
-                  msg = this.$t(error.response.data.error.message)
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            if (!err) this.hide()
-            this.loading= ref(false)
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-
-  },
+  api
+    .post("", {
+      id: form.id,
+      method: "scale/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        err = false;
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        err = true;
+        let msg = error.message;
+        if (error.response?.data?.error?.message)
+          msg = proxy?.$t(error.response.data.error.message) || error.response.data.error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      loading.value = false;
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
 };
 </script>
+
+<style scoped></style>

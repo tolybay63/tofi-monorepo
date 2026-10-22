@@ -95,8 +95,8 @@
 </template>
 
 <script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+import {api} from "@/boot/axios";
+import {notifyError, notifySuccess} from "@/utils/jsutils";
 
 export default {
   props: ["data", "mode", "lg", "dense"],

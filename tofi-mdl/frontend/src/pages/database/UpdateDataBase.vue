@@ -1,12 +1,12 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      style="width: 600px"
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
+    style="width: 600px"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary" dense>
@@ -19,219 +19,181 @@
       <q-card-section>
         <!-- code -->
         <q-input
-            v-model="form.cod"
-            :model-value="form.cod"
-            :label="$t('code')"
-            label-color="blue"
-            :placeholder="$t('msgCodeGen')"
-            dense
+          v-model="form.cod"
+          :label="$t('code')"
+          label-color="blue"
+          :placeholder="$t('msgCodeGen')"
+          dense
         />
 
         <!-- DataBaseType -->
         <q-select
-            autofocus
-            v-model="dbType"
-            :options="optionsDB"
-            :label="$t('dataBaseType')"
-            option-value="id"
-            option-label="text"
-            map-options
-            dense
-            options-dense
-            :model-value="dbType"
-            @update:model-value="fnSelect()"
+          autofocus
+          v-model="dbType"
+          :options="optionsDB"
+          :label="$t('dataBaseType')"
+          option-value="id"
+          option-label="text"
+          map-options
+          dense
+          options-dense
+          @update:model-value="fnSelect"
         />
 
         <!-- modelName -->
         <q-input
-            class="q-mt-md"
-            dense
-            :model-value="form.modelName"
-            v-model="form.modelName"
-            :label="$t('modelNameLabel')"
-            label-color="blue"
+          class="q-mt-md"
+          dense
+          v-model="form.modelName"
+          :label="$t('modelNameLabel')"
+          label-color="blue"
         />
 
         <!-- name -->
         <q-input
-            class="q-mt-md"
-            dense
-            :model-value="form.name"
-            v-model="form.name"
-            @blur="onBlurName"
-            :label="$t('fldName')"
-            label-color="blue"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+          class="q-mt-md"
+          dense
+          v-model="form.name"
+          @blur="onBlurName"
+          :label="$t('fldName')"
+          label-color="blue"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         />
 
         <!-- fullName-->
         <q-input
-            class="q-mt-md"
-            dense
-            :model-value="form.fullName"
-            v-model="form.fullName"
-            :label="$t('fldFullName')"
-            label-color="blue"
-            :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
+          class="q-mt-md"
+          dense
+          v-model="form.fullName"
+          :label="$t('fldFullName')"
+          label-color="blue"
+          :rules="[(val) => (!!val && !!val.trim()) || $t('req')]"
         />
 
         <!-- cmt -->
         <q-input
-            dense
-            :model-value="form.cmt"
-            v-model="form.cmt"
-            type="textarea"
-            :label="$t('fldCmt')"
-            label-color="blue"
+          dense
+          v-model="form.cmt"
+          type="textarea"
+          :label="$t('fldCmt')"
+          label-color="blue"
         />
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            dense
-            :disable="validOk()"
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          dense
+          :disable="validOk()"
         />
         <q-btn
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
-            dense
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
+          dense
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  name: "UpdateDataBase",
-  props: ["data", "mode"],
-
-  data() {
-    return {
-      form: this.data,
-      dbType: this.data.dataBaseType === null ? "" : this.data.dataBaseType,
-      optionsDB: [],
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
-    onBlurName() {
-      if (this.form.name) {
-        this.form.name = this.form.name.trim();
-        if (
-            !this.form.fullName ||
-            (this.form.fullName && this.form.fullName.trim() === "")
-        ) {
-          this.form.fullName = this.form.name;
-        }
-      }
-    },
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelect() {
-      this.form.dataBaseType = this.dbType.id;
-    },
+const form = reactive({ ...props.data });
+const dbType = ref(props.data.dataBaseType === null ? "" : props.data.dataBaseType);
+const optionsDB = ref([]);
 
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      let err = false;
-      const method = this.mode === "ins" ? "insert" : "update";
-      this.form.permis =
-          typeof this.dbType === "object" ? this.dbType.id : this.dbType;
-      api
-          .post("", {
-            id: this.form.id,
-            method: "database/" + method,
-            params: [this.form],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-                err = false;
-              },
-              (error) => {
-                err = true;
-                let msg = error.response.data.error.message;
-                if (msg.includes("i_apps_i_permis"))
-                  msg = "Идентификатор сервиса уникален";
-
-                notifyError(msg);
-              }
-          )
-          .finally(() => {
-            if (!err) this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-
-    validOk() {
-      return (
-          this.form.dataBaseType === undefined ||
-          this.form.dataBaseType === null ||
-          this.form.modelName === undefined ||
-          this.form.modelName === null ||
-          this.form.name === undefined ||
-          this.form.name === null ||
-          this.form.name === "" ||
-          this.form.fullName === undefined ||
-          this.form.fullName === null ||
-          this.form.fullName === ""
-      );
-    },
-  },
-
-  created() {
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_DataBaseType"}],
-        })
-        .then((response) => {
-          this.optionsDB = response.data.result.records;
-        });
-
-  },
+const onBlurName = () => {
+  if (form.name) {
+    form.name = form.name.trim();
+    if (!form.fullName || form.fullName.trim() === "") {
+      form.fullName = form.name;
+    }
+  }
 };
+
+const fnSelect = () => {
+  form.dataBaseType = typeof dbType.value === "object" && dbType.value !== null ? dbType.value.id : dbType.value;
+};
+
+const validOk = () => {
+  return (
+    form.dataBaseType === undefined ||
+    form.dataBaseType === null ||
+    form.modelName === undefined ||
+    form.modelName === null ||
+    form.name === undefined ||
+    form.name === null ||
+    form.name === "" ||
+    form.fullName === undefined ||
+    form.fullName === null ||
+    form.fullName === ""
+  );
+};
+
+const onOKClick = () => {
+  let err = false;
+  const method = props.mode === "ins" ? "insert" : "update";
+
+  form.permis = typeof dbType.value === "object" && dbType.value !== null ? dbType.value.id : dbType.value;
+
+  api
+    .post("", {
+      id: form.id,
+      method: "database/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success"));
+        err = false;
+      },
+      (error) => {
+        err = true;
+        let msg = error.response?.data?.error?.message || error.message;
+        if (msg.includes("i_apps_i_permis")) {
+          msg = "Идентификатор сервиса уникален";
+        }
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef.value?.hide() is managed internally by onDialogOK / onDialogCancel
+    });
+};
+
+onMounted(() => {
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_DataBaseType" }],
+    })
+    .then((response) => {
+      optionsDB.value = response.data.result.records;
+    });
+});
 </script>
 
 <style scoped></style>

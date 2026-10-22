@@ -4,109 +4,94 @@
       <div style="margin-left: 20px">
         {{ $t("factor") }}:
         <span style="color: black; margin-left: 10px">
-          <strong>{{ this.infoFactor() }}</strong>
+          <strong>{{ infoFactor() }}</strong>
         </span>
       </div>
 
-      <q-space/>
+      <q-space />
       <q-btn
-          dense round color="secondary" icon="arrow_back" glossy
-          @click="toBack()"
+        dense
+        round
+        color="secondary"
+        icon="arrow_back"
+        glossy
+        @click="toBack"
       >
         <q-tooltip transition-show="rotate" transition-hide="rotate">
           {{ $t("back") }}
         </q-tooltip>
       </q-btn>
-      <q-tab name="val" no-caps icon="pin" :label="$t('factorVals')"/>
+      <q-tab name="val" no-caps icon="pin" :label="$t('factorVals')" />
       <q-tab
-          name="rel"
-          no-caps
-          icon="task"
-          :label="$t('relFactors')"
-          style="margin-right: 10px"
+        name="rel"
+        no-caps
+        icon="task"
+        :label="$t('relFactors')"
+        style="margin-right: 10px"
       />
     </q-tabs>
 
     <q-tab-panels v-model="tab" animated>
       <q-tab-panel name="val" style="height: calc(100vh - 190px); width: 100%">
-        <factor-val/>
+        <factor-val />
       </q-tab-panel>
 
       <q-tab-panel name="rel" style="height: calc(100vh - 190px); width: 100%">
-        <factor-rel/>
+        <factor-rel />
       </q-tab-panel>
     </q-tab-panels>
   </q-page>
 </template>
 
-<script>
-import {defineComponent, ref} from "vue";
-import {api} from "boot/axios";
-import FactorVal from "pages/factor/FactorVal.vue";
-import FactorRel from "pages/factor/FactorRel.vue";
-import {notifyError} from "src/utils/jsutils";
+<script setup>
+import { ref, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { api } from "@/boot/axios";
+import FactorVal from "@/pages/factor/FactorVal.vue";
+import FactorRel from "@/pages/factor/FactorRel.vue";
+import { notifyError } from "@/utils/jsutils";
 
-export default defineComponent({
-  components: {FactorRel, FactorVal},
+const router = useRouter();
+const route = useRoute();
 
-  data: function () {
-    return {
-      factor1_id: 0,
-      factor: {},
-    };
-  },
+const tab = ref("val");
+const factor1_id = ref(0);
+const factor = ref({});
+const loading = ref(false);
 
-  methods: {
-    toBack() {
-      this.$router["push"]({
-        name: "FactorPage",
-        params: {
-          factor: this.factor1_id,
-        },
-      });
+const toBack = () => {
+  router.push({
+    name: "FactorPage",
+    params: {
+      factor: factor1_id.value,
     },
+  });
+};
 
-    infoFactor() {
-      return this.factor.cod + " - " + this.factor.name;
-    },
-  },
+const infoFactor = () => {
+  return (factor.value.cod || "") + " - " + (factor.value.name || "");
+};
 
-  mounted() {
-    this.factor1_id = parseInt(this.$route["params"].factor, 10);
-    //console.info("this.factor1_id", this.factor1_id)
+onMounted(() => {
+  factor1_id.value = parseInt(route.params.factor, 10) || 0;
 
-
-    // load factor
-    this.loading = ref(true);
-    api
-        .post("", {
-          id: "1",
-          method: "factor/loadRec",
-          params: [{id: this.factor1_id}],
-        })
-        .then((response) => {
-          //console.log("f", response.data.result.records)
-          this.factor = response.data.result.records[0];
-        })
-        .catch((error) => {
-          console.log(error);
-          notifyError(error.message);
-        })
-        .finally(() => {
-          this.loading = ref(false);
-        });
-    //
-  },
-
-  created() {
-    //console.log("<<<<<  created")
-  },
-
-  setup() {
-    return {
-      tab: ref("val"),
-    };
-  },
+  loading.value = true;
+  api
+    .post("", {
+      id: "1",
+      method: "factor/loadRec",
+      params: [{ id: factor1_id.value }],
+    })
+    .then((response) => {
+      factor.value = response.data.result.records[0] || {};
+    })
+    .catch((error) => {
+      console.log(error);
+      notifyError(error.message);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 });
 </script>
 

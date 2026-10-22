@@ -1,12 +1,11 @@
 <template>
   <q-dialog
-      ref="dialog"
-      @hide="onDialogHide"
-      persistent
-      autofocus
-      transition-show="slide-up"
-      transition-hide="slide-down"
-
+    ref="dialogRef"
+    @hide="onDialogHide"
+    persistent
+    autofocus
+    transition-show="slide-up"
+    transition-hide="slide-down"
   >
     <q-card class="q-dialog-plugin" style="width: 600px">
       <q-bar v-if="mode === 'ins'" class="text-white bg-primary">
@@ -16,23 +15,22 @@
         <div>{{ $t("editRecord") }}</div>
       </q-bar>
 
-      <q-inner-loading :showing="visible" color="secondary"/>
+      <q-inner-loading :showing="visible" color="secondary" />
 
       <q-card-section>
-
         <!-- factor -->
         <q-select
-            v-model="factor"
-            :model-value="factor"
-            @update:model-value="inputValue"
-            use-input
-            input-debounce="0"
-            :label="$t('factor')"
-            :options="optFactor"
-            option-label="name"
-            dense options-dense
-            @filter="filterFn"
-            autofocus
+          v-model="factor"
+          @update:model-value="inputValue"
+          use-input
+          input-debounce="0"
+          :label="$t('factor')"
+          :options="optFactor"
+          option-label="name"
+          dense
+          options-dense
+          @filter="filterFn"
+          autofocus
         >
           <template v-slot:no-option>
             <q-item>
@@ -45,188 +43,156 @@
 
         <!-- format -->
         <q-select
-            v-model="vf"
-            :model-value="vf"
-            :options="optVF"
-            :label="$t('visualFormat')"
-            option-value="id"
-            option-label="text"
-            map-options
-            dense options-dense
-            @update:model-value="fnSelectVF"
+          v-model="vf"
+          :options="optVF"
+          :label="$t('visualFormat')"
+          option-value="id"
+          option-label="text"
+          map-options
+          dense
+          options-dense
+          @update:model-value="fnSelectVF"
         />
-
-        <!---->
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-            dense
-            color="primary"
-            icon="save"
-            :label="$t('save')"
-            @click="onOKClick"
-            :disable="validSave()"
+          dense
+          color="primary"
+          icon="save"
+          :label="$t('save')"
+          @click="onOKClick"
+          :disable="validSave()"
         />
         <q-btn
-            dense
-            color="primary"
-            icon="cancel"
-            :label="$t('cancel')"
-            @click="onCancelClick"
+          dense
+          color="primary"
+          icon="cancel"
+          :label="$t('cancel')"
+          @click="onDialogCancel"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import {api} from "boot/axios";
-import {notifyError, notifySuccess} from "src/utils/jsutils";
-import {ref} from "vue";
+<script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useDialogPluginComponent } from "quasar";
+import { api } from "@/boot/axios";
+import { notifyError, notifySuccess } from "@/utils/jsutils";
 
-export default {
-  props: ["data", "mode", "lg"],
-
-  data() {
-    return {
-      form: this.data,
-      lang: this.lg,
-      visible: ref(false),
-
-      vf: this.data.visualFormat,
-      optVF: [],
-
-      factor: {id: 0, name: this.$t("notChosen")},
-      optFactor: [],
-      optFactorOrg: [],
-    };
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({}),
   },
+  mode: String,
+  lg: String,
+});
 
-  emits: [
-    // REQUIRED
-    "ok",
-    "hide",
-  ],
+defineEmits([...useDialogPluginComponent.emits]);
 
-  methods: {
+const { proxy } = getCurrentInstance();
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-    fnSelectVF() {
-      this.form.visualFormat = this.vf.id
-    },
+const form = reactive({ ...props.data });
+const lang = ref(props.lg);
+const visible = ref(false);
 
-    inputValue(val) {
-      if (val) {
-        this.factor.id = val.id;
-        this.form.factor = val.id;
-      }
-    },
+const vf = ref(props.data.visualFormat);
+const optVF = ref([]);
 
-    filterFn(val, update) {
-      if (val === null || val === "") {
-        update(() => {
-          this.optFactor = this.optFactorOrg
-        });
-        return;
-      }
-      update(() => {
-        if (this.optFactorOrg.length < 2) return;
-        const needle = val.toLowerCase();
-        let name = "name";
-        this.optFactor = this.optFactorOrg.filter((v) => {
-          return v[name].toLowerCase().indexOf(needle) > -1;
-        });
-      });
-    },
+const factor = ref({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+const optFactor = ref([]);
+const optFactorOrg = ref([]);
 
-
-    validSave() {
-      return !this.form.factor;
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show() {
-      this.$refs.dialog.show();
-    },
-
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide() {
-      this.$refs.dialog.hide();
-    },
-
-    onDialogHide() {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit("hide");
-    },
-
-    onOKClick() {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-
-      const method = this.mode === "ins" ? "insDimMultiPropItemFactor" : "updDimMultiPropItemFactor";
-
-      this.form.visualFormat =
-        typeof this.vf === "object" ? this.vf.id : this.vf;
-      api
-          .post("", {
-            method: "dimMultiProp/" + method,
-            params: [this.form],
-          })
-          .then(
-              (response) => {
-                this.$emit("ok", response.data.result.records[0]);
-                notifySuccess(this.$t("success"));
-              },
-              (error) => {
-                //console.log("error.response.data=>>>", error.response.data.error.message)
-                notifyError(error.response.data.error.message);
-              }
-          )
-          .finally(() => {
-            this.hide();
-          });
-    },
-
-    onCancelClick() {
-      // we just need to hide the dialog
-      this.hide();
-    },
-  },
-  created() {
-
-    this.visible = ref(true)
-    api
-      .post("", {
-        method: "dimMultiProp/loadFactors",
-        params: [],
-      })
-      .then((response) => {
-        this.optFactor = response.data.result.records;
-        this.optFactorOrg = response.data.result.records;
-        this.optFactor.unshift({id: 0, name: this.$t("notChosen")});
-      })
-        .finally(()=> {
-          this.visible = ref(false)
-        });
-
-    this.visible = ref(true)
-    api
-        .post("", {
-          method: "dict/load",
-          params: [{dict: "FD_VisualFormat"}],
-        })
-        .then((response) => {
-          this.optVF = response.data.result.records;
-        })
-        .finally(()=> {
-          this.visible = ref(false)
-        });
-
-
-  },
+const fnSelectVF = () => {
+  form.visualFormat = typeof vf.value === "object" && vf.value !== null ? vf.value.id : vf.value;
 };
+
+const inputValue = (val) => {
+  if (val) {
+    factor.value = { ...factor.value, id: val.id };
+    form.factor = val.id;
+  }
+};
+
+const filterFn = (val, update) => {
+  if (val === null || val === "") {
+    update(() => {
+      optFactor.value = optFactorOrg.value;
+    });
+    return;
+  }
+  update(() => {
+    if (optFactorOrg.value.length < 2) return;
+    const needle = val.toLowerCase();
+    let name = "name";
+    optFactor.value = optFactorOrg.value.filter((v) => {
+      return v[name].toLowerCase().indexOf(needle) > -1;
+    });
+  });
+};
+
+const validSave = () => {
+  return !form.factor;
+};
+
+const onOKClick = () => {
+  const method = props.mode === "ins" ? "insDimMultiPropItemFactor" : "updDimMultiPropItemFactor";
+
+  form.visualFormat = typeof vf.value === "object" && vf.value !== null ? vf.value.id : vf.value;
+
+  api
+    .post("", {
+      method: "dimMultiProp/" + method,
+      params: [form],
+    })
+    .then(
+      (response) => {
+        onDialogOK(response.data.result.records[0]);
+        notifySuccess(proxy?.$t("success") || "success");
+      },
+      (error) => {
+        let msg = error.response?.data?.error?.message || error.message;
+        notifyError(msg);
+      }
+    )
+    .finally(() => {
+      // dialogRef handles closing via onDialogOK/onDialogCancel
+    });
+};
+
+onMounted(() => {
+  visible.value = true;
+  api
+    .post("", {
+      method: "dimMultiProp/loadFactors",
+      params: [],
+    })
+    .then((response) => {
+      optFactorOrg.value = response.data.result.records;
+      optFactor.value = [...response.data.result.records];
+      optFactor.value.unshift({ id: 0, name: proxy?.$t("notChosen") || "notChosen" });
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+
+  visible.value = true;
+  api
+    .post("", {
+      method: "dict/load",
+      params: [{ dict: "FD_VisualFormat" }],
+    })
+    .then((response) => {
+      optVF.value = response.data.result.records;
+    })
+    .finally(() => {
+      visible.value = false;
+    });
+});
 </script>
+
+<style scoped></style>
