@@ -204,9 +204,8 @@ const cols = [
 
 watch(
   () => props.own,
-  (newObj) => {
+   (newObj) => {
     loadReservoirAsMap(newObj, "Prop_ReservoirShore")
-    //loadFishes(newObj, "Prop_CalcFishSpec")
     loadFvAsMap(newObj, "Prop_CalcStatus")
     loadData(newObj);
   },
