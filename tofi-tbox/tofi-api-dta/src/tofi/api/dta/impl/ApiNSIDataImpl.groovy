@@ -102,6 +102,7 @@ class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
             """).size() > 0
     }
 
+    //todo Delete!
     @Override
     boolean userFromPersonnel(long user) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
@@ -119,6 +120,8 @@ class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
         return idsInt.contains(user)
     }
 
+
+    //todo Delete!
     @Override
     long userOfPersonnel(long user) {
         Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")

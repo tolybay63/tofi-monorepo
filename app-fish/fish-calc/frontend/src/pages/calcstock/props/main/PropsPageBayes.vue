@@ -190,9 +190,9 @@ const cols = [
   },
 */
   {
-    name: 'objCalcUser',
+    name: 'nameUserId',
     label: 'Пользователь проводивший расчет',
-    field: 'objCalcUser',
+    field: 'nameUserId',
   },
   {
     name: 'fvCalcStatus',

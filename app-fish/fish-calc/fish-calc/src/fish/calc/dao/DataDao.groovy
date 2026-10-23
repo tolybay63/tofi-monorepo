@@ -16,6 +16,7 @@ import jandcode.core.store.Store
 import jandcode.core.store.StoreField
 import jandcode.core.store.StoreIndex
 import jandcode.core.store.StoreRecord
+import tofi.api.adm.ApiAdm
 import tofi.api.dta.ApiCalcData
 import tofi.api.dta.ApiMonitoringData
 import tofi.api.dta.ApiNSIData
@@ -31,6 +32,7 @@ import tofi.apinator.ApinatorService
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
+    ApinatorApi apiAdm() { return app.bean(ApinatorService).getApi("adm") }
 
     ApinatorApi apiMeta() { return app.bean(ApinatorService).getApi("meta") }
 
@@ -339,6 +341,8 @@ class DataDao extends BaseMdbUtils {
         Map<String, Object> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_ReservoirShore", "") as Map<String, Object>
         Map<String, Object> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "", "Prop_Calc%") as Map<String, Object>
         mapProp.putAll(map)
+        map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "") as Map<String, Object>
+        mapProp.putAll(map)
         Store st = mdb.createStore("Calc.main.props")
         mdb.loadQuery(st, """
             select o.id as own, v.objParent as parent, o.cls,
@@ -346,9 +350,8 @@ class DataDao extends BaseMdbUtils {
                 v2.id as idCalcEndYear, v2.strVal as CalcEndYear,    
                 v3.id as idCalcCreatDate, v3.dateTimeVal as CalcCreatDate,
                 v4.id as idCalcLastDate, v4.dateTimeVal as CalcLastDate,    
-                --v5.id as idCalcFishSpec, v5.propVal as pvCalcFishSpec, v5.obj as objCalcFishSpec,
                 v6.id as idCalcStatus, v6.propVal as pvCalcStatus, null as fvCalcStatus,
-                v7.id as idCalcUser, v7.propVal as pvCalcUser, v7.obj as objCalcUser,
+                v7.id as idUserId, v7.strVal as UserId, null as nameUserId,
                 v8.id as idReservoirShore, v8.propVal as pvReservoirShore, v8.obj as objReservoirShore
             from Obj o
                 join ObjVer v on o.id=v.ownerVer and v.lastVer=1
@@ -360,30 +363,31 @@ class DataDao extends BaseMdbUtils {
                 join DataPropVal v3 on v3.dataprop=d3.id
                 left join DataProp d4 on d4.isObj=1 and d4.objOrRelObj=o.id and d4.prop=:Prop_CalcLastDate
                 left join DataPropVal v4 on v4.dataprop=d4.id
-                --join DataProp d5 on d5.isObj=1 and d5.objOrRelObj=o.id and d5.prop=:Prop_CalcFishSpec
-                --join DataPropVal v5 on v5.dataprop=d5.id
                 left join DataProp d6 on d6.isObj=1 and d6.objOrRelObj=o.id and d6.prop=:Prop_CalcStatus
                 left join DataPropVal v6 on v6.dataprop=d6.id
-                left join DataProp d7 on d7.isObj=1 and d7.objOrRelObj=o.id and d7.prop=:Prop_CalcUser
+                left join DataProp d7 on d7.isObj=1 and d7.objOrRelObj=o.id and d7.prop=:Prop_UserId
                 left join DataPropVal v7 on v7.dataprop=d7.id
                 join DataProp d8 on d8.isObj=1 and d8.objOrRelObj=o.id and d8.prop=:Prop_ReservoirShore
                 join DataPropVal v8 on v8.dataprop=d8.id    
             where o.id=${obj}
         """, mapProp)
 
+        Store stUser = apiAdm().get(ApiAdm).loadSql("""
+            select id, fullName from AuthUser where 0=0
+        """, "")
+        StoreIndex indUser = stUser.getIndex("id")
         Store stFV = apiMeta().get(ApiMeta).storeFVfromPropVal()
         StoreIndex indFV = stFV.getIndex("propval")
         for (StoreRecord r in st) {
-/*
-            StoreRecord rec = indFV.get(r.getLong("pvCalcFishSpec"))
+            StoreRecord rec = indUser.get(r.getLong("UserId"))
             if (rec != null)
-                r.set("fvCalcFishSpec", rec.getLong("factorval"))
-*/
+                r.set("nameUserId", rec.getString("fullName"))
             //
-            StoreRecord rec = indFV.get(r.getLong("pvCalcStatus"))
+            rec = indFV.get(r.getLong("pvCalcStatus"))
             if (rec != null)
                 r.set("fvCalcStatus", rec.getLong("factorval"))
         }
+        mdb.outTable(st)
         return st
     }
 
@@ -392,9 +396,6 @@ class DataDao extends BaseMdbUtils {
         Store st = mdb.createStore("Calc.main.props")
         StoreRecord rec = mdb.createStoreRecord("Calc.main.props")
         rec.set("own", obj)
-        AuthService authService = getModel().getApp().bean(AuthService.class);
-        AuthUser usr = authService.getCurrentUser();
-        rec.set("objCalcUser", usr.getAttrs().getLong("id"))
         rec.set("CalcCreatDate", XDate.create(new Date()).toString(XDateTimeFormatter.ISO_DATE))
         st.add(rec)
         return st
@@ -1198,9 +1199,11 @@ class DataDao extends BaseMdbUtils {
     //*****************************************************************************************//
     void fillProperties(boolean isObj, String cod, Map<String, Object> params) {
         long own = UtCnv.toLong(params.get("own"))
-        long au = getUser()
+        long au
         if (params.containsKey("au"))
             au = UtCnv.toLong(params.get("au"))
+        else
+            au = getUser()
         String keyValue = cod.split("_")[1]
         long objRef = UtCnv.toLong(params.get("obj" + keyValue))
         long propVal = UtCnv.toLong(params.get("pv" + keyValue))
@@ -1270,7 +1273,8 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("dataProp", idDP)
         // For Attrib
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_CalcStartYear") ||
+            if (cod.equalsIgnoreCase("Prop_UserId") ||
+                    cod.equalsIgnoreCase("Prop_CalcStartYear") ||
                     cod.equalsIgnoreCase("Prop_CalcEndYear")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
@@ -1361,9 +1365,11 @@ class DataDao extends BaseMdbUtils {
 
     void updateProperties(String cod, Map<String, Object> params) {
         VariantMap mapProp = new VariantMap(params)
-        long au = getUser()
+        long au
         if (params.containsKey("au"))
             au = UtCnv.toLong(params.get("au"))
+        else
+            au = getUser()
 
         String keyValue = cod.split("_")[1]
         long idVal = mapProp.getLong("id" + keyValue)
@@ -1394,7 +1400,8 @@ class DataDao extends BaseMdbUtils {
         recDPV.set("timeStamp", tmst)
         // For Attrib (str)
         if ([FD_AttribValType_consts.str].contains(attribValType)) {
-            if (cod.equalsIgnoreCase("Prop_CalcStartYear") ||
+            if (cod.equalsIgnoreCase("Prop_UserId") ||
+                    cod.equalsIgnoreCase("Prop_CalcStartYear") ||
                     cod.equalsIgnoreCase("Prop_CalcEndYear")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     mdb.deleteRec("DataPropVal", idVal)
@@ -1580,19 +1587,12 @@ class DataDao extends BaseMdbUtils {
     void savePropsOfCalc(Map<String, Object> params) {
         long au = UtCnv.toLong(params.get("user_id"))
 
-        if (!apiNSIData().get(ApiNSIData).userFromPersonnel(au)) {
-            throw new XError("Пользователь не зарегистрирован в БД Персонал")
-        }
-
-        long user = apiNSIData().get(ApiNSIData).userOfPersonnel(au)
         long calc_id = UtCnv.toLong(params.get("calc_id"))
         Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
         Map<String, Object> map = new HashMap<>()
         map.put("own", calc_id)
-        map.put("objUserId", user)
-
-
-        map.put("pvUserId", 0) //todo
+        map.put("au", au)
+        map.put("UserId", au)
 
         //user
         Store stTmp = mdb.loadQuery("""
@@ -1602,15 +1602,10 @@ class DataDao extends BaseMdbUtils {
                 and d.isObj=1 and d.objOrRelObj=${calc_id}
         """)
 
-/*
-        if (stTmp.size() > 0) { //upd
-            updateProperties("Prop_UserId", map)
-        } else { //ins
+        if (stTmp.size() == 0) { //ins
             fillProperties(true, "Prop_UserId", map)
         }
-*/
 
-        int o=0
 
     }
 

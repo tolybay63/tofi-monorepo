@@ -25,17 +25,13 @@
         <field name="idCalcLastDate" parent="long"/>
         <field name="CalcLastDate" parent="date"/>
 
-        <field name="idCalcFishSpec" parent="long"/>
-        <field name="pvCalcFishSpec" parent="long"/>
-        <field name="objCalcFishSpec" parent="long"/>
-
         <field name="idCalcStatus" parent="long"/>
         <field name="pvCalcStatus" parent="long"/>
         <field name="fvCalcStatus" parent="long"/>
 
-        <field name="idCalcUser" parent="long"/>
-        <field name="pvCalcUser" parent="long"/>
-        <field name="objCalcUser" parent="long"/>
+        <field name="idUserId" parent="long"/>
+        <field name="UserId" parent="long"/>
+        <field name="nameUserId" parent="string"/>
 
         <field name="idReservoirShore" parent="long"/>
         <field name="pvReservoirShore" parent="long"/>

@@ -401,13 +401,6 @@ const fnCalc = async (rec) => {
   } else if (props.codCls === "Cls_CalcBayes") {
 
 
-    const resp =  await userFromPersonnel(getUserId.value)
-    console.info("usrOfPersonnel", resp.data.result)
-
-    if (!resp.data.result.res) {
-      notifyInfo("Пользователь не зарегистрирован!")
-    }
-
     await checkTarget();
     const token = sessionStorage.getItem('fish_token') || '';
 
