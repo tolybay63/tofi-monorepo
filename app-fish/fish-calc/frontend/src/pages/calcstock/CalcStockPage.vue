@@ -287,9 +287,28 @@ const fnDel = (rec) => {
           method: "data/deleteCalc",
           params: [rec.id],
         })
-        .then(() => {
+        .then(async () => {
           fetchData();
           fnExpand();
+          // Удаляем результаты расчета из calc_fastapi
+          await checkTarget();
+          const token = sessionStorage.getItem('fish_token') || '';
+          // Для window.open на продакшене нам нужен полный путь от корня сайта с учетом префикса Nginx
+          let baseUrl = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8000/';
+          // Фоновый вызов метода удаления из calc_fastapi
+          let url = `${baseUrl}deleteResultsOfCalc?calc_id=${rec.id}`;
+
+          try {
+            await fetch(url, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}` // Передали безопасно
+              }
+            });
+            console.log(`Кэш и результаты расчета ${rec.id} удалены.`);
+          } catch (e) {
+            console.error("Ошибка при удалении файлов в FastAPI:", e);
+          }
         });
     })
     .onCancel(() => {
