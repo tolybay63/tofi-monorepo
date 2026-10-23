@@ -75,14 +75,6 @@
           type="date"
           @update:model-value="fnSelectUserDateBirth"
         />
-        <!-- UserEmail -->
-        <q-input
-          v-model="form.UserEmail"
-          type="email"
-          :label="fnLabel('UserEmail', false)"
-          :rules="[(val) => emailTest(val) || 'Ошибка формата']"
-        />
-
         <!-- UserPhone -->
         <q-input
           v-model="form.UserPhone"
@@ -96,19 +88,22 @@
         >
           <template v-slot:error> Please use 10 characters. </template>
         </q-input>
-        <!-- UserId -->
-        <q-select
-          v-model="form.UserId"
-          :label="fnLabel('UserId', false)"
-          :options="optUserId"
-          map-options
-          option-label="name"
-          option-value="id"
-          use-input
-          clearable
-          @filter="filterUserId"
-          @update:model-value="fnSelectUserId"
+
+        <!-- UserEmail -->
+        <q-input
+          v-model="form.UserEmail"
+          type="email" dense
+          :label="fnLabel('UserEmail', false)"
+          :rules="[(val) => emailTest(val) || 'Ошибка формата']"
         />
+        <!-- Login -->
+        <q-input
+          v-model="form.UserLogin"
+          :model-value="form.UserLogin"
+          type="text" dense
+          :label="fnLabel('login', false)"
+        />
+
       </q-card-section>
 
       <q-card-actions align="right">
@@ -148,13 +143,12 @@ const optUserSex = ref([])
 const optUserSexOrg = ref([])
 const optUserPosition = ref([])
 const optUserPositionOrg = ref([])
-const optUserId = ref([])
-const optUserIdOrg = ref([])
 const optUserOrg = ref([])
 
 const fnLabel = (txt, req) => {
   return req ? proxy?.$t(txt) + '*' : proxy?.$t(txt)
 }
+
 
 const fnSelectUserDateBirth = (v) => {
   if (v && v.length === 10 && date.formatDate(v)) {
@@ -220,22 +214,6 @@ const fnSelectUserOrg = (v) => {
 
 const fnSelectUserId = (v) => {
   form.UserId = v ? v.id : null
-}
-
-const filterUserId = (val, update) => {
-  if (val === null || val === '') {
-    update(() => {
-      optUserId.value = optUserIdOrg.value
-    })
-    return
-  }
-  update(() => {
-    if (optUserIdOrg.value.length < 2) return
-    const needle = val.toLowerCase()
-    optUserId.value = optUserIdOrg.value.filter((v) => {
-      return v.name?.toLowerCase().indexOf(needle) > -1
-    })
-  })
 }
 
 const emailTest = (v) => {
@@ -341,19 +319,6 @@ onMounted(() => {
       loading.value = false
     })
 
-  loading.value = true
-  api
-    .post('', {
-      method: 'data/selectUser',
-      params: [],
-    })
-    .then((response) => {
-      optUserId.value = response.data.result.records
-      optUserIdOrg.value = response.data.result.records
-    })
-    .finally(() => {
-      loading.value = false
-    })
 })
 
 defineExpose({

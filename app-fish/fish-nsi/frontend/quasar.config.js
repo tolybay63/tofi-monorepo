@@ -86,7 +86,7 @@ export default defineConfig((ctx) => {
         type: 'http',
       },
       port: 8181,
-      open: true, // opens browser window automatically
+      open: false, // opens browser window automatically
       proxy: {
         '/api': {
           target: url,

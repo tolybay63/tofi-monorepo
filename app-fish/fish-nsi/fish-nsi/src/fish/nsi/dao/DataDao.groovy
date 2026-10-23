@@ -502,7 +502,7 @@ class DataDao extends BaseMdbUtils {
                 v7.dateTimeVal::date as UserDateBirth, v7.id as idUserDateBirth,
                 v8.strVal as UserEmail, v8.id as idUserEmail,
                 v9.strVal as UserPhone, v9.id as idUserPhone,
-                v10.strVal as UserId, v10.id as idUserId
+                v10.strVal as UserLogin, v10.id as idUserLogin
             from Obj o
                 join DataProp d1 on d1.isObj=1 and d1.objOrRelobj=o.id and d1.prop=:Prop_UserSecondName
                 join DataPropVal v1 on d1.id=v1.dataProp
@@ -522,7 +522,7 @@ class DataDao extends BaseMdbUtils {
                 left join DataPropVal v8 on d8.id=v8.dataProp
                 left join DataProp d9 on d9.isObj=1 and d9.objOrRelobj=o.id and d9.prop=:Prop_UserPhone
                 left join DataPropVal v9 on d9.id=v9.dataProp
-                left join DataProp d10 on d10.isObj=1 and d10.objOrRelobj=o.id and d10.prop=:Prop_UserId
+                left join DataProp d10 on d10.isObj=1 and d10.objOrRelobj=o.id and d10.prop=:Prop_UserLogin
                 left join DataPropVal v10 on d10.id=v10.dataProp
             where o.cls=:Cls_Personnel
             order by v1.strVal
@@ -580,7 +580,9 @@ class DataDao extends BaseMdbUtils {
         meta.put("total", total)
         meta.put("page", pg)
         meta.put("limit", limit)
-
+        //
+        mdb.outTable(st)
+        //
         Map<String, Object> mapRes = new HashMap<>()
         mapRes.put("store", st)
         mapRes.put("meta", meta)
@@ -704,18 +706,19 @@ class DataDao extends BaseMdbUtils {
             fillProperties(true, "Prop_UserPosition", pms)
             //6 Prop_UserOrg
             fillProperties(true, "Prop_UserOrg", pms)
-            //7 UserMiddleName
+            //NotReq
+            //7 UserDateBirth
             if (pms.containsKey("UserDateBirth"))
                 fillProperties(true, "Prop_UserDateBirth", pms)
-            //8 UserMiddleName
+            //8 UserEmail
             if (pms.containsKey("UserEmail"))
                 fillProperties(true, "Prop_UserEmail", pms)
-            //9 UserMiddleName
+            //9 UserPhone
             if (pms.containsKey("UserPhone"))
                 fillProperties(true, "Prop_UserPhone", pms)
-            //10 UserMiddleName
-            if (pms.containsKey("UserId"))
-                fillProperties(true, "Prop_UserId", pms)
+            //10 UserLogin
+            if (pms.containsKey("UserLogin"))
+                fillProperties(true, "Prop_UserLogin", pms)
 
         } else if (mode == "upd") {
             par.put("id", own)
@@ -739,6 +742,7 @@ class DataDao extends BaseMdbUtils {
             updateProperties("Prop_UserPosition", pms)
             //6 Prop_UserOrg
             updateProperties("Prop_UserOrg", pms)
+            //NotReq
             //7 UserDateBirth
             if (pms.getLong("idUserDateBirth") > 0)
                 updateProperties("Prop_UserDateBirth", pms)
@@ -746,26 +750,26 @@ class DataDao extends BaseMdbUtils {
                 if (!pms.getString("UserDateBirth").isEmpty())
                     fillProperties(true, "Prop_UserDateBirth", pms)
             }
-            //8 UserEmail
-            if (pms.getLong("idUserEmail") > 0)
-                updateProperties("Prop_UserEmail", pms)
-            else {
-                if (!pms.getString("UserEmail").isEmpty())
-                    fillProperties(true, "Prop_UserEmail", pms)
-            }
-            //9 UserPhone
+            //8 UserPhone
             if (pms.getLong("idUserPhone") > 0)
                 updateProperties("Prop_UserPhone", pms)
             else {
                 if (!pms.getString("UserPhone").isEmpty())
                     fillProperties(true, "Prop_UserPhone", pms)
             }
-            //10 UserId
-            if (pms.getLong("idUserId") > 0)
-                updateProperties("Prop_UserId", pms)
+            //9 UserEmail
+            if (pms.getLong("idUserEmail") > 0)
+                updateProperties("Prop_UserEmail", pms)
             else {
-                if (!pms.getString("UserId").isEmpty())
-                    fillProperties(true, "Prop_UserId", pms)
+                if (!pms.getString("UserEmail").isEmpty())
+                    fillProperties(true, "Prop_UserEmail", pms)
+            }
+            //10 UserLogin
+            if (pms.getLong("idUserLogin") > 0)
+                updateProperties("Prop_UserLogin", pms)
+            else {
+                if (!pms.getString("UserLogin").isEmpty())
+                    fillProperties(true, "Prop_UserLogin", pms)
             }
         } else {
             throw new XError("Не известный режим ввода [${mode}]")
@@ -919,6 +923,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_UserMiddleName") ||
                     cod.equalsIgnoreCase("Prop_UserEmail") ||
                     cod.equalsIgnoreCase("Prop_UserPhone") ||
+                    cod.equalsIgnoreCase("Prop_UserLogin") ||
                     cod.equalsIgnoreCase("Prop_UserId")) {
                 if (params.get(keyValue) != null || params.get(keyValue) != "") {
                     recDPV.set("strVal", UtCnv.toString(params.get(keyValue)))
@@ -1042,6 +1047,7 @@ class DataDao extends BaseMdbUtils {
                     cod.equalsIgnoreCase("Prop_UserMiddleName") ||
                     cod.equalsIgnoreCase("Prop_UserEmail") ||
                     cod.equalsIgnoreCase("Prop_UserPhone") ||
+                    cod.equalsIgnoreCase("Prop_UserLogin") ||
                     cod.equalsIgnoreCase("Prop_UserId")) {
                 if (!mapProp.keySet().contains(keyValue) || strValue.trim() == "") {
                     mdb.deleteRec("DataPropVal", idVal)

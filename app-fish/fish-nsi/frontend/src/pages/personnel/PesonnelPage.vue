@@ -140,17 +140,17 @@
               :label="fnLabel('UserDateBirth', false)"
               readonly
             />
-            <q-input v-model="form.UserEmail" :label="fnLabel('UserEmail', false)" readonly />
             <q-input v-model="form.UserPhone" :label="fnLabel('UserPhone', false)" readonly />
-            <q-select
-              v-model="form.UserId"
-              :label="fnLabel('UserId', false)"
-              :options="optUserId"
-              map-options
-              option-label="name"
-              option-value="id"
-              readonly
+            <q-input v-model="form.UserEmail" :label="fnLabel('UserEmail', false)" readonly />
+
+            <q-input
+              readonly dense
+              v-model="form.UserLogin"
+              :model-value="form.UserLogin"
+              type="text"
+              :label="$t('login')"
             />
+
           </q-card-section>
         </q-card>
       </template>
@@ -173,7 +173,6 @@ const rows = ref([])
 const filter = ref('')
 const loading = ref(false)
 const selected = ref([])
-const optUserId = ref([])
 const optUserSex = ref([])
 
 const form = reactive({
@@ -183,7 +182,7 @@ const form = reactive({
   UserDateBirth: null,
   UserEmail: null,
   UserPhone: null,
-  UserId: null,
+  UserLogin: null,
 })
 
 const pagination = ref({
@@ -258,9 +257,9 @@ const updateSelected = () => {
         ' ' +
         form.UserPhone.substring(6, 10)
     }
-    if (form.UserId) {
+/*    if (form.UserId) {
       form.UserId = parseInt(form.UserId, 10)
-    }
+    }*/
   } else {
     splitterModel.value = 100
   }
@@ -335,7 +334,7 @@ const editRow = (rec, mode) => {
       })
   } else {
     extend(true, data, rec)
-    if (data.UserId) data.UserId = parseInt(data.UserId, 10)
+    //if (data.UserId) data.UserId = parseInt(data.UserId, 10)
   }
 
   $q.dialog({
@@ -401,19 +400,6 @@ onMounted(() => {
     })
     .then((response) => {
       optUserSex.value = response.data.result.records
-    })
-    .finally(() => {
-      loading.value = false
-    })
-
-  loading.value = true
-  api
-    .post('', {
-      method: 'data/selectUser',
-      params: [],
-    })
-    .then((response) => {
-      optUserId.value = response.data.result.records
     })
     .finally(() => {
       loading.value = false

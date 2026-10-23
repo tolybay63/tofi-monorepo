@@ -24,8 +24,8 @@
         <field name="idUserPhone" parent="long"/>
         <field name="UserPhone" parent="string"/>
 
-        <field name="idUserId" parent="long"/>
-        <field name="UserId" parent="string"/>
+        <field name="idUserLogin" parent="long"/>
+        <field name="UserLogin" parent="string"/>
 
         <field name="idUserSex" parent="long"/>
         <field name="pvUserSex" parent="long"/>
