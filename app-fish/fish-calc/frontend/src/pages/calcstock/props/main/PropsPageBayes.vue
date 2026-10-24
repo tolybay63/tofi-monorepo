@@ -48,10 +48,7 @@ import UpdaterPropsBayes from "@/pages/calcstock/props/main/UpdaterPropsBayes.vu
 import {useQuasar} from "quasar";
 
 const $q = useQuasar()
-
 const {proxy} = getCurrentInstance()
-
-
 
 const props = defineProps({
   own: Number,
@@ -60,13 +57,11 @@ const props = defineProps({
 
 const loading = ref(false);
 const rows = ref([])
-//const mapFishes = ref(new Map())
 const mapCalcStatus = ref(new Map())
 const mapReservoir = ref(new Map())
+const emit = defineEmits(['update-parent-data'])
 
 const fnEdit = async () => {
-  //console.log("rows: ", rows.value)
-  //console.log("rows2: ", rows.value[0])
 
   let data = {};
 
@@ -84,6 +79,8 @@ const fnEdit = async () => {
     },
   }).onOk(() => {
     loadData(props.own)
+    // Генерируем событие для родительского компонента
+    emit('update-parent-data')
   })
 }
 

@@ -25,10 +25,18 @@
         </h3>
         <div v-else class="column no-wrap fit">
           <div v-if="codCalc==='Cls_CalcBayes'" class="column no-wrap fit">
-            <props-page-bayes :name="props.data.name" :own="props.data.id"/>
+            <props-page-bayes
+              :name="props.data.name"
+              :own="props.data.id"
+              @update-parent-data="onUpdateParentData"
+            />
           </div>
           <div v-else-if="codCalc==='Cls_CalcDeterm'" class="column no-wrap fit">
-            <props-page-determ :name="props.data.name" :own="props.data.id"/>
+            <props-page-determ
+              :name="props.data.name"
+              :own="props.data.id"
+              @update-parent-data="onUpdateParentData"
+            />
           </div>
         </div>
       </q-tab-panel>
@@ -48,7 +56,16 @@ const props = defineProps({
   codCalc: String
 })
 
+// ДОБАВИТЬ ЭТУ СТРОКУ
+const emit = defineEmits(['update-parent-data'])
+
 const tab = ref("desc")
+
+// ДОБАВИТЬ ЭТУ ФУНКЦИЮ
+const onUpdateParentData = () => {
+  emit('update-parent-data')
+}
+
 </script>
 
 <style scoped>

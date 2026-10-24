@@ -188,7 +188,12 @@
 
       <template v-slot:after>
 
-          <props-main-page :codCalc="props.codCls" :data="currentNode"></props-main-page>
+          <props-main-page
+            :codCalc="props.codCls"
+            :data="currentNode"
+            @update-parent-data="fetchData"
+          >
+          </props-main-page>
 
       </template>
 
