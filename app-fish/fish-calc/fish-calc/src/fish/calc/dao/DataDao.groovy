@@ -426,7 +426,7 @@ class DataDao extends BaseMdbUtils {
             if (rec != null)
                 r.set("fvCalcStatus", rec.getLong("factorval"))
         }
-        mdb.outTable(st)
+        //mdb.outTable(st)
         return st
     }
 
