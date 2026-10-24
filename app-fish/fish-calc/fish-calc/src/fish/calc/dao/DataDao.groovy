@@ -1601,11 +1601,28 @@ class DataDao extends BaseMdbUtils {
             where d.id=v.dataProp and d.prop=${mapProp.get("Prop_UserId")}
                 and d.isObj=1 and d.objOrRelObj=${calc_id}
         """)
-
         if (stTmp.size() == 0) { //ins
             fillProperties(true, "Prop_UserId", map)
+        } else {
+            map.put("idUserId", stTmp.get(0).getLong("id"))
+            updateProperties("Prop_UserId", map)
         }
-
+        //Prop_CalcLastDate
+        mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcLastDate", "")
+        def dtm = XDateTime.create(new Date()).toString(XDateTimeFormatter.ISO_DATE_TIME)
+        map.put("CalcLastDate", dtm)
+        stTmp = mdb.loadQuery("""
+            select v.id
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.prop=${mapProp.get("Prop_CalcLastDate")}
+                and d.isObj=1 and d.objOrRelObj=${calc_id}
+        """)
+        if (stTmp.size() == 0) { //ins
+            fillProperties(true, "Prop_CalcLastDate", map)
+        } else {
+            map.put("idCalcLastDate", stTmp.get(0).getLong("id"))
+            updateProperties("Prop_CalcLastDate", map)
+        }
 
     }
 

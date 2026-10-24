@@ -47,12 +47,11 @@ export default {
   back: "Назад",
 
   CalcCreatDate: "Дата создания расчета",
-  CalcLastDate: "Дата последнего проведения расчета",
+  CalcLastDate: "Дата время последнего проведения расчета",
   ReservoirShore: "Водоем",
   CalcStartYear: "Начальный год",
   CalcEndYear: "Конечный год",
-  CalcFishSpec: "Вид рыбы",
-  CalcUser: "Кто проводил расчет",
+  CalcUser: "Пользователь проводивший расчет",
   CalcStatus: "Статус расчета",
   chooseCalc: 'Выбор расчета...',
 

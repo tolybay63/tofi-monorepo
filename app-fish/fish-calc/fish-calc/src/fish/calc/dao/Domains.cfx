@@ -23,7 +23,7 @@
         <field name="CalcCreatDate" parent="date"/>
 
         <field name="idCalcLastDate" parent="long"/>
-        <field name="CalcLastDate" parent="date"/>
+        <field name="CalcLastDate" parent="datetime"/>
 
         <field name="idCalcStatus" parent="long"/>
         <field name="pvCalcStatus" parent="long"/>

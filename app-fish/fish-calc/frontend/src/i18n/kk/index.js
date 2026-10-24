@@ -45,12 +45,11 @@ export default {
   back: "Артқа",
 
   CalcCreatDate: "Есептеуді жасау күні",
-  CalcLastDate: "Соңғы есептеу күні",
+  CalcLastDate: "Соңғы есептеу күні мен уақыты",
   ReservoirShore: "Су айдыны",
   CalcStartYear: "Басталу жылы",
   CalcEndYear: "Аяқталу жылы",
-  CalcFishSpec: "Балық түрі",
-  CalcUser: "Есептеуді кім жүргізді",
+  CalcUser: "Есептеуді орындаған пайдаланушы",
   CalcStatus: "Есептеу мәртебесі",
   chooseCalc: 'Есептеуді таңдау...',
 

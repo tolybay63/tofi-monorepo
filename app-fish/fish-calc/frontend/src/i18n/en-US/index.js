@@ -44,12 +44,11 @@ export default {
   back: "Back",
 
   CalcCreatDate: "Calculation creation date",
-  CalcLastDate: "Date of last calculation run",
+  CalcLastDate: "Datetime of last calculation run",
   ReservoirShore: "Water body",
   CalcStartYear: "Start year",
   CalcEndYear: "End year",
-  CalcFishSpec: "Fish species",
-  CalcUser: "Person who performed the calculation",
+  CalcUser: "User who performed the calculation",
   CalcStatus: "Calculation status",
   chooseCalc: 'Calculation Selection...',
 

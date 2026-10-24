@@ -157,46 +157,38 @@ const loadReservoirAsMap = async (objId, codProp) => {
 const cols = [
   {
     name: 'CalcCreatDate',
-    label: 'Дата создания расчета',
+    label: proxy?.$t('CalcCreatDate'),
     field: 'CalcCreatDate',
   },
   {
     name: 'CalcLastDate',
-    label: 'Дата последнего проведения расчета',
+    label: proxy?.$t('CalcLastDate'),
     field: 'CalcLastDate',
   },
   {
     name: 'objReservoirShore',
-    label: 'Водоем',
+    label: proxy?.$t('ReservoirShore'),
     field: 'objReservoirShore',
     format: (v) => mapReservoir.value ? mapReservoir.value[v] : null
   },
   {
     name: 'CalcStartYear',
-    label: 'Начальный год',
+    label: proxy?.$t('CalcStartYear'),
     field: 'CalcStartYear',
   },
   {
     name: 'CalcEndYear',
-    label: 'Конечный год',
+    label: proxy?.$t('CalcEndYear'),
     field: 'CalcEndYear',
   },
-/*
-  {
-    name: 'objCalcFishSpec',
-    label: 'Вид рыбы',
-    field: 'objCalcFishSpec',
-    format: (v) => mapFishes.value ? mapFishes.value[v] : null
-  },
-*/
   {
     name: 'nameUserId',
-    label: 'Пользователь проводивший расчет',
+    label: proxy?.$t('CalcUser'),
     field: 'nameUserId',
   },
   {
     name: 'fvCalcStatus',
-    label: 'Статус расчета',
+    label: proxy?.$t('CalcStatus'),
     field: 'fvCalcStatus',
     format: (v) => mapCalcStatus.value ? mapCalcStatus.value[v] : null
   },
