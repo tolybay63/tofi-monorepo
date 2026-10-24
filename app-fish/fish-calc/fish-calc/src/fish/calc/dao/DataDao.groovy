@@ -516,7 +516,13 @@ class DataDao extends BaseMdbUtils {
                 if (params.getLong("fvCalcStatus") == 1122) {
                     // Извлекаем id расчета из формы
                     long calcId = params.getLong("own")
-                    String fastApiUrl = "http://127.0.0.1:8000/internal/bayes/check_ready?calc_id=" + calcId
+
+                    def baseUrl = 'http://127.0.0.1:8000'
+
+                    if (!mdb.getApp().getEnv().dev)
+                        baseUrl = '/fish/calc/fast'
+
+                    String fastApiUrl = "${baseUrl}/internal/bayes/check_ready?calc_id=" + calcId
 
                     try {
                         HttpURLConnection conn = (HttpURLConnection) new URL(fastApiUrl).openConnection()
