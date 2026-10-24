@@ -1,5 +1,6 @@
 package fish.calc.dao
 
+import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import jandcode.commons.UtCnv
 import jandcode.commons.UtJson
@@ -9,7 +10,6 @@ import jandcode.commons.datetime.XDateTimeFormatter
 import jandcode.commons.error.XError
 import jandcode.commons.variant.VariantMap
 import jandcode.core.auth.AuthService
-import jandcode.core.auth.AuthUser
 import jandcode.core.dao.DaoMethod
 import jandcode.core.dbm.mdb.BaseMdbUtils
 import jandcode.core.store.Store
@@ -29,6 +29,10 @@ import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.UtPeriod
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
+
+import groovy.json.JsonSlurper
+import java.net.HttpURLConnection
+import java.net.URL
 
 @CompileStatic
 class DataDao extends BaseMdbUtils {
@@ -508,11 +512,38 @@ class DataDao extends BaseMdbUtils {
                 throw new XError("CalcStatus is required")
         } else {
             if (params.getLong("fvCalcStatus") > 0) {
-                /*
-                    Если params.getLong("fvCalcStatus") == 1122, то надо проверить
-                    в фастапи рассчитана ли для всех видов рыб (saveDB - астивна)
-                    иначе исключение
-                */
+                // Проверка перед утверждением расчета (ID 1122)
+                if (params.getLong("fvCalcStatus") == 1122) {
+                    // Извлекаем id расчета из формы
+                    long calcId = params.getLong("own")
+                    String fastApiUrl = "http://127.0.0.1:8000/internal/bayes/check_ready?calc_id=" + calcId
+
+                    try {
+                        HttpURLConnection conn = (HttpURLConnection) new URL(fastApiUrl).openConnection()
+                        conn.setRequestMethod("GET")
+                        conn.setRequestProperty("Accept", "application/json")
+
+                        if (conn.getResponseCode() == 200) {
+                            Map responseJson = (Map) new JsonSlurper().parseText(conn.getInputStream().getText("UTF-8"))
+
+                            // Явно приводим типы, чтобы IDE понимала, с чем работает
+                            Boolean isAllReady = (Boolean) responseJson.get("all_ready")
+                            List<String> notReadySpecies = (List<String>) responseJson.get("not_ready_species")
+
+                            // Если расчеты готовы не для всех видов рыб, отменяем транзакцию
+                            if (!isAllReady) {
+                                String missing = notReadySpecies.join(", ")
+                                throw new XError("Невозможно утвердить расчет. Не выполнены байесовские расчеты для видов: " + missing)
+                            }
+                        } else {
+                            throw new XError("Ошибка связи с расчетным модулем (HTTP " + conn.getResponseCode() + ")")
+                        }
+                    } catch (XError e) {
+                        throw e // Пробрасываем бизнес-ошибку на клиент
+                    } catch (Exception e) {
+                        throw new XError("Сбой при проверке готовности расчетов: " + e.getMessage())
+                    }
+                }
                 updateProperties("Prop_CalcStatus", params)
             } else
                 throw new XError("CalcStatus is required")
