@@ -45,7 +45,5 @@ public interface ApiNSIData {
      */
     boolean checkExistOwners(long clsORrelcls, boolean isObj);
 
-    boolean userFromPersonnel(long user);
 
-    long userOfPersonnel(long user);
 }

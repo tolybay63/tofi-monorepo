@@ -55,14 +55,49 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Store loadCalc(long id) {
-        return mdb.loadQuery("""
+    Map<String, Object> loadCalc(long id) {
+        Store st = mdb.loadQuery("""
             select o.id, 
                 v.objParent as parent,
                 v.name, o.cls as cls 
             from Obj o, ObjVer v
             where o.id=v.ownerVer and v.lastVer=1 and o.cls=${id}
         """)
+        Set<Object> ids = st.getUniqueValues("id")
+        //
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcStatus", "")
+        Store stPV = mdb.loadQuery("""
+            select o.id, v1.propVal, null as codFV                
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStatus
+                join DataPropVal v1 on v1.dataprop=d1.id
+            where o.id in (0${ids.join(",")})
+        """, mapProp)
+        Set<Object> idsPV = stPV.getUniqueValues("propVal")
+        //
+        Store stMeta = loadSqlMeta("""
+            select pv.id, f.cod
+            from PropVal pv, Factor f
+            where pv.factorVal=f.id and pv.id in (0${idsPV.join(",")})
+        """, "")
+        StoreIndex indPV = stMeta.getIndex("id")
+        //
+        for (StoreRecord r in stPV) {
+            StoreRecord rec = indPV.get(r.getLong("propVal"))
+            if (rec != null) {
+                r.set("codFV", rec.getString("cod"))
+            }
+        }
+        Map<Long, Boolean> map = new HashMap<>()
+        for (StoreRecord r in stPV) {
+            map.put(r.getLong("id"), r.getString("codFV")=="FV_Approved")
+        }
+
+        Map<String, Object> mapRes = new HashMap<>()
+        mapRes.put("st", st)
+        mapRes.put("mapStatus", map)
+        //
+        return mapRes
     }
 
     @DaoMethod
@@ -472,9 +507,14 @@ class DataDao extends BaseMdbUtils {
             else
                 throw new XError("CalcStatus is required")
         } else {
-            if (params.getLong("fvCalcStatus") > 0)
+            if (params.getLong("fvCalcStatus") > 0) {
+                /*
+                    Если params.getLong("fvCalcStatus") == 1122, то надо проверить
+                    в фастапи рассчитана ли для всех видов рыб (saveDB - астивна)
+                    иначе исключение
+                */
                 updateProperties("Prop_CalcStatus", params)
-            else
+            } else
                 throw new XError("CalcStatus is required")
         }
         //7
@@ -1633,8 +1673,27 @@ class DataDao extends BaseMdbUtils {
     }
 
     @DaoMethod
-    Map<String, Boolean> userFromPersonnel(long user) {
-        boolean b = apiNSIData().get(ApiNSIData).userFromPersonnel(user)
-        return [res: b]
+    Map<String, Boolean> getCalcStatus(long idCalc) {
+        Map<String, Long> mapProp = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcStatus", "")
+        Store st = mdb.loadQuery("""
+            select v1.propVal                
+            from Obj o
+                join DataProp d1 on d1.isObj=1 and d1.objOrRelObj=o.id and d1.prop=:Prop_CalcStatus
+                join DataPropVal v1 on v1.dataprop=d1.id
+            where o.id=${idCalc}
+        """, mapProp)
+
+        if (st.size() > 0) {
+            long pvStatus = st.get(0).getLong("propVal")
+            //!!! Запрос на базу сервиса meta
+            Store stMeta = loadSqlMeta("""
+                select f.cod
+                from PropVal pv, Factor f
+                where pv.factorVal=f.id and pv.id=${pvStatus}
+            """, "")
+            String cod = stMeta.get(0).getString("cod")
+            return ["isApproved": cod=="FV_Approved"]
+        } else
+            return ["isApproved": false]
     }
 }

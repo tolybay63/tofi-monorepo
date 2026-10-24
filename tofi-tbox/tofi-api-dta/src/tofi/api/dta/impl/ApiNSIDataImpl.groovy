@@ -102,36 +102,5 @@ class ApiNSIDataImpl extends BaseMdbUtils implements ApiNSIData {
             """).size() > 0
     }
 
-    //todo Delete!
-    @Override
-    boolean userFromPersonnel(long user) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
-        Store st = mdb.loadQuery("""
-            select NULLIF(v.strval, '')::decimal as au 
-            from DataProp d, DataPropVal v
-            where d.id=v.dataprop and d.prop=${map.get("Prop_UserId")}
-        """)
-        Set<Object> ids = st.getUniqueValues("au")
-        Set<Object> idsInt = new HashSet<>()
-        ids.forEach {it-> {
-            idsInt.add(UtCnv.toLong(it))
-        }}
 
-        return idsInt.contains(user)
-    }
-
-
-    //todo Delete!
-    @Override
-    long userOfPersonnel(long user) {
-        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_UserId", "")
-        Store st = mdb.loadQuery("""
-            select d.objorrelobj as user 
-            from DataProp d, DataPropVal v
-            where d.id=v.dataprop and d.prop=${map.get("Prop_UserId")}
-                and d.isObj=1 and d.objOrRelObj=${user}
-        """)
-
-        return st.get(0).getLong("user")
-    }
 }

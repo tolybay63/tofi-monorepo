@@ -214,12 +214,17 @@ const itemId = ref(null);
 const columns = ref([]);
 const rows = ref([]);
 const loading = ref(false);
+let mapStatus = new Map()
 
 const fnColor = (item) => {
   if (props.codCls === "Cls_CalcDeterm") {
     return "orange-3";
   } else {
-    return "blue-3";
+    if (mapStatus[item.id]) {
+      return "green-3";
+    } else {
+      return "blue-3";
+    }
   }
 }
 
@@ -270,50 +275,60 @@ const showMenu = (item, mode) => {
 }
 
 const fnDel = (rec) => {
-  $q["dialog"]({
-    title: proxy?.$t("confirmation"),
-    message:
-      proxy?.$t("deleteRecord") +
-      '<div style="color: plum">(' +
-      rec.name +
-      ")</div>",
-    html: true,
-    cancel: true,
-    persistent: true,
-  })
-    .onOk(() => {
-      api
-        .post("", {
-          method: "data/deleteCalc",
-          params: [rec.id],
-        })
-        .then(async () => {
-          fetchData();
-          fnExpand();
-          // Удаляем результаты расчета из calc_fastapi
-          await checkTarget();
-          const token = sessionStorage.getItem('fish_token') || '';
-          // Для window.open на продакшене нам нужен полный путь от корня сайта с учетом префикса Nginx
-          let baseUrl = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8000/';
-          // Фоновый вызов метода удаления из calc_fastapi
-          let url = `${baseUrl}deleteResultsOfCalc?calc_id=${rec.id}`;
-
-          try {
-            await fetch(url, {
-              method: 'DELETE',
-              headers: {
-                'Authorization': `Bearer ${token}` // Передали безопасно
-              }
-            });
-            console.log(`Кэш и результаты расчета ${rec.id} удалены.`);
-          } catch (e) {
-            console.error("Ошибка при удалении файлов в FastAPI:", e);
-          }
-        });
+  api
+    .post("", {
+      method: "data/getCalcStatus",
+      params: [rec.id],
     })
-    .onCancel(() => {
-      notifyInfo(proxy?.$t("canceled"));
-    });
+    .then(async resp => {
+      const status = await resp.data.result;
+      if (status) {
+        notifyError("Расчет утвержден. Удаление запрещено.")
+        return 1
+      } else {
+        $q["dialog"]({
+          title: proxy?.$t("confirmation"),
+          message:
+            proxy?.$t("deleteRecord") +
+            '<div style="color: plum">(' +
+            rec.name +
+            ")</div>",
+          html: true,
+          cancel: true,
+          persistent: true,
+        })
+          .onOk(() => {
+            api
+              .post("", {
+                method: "data/deleteCalc",
+                params: [rec.id],
+              })
+              .then(async () => {
+                fetchData();
+                fnExpand();
+                // Удаляем результаты расчета из calc_fastapi
+                await checkTarget();
+                const token = sessionStorage.getItem('fish_token') || '';
+                // Для window.open на продакшене нам нужен полный путь от корня сайта с учетом префикса Nginx
+                let baseUrl = import.meta.env.PROD ? '/fish/calc/api/fast/' : 'http://127.0.0.1:8000/';
+                // Фоновый вызов метода удаления из calc_fastapi
+                let url = `${baseUrl}deleteResultsOfCalc?calc_id=${rec.id}`;
+
+                try {
+                  await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                      'Authorization': `Bearer ${token}` // Передали безопасно
+                    }
+                  });
+                  console.log(`Кэш и результаты расчета ${rec.id} удалены.`);
+                } catch (e) {
+                  console.error("Ошибка при удалении файлов в FastAPI:", e);
+                }
+              });
+          })
+      }
+    })
 };
 
 const fnCreateMain = () => {
@@ -352,11 +367,6 @@ const fnEdit = async (rec, isMain, isChild, mode) => {
     const resp = await api.post('', {method: 'data/getYears', params: [rec.parent]})
     let y1 = resp.data.result['year1'].toString()
     let y2 = resp.data.result['year2'].toString()
-    //rec.CalcStartYear = y1
-    //rec.CalcEndYear = y2
-    //extend(true, rec, {CalcStartYear: y1, CalcEndYear: y2})
-    console.info("rest", resp.data.result)
-    console.info("rec", rec)
     rec = {cls: cls.value, parent: rec.parent, CalcStartYear: y1, CalcEndYear: y2};
   }
   $q.dialog({
@@ -380,14 +390,6 @@ const checkTarget = async () => {
     params: ['calc'],
   })
 }
-
-const userFromPersonnel = async (user) => {
-  return await api.post('', {
-    method: 'data/userFromPersonnel',
-    params: [user],
-  })
-}
-
 
 const fnCalc = async (rec) => {
   if (props.codCls === "Cls_CalcDeterm") {
@@ -502,7 +504,8 @@ const fetchData = () => {
     })
     .then(
       (response) => {
-        rows.value = pack(response.data.result["records"], "id");
+        rows.value = pack(response.data.result["st"]["records"], "id");
+        mapStatus = response.data.result["mapStatus"];
       },
       (error) => {
         let msg = error.message;
