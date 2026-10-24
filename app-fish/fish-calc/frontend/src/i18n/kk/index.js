@@ -41,7 +41,7 @@ export default {
   calcMPC: 'Рұқсат етілген ең жоғары аулау есептеулері',
   calcDeterm: 'Детерминистік есептеулер',
   calcBayes: 'Байестік есептеулер',
-  create1level: "Негізгі есептеуді жасаңыз",
+  create1level: "Есептеуді жасаңыз",
   back: "Артқа",
 
   CalcCreatDate: "Есептеуді жасау күні",
@@ -52,6 +52,7 @@ export default {
   CalcUser: "Есептеуді орындаған пайдаланушы",
   CalcStatus: "Есептеу мәртебесі",
   chooseCalc: 'Есептеуді таңдау...',
+  deleteCalc: "Есептеуді жою",
 
   //Dialog
   confirmation: 'Растау',

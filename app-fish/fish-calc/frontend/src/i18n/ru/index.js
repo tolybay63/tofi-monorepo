@@ -43,7 +43,8 @@ export default {
   calcMPC: 'Расчеты предельно допустимого улова',
   calcDeterm: 'Детерминированные расчеты',
   calcBayes: 'Байесовские расчеты',
-  create1level: "Создать главный расчет",
+  create1level: "Создать расчет",
+  deleteCalc: "Удалить расчет",
   back: "Назад",
 
   CalcCreatDate: "Дата создания расчета",

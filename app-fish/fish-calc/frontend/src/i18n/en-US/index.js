@@ -40,7 +40,7 @@ export default {
   calcMPC: 'Maximum permissible catch calculations',
   calcDeterm: 'Deterministic calculations',
   calcBayes: 'Bayesian calculations',
-  create1level: "Create a master calculation",
+  create1level: "Create a calculation",
   back: "Back",
 
   CalcCreatDate: "Calculation creation date",
@@ -51,6 +51,7 @@ export default {
   CalcUser: "User who performed the calculation",
   CalcStatus: "Calculation status",
   chooseCalc: 'Calculation Selection...',
+  deleteCalc: "Delete the calculation",
 
   //Dialog
   confirmation: 'Confirmation',

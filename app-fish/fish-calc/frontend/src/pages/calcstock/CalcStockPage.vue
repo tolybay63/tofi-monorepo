@@ -17,7 +17,7 @@
           </div>
 
           <template v-slot:action>
-            <q-btn
+<!--            <q-btn
               class="q-ml-sm"
               color="secondary"
               dense
@@ -39,7 +39,7 @@
               <q-tooltip transition-hide="rotate" transition-show="rotate">
                 {{ tr("collapseAll") }}
               </q-tooltip>
-            </q-btn>
+            </q-btn>-->
 
             <q-btn
               v-if="hasTarget('calc')"
@@ -65,6 +65,20 @@
             >
               <q-tooltip transition-hide="rotate" transition-show="rotate">
                 {{ tr("chooseCalc") }}
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              v-if="hasTarget('calc')"
+              class="q-ml-sm"
+              color="red"
+              dense
+              icon="delete"
+              @click="showMenu(currentNode, 'del')"
+              :disable="currentNode==null"
+            >
+              <q-tooltip transition-hide="rotate" transition-show="rotate">
+                {{ tr("deleteCalc") }}
               </q-tooltip>
             </q-btn>
 
@@ -94,7 +108,7 @@
                 <q-menu auto-close context-menu>
                   <q-list>
                     <div>
-                      <q-item clickable @click="showMenu(item, 'ins')">
+<!--                      <q-item clickable @click="showMenu(item, 'ins')">
                         <q-item-section avatar>
                           <q-icon avator name="post_add"/>
                         </q-item-section>
@@ -110,6 +124,7 @@
                           Редактировать расчет
                         </q-item-section>
                       </q-item>
+-->
                       <q-item clickable @click="showMenu(item, 'del')">
                         <q-item-section avatar>
                           <q-icon color="red" name="delete"/>
@@ -281,7 +296,7 @@ const fnDel = (rec) => {
       params: [rec.id],
     })
     .then(async resp => {
-      const status = await resp.data.result;
+      const status = await resp.data.result["isApproved"];
       if (status) {
         notifyError("Расчет утвержден. Удаление запрещено.")
         return 1
