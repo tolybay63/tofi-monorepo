@@ -520,7 +520,7 @@ class DataDao extends BaseMdbUtils {
                     def baseUrl = 'http://127.0.0.1:8000'
 
                     if (!mdb.getApp().getEnv().dev)
-                        baseUrl = '/fish/calc/fast'
+                        baseUrl = 'http://127.0.0.1:8001'
 
                     String fastApiUrl = "${baseUrl}/internal/bayes/check_ready?calc_id=" + calcId
 
