@@ -143,6 +143,7 @@
             <q-input v-model="form.UserPhone" :label="fnLabel('UserPhone', false)" readonly />
             <q-input v-model="form.UserEmail" :label="fnLabel('UserEmail', false)" readonly />
 
+<!--
             <q-input
               readonly dense
               v-model="form.UserLogin"
@@ -150,6 +151,7 @@
               type="text"
               :label="$t('login')"
             />
+-->
 
           </q-card-section>
         </q-card>

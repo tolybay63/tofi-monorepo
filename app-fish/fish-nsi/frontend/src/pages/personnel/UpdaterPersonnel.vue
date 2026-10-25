@@ -97,12 +97,12 @@
           :rules="[(val) => emailTest(val) || 'Ошибка формата']"
         />
         <!-- Login -->
-        <q-input
+<!--        <q-input
           v-model="form.UserLogin"
           :model-value="form.UserLogin"
           type="text" dense
           :label="fnLabel('login', false)"
-        />
+        />-->
 
       </q-card-section>
 
