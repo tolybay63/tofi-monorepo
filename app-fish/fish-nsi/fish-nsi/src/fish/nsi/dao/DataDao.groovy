@@ -781,25 +781,7 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void deletePersonnel(long id) {
-
         checkForExistData(id, 1)
-
-/*
-        Store st = loadSqlService("""
-            select distinct v.name 
-            from Obj o
-            join ObjVer v on o.id=v.ownerVer and v.lastVer=1
-            join DataProp d1 on d1.objorrelobj=o.id-- and d1.prop in (1047,1048)
-            join DataPropVal v1 on d1.id=v1.dataProp
-            where v1.obj=${id}
-        """, "", "monitoringdata")
-
-        if (st.size() > 0) {
-            String msg = st.getUniqueValues("name").join(";\n\r")
-            throw new XError("Cотрудник используется в следующих выловах:\n\r${msg}")
-        }
-*/
-
         deleteOwnerWithProperties(id, 1)
     }
 
