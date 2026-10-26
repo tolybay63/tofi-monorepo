@@ -193,10 +193,10 @@ const cols = [
 
 watch(
   () => props.own,
-   (newObj) => {
-    loadReservoirAsMap(newObj, "Prop_ReservoirShore")
-    loadFvAsMap(newObj, "Prop_CalcStatus")
-    loadData(newObj);
+   async (newObj) => {
+     await loadData(newObj);
+     await loadReservoirAsMap(newObj, "Prop_ReservoirShore")
+     await loadFvAsMap(newObj, "Prop_CalcStatus")
   },
   {immediate: true}
 )
