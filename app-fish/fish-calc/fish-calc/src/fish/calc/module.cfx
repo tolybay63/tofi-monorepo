@@ -15,6 +15,10 @@
                 class = "fish.calc.action.UploadCalcAction"
         />
 
+        <type name="fish.calc.action.DownFile"
+              render="downfile"/>
+        <render name="downfile" class="fish.calc.action.DownFileRender"/>
+
         <action name="calc/save-all-results"
                 class = "fish.calc.action.SaveDataAction"
         />

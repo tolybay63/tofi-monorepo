@@ -1,5 +1,6 @@
 package fish.calc.test
 
+import fish.calc.dao.DataDao
 import jandcode.commons.error.XError
 import jandcode.core.apx.test.Apx_Test
 import jandcode.core.store.Store
@@ -97,5 +98,12 @@ class Db_Test extends Apx_Test {
 
     private Store loadSqlMeta(String sql, String domain) {
         return apiMeta().get(ApiMeta).loadSql(sql, domain)
+    }
+
+    @Test
+    void test_del_calc() {
+        DataDao dao = mdb.createDao(DataDao.class)
+        dao.deleteCalc()
+
     }
 }

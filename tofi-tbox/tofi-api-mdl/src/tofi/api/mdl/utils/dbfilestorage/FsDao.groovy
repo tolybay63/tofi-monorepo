@@ -7,7 +7,7 @@ import jandcode.core.store.StoreRecord
 class FsDao extends BaseMdbUtils {
 
     @DaoMethod
-    public StoreRecord loadRec(long id) throws Exception {
+    StoreRecord loadRec(long id) throws Exception {
         StoreRecord rec = mdb.createStoreRecord("DbFileStorage");
         mdb.loadQueryRecord(rec, "select * from DbFileStorage where id=:id", Map.of("id", id));
         return rec;

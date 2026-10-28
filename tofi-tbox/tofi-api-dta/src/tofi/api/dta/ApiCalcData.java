@@ -27,4 +27,16 @@ public interface ApiCalcData {
 
     void deleteEntity(long entId, String tableName);
 
+    /**
+     * @param rec Props of File
+     */
+    void attachFile(Map<String, Object> rec);
+
+    /**
+     * @param tableName name of table
+     * @param params    params
+     * @return id of table
+     */
+    long insertRecToTable(String tableName, Map<String, Object> params, boolean generateId);
+
 }

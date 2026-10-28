@@ -27,6 +27,7 @@ import tofi.api.mdl.model.consts.FD_InputType_consts
 import tofi.api.mdl.model.consts.FD_PeriodType_consts
 import tofi.api.mdl.model.consts.FD_PropType_consts
 import tofi.api.mdl.utils.UtPeriod
+import tofi.api.mdl.utils.dbfilestorage.DbFileStorageService
 import tofi.apinator.ApinatorApi
 import tofi.apinator.ApinatorService
 
@@ -318,7 +319,27 @@ class DataDao extends BaseMdbUtils {
 
     @DaoMethod
     void deleteCalc(long id) {
-        deleteOwnerWithProperties(id, 1)
+        //
+        Map<String, Long> map = apiMeta().get(ApiMeta).getIdFromCodOfEntity("Prop", "Prop_CalcFile", "")
+        Store stTmp = mdb.loadQuery("""
+            select v.fileval
+            from DataProp d, DataPropVal v
+            where d.id=v.dataProp and d.isObj=1 and
+                d.objorrelobj=${id} and d.prop=${map.get"Prop_CalcFile"}
+        """)
+        Set<Object> fileIds = stTmp.getUniqueValues("fileval")
+        try {
+            for (Object o in fileIds) {
+                long it = UtCnv.toLong(o)
+                DbFileStorageService dfsrv = apiMeta().get(ApiMeta).getDbFileStorageService()
+                dfsrv.setModelName("calcdata")
+                dfsrv.removeFile(it)
+            }
+        } catch (Exception e) {
+            e.printStackTrace()
+        } finally {
+            deleteOwnerWithProperties(id, 1)
+        }
     }
 
     private void deleteOwnerWithProperties(long id, int isObj) {
