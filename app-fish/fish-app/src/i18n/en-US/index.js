@@ -14,6 +14,7 @@ export default {
   appMonitoringName: "Water body monitoring",
   appNsiName: "Normative reference information",
   appAnalyseName: "Data analysis",
+  appIAS: "IAS for Fish Stock Assessment and TAC",
 
   tit1: "System for",
   tit2: "assessing reserves",

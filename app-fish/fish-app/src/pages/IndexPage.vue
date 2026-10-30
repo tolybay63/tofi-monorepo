@@ -48,7 +48,7 @@
             <!-- 1. НСИ -->
             <div
               class="service-card shadow-3 cursor-pointer relative-position"
-              style="margin-left: 10%;"
+              style="margin-left: 5%;"
               v-ripple
               @click="fnNSI()"
             >
@@ -63,7 +63,7 @@
             <!-- 2. Мониторинг водоемов -->
             <div
               class="service-card shadow-3 cursor-pointer relative-position"
-              style="margin-left: 20%;"
+              style="margin-left: 10%;"
               v-ripple
               @click="fnMonitoring()"
             >
@@ -78,7 +78,7 @@
             <!-- 3. Оценка запасов и ПДУ (Калькулятор) -->
             <div
               class="service-card shadow-3 cursor-pointer relative-position"
-              style="margin-left: 30%;"
+              style="margin-left: 15%;"
               v-ripple
               @click="fnCalc()"
             >
@@ -93,7 +93,7 @@
             <!-- 4. Анализ данных -->
             <div
               class="service-card shadow-3 cursor-pointer relative-position"
-              style="margin-left: 40%;"
+              style="margin-left: 20%;"
               v-ripple
               @click="fnAnalyse()"
             >
@@ -101,6 +101,21 @@
                 <q-avatar size="48px" color="orange-4" text-color="white" icon="biotech" class="q-mr-md absolute-left q-ml-md" style="top: 50%; transform: translateY(-50%);" />
                 <div class="text-white text-h6 text-weight-bold text-uppercase no-wrap text-center" style="letter-spacing: 0.5px;">
                   {{ $t("appAnalyseName") }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. ИАС оценки запаса рыб и ПДУ -->
+            <div
+              class="service-card shadow-3 cursor-pointer relative-position"
+              style="margin-left: 25%;"
+              v-ripple
+              @click="fnIAS()"
+            >
+              <div class="row items-center justify-center no-wrap full-height q-px-md">
+                <q-avatar size="48px" color="orange-4" text-color="white" icon="biotech" class="q-mr-md absolute-left q-ml-md" style="top: 50%; transform: translateY(-50%);" />
+                <div class="text-white text-h6 text-weight-bold text-uppercase no-wrap text-center" style="letter-spacing: 0.5px;">
+                  {{ $t("appIAS") }}
                 </div>
               </div>
             </div>
@@ -116,6 +131,10 @@
 <script setup>
 import {appAdmURL, appCalcURL, appModelURL, appMonitoringURL, appNsiURL} from "@/boot/axios";
 import {Notify} from "quasar";
+
+const fnIAS = () => {
+  window.location.href = `${window.location.protocol}//${window.location.hostname}:8080/`;
+};
 
 function fnAdm() {
   window.open(appAdmURL, "_self");

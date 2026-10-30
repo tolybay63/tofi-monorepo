@@ -15,6 +15,7 @@ export default {
   appNsiName: 'Нормативно - справочная информация',
   appCalcName: "Оценка запасов и ПДУ",
   appAnalyseName: "Анализ данных",
+  appIAS: "ИАС оценки запаса рыб и ПДУ",
 
   tit1: "Система",
   tit2: "оценки",
