@@ -113,7 +113,7 @@
               @click="fnIAS()"
             >
               <div class="row items-center justify-center no-wrap full-height q-px-md">
-                <q-avatar size="48px" color="orange-4" text-color="white" icon="biotech" class="q-mr-md absolute-left q-ml-md" style="top: 50%; transform: translateY(-50%);" />
+                <q-avatar size="48px" color="orange-4" text-color="white" icon="set_meal" class="q-mr-md absolute-left q-ml-md" style="top: 50%; transform: translateY(-50%);" />
                 <div class="text-white text-h6 text-weight-bold text-uppercase no-wrap text-center" style="letter-spacing: 0.5px;">
                   {{ $t("appIAS") }}
                 </div>
